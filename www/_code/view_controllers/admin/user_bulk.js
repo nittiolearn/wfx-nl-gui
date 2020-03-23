@@ -565,14 +565,15 @@ function(nl, nlDlg, nlGroupInfo, nlImporter, nlProgressLog, nlRouter, nlServerAp
         _throwException('Properly formed email address is mandatory', row);
     };
 
-    var MOBILE_REGEX = /^\+?[0-9]+$/;
+    var MOBILE_REGEX = /^[0-9]+$/;
     this.validateMobile = function(row) {
         if(!row.mobile) row.mobile = '';
         if (!row.mobile) return;
         row.mobile = row.mobile.replace(/\s/g, '');
+        row.mobile = row.mobile.replace(/\+/g, '');
         row.mobile = row.mobile.indexOf('m:') === 0 ? row.mobile.replace('m:', '') : row.mobile;
-
-        if(!MOBILE_REGEX.test(row.mobile)) _throwException('Mobile number not valid', row);
+        if (row.mobile.length == 10) row.mobile = '91' + row.mobile;
+        if(!MOBILE_REGEX.test(row.mobile) || row.mobile.length != 12) _throwException('Mobile number expected in format "m:919988766554"', row);
     };
 
     var SECLOGIN_REGEX = /^[a-z0-9_-]+$/;

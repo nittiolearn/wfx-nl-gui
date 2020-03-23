@@ -61,14 +61,6 @@ function(nl, nlDlg, nlConfig, Upload) {
         return _postWithReoadUserData('_serverapi/auth_login.json', data, false);
     };
 
-    this.authRequestOTP = function(phonenumber) {
-        return _postWithReoadUserData('_serverapi/auth_request_otp.json', {phonenumber:phonenumber}, false);
-    };
-
-    this.authVerifyOTP = function(data) {
-        return _postWithReoadUserData('_serverapi/auth_verify_otp.json', data, false);
-    };
-
     this.authLogout = function() {
         return server.post('_serverapi/auth_logout.json', {}, true, true);
     };

@@ -220,32 +220,33 @@ function _loginControllerImpl(ctrlType, nl, nlRouter, $scope, nlServerApi, nlDlg
                 dataToServer.reset_key = $scope.reset_key;
                 dataToServer.user_id = $scope.user_id;
             }
-            if ($scope.msgType == "login_otp_received") {
-                dataToServer.phonenumber = $scope.data.phonenumber;
-                dataToServer.otp = $scope.data.otp;
+            if ($scope.msgType == "login_otp_received" && $scope.isOtp2fa) {
+                dataToServer.otp_2fa = $scope.data.otp;
+                // TODO-NOW: retry button in OTP screen does not work?
+                // If once OTP is wrong, it hangs second time?
             }
+            $scope.isOtp2fa = false;
             nlServerApi.authLogin(dataToServer).then(_onLoginSuccess, _onLoginFailed);
         } else {
             nlServerApi.authImpersonate($scope.data.username).then(_onLoginSuccess, _onLoginFailed);
         }
     }    	
     
-    $scope.loginOTP = function() { _updateMsg('login_otp'); }
-    $scope.loginWithUserID = function() { _updateMsg('login_userid'); }
+    $scope.loginOTP = function() { _updateMsg('login_otp'); };
+    $scope.loginWithUserID = function() { 
+        $scope.isOtp2fa = false; 
+        $scope.data.otp = '';
+        _updateMsg('login_userid'); 
+    };
 
     $scope.loginWithOTP = function() {
         if($scope.data.otp.length !== 4) return nlDlg.setFieldError($scope, 'otp', nl.t('Please Enter a Valid OTP'));
         nlDlg.showLoadingScreen();
-        if ($scope._2fa_otp) return $scope.loginWithSignInOrEnter();
+        if ($scope.isOtp2fa) return $scope.loginWithSignInOrEnter();
         nlServerApi.clearCache();
         var dataToServer = {phonenumber: $scope.data.phonenumber, username: $scope.data.username,
             otp: $scope.data.otp};
-
-        nlServerApi.authVerifyOTP(dataToServer).then(function(data) {
-            nlDlg.hideLoadingScreen();
-            if(data.type === 'error') return nlDlg.popupAlert({title: 'Error', template: data.message});
-            console.log(data);
-        });
+        // TODO-LATER: This has to be reimplemented later
     }
 
     $scope.isNumberKey = function(evt, len, fieldname, fn) {
@@ -271,15 +272,8 @@ function _loginControllerImpl(ctrlType, nl, nlRouter, $scope, nlServerApi, nlDlg
         nlServerApi.clearCache();
         var phonenumber = $scope.data.phonenumber;
         if (phonenumber[0] != '+') phonenumber = "+91" + phonenumber;
-        nlServerApi.authRequestOTP(phonenumber).then(function(data) {
-            nlDlg.hideLoadingScreen();
-            console.log(data);
-            if(data.type === 'error') return nlDlg.popupAlert({title: 'Error', template: 'Please Enter Valid Mobile Number'});
-            if(data.type === 'success') $scope.msgType = "login_otp_received"
-        }, function(err){ 
-            $scope.msg = err.message;
-            return nlDlg.popupAlert({title: 'Error', template: err.message});
-        });
+        // TODO-LATER: Call the server
+        $scope.msgType = "login_otp_received"
     }
 
     function _validatePhoneNumber(scope) {
@@ -404,8 +398,7 @@ function _loginControllerImpl(ctrlType, nl, nlRouter, $scope, nlServerApi, nlDlg
             if (isChange || expired) nlDlg.getField('new_password1').focus();
             if (data.extendedStatusCode == '2FA_OTP_VERIFY') {
                 $scope.msgType = "login_otp_received";
-                $scope._2fa_otp = true;
-                console.log('TODO-NOW: ', data);
+                $scope.isOtp2fa = true;
             }
         });
     }
