@@ -220,6 +220,10 @@ function _loginControllerImpl(ctrlType, nl, nlRouter, $scope, nlServerApi, nlDlg
                 dataToServer.reset_key = $scope.reset_key;
                 dataToServer.user_id = $scope.user_id;
             }
+            if ($scope.msgType == "login_otp_received") {
+                dataToServer.phonenumber = $scope.data.phonenumber;
+                dataToServer.otp = $scope.data.otp;
+            }
             nlServerApi.authLogin(dataToServer).then(_onLoginSuccess, _onLoginFailed);
         } else {
             nlServerApi.authImpersonate($scope.data.username).then(_onLoginSuccess, _onLoginFailed);
@@ -232,9 +236,11 @@ function _loginControllerImpl(ctrlType, nl, nlRouter, $scope, nlServerApi, nlDlg
     $scope.loginWithOTP = function() {
         if($scope.data.otp.length !== 4) return nlDlg.setFieldError($scope, 'otp', nl.t('Please Enter a Valid OTP'));
         nlDlg.showLoadingScreen();
+        if ($scope._2fa_otp) return $scope.loginWithSignInOrEnter();
         nlServerApi.clearCache();
-        var phonenumber = "+91" + $scope.data.phonenumber;
-        var dataToServer = {phonenumber: phonenumber, otp: $scope.data.otp}
+        var dataToServer = {phonenumber: $scope.data.phonenumber, username: $scope.data.username,
+            otp: $scope.data.otp};
+
         nlServerApi.authVerifyOTP(dataToServer).then(function(data) {
             nlDlg.hideLoadingScreen();
             if(data.type === 'error') return nlDlg.popupAlert({title: 'Error', template: data.message});
@@ -254,11 +260,17 @@ function _loginControllerImpl(ctrlType, nl, nlRouter, $scope, nlServerApi, nlDlg
         return true;
     }
 
+    $scope.onMobileEnter = function(evt) {
+        if(evt.keyCode !== 13) return;
+        $scope.requestOTP();
+    };
+
     $scope.requestOTP = function() {
         if (!_validatePhoneNumber($scope)) return;
         nlDlg.showLoadingScreen();
         nlServerApi.clearCache();
-        var phonenumber = "+91" + $scope.data.phonenumber;
+        var phonenumber = $scope.data.phonenumber;
+        if (phonenumber[0] != '+') phonenumber = "+91" + phonenumber;
         nlServerApi.authRequestOTP(phonenumber).then(function(data) {
             nlDlg.hideLoadingScreen();
             console.log(data);
@@ -276,13 +288,12 @@ function _loginControllerImpl(ctrlType, nl, nlRouter, $scope, nlServerApi, nlDlg
             return nlDlg.setFieldError(scope, 'phonenumber', nl.t('Phone Number is required'));
         } else if (scope.data.phonenumber.length > 0) {
             scope.data.phonenumber = scope.data.phonenumber.trim();
-            var num = scope.data.phonenumber.replace(/[^0-9]/g, "");
-            var firstChar = parseInt(num[0]);
-            if((num.match(/^(.)\1 $/) != null) || (num.length !== 10) || firstChar < 6) {
+            var num = scope.data.phonenumber.replace(/ /g, "");
+            if (num.length < 10 || num.match(/^\+?[0-9]+$/) == null) {
                 return nlDlg.setFieldError(scope, 'phonenumber', nl.t('Please Enter a Valid Phone Number'));
             }
         }
-        return true
+        return true;
      }
     
 
@@ -391,6 +402,11 @@ function _loginControllerImpl(ctrlType, nl, nlRouter, $scope, nlServerApi, nlDlg
             if (expired) _updateMsg('pw_change');
             $scope.hintmsg = changeError ? data.msg : '';
             if (isChange || expired) nlDlg.getField('new_password1').focus();
+            if (data.extendedStatusCode == '2FA_OTP_VERIFY') {
+                $scope.msgType = "login_otp_received";
+                $scope._2fa_otp = true;
+                console.log('TODO-NOW: ', data);
+            }
         });
     }
 

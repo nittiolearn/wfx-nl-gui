@@ -145,9 +145,9 @@ input.nl-border-radius {
 		
 				<div ng-if='msgType == "login_otp"' 
 					class='row row-wrap row-top padding0 margin0 text-left'>
-					<div ng-class='resp2Col33' class='padding-mid'><div class='padding-mid-v'>User ID/ Mobile Number</div></div>
+					<div ng-class='resp2Col33' class='padding-mid'><div class='padding-mid-v'>Mobile Number</div></div>
 					<div ng-class='resp2Col67' class='padding-mid-v'>
-						<nl-input fieldmodel='phonenumber' ng-keypress="isNumberKey($event, 10, 'phonenumber', requestOTP)" fieldtype='text' fieldcls='w100 nl-border-radius'></nl-input>
+						<nl-input fieldmodel='phonenumber' ng-keypress="onMobileEnter($event)" fieldtype='tel' fieldcls='w100 nl-border-radius'></nl-input>
 					</div>
 				</div>
 	
