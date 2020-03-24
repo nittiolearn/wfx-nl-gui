@@ -215,7 +215,10 @@ function _loginControllerImpl(ctrlType, nl, nlRouter, $scope, nlServerApi, nlDlg
         if ($scope.msgType != 'impersonate') {
             var dataToServer = {username: $scope.data.username, password: $scope.data.password, 
                 remember: $scope.data.remember, showExtendedStatusCode: true};
-            if ($scope.msgType == 'pw_change' || $scope.msgType == 'pw_reset') dataToServer.new_password = $scope.data.new_password1;
+            if ($scope.msgType == 'pw_change' || $scope.msgType == 'pw_reset') {
+                dataToServer.new_password = $scope.data.new_password1;
+                dataToServer.password = dataToServer.new_password;
+            }
             if ($scope.msgType == 'pw_reset') {
                 dataToServer.reset_key = $scope.reset_key;
                 dataToServer.user_id = $scope.user_id;
@@ -397,7 +400,7 @@ function _loginControllerImpl(ctrlType, nl, nlRouter, $scope, nlServerApi, nlDlg
             if (data.extendedStatusCode == '2FA_OTP_VERIFY') {
                 $scope.msgType = "login_otp_received";
                 $scope.isOtp2fa = true;
-                nlDlg.getField('otp').focus();
+                if(nlDlg.getField('otp')) nlDlg.getField('otp').focus();
             }
         });
     }
