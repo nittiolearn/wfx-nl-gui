@@ -217,7 +217,6 @@ function _loginControllerImpl(ctrlType, nl, nlRouter, $scope, nlServerApi, nlDlg
                 remember: $scope.data.remember, showExtendedStatusCode: true};
             if ($scope.msgType == 'pw_change' || $scope.msgType == 'pw_reset') {
                 dataToServer.new_password = $scope.data.new_password1;
-                dataToServer.password = dataToServer.new_password;
             }
             if ($scope.msgType == 'pw_reset') {
                 dataToServer.reset_key = $scope.reset_key;
@@ -398,9 +397,11 @@ function _loginControllerImpl(ctrlType, nl, nlRouter, $scope, nlServerApi, nlDlg
             $scope.hintmsg = changeError ? data.msg : '';
             if (isChange || expired) nlDlg.getField('new_password1').focus();
             if (data.extendedStatusCode == '2FA_OTP_VERIFY') {
+                if($scope.msgType == 'pw_change') {
+                    $scope.data.password = $scope.data.new_password1;
+                }
                 $scope.msgType = "login_otp_received";
                 $scope.isOtp2fa = true;
-                if(nlDlg.getField('otp')) nlDlg.getField('otp').focus();
             }
         });
     }
