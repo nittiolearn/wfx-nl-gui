@@ -998,7 +998,7 @@ function NlServerInterface(nl, nlDlg, nlConfig, Upload, brandingInfoHandler) {
             reject(rejectData);
             return;
         }
-        nlDlg.popupAlert({title: 'Error', template: errorMsg})
+        nlDlg.popupAlert({title: 'Alert', template: errorMsg})
         .then(function(res) {
             reject(rejectData);
         });

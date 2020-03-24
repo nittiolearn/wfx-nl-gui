@@ -222,8 +222,6 @@ function _loginControllerImpl(ctrlType, nl, nlRouter, $scope, nlServerApi, nlDlg
             }
             if ($scope.msgType == "login_otp_received" && $scope.isOtp2fa) {
                 dataToServer.otp_2fa = $scope.data.otp;
-                // TODO-NOW: retry button in OTP screen does not work?
-                // If once OTP is wrong, it hangs second time?
             }
             $scope.isOtp2fa = false;
             nlServerApi.authLogin(dataToServer).then(_onLoginSuccess, _onLoginFailed);
@@ -399,6 +397,7 @@ function _loginControllerImpl(ctrlType, nl, nlRouter, $scope, nlServerApi, nlDlg
             if (data.extendedStatusCode == '2FA_OTP_VERIFY') {
                 $scope.msgType = "login_otp_received";
                 $scope.isOtp2fa = true;
+                nlDlg.getField('otp').focus();
             }
         });
     }
