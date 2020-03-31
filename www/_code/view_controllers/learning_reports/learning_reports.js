@@ -1014,7 +1014,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 	}
 
 	function _updateNhtColumns() {
-		var isClosedBatches = $scope.tabData.filter.closed_batches;
+		var isClosedBatches = $scope.tabData.selectedTab.id == 'nhtclosed';
 		for(var i=0; i<_nhtColumns.length; i++) {
 			var col = _nhtColumns[i];
 			var notApplicable = isClosedBatches && col.showIn == 'running' ||

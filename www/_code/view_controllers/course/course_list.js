@@ -616,7 +616,7 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
 	}
 	
 	function _onCourseSave(e, $scope, dlgScope, courseId, bPublish, isCopy) {
-	    if(!_validateInputs(dlgScope)) {
+	    if(!_validateInputs(dlgScope, bPublish)) {
 	        if(e) e.preventDefault();
 	        return null;
 	    }
@@ -669,7 +669,7 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
 		nlCardsSrv.updateCards($scope.cards);	
 	}
 
-    function _validateInputs(scope) {
+    function _validateInputs(scope, bPublish) {
         scope.error = {};
         if(!scope.data.name) return _validateFail(scope, 'name', 'Course name is mandatory');
         if(!scope.data.icon) return _validateFail(scope, 'icon', 'Course icon URL is mandatory');
@@ -677,14 +677,14 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
 
         try {
             var courseContent = angular.fromJson(scope.data.content);
-            return _validateContent(scope, courseContent);            
+            return _validateContent(scope, courseContent, bPublish);            
         } catch (error) {
         	return nlDlg.setFieldError(scope, 'content',
 				nl.t('Error parsing JSON: {}. Try http://www.jsoneditoronline.org to debug more', error.toString()));
         }
     }
 
-    function _validateContent(scope, courseContent) {
+    function _validateContent(scope, courseContent, bPublish) {
     	if (!courseContent.modules) return _validateFail(scope, 'content', 
             '"modules" field is expected in content');
         var modules = courseContent.modules;
@@ -695,6 +695,8 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
 
 		var uniqueIds = {};
 		uniqueIds['_root'] = 'module';
+		var ratingAdded = false;
+		var milestoneAdded = false;
         for(var i=0; i<modules.length; i++){
             var module = modules[i];
             if (!module.id) return _validateModuleFail(scope, module, '"id" is mandatory');
@@ -702,6 +704,8 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
             if (!module.type) return _validateModuleFail(scope, module, '"type" is mandatory');
 			if (module.id in uniqueIds) return _validateModuleFail(scope, module, '"id" has to be unique');
 			if(uniqueIds[module.parentId] !== 'module') return _validateModuleFail(scope, module, 'parentId is invalid');
+			if (module.type == 'milestone') milestoneAdded = true;
+			if (module.type == 'rating') ratingAdded = true;
 
             if (!_validateModuleType(scope, module)) return false;
             if (!_validateModulePlan(scope, module)) return false;
@@ -717,6 +721,21 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
 
 			uniqueIds[module.id] = module.type;
 		}
+		var _etm = _userInfo.groupinfo.features.etm || false;
+		if (bPublish && _etm) {
+			var msg = null;
+			if (courseContent.nht) {
+				if(!milestoneAdded)
+					msg = nl.t('This is an "NHT" Course. Please add milestone item to publish.');
+			} else {
+				if (ratingAdded) 
+					msg = nl.t('Course have rating item`s, so please enable this course as "NHT" to publish');
+				else if (milestoneAdded) 
+					msg = nl.t('Course have milestone item`s, so please enable this course as "NHT" to publish');
+			}
+			if(msg) return _validateFail(scope, 'content', msg);
+		}
+
         return true;
 	}
 

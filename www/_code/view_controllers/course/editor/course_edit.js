@@ -941,12 +941,33 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
 		modeHandler.course.content.blended = false;
 
 		var cmidToCm = {};
+		var milestoneAdded = false;
+		var ratingAdded = false;
 		for(var i=0; i<_allModules.length; i++){
     	    var newModule = _getSavableModuleAttrs(_allModules[i]);
 			_pruneStartAfter(newModule, cmidToCm);
+			if (newModule.type == 'milestone') milestoneAdded = true;
+			if (newModule.type == 'rating') ratingAdded = true;
 			if (newModule.type == 'iltsession' && !modeHandler.course.content.blended) modeHandler.course.content.blended = true;
 		    modeHandler.course.content.modules.push(newModule);
 		}
+		if (bPublish && _etm) {
+			var msg = null;
+			if (modeHandler.course.content.nht) {
+				if(!milestoneAdded)
+					msg = nl.t('This is an "NHT" Course. Please add milestone item to publish.');
+			} else {
+				if (ratingAdded) 
+					msg = nl.t('Course have rating item`s, so please enable this course as "NHT" to publish');
+				else if (milestoneAdded) 
+					msg = nl.t('Course have milestone item`s, so please enable this course as "NHT" to publish');
+			}
+			if(msg) {
+				nlDlg.popupAlert({title: nl.t('Can not publish course'), template: msg})
+				return;
+			}
+		}
+
 		var oldLangInfo = _pruneLanguageInfo(cmidToCm);
 		var contentJson = _objToJson(modeHandler.course.content);
 		if (oldLangInfo) modeHandler.course.content.languageInfo = oldLangInfo;
