@@ -43,6 +43,17 @@ function(nl, nlDlg, nlTreeListSrv) {
 			return nl.fmt2('/lesson/view/{}', lessonId);
 		};
 
+        dlg.scope.viewDetailedReport = function(module) {
+            var assignid = courseAssignment.id;
+            var lessonid = module.refid;
+            if (!assignid || !lessonid) {
+                var msg = !assignid ? 'Course assignment id is missing' : 'Lesson id is missing'
+                return nlDlg.popupAlert({title: 'Ids missing', template: msg});
+            }
+            var url = nl.t('/#/learning_reports?type=module&objid={}&assignid={}', lessonid, assignid);
+            nl.window.open(url,'_blank')
+		};
+
         dlg.scope.launchMeeting = function(selectedModule) {
             var msg = '<h4>Would you like to start/join the online meeting?</h4>';
             if (selectedModule.notes) msg = msg + '<p>Meeting Login notes: </p>' + 

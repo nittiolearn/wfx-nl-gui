@@ -37,7 +37,8 @@ var NlLrFilter = ['nl', 'nlDlg', 'nlRouter', 'nlOuUserSelect', function(nl, nlDl
 		debug: false, //only for testing in debug mode
 		chunksize: 50,
 		userSelection: false,
-		dontZip: false
+		dontZip: false,
+		assignid: null
 	};
 	var _data = null;
 	var _groupInfo = null;
@@ -53,7 +54,7 @@ var NlLrFilter = ['nl', 'nlDlg', 'nlRouter', 'nlOuUserSelect', function(nl, nlDl
         if (!_oneOf(_data.type, ['all', 'module', 'course', 'training_kind', 'module_assign', 'course_assign', 'module_self_assign', 'training_batch', 'user']))
         	_data.type = 'course';
 		_fillAttrs(_data, ['timestamptype', 'mode', 'myou', 'myoulevel', 'myoufilter', 'assignor', 'parentonly',
-			'repsubtype', 'objid', 'title', 'showfilters', 'showfilterjson', 'debug', 'chunksize', 'dontZip'], 
+			'repsubtype', 'objid', 'title', 'showfilters', 'showfilterjson', 'debug', 'chunksize', 'dontZip', 'assignid'], 
         	[settings, urlParams, _dataDefaults]);
         if (_oneOf(_data.type, ['module_assign', 'course_assign', 'training_batch', 'user']))
 			_data.showfilters = false;
@@ -64,6 +65,7 @@ var NlLrFilter = ['nl', 'nlDlg', 'nlRouter', 'nlOuUserSelect', function(nl, nlDl
 		if(_data.type != 'user') _toInt(_data, 'objid');
 		if (_data.mode != 'cert_report' || _data.type != 'course') _data.mode = null;
 		if (_data.mode == 'cert_report') _data.timestamptype = 'updated';
+		if (_data.assignid) _toInt(_data, 'assignid');
 		
 		_toBool(_data, 'myou');
 		_toInt(_data, 'myoulevel');
@@ -225,6 +227,7 @@ var NlLrFilter = ['nl', 'nlDlg', 'nlRouter', 'nlOuUserSelect', function(nl, nlDl
 			myou: _data.myou};
 		if (_data.type != 'all' && _data.objid) ret.objid = _data.objid;
 		if (_data.type == 'user') ret.userid = _data.userid;
+		if (_data.assignid) ret.assignid = _data.assignid;
 		if (_data.showfilters) {
 			if (_data.timestamptype == 'created') {
 				ret.createdtill = _data.createdtill;
