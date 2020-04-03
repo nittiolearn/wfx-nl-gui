@@ -47,11 +47,11 @@ function(nl, nlDlg, nlTreeListSrv) {
             var assignid = courseAssignment.id;
             var lessonid = module.refid;
             if (!assignid || !lessonid) {
-                var msg = !assignid ? 'Course assignment id is missing' : 'Lesson id is missing'
-                return nlDlg.popupAlert({title: 'Ids missing', template: msg});
+                var msg = !assignid ? 'Assignment id is missing' : 'Module id is missing';
+                return nlDlg.popupAlert({title: 'Error', template: msg});
             }
             var url = nl.t('/#/learning_reports?type=module&objid={}&assignid={}', lessonid, assignid);
-            nl.window.open(url,'_blank')
+            nl.window.open(url,'_blank');
 		};
 
         dlg.scope.launchMeeting = function(selectedModule) {

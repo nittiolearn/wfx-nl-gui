@@ -726,12 +726,12 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
 			var msg = null;
 			if (courseContent.nht) {
 				if(!milestoneAdded)
-					msg = nl.t('This is an "NHT" Course. Please add milestone item to publish.');
+					msg = nl.t('This is an "NHT" Course. Please add milestone item before publishing.');
 			} else {
 				if (ratingAdded) 
-					msg = nl.t('Course have rating item`s, so please enable this course as "NHT" to publish');
+					msg = nl.t('Course have rating items. Please enable "NHT" flag before publishing');
 				else if (milestoneAdded) 
-					msg = nl.t('Course have milestone item`s, so please enable this course as "NHT" to publish');
+					msg = nl.t('Course have milestone items. Please enable "NHT" flag before publishing');
 			}
 			if(msg) return _validateFail(scope, 'content', msg);
 		}

@@ -573,6 +573,7 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
 		var payload = {strExpression: cm.gateFormula, dictAvps: dictAvps};
         nlExpressionProcessor.process(payload);
         itemInfo.score = payload.error ? null : payload.result;
+        if (itemInfo.score) itemInfo.score = Math.round(itemInfo.score);
         if (!itemInfo.score && itemInfo.score !== null) itemInfo.score = 0;
         if (itemInfo.score === true) itemInfo.score = 100;
         itemInfo.rawStatus = itemInfo.score >= cm.gatePassscore ? 'success' : 'failed';

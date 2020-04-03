@@ -275,6 +275,11 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			id: 'selectUser',
 			onClick : _showRangeSelection,
 		}, {
+			title : 'Bulk delete reports',
+			icon : 'ion-ios-trash',
+			id: 'bulkdelete',
+			onClick : _onBulkDelete
+		}, {
 			title : 'Download report',
 			icon : 'ion-ios-cloud-download',
 			id: 'export',
@@ -326,6 +331,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 
 		if (tbid == 'exportCustomReport') return (type == 'course') && ($scope.debug || _customReportTemplate);
 		if (tbid == 'selectUser') return (nlLrFilter.getType() == 'user');
+		if (tbid == 'bulkdelete') return (type == 'course_assign' || type == 'module_assign');
 		return true;
 	};
 	
@@ -1432,6 +1438,63 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		nlLrExporter.exportCustomReport($scope, reportRecordsDict, customReportTemplate);
 	}
 	
+	function _onBulkDelete() {
+		var deleteDlg = nlDlg.create($scope);	
+		deleteDlg.setCssClass('nl-width-max');
+		deleteDlg.scope.dlgTitle = nl.t('Delete multiple reports');
+		deleteDlg.scope.data = {reportids: ''};
+		var okButton = {text: nl.t('Delete'), onTap: function(e) {
+			e.preventDefault();
+			_validateAndDeleteReports(deleteDlg.scope.data);
+		}};
+		var cancelButton = {text: nl.t('Cancel'), onTap: function(e) {
+			}};
+		deleteDlg.show('view_controllers/learning_reports/bulk_delete_reports_dlg.html',
+			[okButton], cancelButton);
+	}
+
+	function _validateAndDeleteReports(data) {
+		var reportids = data.reportids;
+		if (!reportids) {
+			return nlDlg.popupAlert({title: 'Error', template: 'No report ids provided. Please enter the report ids and continue deletion.'});
+		}
+		reportids = reportids.split('\n');
+		var repidsArray = [];
+		var repidsNotFound = [];
+		var uniqueIds = {};
+		var records = nlLrReportRecords.getRecords();
+		for (var i=0; i<reportids.length; i++) {
+			var id = reportids[i].trim();
+			if (!id) continue;
+			if (id && id.indexOf('id=') == 0) id = id.substring(3);
+			if (id in uniqueIds) continue;
+			uniqueIds[id] = true;
+			if (id in records) repidsArray.push(id);
+			else repidsNotFound.push(id);
+		}
+		if (repidsArray.length == 0) 
+			return nlDlg.popupAlert({title: 'Report ids not valid', template:'Please enter the valid report ids and try deleting.'});
+
+		var msg = '<div class="padding-mid">Are you sure of deleting following reports ?</div>';
+			msg += nl.t('<div class="padding-mid">Report ids: {}</div>', repidsArray);
+		if (repidsNotFound.length > 0) 
+			msg += nl.t('<div class="padding-mid">Invalid report ids: {}.', repidsNotFound);
+		
+		msg += nl.t('<div class="padding-mid">Please click on continue button to delete reports.</div>')
+		var msgTemp = {title: 'Confirm deletion', template: msg, okText: 'Continue'};
+		nlDlg.popupConfirm(msgTemp).then(function(res) {
+			if(!res) return;
+			nlDlg.showLoadingScreen();
+			nlServerApi.learningReportDelete({repids: repidsArray}).then(function(status){
+				nlDlg.hideLoadingScreen();
+				nlDlg.closeAll();
+				for (var i=0; i<repidsArray.length; i++) nlLrReportRecords.removeRecord(repidsArray[i]);
+				_updateScope();
+
+			})
+		});
+	};
+
 	function _onViewContent() {
 		var objId = nlLrFilter.getObjectId();
 		var type = nlLrFilter.getType();
