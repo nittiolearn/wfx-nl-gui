@@ -50,7 +50,7 @@ function(nl, nlDlg, nlTreeListSrv) {
                 var msg = !assignid ? 'Assignment id is missing' : 'Module id is missing';
                 return nlDlg.popupAlert({title: 'Error', template: msg});
             }
-            var url = nl.t('/#/learning_reports?type=module&objid={}&assignid={}', lessonid, assignid);
+            var url = nl.t('/#/learning_reports?type=module&objid={}&assignid={}&moduleid={}', lessonid, assignid, module.id);
             nl.window.open(url,'_blank');
 		};
 

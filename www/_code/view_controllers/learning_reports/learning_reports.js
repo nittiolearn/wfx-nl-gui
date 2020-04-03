@@ -439,6 +439,8 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 	function _updateCurrentTab(avoidFlicker) {
 		var tabData = $scope.tabData;
 		var tab = tabData.selectedTab;
+		if (tab.id == 'nhtclosed') _updateSelectedColumnsOfNHT(true);
+		if (tab.id == 'nhtrunning') _updateSelectedColumnsOfNHT(false);
 		if (tab.updated) return;
 		if (!avoidFlicker) {
 			tabData.nothingToDisplay = false;
@@ -457,6 +459,18 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			}
 			nlDlg.hideLoadingScreen();
 		}, 100);
+	}
+
+	var nhtMandatoryCols = {batchFirstPass: true, batchThroughput: true};
+	function _updateSelectedColumnsOfNHT(isClosed) {
+		if (!_selectedNhtColumns) return;
+		for (var i=0; i<_selectedNhtColumns.length; i++) {
+			var col = _selectedNhtColumns[i];
+			if (col.id in nhtMandatoryCols) {
+				if(isClosed) col.canShow = true;
+				else col.canShow = false;
+			}
+		}
 	}
 
 	function _actualUpdateCurrentTab(tabData, tab) {
@@ -989,7 +1003,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 
 	var _selectedNhtColumns = null;
 	function _initNhtColumns() {
-		var defColumns = ["cntTotal", "batchStatus", "batchName", "partner", "lob", "trainer", "avgDelay"];
+		var defColumns = ["cntTotal", "batchStatus", "batchName", "partner", "lob", "trainer", "avgDelay", "batchFirstPass", "batchThroughput"];
 		_nhtColumns = _getNhtColumns();
 		if (!_selectedNhtColumns) {
 			var nhtColumnsDict = nl.utils.arrayToDictById(_nhtColumns);
@@ -1465,7 +1479,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		var records = nlLrReportRecords.getRecords();
 		for (var i=0; i<reportids.length; i++) {
 			var id = reportids[i].trim();
-			if (!id) continue;
+			if (!id) continue
 			if (id && id.indexOf('id=') == 0) id = id.substring(3);
 			if (id in uniqueIds) continue;
 			uniqueIds[id] = true;
@@ -1507,7 +1521,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 
 	function _onCourseAssignView() {
 		var courseAssign = _getCourseAssignmnt();
-		var modifiedILT = courseAssign.info ? courseAssign.info.modifiedILT : {};
+		var modifiedILT = courseAssign.info && courseAssign.info.modifiedILT ? courseAssign.info.modifiedILT : {};
 		modifiedILT = nlCourse.migrateModifiedILT(modifiedILT);
 		var content = _getContentOfCourseAssignment() || {};
 		var nlLrCourseAssignView = nlLrUpdateBatchDlg.getCourseAssignView();

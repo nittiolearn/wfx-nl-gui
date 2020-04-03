@@ -926,15 +926,54 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
 			_saveAfterValidateCourse(e, bPublish);
 			return;
 		}
-		var templateMsg = nl.t('Are you sure you want to publish this course?');
-		var msg = {title: 'Please confirm', 
-				   template: templateMsg,
-				   okText: nl.t('Publish')};
-		nlDlg.popupConfirm(msg).then(function(res) {
-			if(!res) return;
-			_saveAfterValidateCourse(e, bPublish);
-		});	
+		var features = _groupInfo.props.features || {};
+		var checkList = features.courses ? features.courses.coursePublishChecklist : false;
+		if (checkList) {
+			var _checklistDlg = nlDlg.create($scope);
+			_checklistDlg.scope.dlgTitle = nl.t('Publish course');
+			_checklistDlg.scope.data = {checklist: getCheckList(checkList)};
+			var okButton = {text: nl.t('Publish'), onTap: function(){
+				var selectedChecklist = [];
+				for (var i=0; i<_checklistDlg.scope.data.checklist.length; i++) {
+					var item = _checklistDlg.scope.data.checklist[i];
+					if(item.selected) selectedChecklist.push(item.name);
+				}
+				modeHandler.course.content.checklist = selectedChecklist;
+				_saveAfterValidateCourse(e, bPublish);
+			}};
+			var closeButton = {text: nl.t('Cancel')};
+			_checklistDlg.show('view_controllers/course/editor/course_check_list.html', [okButton], closeButton, false);
+		} else {
+			var templateMsg = nl.t('Are you sure you want to publish this course?');
+			var msg = {title: 'Please confirm', 
+					   template: templateMsg,
+					   okText: nl.t('Publish')};
+			nlDlg.popupConfirm(msg).then(function(res) {
+				if(!res) return;
+				_saveAfterValidateCourse(e, bPublish);
+			});	
+		}
 	}
+
+	function getCheckList(groupCheckList) {
+		var publishedChecklist = modeHandler.course.content.checklist || [];
+		var ret = [];
+		for(var i=0; i<groupCheckList.length; i++) {
+			var item = groupCheckList[i];
+			var itemFound = false;
+			for (var j=0; j<publishedChecklist.length; j++) {
+				if (publishedChecklist[j] == item) {
+					itemFound = true;
+					break;
+				}
+			}
+			if (itemFound)
+				ret.push({selected: true, name: item});
+			else
+				ret.push({selected: false, name: item});
+		}
+		return ret;
+	};
 
     function _saveAfterValidateCourse(e, bPublish) {
         modeHandler.course.content.modules = [];

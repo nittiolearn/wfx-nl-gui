@@ -38,7 +38,8 @@ var NlLrFilter = ['nl', 'nlDlg', 'nlRouter', 'nlOuUserSelect', function(nl, nlDl
 		chunksize: 50,
 		userSelection: false,
 		dontZip: false,
-		assignid: null
+		assignid: null,
+		moduleid: null
 	};
 	var _data = null;
 	var _groupInfo = null;
@@ -54,7 +55,7 @@ var NlLrFilter = ['nl', 'nlDlg', 'nlRouter', 'nlOuUserSelect', function(nl, nlDl
         if (!_oneOf(_data.type, ['all', 'module', 'course', 'training_kind', 'module_assign', 'course_assign', 'module_self_assign', 'training_batch', 'user']))
         	_data.type = 'course';
 		_fillAttrs(_data, ['timestamptype', 'mode', 'myou', 'myoulevel', 'myoufilter', 'assignor', 'parentonly',
-			'repsubtype', 'objid', 'title', 'showfilters', 'showfilterjson', 'debug', 'chunksize', 'dontZip', 'assignid'], 
+			'repsubtype', 'objid', 'title', 'showfilters', 'showfilterjson', 'debug', 'chunksize', 'dontZip', 'assignid', 'moduleid'], 
         	[settings, urlParams, _dataDefaults]);
         if (_oneOf(_data.type, ['module_assign', 'course_assign', 'training_batch', 'user']))
 			_data.showfilters = false;
@@ -94,6 +95,14 @@ var NlLrFilter = ['nl', 'nlDlg', 'nlRouter', 'nlOuUserSelect', function(nl, nlDl
 	
     this.getType = function() {
     	return _data.type;
+	};
+
+	this.isDetailedReport = function() {
+		return _data.assignid ? true : false;
+	};
+
+	this.getModuleId = function() {
+		return _data.moduleid;
 	};
 
 	this.getMode = function() {

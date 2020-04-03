@@ -1,0 +1,15 @@
+<nl-dlg dlgTitle='{{dlgTitle}}' show-help='0'>
+<nl-dlg-content>
+<nl-inline-help>
+    Please select from below list and try publishing the course.
+</nl-inline-help>
+ <div class='row row-center margin0 padding-mid fsh6 nl-link-text'
+    ng-repeat='item in data.checklist' ng-click='item.selected = !item.selected'>
+    <span>
+        <i ng-show='item.selected' class="icon ion-android-checkbox-outline black"></i>
+        <i ng-hide='item.selected' class="icon ion-android-checkbox-outline-blank black"></i>
+        <span>{{item.name}}</span>
+    </span>
+ </div>
+</nl-dlg-content>
+</nl-dlg>
