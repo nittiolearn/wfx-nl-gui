@@ -101,6 +101,7 @@ function(nl) {
     this.migrateModifiedILT = function(modifiedILT) {
         //Earlier the modifiedILT stored in the course assignment is of {_id0:480, _id1: 360};
         //Migrated version of modifiedILT is {_id0: {duration:480, url:'meeting link url', start: dateOBj, notes: ''}, _id1: {duration: 360, url: '', notes: '', start: dateOBJ}}
+        if (!modifiedILT) return {};
         if (Object.keys(modifiedILT).length == 0) return modifiedILT;
         if (modifiedILT.session_version && modifiedILT.session_version == CURRENT_COURSE_SESSION_VERSION) return modifiedILT;
         var newModifiedILT = {session_version: CURRENT_COURSE_SESSION_VERSION};
