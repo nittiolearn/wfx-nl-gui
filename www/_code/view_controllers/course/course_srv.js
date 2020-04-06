@@ -110,6 +110,28 @@ function(nl) {
         return newModifiedILT;
     };
 
+    this.getCheckListDialogParams = function(grpChecklist, checklist) {
+        var ret = [];
+        for (var i=0; i<grpChecklist.length; i++) {
+            var isFound = false;
+            for (var j=0; j<checklist.length; j++) {
+                if (grpChecklist[i] == checklist[j]) {
+                    isFound = true;
+                    break;
+                }
+            }
+            if (isFound) ret.push({selected: true, name: grpChecklist[i]});
+            else ret.push({selected: false, name: grpChecklist[i]});
+        }
+        var msg = '<div class="padding-mid fsh6">Course published with below values checked:</div>';
+        for (var i=0; i<ret.length; i++) {
+            var item = ret[i];
+            msg += nl.t('<div class="row row-center margin0 padding-mid fsh6"><span><i class="icon {} black"></i><span class="padding-mid" style="{}">{}</span></span></div>', item.selected ? 'ion-checkmark-circled   ' : '', item.selected ? '' : 'padding-left:21px', item.name);
+        }
+        msg += '<div class="row row-center margin0 padding-mid fsh6">Click on continue to send assignment.</div>';
+        return msg;
+    };
+
 	function _getStatusOfModule(module, modules, statusInfo, lessonReports, score) {
 		if (score === undefined) score = null;
         if (module['type'] == 'certificate' || module['type'] == 'module' || 

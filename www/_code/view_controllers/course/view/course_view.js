@@ -1195,7 +1195,18 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlCourseEditor, nlC
         var assignInfo = {assigntype: 'course', id: c.id, icon: c.icon, 
             title: c.name, authorName: c.authorname, description: c.description, 
             showDateField: true, enableSubmissionAfterEndtime: false, blended: c.content.blended, course: c};
-        nlSendAssignmentSrv.show($scope, assignInfo, _userInfo);
+        var features = _userInfo.groupinfo.features;
+        var grpChecklist = features.courses && features.courses.coursePublishChecklist ? features.courses.coursePublishChecklist : [];
+        if (grpChecklist && grpChecklist.length > 0) {
+            var checklist = c.content.checklist || [];
+            var msg = nlCourse.getCheckListDialogParams(grpChecklist, checklist);
+            nlDlg.popupConfirm({title: 'Warning', template: msg, okText: 'Continue'}).then(function(res) {
+                if (!res) return;
+                nlSendAssignmentSrv.show($scope, assignInfo, _userInfo);						
+            });
+        } else {
+            nlSendAssignmentSrv.show($scope, assignInfo, _userInfo);						
+        }
     }
 }];
 
