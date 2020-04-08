@@ -113,6 +113,7 @@ function(nl) {
 
     this.getCheckListDialogParams = function(grpChecklist, checklist) {
         var ret = [];
+        var allItemsChecked = true;
         for (var i=0; i<grpChecklist.length; i++) {
             var isFound = false;
             for (var j=0; j<checklist.length; j++) {
@@ -121,15 +122,17 @@ function(nl) {
                     break;
                 }
             }
+            if (!isFound) allItemsChecked = false;
             if (isFound) ret.push({selected: true, name: grpChecklist[i]});
             else ret.push({selected: false, name: grpChecklist[i]});
         }
-        var msg = '<div class="padding-mid fsh6">Course published with below values checked:</div>';
+        if (allItemsChecked) return null;
+        var msg = '<div class="padding-mid fsh6">The course may not be ready for distribution as some of the checklists are not marked:</div>';
         for (var i=0; i<ret.length; i++) {
             var item = ret[i];
-            msg += nl.t('<div class="row row-center margin0 padding-mid fsh6"><span><i class="icon {} black"></i><span class="padding-mid" style="{}">{}</span></span></div>', item.selected ? 'ion-checkmark-circled   ' : '', item.selected ? '' : 'padding-left:21px', item.name);
+            msg += nl.t('<div class="row row-center margin0 padding-mid fsh6"><span><i class="icon {} black"></i><span class="padding-mid">{}</span></span></div>', item.selected ? 'ion-checkmark-circled' : 'ion-close-circled', item.name);
         }
-        msg += '<div class="row row-center margin0 padding-mid fsh6">Click on continue to send assignment.</div>';
+        msg += '<div class="row row-center margin0 padding-mid fsh6">Are you sure you would like to go ahead assigning this course.</div>';
         return msg;
     };
 

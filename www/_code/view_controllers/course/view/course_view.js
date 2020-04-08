@@ -1200,10 +1200,14 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlCourseEditor, nlC
         if (grpChecklist && grpChecklist.length > 0) {
             var checklist = c.content.checklist || [];
             var msg = nlCourse.getCheckListDialogParams(grpChecklist, checklist);
-            nlDlg.popupConfirm({title: 'Warning', template: msg, okText: 'Continue'}).then(function(res) {
-                if (!res) return;
-                nlSendAssignmentSrv.show($scope, assignInfo, _userInfo);						
-            });
+            if (msg) {
+                nlDlg.popupConfirm({title: 'Warning', template: msg, okText: 'Continue'}).then(function(res) {
+                    if (!res) return;
+                    nlSendAssignmentSrv.show($scope, assignInfo, _userInfo);						
+                });    
+            } else {
+                nlSendAssignmentSrv.show($scope, assignInfo, _userInfo);
+            }
         } else {
             nlSendAssignmentSrv.show($scope, assignInfo, _userInfo);						
         }

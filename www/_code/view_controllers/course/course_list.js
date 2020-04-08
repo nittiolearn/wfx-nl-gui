@@ -139,10 +139,14 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
 					if (grpChecklist && grpChecklist.length > 0) {
 						var checklist = course.content.checklist || [];
 						var msg = nlCourse.getCheckListDialogParams(grpChecklist, checklist);
-						nlDlg.popupConfirm({title: 'Warning', template: msg, okText: 'Continue'}).then(function(res) {
-							if (!res) return;
-							nlSendAssignmentSrv.show($scope, assignInfo, _userInfo);						
-						});
+						if (msg) {
+							nlDlg.popupConfirm({title: 'Warning', template: msg, okText: 'Continue'}).then(function(res) {
+								if (!res) return;
+								nlSendAssignmentSrv.show($scope, assignInfo, _userInfo);						
+							});	
+						} else {
+							nlSendAssignmentSrv.show($scope, assignInfo, _userInfo);
+						}
 					} else {
 						nlSendAssignmentSrv.show($scope, assignInfo, _userInfo);						
 					}

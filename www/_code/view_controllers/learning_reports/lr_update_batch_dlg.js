@@ -154,10 +154,11 @@ function DbAttendanceObject(courseAssignment, ctx) {
 
 	this.updateItem = function(cm) {
 		if (_etmAsd.length > 0) {
-			if (!cm.sessiondate) {
-				var sessionInfo = _sessionInfos[cm.id] || {};
-				cm.sessiondate = sessionInfo.sessiondate;
-			}
+			var sessionInfo = _sessionInfos[cm.id] || {};
+			if (!cm.sessiondate) cm.sessiondate = sessionInfo.sessiondate;
+			if (!cm.shiftHrs) cm.shiftHrs = {id: sessionInfo.shiftHrs} || '';
+			if (!cm.shiftMins) cm.shiftMins = {id: sessionInfo.shiftMins} || '';
+			if (!cm.shiftEnd) cm.shiftEnd = sessionInfo.shiftEnd || '';
 			cm.sessiondate = nl.fmt.json2Date(cm.sessiondate || '');
 		}
 		cm.attendanceOptions = cm.asdSession ? _attendanceOptionsAsd : _attendanceOptions;
@@ -215,6 +216,12 @@ function DbAttendanceObject(courseAssignment, ctx) {
 		}
 	};
 
+	this.changeSessionShiftTime = function(cm) {
+		if (!cm.shiftHrs || !cm.shiftMins) return;
+		var shiftEndHrs = parseInt(cm.shiftHrs.id) + 9;
+		cm.shiftEnd = nl.t('{}:{}', shiftEndHrs, cm.shiftMins.id);
+	};
+
 	this.copyFrom = function(srcLr, destLr, cm) {
 		destLr.attendance = angular.copy(srcLr.attendance);
 		destLr.remarks = angular.copy(srcLr.remarks);
@@ -231,7 +238,15 @@ function DbAttendanceObject(courseAssignment, ctx) {
 			cm.dateValidationErrorIfSomeAtdFilled = 'Date mandatory';
 			return;
 		}
-		var myDate = nl.fmt.date2Str(cm.sessiondate, 'date');
+		if (!cm.shiftHrs.id) {
+			cm.dateValidationErrorIfSomeAtdFilled = 'Shift time hrs is mandatory';
+			return;
+		}
+		if (!cm.shiftMins.id) {
+			cm.dateValidationErrorIfSomeAtdFilled = 'Shift time minutes is mandatory';
+			return;
+		}
+ 		var myDate = nl.fmt.date2Str(cm.sessiondate, 'date');
 		var lastDate = cmValidationCtx.lastFixedSessionDate || null;
 		if (lastDate && myDate <= lastDate) {
 			cm.dateValidationError = nl.fmt2('Date must be later than date specified in {}', cmValidationCtx.lastFixedSessionDateCmName);
@@ -308,6 +323,12 @@ function DbAttendanceObject(courseAssignment, ctx) {
 		if (nl.fmt.date2Str(cm.sessiondate, 'date')  != nl.fmt.date2Str(oldCm.sessiondate, 'date')) {
 			cmChanges.push({attr: 'Date', val: nl.fmt.date2StrDDMMYY(cm.sessiondate)});
 		}
+
+		if (cm.shiftHrs.id  != oldCm.shiftHrs.id || cm.shiftMins.id  != oldCm.shiftMins.id) {
+			cmChanges.push({attr: 'Shift start time', val: nl.t ('{}:{}', cm.shiftHrs.id, cm.shiftMins.id)});
+			cmChanges.push({attr: 'Shift end time', val: nl.t ('{}', cm.shiftEnd)});
+		}
+
 		if (!cm.asdSession) return;
 		if (cm.reason.id != oldCm.reason.id) {
 			cmChanges.push({attr: 'Session Reason', val: cm.reason.name});
@@ -351,12 +372,18 @@ function DbAttendanceObject(courseAssignment, ctx) {
 		var sessionInfo = sessionInfos[key];
 		if (!cm.asdSession) {
 			sessionInfo.sessiondate = sessiondate;
+			sessionInfo.shiftHrs = cm.shiftHrs.id;
+			sessionInfo.shiftMins = cm.shiftMins.id;
+			sessionInfo.shiftEnd = cm.shiftEnd;
 		} else {
 			if (!('asd' in sessionInfo)) sessionInfo.asd = [];
 			sessionInfo.asd.push({
 				reason: cm.reason || {id: ''},
 				remarks: cm.remarks || '',
 				sessiondate: sessiondate,
+				shiftHrs: cm.shiftHrs.id,
+				shiftMins: cm.shiftMins.id,
+				shiftEnd: cm.shiftEnd,
 				id: cm.id,
 				name: nlReportHelper.getItemName(cm)
 			});
@@ -836,12 +863,21 @@ function UpdateTrainingBatchDlg($scope, ctx, resolve) {
 			reason: ctx.dbAttendance.getEtmAsd()};
 		dlgScope.data = {dlgtype: dlgtypeDefault || dlgScope.options.dlgtype[0]};
 		dlgScope.isEtmAsd = ctx.dbAttendance.getEtmAsd().length > 0;
+		if (dlgScope.isEtmAsd) {
+			dlgScope.options.shiftHrs = getShiftHrsOptions();
+			dlgScope.options.shiftMins = [{id: '00'}, {id: '15'}, {id: '30'}, {id: '45'}];
+		}
 		dlgScope.firstSessionId = ctx.dbAttendance.getFirstSessionId();
 		dlgScope.bulkMarker = {showAttendance: false, showRating: false};
 		dlgScope.showConfirmationPage = false;
 		_initScopeFunctions(dlgScope);
 		_onDlgTypeChange(dlgScope);
 		_validator.validate();
+	}
+
+	function getShiftHrsOptions() {
+		return [{id: '00'}, {id: '01'}, {id: '02'}, {id: '03'}, {id: '04'}, {id: '05'}, {id: '06'}, {id: '07'}, {id: '08'}, {id: '09'}, {id: '10'}, {id: '11'},
+				{id: '12'}, {id: '13'}, {id: '14'}, {id: '15'}, {id: '16'}, {id: '17'}, {id: '18'}, {id: '19'}, {id: '20'}, {id: '21'}, {id: '22'}, {id: '23'}];
 	}
 
 	function _initScopeFunctions(dlgScope) {
@@ -869,7 +905,9 @@ function UpdateTrainingBatchDlg($scope, ctx, resolve) {
 		dlgScope.changeSessionReason = function(e, cm) {
 			ctx.dbAttendance.changeSessionReason(cm);
 		};
-
+		dlgScope.changeSessionShiftTime = function(e, cm) {
+			ctx.dbAttendance.changeSessionShiftTime(cm);
+		};
 		dlgScope.showBulkAttendanceMarker = function(e) {
 			_showBulkMarker(dlgScope, 'showAttendance');
 		};

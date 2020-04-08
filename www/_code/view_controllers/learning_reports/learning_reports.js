@@ -275,7 +275,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			id: 'selectUser',
 			onClick : _showRangeSelection,
 		}, {
-			title : 'Bulk delete reports',
+			title : 'Bulk delete',
 			icon : 'ion-ios-trash',
 			id: 'bulkdelete',
 			onClick : _onBulkDelete
@@ -331,7 +331,8 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 
 		if (tbid == 'exportCustomReport') return (type == 'course') && ($scope.debug || _customReportTemplate);
 		if (tbid == 'selectUser') return (nlLrFilter.getType() == 'user');
-		if (tbid == 'bulkdelete') return (type == 'course_assign' || type == 'module_assign');
+		var canManage = nlRouter.isPermitted(_userInfo, 'assignment_manage');
+		if (tbid == 'bulkdelete') return (canManage && (type == 'course_assign' || type == 'module_assign'));
 		return true;
 	};
 	
@@ -1277,8 +1278,22 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 	//---------------------------------------------------------------------------------------------------------------------------------------------------------
 	function _updateSessionDates(sessionInfo, sessionDates) {
 		var sessionDate =  sessionInfo.sessiondate || '';
-		if(sessionDate) sessionDates[sessionDate] = true;
+		if(sessionDate) {;
+			if (sessionInfo.shiftHrs && sessionInfo.shiftMins) {
+				sessionDates[sessionDate] = {start: nl.t('{}:{}', sessionInfo.shiftHrs, sessionInfo.shiftMins), end: _getShiftEnd(sessionInfo)};
+			} else {
+				sessionDates[sessionDate] = {};
+			}
+		}
 
+	}
+
+	function _getShiftEnd(sessionInfo) {
+		if (sessionInfo.shiftEnd) return sessionInfo.shiftEnd;
+		if (sessionInfo.shiftHrs && sessionInfo.shiftMins) {
+			var shiftEndHrs = parseInt(sessionInfo.shiftHrs) + 9;	
+			return nl.t('{}: {}', shiftEndHrs, sessionInfo.shiftMins);
+		}
 	}
 
 	function _updateAsdSessionDates(cm, sessionDates) {
@@ -1367,10 +1382,10 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		headerRow.push({id: 'not_after', name: nl.t('End date'), class: 'minw-number'});
 		headerRow.push({id: 'learner_status', name: nl.t('Status'), class: 'minw-number'});
 		var sessionDatesArray = [];
-		for(var key in sessionDates) sessionDatesArray.push(nl.fmt.json2Date(key) || '');
+		for(var key in sessionDates) sessionDatesArray.push({date: nl.fmt.json2Date(key) || '', start: sessionDates[key].start, end: sessionDates[key].end});
 		sessionDatesArray.sort(function(a, b) {
-			var key1 = new Date(a);
-			var key2 = new Date(b);
+			var key1 = new Date(a.date);
+			var key2 = new Date(b.date);
 		
 			if (key1 < key2) {
 				return -1;
@@ -1382,8 +1397,10 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		});	
 
 		for(var i=0; i<sessionDatesArray.length; i++) {
-			var date = nl.fmt.date2StrDDMMYY(sessionDatesArray[i], null, 'date');
-			headerRow.push({id: date, name: date, class: 'minw-number'});
+			var date = nl.fmt.date2StrDDMMYY(sessionDatesArray[i].date, null, 'date');
+			var hrName = nl.t('{}', date);
+			if (sessionDatesArray[i].start) hrName += nl.t(' {} - {}', sessionDatesArray[i].start, sessionDatesArray[i].end);
+			headerRow.push({id: date, name: hrName, class: 'minw-number'});
 		}
 		return headerRow;
 	}
@@ -1462,7 +1479,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			_validateAndDeleteReports(deleteDlg.scope.data);
 		}};
 		var cancelButton = {text: nl.t('Cancel'), onTap: function(e) {
-			}};
+		}};
 		deleteDlg.show('view_controllers/learning_reports/bulk_delete_reports_dlg.html',
 			[okButton], cancelButton);
 	}
@@ -1479,34 +1496,50 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		var records = nlLrReportRecords.getRecords();
 		for (var i=0; i<reportids.length; i++) {
 			var id = reportids[i].trim();
-			if (!id) continue
+			if (!id) continue;
 			if (id && id.indexOf('id=') == 0) id = id.substring(3);
-			if (id in uniqueIds) continue;
-			uniqueIds[id] = true;
-			if (id in records) repidsArray.push(id);
-			else repidsNotFound.push(id);
+			var intid = parseInt(id);
+			if (intid in uniqueIds) {
+					repidsNotFound.push({id: id, idname: reportids[i], name: 'Repeated report id'});
+				continue;
+			}	
+			uniqueIds[intid] = true;
+			if (id in records) {
+				var report = records[id];
+				repidsArray.push({id: id, idname: reportids[i], username: report.user.username});
+			} else {
+				repidsNotFound.push({id: id, idname: reportids[i], name: 'Invalid report id'});
+			}
 		}
 		if (repidsArray.length == 0) 
 			return nlDlg.popupAlert({title: 'Report ids not valid', template:'Please enter the valid report ids and try deleting.'});
 
-		var msg = '<div class="padding-mid">Are you sure of deleting following reports ?</div>';
-			msg += nl.t('<div class="padding-mid">Report ids: {}</div>', repidsArray);
-		if (repidsNotFound.length > 0) 
-			msg += nl.t('<div class="padding-mid">Invalid report ids: {}.', repidsNotFound);
-		
-		msg += nl.t('<div class="padding-mid">Please click on continue button to delete reports.</div>')
-		var msgTemp = {title: 'Confirm deletion', template: msg, okText: 'Continue'};
-		nlDlg.popupConfirm(msgTemp).then(function(res) {
-			if(!res) return;
+		var confirmationDlg = nlDlg.create($scope);
+			confirmationDlg.setCssClass('nl-width-max nl-height-max');
+			confirmationDlg.scope.dlgTitle = nl.t('Please confirm');
+			confirmationDlg.scope.data = {validReports: repidsArray, invalidReports: repidsNotFound};
+			confirmationDlg.scope.data.str1 = nl.t('Found {} valid', repidsArray.length);
+			if (repidsNotFound.length > 0) 
+				confirmationDlg.scope.data.str1 += nl.t(' and {} invalid inputs.', repidsNotFound.length);
+			else 	
+				confirmationDlg.scope.data.str1 += nl.t(' inputs.');
+
+		var okButton = {text: nl.t('Continue'), onTap: function(e) {
+			var repids = [];
+			var data = confirmationDlg.scope.data;
+			for(var i=0; i<data.validReports.length; i++) repids.push(data.validReports[i].id);
 			nlDlg.showLoadingScreen();
-			nlServerApi.learningReportDelete({repids: repidsArray}).then(function(status){
+			nlServerApi.learningReportDelete({repids: repids}).then(function(status){
 				nlDlg.hideLoadingScreen();
 				nlDlg.closeAll();
-				for (var i=0; i<repidsArray.length; i++) nlLrReportRecords.removeRecord(repidsArray[i]);
+				for (var i=0; i<repids.length; i++) nlLrReportRecords.removeRecord(repids[i]);
 				_updateScope();
-
-			})
-		});
+			});
+		}};
+		var cancelButton = {text: nl.t('Cancel'), onTap: function(e) {
+		}};
+		confirmationDlg.show('view_controllers/learning_reports/confirm_bulk_delete_dlg.html',
+			[okButton], cancelButton);
 	};
 
 	function _onViewContent() {
