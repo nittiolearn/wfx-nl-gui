@@ -32,44 +32,33 @@
 			<nl-date-select fieldmodelbyref='selectedModule.sessiondate'></nl-date-select>
 		</div>
 		<div class='padding-small'></div>
-		<div style='min-width: 100px'>
-			<div class='row row-center padding0 margin0'>
-				<div class='col'>Hrs: </div>
-				<div class='col' style='min-width: 60px'>
-					<select ng-model='selectedModule.shiftHrs' 
-							ng-options='opt as opt.id for opt in options.shiftHrs track by opt.id'
-							ng-change='changeSessionShiftTime($event, selectedModule)'
-							class='w100'
-							autofocus=''
-							tabindex=""
-							style='min-height: 34px'>
-					</select>
-				</div>
-			</div>
+		<div class='padding-small'></div>
+		<div class='padding-small'>Shift: </div>
+		<div class='nl-dlg-field-value'>
+			<select ng-model='selectedModule.shiftHrs' 
+					ng-options='opt as opt.id for opt in options.shiftHrs track by opt.id'
+					ng-change='changeSessionShiftTime($event, selectedModule)'
+					class='w100'
+					autofocus=''
+					tabindex=""
+					style='min-height: 34px'>
+			</select>
+		</div>
+		<div class='padding-small'>:</div>
+		<div class='nl-dlg-field-value'>
+			<select ng-model='selectedModule.shiftMins' 
+					ng-options='opt as opt.id for opt in options.shiftMins track by opt.id'
+					ng-change='changeSessionShiftTime($event, selectedModule)'
+					class='w100'
+					autofocus=''
+					tabindex=""
+					style='min-height: 34px'>
+			</select>
 		</div>
 		<div class='padding-small'></div>
-		<div style='min-width: 100px'>
-			<div class='row row-center padding0 margin0'>
-				<div class='col'> Mins:</div>
-				<div class='col' style='min-width: 60px'>
-					<select ng-model='selectedModule.shiftMins' 
-							ng-options='opt as opt.id for opt in options.shiftMins track by opt.id'
-							ng-change='changeSessionShiftTime($event, selectedModule)'
-							class='w100'
-							autofocus=''
-							tabindex=""
-							style='min-height: 34px'>
-					</select>
-				</div>
-			</div>
-		</div>
+		<div class='padding-small'>-</div>
 		<div class='padding-small'></div>
-		<div style='min-width: 120px'>
-			<div class='row row-center padding0 margin0'>
-				<div class='col' style='min-width:80px'> Shift end: </div>
-				<div class='col nl-bg-blue padding-mid' style='min-height:32px; min-width:50px'>{{selectedModule.shiftEnd}}</div>
-			</div>
-		</div>
+		<div class='nl-xxx-select nl-dlg-field-value padding-mid' style='min-width:50px'>{{selectedModule.shiftEnd}}</div>
 	</div>
 
 	<div ng-if='selectedModule.validationErrorMsg' class='row row-center padding0 margin0'>
