@@ -319,7 +319,7 @@ function DbAttendanceObject(courseAssignment, ctx) {
 	
 	this.updateCmChanges = function(cm, oldCm, cmChanges) {
 		if (cm.lockedOnItem) return;
-		if (!_etmAsd) return null;
+		if (_etmAsd.length == 0) return null;
 		if (nl.fmt.date2Str(cm.sessiondate, 'date')  != nl.fmt.date2Str(oldCm.sessiondate, 'date')) {
 			cmChanges.push({attr: 'Date', val: nl.fmt.date2StrDDMMYY(cm.sessiondate)});
 		}
