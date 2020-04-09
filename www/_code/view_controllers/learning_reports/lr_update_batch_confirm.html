@@ -31,6 +31,9 @@
             <td>
                 Remarks
             </td>
+            <td ng-if='change.cm.etmAsd && change.cm.type == "milestone"'>
+                Achieved on
+            </td>
         </tr>
         <tr ng-repeat='lrChange in change.lrChanges'>
             <td>
@@ -53,6 +56,9 @@
                 <div ng-if='change.cm.type == "rating" && lrChange.lr.showOtherRemarks'
                      class='padding-mid-v fsmall2'>{{lrChange.lr.otherRemarks}}</div>
                 <div ng-if='change.cm.type == "milestone"'>{{lrChange.lr.remarks}}</div>
+            </td>
+            <td ng-if='change.cm.etmAsd && change.cm.type == "milestone"'>
+                {{lrChange.lr.reached}}
             </td>
         </tr>
     </table>

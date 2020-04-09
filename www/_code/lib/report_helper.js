@@ -109,7 +109,7 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
     var _pastLessonReports = repcontent.pastLessonReports || {};
     var _modifiedILT = ((courseAssign ? courseAssign.info : repcontent) || {}).modifiedILT || {};
     _modifiedILT = nlCourse.migrateModifiedILT(_modifiedILT);
-    var _msDates = courseAssign && courseAssign.info && courseAssign.info.msDates ? courseAssign.info.msDates : {};
+    var _msDates = courseAssign && courseAssign.info && courseAssign.info.msDates ? courseAssign.info.msDates : repcontent.msDates || {};
 
     for (var key in _msDates) {
         var d = _msDates[key];
@@ -168,8 +168,10 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
     }
 
     var _ctx = {};
+    var msInfoDict = {};
     function _getCourseStatus() {
         _ctx = {unlockNext: {}};
+        msInfoDict = {latestMarkedMilestone: null, firstPendingMs: null}
         var ret = {status: 'pending', progPerc: 0, progDesc: '', itemIdToInfo: {}, delayDays: 0,
             nItems: 0, nCompletedItems: 0,
             nQuizes: 0, nQuizAttempts: 0, nPassedQuizes: 0, nFailedQuizes: 0, 
@@ -219,7 +221,8 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
                 continue;
             }
             _updateUnlockedTimeStamp(cm, itemInfo, itemIdToInfo);
-            _updateStatusToDelayedIfNeeded(cm, itemInfo);
+            _updateStatusToDelayedIfNeeded(cm, itemInfo); //Calculate delay of course based on
+            if (cm.type == 'milestone' && _isNHT) _updateDelayDaysForMs(cm, itemInfo, itemIdToInfo, ret);
             _updateStatistics(itemInfo, cm, ret);
             if (cm.type == 'certificate') {
                 ret['certid'] = cm.id;
@@ -264,12 +267,45 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
 
         _updateCourseLevelStatus(ret, isAttrition, defaultCourseStatus);
         _updateCourseProgress(ret);
-        _updateCourseDelay(ret);
+        if (!_isNHT) _updateCourseDelayForLMS(ret);
+        if (_isNHT) _updateCourseDelayForNHT(ret);
         ret.feedbackScore = _getFeedbackScoreForCourse(_lessonReports);
         ret.feedbackScore = ret.feedbackScore ? '' + Math.round(ret.feedbackScore*10)/10 + '%' : '';
         return ret;
     }
 
+    function _updateCourseDelayForNHT(ret) {
+        var lastestMarkedMsDelay = 0;
+        var firstPendingMsDelay = 0;
+        ret.delayDays = 0;
+        if (!msInfoDict.latestMarkedMilestone) return;
+        if (msInfoDict.latestMarkedMilestone) lastestMarkedMsDelay = msInfoDict.latestMarkedMilestone.delayDays;
+        if (msInfoDict.firstPendingMs) firstPendingMsDelay = msInfoDict.firstPendingMs.delayDays;
+        ret.delayDays = lastestMarkedMsDelay > firstPendingMsDelay ? lastestMarkedMsDelay : firstPendingMsDelay;
+    }
+
+    function _updateDelayDaysForMs(cm, itemInfo) {
+        var msInfo = _milestone[cm.id] || {};
+        var msid = 'milestone_' + cm.id;
+        var msPlanned = null;
+        var repid = report.id;
+        if (msid in _msDates) msPlanned = _msDates[msid];
+        if (msInfo.status && msInfo.status == 'done') {
+            var learnerMsInfo = msInfo.learnersDict ? msInfo.learnersDict[repid] : {};
+            var actualMarked = learnerMsInfo.reached ? new Date(learnerMsInfo.reached) : '';
+            var msDelay = 0;
+            if (actualMarked > msPlanned) msDelay = itemInfo.delayDays = 1.0*(actualMarked - msPlanned)/1000.0/3600.0/24;
+            msInfoDict.latestMarkedMilestone = {delayDays: Math.round(msDelay)};            
+        }
+
+        if (msInfo.status && msInfo.status != 'done' && !msInfoDict.firstPendingMs) {
+            var msDelay = 0;
+            var now = new Date();
+            if (now > msPlanned) msDelay =itemInfo.delayDays = 1.0*(now - msPlanned)/1000.0/3600.0/24;
+            msInfoDict.firstPendingMs = {delayDays: Math.round(msDelay)};
+        }
+    };
+    
     function _updateItemToLocked(cm, itemInfo, earlierTrainerItems) {
         if (earlierTrainerItems.isMarkedCertified) itemInfo.isMarkedCertified = true;
         if(cm.type == 'iltsession') {
@@ -778,21 +814,12 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
         ret.progDesc = nl.fmt2('{} of {} items done', ret.nCompletedItems, ret.nItems);
     }
 
-    function _updateCourseDelay(ret) {
+    function _updateCourseDelayForLMS(ret) {
         ret.delayDays = 0;
-        if (_isEndCourseState(ret)) {
-            _updateCourseDelayForCompleted(ret);
-            return;
-        }
-        for(var i=0; i<_modules.length; i++) {
-            var cm = _modules[i];
-            var itemInfo = ret.itemIdToInfo[cm.id];
-            if (itemInfo.delayDays && itemInfo.delayDays > ret.delayDays)
-                ret.delayDays = itemInfo.delayDays;
-        }
+        _updateCourseDelay(ret);
     }
 
-    function _updateCourseDelayForCompleted(ret) {
+    function _updateCourseDelay(ret) {
         var lastUpdated = null;
         for(var i=0; i<_modules.length; i++) {
             var cm = _modules[i];
@@ -803,16 +830,7 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
             }
         }
         if (!lastUpdated) return;
-
-        var maxCompleteBefore = null;
-        for (var key in _msDates) {
-            if (!maxCompleteBefore || _msDates[key] > maxCompleteBefore)
-                maxCompleteBefore = _msDates[key];
-        }
         var courseEndTime = (courseAssign || {}).not_after ||  report.not_after || null;
-        if (!courseEndTime && maxCompleteBefore) {
-            courseEndTime = maxCompleteBefore;
-        }
         if (!courseEndTime || courseEndTime >= lastUpdated) return;
         ret.delayDays = 1.0*(lastUpdated - courseEndTime)/1000.0/3600.0/24;
     }

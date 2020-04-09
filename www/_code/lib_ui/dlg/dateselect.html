@@ -14,7 +14,7 @@
 </div>
 <div ng-show='$parent.error[fieldmodel]' class='nl-dlg-field-errormsg'>{{$parent.error[fieldmodel]}}</div>
 
-<div class="nl-dlg-field-value nl-xxx-select {{fieldcls}}" ng-show='!fieldmodel'>
+<div class="nl-dlg-field-value nl-xxx-select {{fieldcls}}" ng-click='$event.stopImmediatePropagation()' ng-show='!fieldmodel'>
     <div class='row row-center margin0 padding-small nl-link-text'
         ion-datetime-picker date
         autofocus=''

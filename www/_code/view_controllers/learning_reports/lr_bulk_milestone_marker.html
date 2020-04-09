@@ -1,0 +1,12 @@
+<nl-dlg dlgTitle='{{dlgTitle}}' show-help='0'>
+<nl-dlg-content>
+    <div class='row row-center row-wrap margin0 padding-mid'>
+        <nl-date-select style='min-width: 300px' fieldmodelbyref='data.reached'></nl-date-select>
+    </div>
+    <div ng-if='data.errorMsg' class='row row-center padding0 margin0'>
+		<div class='nl-dlg-field-errormsg'> 
+			{{data.errorMsg}}
+		</div>
+    </div>
+</nl-dlg-content>
+</nl-dlg>

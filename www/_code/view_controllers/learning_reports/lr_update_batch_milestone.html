@@ -33,6 +33,9 @@
         <tr class='header'>
             <td style='width: 50px;'>
             </td>
+            <td ng-if='isEtmAsd'>
+                Achieved on
+            </td>
             <td style='width: 20%;'>
                 Learner Name
             </td>
@@ -52,6 +55,9 @@
                     <i ng-show='report.milestoneMarked' class="icon ion-android-checkbox-outline black fsh6"></i>
                     <i ng-hide='report.milestoneMarked' class="icon ion-android-checkbox-outline-blank fsh6"></i>
                 </div>
+            </td>
+            <td >
+                <nl-date-select fieldmodelbyref='report.reached'></nl-date-select>
             </td>
             <td>
                 {{report.learnername}}
