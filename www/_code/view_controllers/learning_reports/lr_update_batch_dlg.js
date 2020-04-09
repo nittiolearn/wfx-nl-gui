@@ -671,10 +671,11 @@ function DbMilestoneObject(courseAssignment, ctx) {
 		if (!cm.isMarkingComplete) return;
 		if (!isEtmAsd && lr.milestoneMarked) return;
 		if (lr.milestoneMarked && !lr.reached) {
-			lr.validationErrorMsg = nl.fmt2('Achieved on date mandatory for {}', lr.learnername);
+				lr.validationErrorMsg = nl.fmt2('Achieved on date mandatory for {}', lr.learnername);
 			if (!cm.validationErrorMsg) cm.validationErrorMsg = lr.validationErrorMsg || null;
 			return;
 		}
+		if (lr.milestoneMarked) return;
 		lr.cantProceedMessage = nl.fmt2('{} not reached', nlReportHelper.getItemName(cm));
 		if (!lrBlocker.all) lrBlocker.all = lr;
 
