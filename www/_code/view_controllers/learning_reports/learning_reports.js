@@ -415,8 +415,8 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		ret.onTabSelect = _onTabSelect;
 	}
 
-	function _updateTabs() {
-		_tabManager.update();
+	function _updateTabs(checkSelected) {
+		_tabManager.update(checkSelected);
 	}
 	
 	function _someTabDataChanged() {
@@ -480,7 +480,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			tabData.records = _getFilteredRecords(summaryStats);
 			tabData.summaryStats = summaryStats.asList();
 			tabData.summaryStatSummaryRow = _getSummaryStatSummaryRow(tabData.summaryStats);
-			_updateTabs();
+			_updateTabs(true);
 		}
 		
 		if (tab.id == 'overview') {
@@ -579,7 +579,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		columns.push(_col('orgparts.state', 'State'));
 		columns.push(_col('orgparts.branch', 'Branch'));
 
-		columns.push(_col('usermd.meta_mobile', 'Mobile Number'));
+		columns.push(_col('user.mobile', 'Mobile Number'));
 		columns.push(_col('user.seclogin', 'Secondary login'));
 		columns.push(_col('user.supervisor', 'Supervisor'));
 
@@ -756,8 +756,9 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		_setSubTitle(anyRecord);
 		$scope.noDataFound = (anyRecord == null);
 		_someTabDataChanged();
-		_updateCurrentTab(avoidFlicker);
-
+		var tab = $scope.tabData.selectedTab;
+		if (tab.id == 'nhtclosed' || tab.id == 'nhtrunning' || tab.id == 'iltbatchdata') tab.updated = false;
+		_updateCurrentTab(avoidFlicker, true);
 	}
 
 	function _initChartData() {
@@ -3139,7 +3140,7 @@ function CertificateHandler(nl, $scope) {
 //-------------------------------------------------------------------------------------------------
 function LrTabManager(tabData, nlGetManyStore, nlLrFilter, _groupInfo) {
 
-	this.update = function() {
+	this.update = function(checkSelected) {
 		tabData.tabs = [];
 		var tabs = tabData.tabs;
 		if (nlLrFilter.getMode() == 'cert_report') {
@@ -3153,7 +3154,7 @@ function LrTabManager(tabData, nlGetManyStore, nlLrFilter, _groupInfo) {
 			_addLrTab(tabs);
 			_addTimeSummaryTab(tabs);
 		}
-		_updateSelectedTab(tabs);
+		_updateSelectedTab(tabs, checkSelected);
 	};
 
 	function _addOverviewTabs(tabs) {
@@ -3253,13 +3254,16 @@ function LrTabManager(tabData, nlGetManyStore, nlLrFilter, _groupInfo) {
 		});
 	}
 
-	function _updateSelectedTab(tabs) {
+	function _updateSelectedTab(tabs, checkSelected) {
 		if (!tabData.selectedTab) return;
+		var isSelTabFound = false;
 		for(var i=0; i<tabs.length; i++) {
 			if (tabData.selectedTab.id != tabs[i].id) continue;
+			isSelTabFound = true;
 			tabData.selectedTab = tabs[i]; // Reset the new object (updated attribute many change)
 			break;
 		}
+		if (checkSelected && !isSelTabFound) tabData.selectedTab = tabs[0];
 	}
 }
 

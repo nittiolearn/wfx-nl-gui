@@ -333,6 +333,12 @@ function(nl, nlRouter, nlDlg, nlGroupInfo, nlLrHelper, nlLrFilter, nlGetManyStor
         } else {
             report.hideDeleteButton = true;
         }
+        var usermd = nlLrHelper.getMetadataDict(user);
+        if (user.mobile) {
+            if (user.mobile.indexOf('m:') == 0) user.mobile = user.mobile.substring(2);
+        } else if (usermd.meta_mobile) {
+            user.mobile = usermd.meta_mobile;
+        }
         var ret = {raw_record: report, repcontent: repcontent, course: course, user: user, orgparts: _updateOrgByParts(user),
             usermd: nlLrHelper.getMetadataDict(user), stats: stats,
             created: nl.fmt.fmtDateDelta(report.created, null, 'minute'),
@@ -446,6 +452,12 @@ function(nl, nlRouter, nlDlg, nlGroupInfo, nlLrHelper, nlLrFilter, nlGetManyStor
             report.hideDeleteButton = false;
         } else {
             report.hideDeleteButton = true;
+        }
+        var usermd = nlLrHelper.getMetadataDict(user);
+        if (user.mobile) {
+            if (user.mobile.indexOf('m:') == 0) user.mobile = user.mobile.substring(2);
+        } else if (usermd.meta_mobile) {
+            user.mobile = usermd.meta_mobile;
         }
         var ret = {raw_record: report, repcontent: repcontent, user: user, orgparts: _updateOrgByParts(user),
             usermd: nlLrHelper.getMetadataDict(user), stats: stats,
