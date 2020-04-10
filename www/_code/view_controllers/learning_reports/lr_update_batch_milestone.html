@@ -33,7 +33,7 @@
         <tr class='header'>
             <td style='width: 50px;'>
             </td>
-            <td ng-if='isEtmAsd'>
+            <td ng-if='isEtmAsd' style='width: 25%'>
                 Achieved on
             </td>
             <td style='width: 20%;'>
@@ -56,8 +56,10 @@
                     <i ng-hide='report.milestoneMarked' class="icon ion-android-checkbox-outline-blank fsh6"></i>
                 </div>
             </td>
-            <td >
-                <nl-date-select fieldmodelbyref='report.reached'></nl-date-select>
+            <td>
+                <div ng-hide='report.lockedMessage'>
+                    <nl-date-select fieldmodelbyref='report.reached'></nl-date-select>
+                </div>
             </td>
             <td>
                 {{report.learnername}}

@@ -333,7 +333,7 @@ function(nl, nlRouter, nlDlg, nlGroupInfo, nlLrHelper, nlLrFilter, nlGetManyStor
         } else {
             report.hideDeleteButton = true;
         }
-        var ret = {raw_record: report, repcontent: repcontent, course: course, user: user,
+        var ret = {raw_record: report, repcontent: repcontent, course: course, user: user, orgparts: _updateOrgByParts(user),
             usermd: nlLrHelper.getMetadataDict(user), stats: stats,
             created: nl.fmt.fmtDateDelta(report.created, null, 'minute'),
             updated: nl.fmt.fmtDateDelta(report.updated, null, 'minute'),
@@ -447,8 +447,7 @@ function(nl, nlRouter, nlDlg, nlGroupInfo, nlLrHelper, nlLrFilter, nlGetManyStor
         } else {
             report.hideDeleteButton = true;
         }
-
-        var ret = {raw_record: report, repcontent: repcontent, user: user,
+        var ret = {raw_record: report, repcontent: repcontent, user: user, orgparts: _updateOrgByParts(user),
             usermd: nlLrHelper.getMetadataDict(user), stats: stats,
             user_state: user.state ? 'active' : 'inactive',
             created: nl.fmt.fmtDateDelta(report.created, null, 'minute'), 
@@ -457,6 +456,30 @@ function(nl, nlRouter, nlDlg, nlGroupInfo, nlLrHelper, nlLrFilter, nlGetManyStor
             not_after: report.not_after ? nl.fmt.fmtDateDelta(report.not_after, null, 'minute') : ''
         };
         return ret;
+    }
+
+    function _updateOrgByParts(user) {
+        var org_unit = angular.copy(user.org_unit);
+        if (!org_unit) return;
+        if (org_unit.indexOf('.') > 0) org_unit = org_unit.split('.');
+        else org_unit = [org_unit];
+        var org = {};
+        if (org_unit.length == 1) {
+            org['zone'] = org_unit[0];
+        } else if (org_unit.length == 2) {
+            org['zone'] = org_unit[0];
+            org['branch'] = org_unit[1];
+        } else if (org_unit.length == 3) {
+            org['zone'] = org_unit[0];
+            org['city'] = org_unit[1];
+            org['branch'] = org_unit[2];
+        } else if (org_unit.length == 4) {
+            org['zone'] = org_unit[0];
+            org['city'] = org_unit[1];
+            org['state'] = org_unit[2];
+            org['branch'] = org_unit[3];
+        }
+        return org;
     }
 
     function _updateCommonParams(report, ctypestr) {

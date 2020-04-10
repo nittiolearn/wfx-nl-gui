@@ -285,23 +285,27 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
     }
 
     function _updateDelayDaysForMs(cm, itemInfo) {
+        if (msInfoDict.firstPendingMs) return;
         var msInfo = _milestone[cm.id] || {};
         var msid = 'milestone_' + cm.id;
         var msPlanned = null;
         var repid = report.id;
         if (msid in _msDates) msPlanned = _msDates[msid];
-        if (msInfo.status && msInfo.status == 'done') {
-            var learnerMsInfo = msInfo.learnersDict ? msInfo.learnersDict[repid] : {};
+        var learnerMsInfo = msInfo.learnersDict ? msInfo.learnersDict[repid] : {};
+        if (!learnerMsInfo) learnerMsInfo = {};
+        if (msInfo.status && msInfo.status == 'done' && learnerMsInfo.marked == 'done') {
             var actualMarked = learnerMsInfo.reached ? new Date(learnerMsInfo.reached) : '';
             var msDelay = 0;
             if (actualMarked > msPlanned) msDelay = itemInfo.delayDays = 1.0*(actualMarked - msPlanned)/1000.0/3600.0/24;
             msInfoDict.latestMarkedMilestone = {delayDays: Math.round(msDelay)};            
         }
 
-        if (msInfo.status && msInfo.status != 'done' && !msInfoDict.firstPendingMs) {
+        if ((!learnerMsInfo.marked || learnerMsInfo.marked != 'done') && !msInfoDict.firstPendingMs) {
             var msDelay = 0;
             var now = new Date();
             if (now > msPlanned) msDelay =itemInfo.delayDays = 1.0*(now - msPlanned)/1000.0/3600.0/24;
+            if (!msInfoDict.latestMarkedMilestone) msDelay = 0;
+
             msInfoDict.firstPendingMs = {delayDays: Math.round(msDelay)};
         }
     };

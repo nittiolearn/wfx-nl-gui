@@ -156,8 +156,13 @@ function DbAttendanceObject(courseAssignment, ctx) {
 		if (_etmAsd.length > 0) {
 			var sessionInfo = _sessionInfos[cm.id] || {};
 			if (!cm.sessiondate) cm.sessiondate = sessionInfo.sessiondate;
-			if (!cm.shiftHrs) cm.shiftHrs = {id: sessionInfo.shiftHrs} || '';
-			if (!cm.shiftMins) cm.shiftMins = {id: sessionInfo.shiftMins} || '';
+			if (cm.asdSession) {
+				cm.shiftHrs = {id: cm.shiftHrs};
+				cm.shiftMins = {id: cm.shiftMins};
+			} else {
+				if (!cm.shiftHrs) cm.shiftHrs = {id: sessionInfo.shiftHrs} || '';
+				if (!cm.shiftMins) cm.shiftMins = {id: sessionInfo.shiftMins} || '';	
+			}
 			if (!cm.shiftEnd) cm.shiftEnd = sessionInfo.shiftEnd || '';
 			cm.sessiondate = nl.fmt.json2Date(cm.sessiondate || '');
 		}
@@ -217,7 +222,7 @@ function DbAttendanceObject(courseAssignment, ctx) {
 	};
 
 	this.changeSessionShiftTime = function(cm) {
-		if (!cm.shiftHrs || !cm.shiftMins) return;
+		if (!cm.shiftHrs || !cm.shiftHrs.id || !cm.shiftMins || !cm.shiftMins) return;
 		var shiftEndHrs = parseInt(cm.shiftHrs.id) + 9;
 		cm.shiftEnd = nl.t('{}:{}', shiftEndHrs, cm.shiftMins.id);
 	};
@@ -630,10 +635,14 @@ function DbRatingObject(courseAssignment, ctx) {
 
 //-------------------------------------------------------------------------------------------------
 function DbMilestoneObject(courseAssignment, ctx) {
-
+	var lastMilestonesAcheived = {};
 	function _init() {
 		_dbobj = courseAssignment.milestone ? angular.fromJson(courseAssignment.milestone) : {};
 	}
+
+	this.initLastAchecivedDict = function() {
+		lastMilestonesAcheived = {};
+	};
 
 	this.updateItem = function(cm) {
 		var milestoneInfo = _dbobj[cm.id] || {};
@@ -642,7 +651,6 @@ function DbMilestoneObject(courseAssignment, ctx) {
 		var msInfoFromDb = _dbobj[cm.id] || {};
 		cm.updated = nl.fmt.json2Date(msInfoFromDb.updated);
 		cm.reached = nl.fmt.json2Date(msInfoFromDb.reached);
-		
 		for (var i=0; i<ctx.lrArray.length; i++) {
 			var lr = ctx.lrArray[i];
 			var itemLr = cm.learningRecords[i];
@@ -675,6 +683,12 @@ function DbMilestoneObject(courseAssignment, ctx) {
 			if (!cm.validationErrorMsg) cm.validationErrorMsg = lr.validationErrorMsg || null;
 			return;
 		}
+		if (lr.reached && lr.reached < lastMilestonesAcheived[lr.learnerid]) {
+			lr.validationErrorMsg = nl.fmt2('Milestone achieved on date should be greater than earlier marked date for {}', lr.learnername);
+			if (!cm.validationErrorMsg) cm.validationErrorMsg = lr.validationErrorMsg || null;
+			return;
+		}
+		if (isEtmAsd && lr.reached) lastMilestonesAcheived[lr.learnerid] = lr.reached;
 		if (lr.milestoneMarked) return;
 		lr.cantProceedMessage = nl.fmt2('{} not reached', nlReportHelper.getItemName(cm));
 		if (!lrBlocker.all) lrBlocker.all = lr;
@@ -704,14 +718,17 @@ function DbMilestoneObject(courseAssignment, ctx) {
 		if (!isEtmAsd) lr.reached = oldLr.reached;
 		var newReached = lr.reached ? nl.fmt.date2Str(lr.reached, 'minutes') : '';
 		var oldReached = oldLr.reached ? nl.fmt.date2Str(oldLr.reached, 'minutes') : '';
-		lr.marked = lr.reached ? 'done' : 'pending';
+		lr.marked = lr.milestoneMarked ? 'done' : 'pending';
 		if (lr.milestoneMarked == oldLr.milestoneMarked && lr.remarks == oldLr.remarks && newReached == oldReached) return;
 		lr.updated = new Date();
 		if (lr.milestoneMarked != oldLr.milestoneMarked) {
 			if (!isEtmAsd) lr.reached = lr.milestoneMarked ? lr.updated : null;
 			lr.marked = lr.milestoneMarked ? 'done' : 'pending';
 		}
-		if (newReached != oldReached) lr.reached = nl.fmt.date2StrDDMMYY(lr.reached, null, 'date');
+		if (isEtmAsd) {
+			lr.reachedStr = lr.milestoneMarked ? nl.fmt.date2StrDDMMYY(lr.reached, null, 'date') : null;
+			lr.reached = lr.milestoneMarked ? lr.reached : null;
+		}
 		lrChanges.push({lr: lr});
 	};
 
@@ -767,7 +784,7 @@ function Validator(ctx) {
 			ms: null // cm which blocks only milestone items (thse can only be rating elements)
 		}; 
 		var cmValidationCtx = {};
-
+			ctx.dbMilestone.initLastAchecivedDict();
 		var lrBlockers = {}; // {uid1: {all: lr, ms: lr, lastSessionAttended: null/true/false, atdMarkedDates: {date, true}}, uid2: {...}, ...};
 		var firstInvalidCm = null;
 		for(var i=0; i<ctx.modules.length; i++) {

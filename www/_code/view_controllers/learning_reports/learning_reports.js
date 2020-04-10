@@ -563,6 +563,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		columns.push(_col('stats.timeSpentMinutes', 'Online Time Spent (minutes)'));
 		columns.push(_col('stats.iltTimeSpent', 'ILT time spent(minutes)'));
 		columns.push(_col('stats.iltTotalTime', 'ILT total time(minutes)'));
+		columns.push(_col('stats.delayDays', 'Delay days'));
 		columns.push(_col('repcontent.iltVenue', 'Venue'));
 		columns.push(_col('repcontent.iltTrainerName','Trainer name'));
 		columns.push(_col('repcontent.iltCostInfra', 'Infra Cost'));
@@ -573,6 +574,14 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		columns.push(_col('user.stateStr', 'User state'));
 		columns.push(_col('user.email', 'Email Id'));
 		columns.push(_col('user.org_unit', 'Org'));
+		columns.push(_col('orgparts.zone', 'Zone'));
+		columns.push(_col('orgparts.city', 'City'));
+		columns.push(_col('orgparts.state', 'State'));
+		columns.push(_col('orgparts.branch', 'Branch'));
+
+		columns.push(_col('usermd.meta_mobile', 'Mobile Number'));
+		columns.push(_col('user.seclogin', 'Secondary login'));
+		columns.push(_col('user.supervisor', 'Supervisor'));
 
 		for(var i=0; i<mh.length; i++) {
 			var keyName = 'usermd.' + mh[i].id;
