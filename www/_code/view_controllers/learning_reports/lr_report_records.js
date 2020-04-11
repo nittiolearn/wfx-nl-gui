@@ -471,27 +471,11 @@ function(nl, nlRouter, nlDlg, nlGroupInfo, nlLrHelper, nlLrFilter, nlGetManyStor
     }
 
     function _updateOrgByParts(user) {
-        var org_unit = angular.copy(user.org_unit);
-        if (!org_unit) return;
-        if (org_unit.indexOf('.') > 0) org_unit = org_unit.split('.');
-        else org_unit = [org_unit];
-        var org = {};
-        if (org_unit.length == 1) {
-            org['zone'] = org_unit[0];
-        } else if (org_unit.length == 2) {
-            org['zone'] = org_unit[0];
-            org['branch'] = org_unit[1];
-        } else if (org_unit.length == 3) {
-            org['zone'] = org_unit[0];
-            org['city'] = org_unit[1];
-            org['branch'] = org_unit[2];
-        } else if (org_unit.length == 4) {
-            org['zone'] = org_unit[0];
-            org['city'] = org_unit[1];
-            org['state'] = org_unit[2];
-            org['branch'] = org_unit[3];
-        }
-        return org;
+        var parts = (user.org_unit || '').split('.');
+        var ret = {part1: '', part2: '', part3: '', part4: ''};
+        for(var i=0; i<parts.legnth && i < 4; i++)
+            ret['part' + (i+1)] = ret[i];
+        return ret;
     }
 
     function _updateCommonParams(report, ctypestr) {

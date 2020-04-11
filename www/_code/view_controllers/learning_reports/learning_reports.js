@@ -574,10 +574,10 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		columns.push(_col('user.stateStr', 'User state'));
 		columns.push(_col('user.email', 'Email Id'));
 		columns.push(_col('user.org_unit', 'Org'));
-		columns.push(_col('orgparts.zone', 'Zone'));
-		columns.push(_col('orgparts.city', 'City'));
-		columns.push(_col('orgparts.state', 'State'));
-		columns.push(_col('orgparts.branch', 'Branch'));
+		columns.push(_col('orgparts.part1', 'OU - part 1'));
+		columns.push(_col('orgparts.part2', 'OU - part 2'));
+		columns.push(_col('orgparts.part3', 'OU - part 3'));
+		columns.push(_col('orgparts.part4', 'OU - part 4'));
 
 		columns.push(_col('user.mobile', 'Mobile Number'));
 		columns.push(_col('user.seclogin', 'Secondary login'));
