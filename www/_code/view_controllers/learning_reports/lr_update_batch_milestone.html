@@ -56,7 +56,7 @@
                     <i ng-hide='report.milestoneMarked' class="icon ion-android-checkbox-outline-blank fsh6"></i>
                 </div>
             </td>
-            <td>
+            <td ng-if='isEtmAsd'>
                 <div ng-hide='report.lockedMessage'>
                     <nl-date-select fieldmodelbyref='report.reached'></nl-date-select>
                 </div>
