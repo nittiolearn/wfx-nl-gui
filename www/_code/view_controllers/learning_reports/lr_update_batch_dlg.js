@@ -243,18 +243,22 @@ function DbAttendanceObject(courseAssignment, ctx) {
 			cm.dateValidationErrorIfSomeAtdFilled = 'Date mandatory';
 			return;
 		}
+		var myDate = nl.fmt.date2Str(cm.sessiondate, 'date');
+		var lastDate = cmValidationCtx.lastFixedSessionDate || null;
+		if (lastDate && myDate <= lastDate) {
+			cm.dateValidationError = nl.fmt2('Date must be later than date specified in {}', cmValidationCtx.lastFixedSessionDateCmName);
+			cm.validationErrorMsg = nl.fmt2('{}: {}', nlReportHelper.getItemName(cm), cm.dateValidationError);
+			return;
+		}
 		if (!cm.shiftHrs.id) {
 			cm.dateValidationErrorIfSomeAtdFilled = 'Shift time hrs is mandatory';
+			cm.dateValidationError = nl.fmt2('Shift time hrs is mandatory for {}', cm.name);
+			cm.validationErrorMsg = nl.fmt2('{}: {}', nlReportHelper.getItemName(cm), cm.dateValidationError);
 			return;
 		}
 		if (!cm.shiftMins.id) {
 			cm.dateValidationErrorIfSomeAtdFilled = 'Shift time minutes is mandatory';
-			return;
-		}
- 		var myDate = nl.fmt.date2Str(cm.sessiondate, 'date');
-		var lastDate = cmValidationCtx.lastFixedSessionDate || null;
-		if (lastDate && myDate <= lastDate) {
-			cm.dateValidationError = nl.fmt2('Date must be later than date specified in {}', cmValidationCtx.lastFixedSessionDateCmName);
+			cm.dateValidationError = nl.fmt2('Shift time minutes is mandatory for {}', cm.name);
 			cm.validationErrorMsg = nl.fmt2('{}: {}', nlReportHelper.getItemName(cm), cm.dateValidationError);
 			return;
 		}

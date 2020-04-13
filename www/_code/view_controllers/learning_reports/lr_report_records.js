@@ -473,8 +473,8 @@ function(nl, nlRouter, nlDlg, nlGroupInfo, nlLrHelper, nlLrFilter, nlGetManyStor
     function _updateOrgByParts(user) {
         var parts = (user.org_unit || '').split('.');
         var ret = {part1: '', part2: '', part3: '', part4: ''};
-        for(var i=0; i<parts.legnth && i < 4; i++)
-            ret['part' + (i+1)] = ret[i];
+        for(var i=0; i<parts.length && i < 4; i++) 
+            ret['part'+(i+1)] = parts[i];
         return ret;
     }
 
