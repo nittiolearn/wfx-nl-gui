@@ -243,7 +243,7 @@ function _handleLink(line) {
         if (link == '') return '';
         var title = 'text' in avpairs ? avpairs['text'] : link;
         var newTab = 'popup' in avpairs && avpairs['popup'] == "1" ? ' target="_blank"' : '';
-        if (nlMobileConnector.isRunningUnderMobileApp()) {
+        if (nlMobileConnector.isMarkupMobileApp()) {
             link = nl.fmt2("'{}'", link);
             return nl.fmt2('<span class="nl-link-text" onclick="window.openLinkInMobile({})">{}</span>', link, title);
         }

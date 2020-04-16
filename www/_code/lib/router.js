@@ -150,7 +150,14 @@ function(nl, nlDlg, nlServerApi, nlMarkup, $state, nlTopbarSrv, nlMobileConnecto
                 nlDlg.popupStatus(nl.t('You are not authorized to access this page'));
                 return _done('/home');
             }
-            
+            if (userInfo.groupinfo && ('features' in userInfo.groupinfo) && userInfo.groupinfo.features['mobile']) {
+                var mobileFeature = userInfo.groupinfo.features['mobile'] || {};
+                if(mobileFeature['disable_screen_capture']) {
+                    nlMobileConnector.disableScreenshot();
+                } else {
+                    nlMobileConnector.enableScreenshot();
+                }
+            }
             if ('onPageEnter' in $scope.$parent) $scope.$parent.onPageEnter(userInfo);
             pageEnterFn(userInfo, e).then(function(status) {
                 if (status) return _done(null);
@@ -206,6 +213,7 @@ function(nl, nlDlg, nlServerApi, nlMarkup, $state, nlTopbarSrv, nlMobileConnecto
         }
         
         var newUrl = rerouteToUrl || nl.location.url();
+        nlMobileConnector.exitFromAppMessageIfRequired();
         nl.pginfo.isPageShown = true;
         nl.pginfo.windowTitle = _getWindowTitle();
         nl.pginfo.windowDescription = windowDescription ? windowDescription : nl.pginfo.windowTitle;

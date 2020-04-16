@@ -46,7 +46,7 @@ function(nl, nlDlg, nlTopbarSrv, nlAnnouncementSrv) {
             };
             $scope.onAnnoucementIconClick = function(e) {
                 return nlAnnouncementSrv.onAnnoucementIconClick();
-            }
+            };
         }
     };
 }];

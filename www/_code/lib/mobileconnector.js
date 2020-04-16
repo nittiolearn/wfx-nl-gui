@@ -10,7 +10,43 @@ function module_init() {
 }
 
 //-------------------------------------------------------------------------------------------------
-var NlMobileConnector = ['nl', 'nlConfig',
+/*********************Features and modification in multifarious app version:***********************
+
+versionCode = 1
+Feature: use of iframe, ionic 1,
+
+versionCode = 200
+Feature: use of IAB instead of iframe, disable zoom, ionic 4+, hardware back btn, initial loading time of app.
+
+versionCode = 210
+Feature: Push Notification
+nittio_mobile_msginfo is introduced which sends 'appversion' to the client when notification was received by the mobile.
+
+versionCode = 211
+Bugfix: Sometimes nittio launching link was getting opened in browser instead of App because of unavailability of fcm token. Corrected
+
+versionCode = 22000
+Feature: Can open playstore link in playstore, 
+         Addition of launch link,
+         2 way communication between nittio-mobile inappbrowser and nittioapp
+         Send an initMessage to nittioapp from nittio-mobile once the app is loaded. The data which is send as message is :-
+            data = { 
+                nittio_mobile_msginfo: {apptype: 'android', 
+                appversion: 22000},
+                notif_type: 'init_mobile_app'
+            };
+
+versionCode = 22010
+Feature: Sceenshot, Use of iframe instead of IAB. IAB is still in use for launching of links to native system browser and corresponding apps.
+
+
+'msgtype' supported from nittioapp to nittiomoble: 
+In appversion(22000) : 'launch_link'
+In appversion(22010) : 'nl_enable_screenshot', 'nl_disable_screenshot', 'nl_take_screenshot', 'nl_exitapp_with_back_btn'
+
+***************************************************************************************************/
+//-------------------------------------------------------------------------------------------------
+var NlMobileConnector = ['nl', 'nlConfig', 
 function(nl, nlConfig) {
     
     // nittio-mobile to nittioapp: different callbacks for different message types are listed here
@@ -20,27 +56,83 @@ function(nl, nlConfig) {
         _lastMessage = null;
     };
 
-    this.isRunningUnderMobileApp = function() {
+    // TODo-NOW: Create a button at the certificate page and then call this canShowPrintScreenBtn,
+    // Attach an click event to call a function which hides the button and call the method "this.takeScreenshot()"
+    // this.canShowPrintScreenBtn = function(status) {
+    //     return status;
+    // }
+
+    var self = this;
+
+    var previousExitStatus = true;
+    var screenshotFlagForEnableAndDisable = false;      // The flag is used to run the enable or disable only once
+    this.exitFromAppMessageIfRequired = function() {
+        var exitApps = {
+            '/home': true,
+            '/login_now': true
+        }
+        var activeUrlPath = nl.location.path();
+        if ((activeUrlPath in exitApps) && (previousExitStatus != true)) {
+            previousExitStatus = true;
+            if (_appVersionFeatureMarkup('nl_exitapp_with_back_btn')) _sendMsgToNittioMobile('nl_exitapp_with_back_btn', {exitStatus: true});
+            return;
+        } else if (!(activeUrlPath in exitApps) && (previousExitStatus == true)) {
+            previousExitStatus = false;
+            if (_appVersionFeatureMarkup('nl_exitapp_with_back_btn')) _sendMsgToNittioMobile('nl_exitapp_with_back_btn', {exitStatus: false});   
+        }
+    }
+
+    this.isMarkupMobileApp = function() {
         if (!_mobileAppInfo.appversion) return false;
-        var iab = ((webkit || {}).messageHandlers || {}).cordova_iab;
-        return iab;
-    };
+        return true;
+    }
 
     this.launchLinkInNewTab = function(url) {
-        if (this.isRunningUnderMobileApp())
-            _sendMsgToNittioMobile('launch_link', {url: url});
-        else {
-            nl.window.open(url,'_blank');            
-        }
+        if (_appVersionFeatureMarkup('launch_link')) _sendMsgToNittioMobile('launch_link', {url: url});
+        else nl.window.open(url,'_blank');
     };
 
-    // msgtype supported: 'launch_link'
+    this.enableScreenshot = function() {
+        if(screenshotFlagForEnableAndDisable) return;
+        screenshotFlagForEnableAndDisable = true;
+        if (_appVersionFeatureMarkup('nl_enable_screenshot')) _sendMsgToNittioMobile('nl_enable_screenshot');
+        return;
+    };
+    this.disableScreenshot = function() {
+        if(screenshotFlagForEnableAndDisable) return;
+        screenshotFlagForEnableAndDisable = true;
+        if (_appVersionFeatureMarkup('nl_disable_screenshot')) _sendMsgToNittioMobile('nl_disable_screenshot');
+        return;
+    };
+    this.takeScreenshot = function() {
+        if (_appVersionFeatureMarkup('nl_take_screenshot')) _sendMsgToNittioMobile('nl_take_screenshot');
+    };
+
+    function _appVersionFeatureMarkup(featurename) {
+        // 'nl_iframe_embed_ionic4' represents iframe is used in ionic 4+ for postmessages.
+        var appVersionFeatureMarkup = {
+            'launch_link'               : '22000',
+            'nl_iframe_embed_ionic4'    : '22010',
+            'nl_enable_screenshot'      : '22010',
+            'nl_disable_screenshot'     : '22010',
+            'nl_take_screenshot'        : '22010',
+            'nl_exitapp_with_back_btn'  : '22010'
+        };
+        if (!self.isMarkupMobileApp()) return false;
+        if (appVersionFeatureMarkup[featurename] > _mobileAppInfo.appversion) return false;
+        return true;
+    }
+
     function _sendMsgToNittioMobile(msgtype, payload) {
-        var iab = ((webkit || {}).messageHandlers || {}).cordova_iab;
-        if (!iab) return;
         var msg = {msgtype: msgtype, payload: payload, nittioapp_msginfo: {}};
-        msg = JSON.stringify(msg);
-        iab.postMessage(msg);
+        if (_appVersionFeatureMarkup('nl_iframe_embed_ionic4')) {
+            window.parent.postMessage(msg, "*");
+        } else {
+            var iab = ((webkit || {}).messageHandlers || {}).cordova_iab;
+            if (!iab) return;
+            msg = JSON.stringify(msg);
+            iab.postMessage(msg);
+        }
     };
 
     //---------------------------------------------------------------------------------------------
