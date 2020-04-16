@@ -88,8 +88,10 @@ function _getContext(courseAssignment, modules, learningRecords, groupInfo) {
 	
 		var modules = ctx.modules;
 		ctx.modules = [];
+		ctx.folders = {};
 		for (var i=0; i<modules.length; i++) {
 			var cm = modules[i];
+			if (cm.type == 'module') ctx.folders[cm.id] = cm;
 			if (cm.type != 'iltsession' && cm.type != 'rating' && cm.type != 'milestone') continue;
 			if (cm.type == 'module') {
 				ctx.modules.push(cm);
@@ -106,6 +108,49 @@ function _getContext(courseAssignment, modules, learningRecords, groupInfo) {
 			if (modules[i].deleteItem) continue;
 			ctx.trainerItemTypes[cm.type] = true;
 			ctx.modules.push(cm);
+		}
+		var isEtmAsd = ctx.dbAttendance.getEtmAsd().length > 0;
+		if (!isEtmAsd) return;
+		var _ratingDict = ctx.dbRating.getRatingDict();
+		var setOfRatings = [];
+		ctx.trainerItemTypes['multipleRating'] = true;
+		var parentId = null;
+		for (var i=0; i< ctx.modules.length; i++) {
+			var cm = ctx.modules[i];
+			if (cm.type != 'rating') {
+				_updateMultipleRating (setOfRatings, i, parentId);
+				setOfRatings = [];
+				continue;
+			}
+			if (!(cm.parentId in ctx.folders)) {
+				_updateMultipleRating (setOfRatings, i, parentId);
+				setOfRatings = [];
+				continue;
+			}
+			var ratingConfig = _ratingDict[cm.rating_type];
+			if (ratingConfig.type != 'number') {
+				_updateMultipleRating (setOfRatings, i, parentId);
+				setOfRatings = [];
+				continue;
+			}
+			setOfRatings.push(ctx.modules[i]);
+			parentId = cm.parentId;
+		}
+	}
+	
+	var uniqueId = 10000;
+	function _updateMultipleRating (setOfRatings, i, parentId) {
+		if (setOfRatings.length > 1) {
+			for (var k=0; k<setOfRatings.length; k++) setOfRatings[k].hideRatingInGui = true; 
+			var lr = setOfRatings[0].learningRecords;
+			var userlist = [];
+			for (var j=0; j<lr.length; j++) {
+				if (lr[j].bulkEntry) continue;
+				var dict = {learnername: lr[j].learnername, learnerid: lr[j].learnerid, pos: j, lockedMessage: lr[j].lockedMessage};
+				userlist.push(dict);
+			}
+			ctx.modules.splice (i, 0, {id: '_id'+uniqueId, parnetId: parentId, name: 'Day 1 Score', type: 'multipleRating', userlist: userlist, allRating: setOfRatings});
+			uniqueId++;
 		}
 	}
 
@@ -500,13 +545,19 @@ function DbRatingObject(courseAssignment, ctx) {
 		}
 	}
 
+	this.getRatingDict = function() {
+		return _ratingDict;
+	};
+
 	this.updateItem = function(cm) {
+		var isEtmAsd = ctx.dbAttendance.getEtmAsd().length > 0;
 		if (!_ratingDict || !cm.rating_type || !_ratingDict[cm.rating_type]) {
 			cm.deleteItem = true;
 			return;
 		}
 		var ratingConfig = _ratingDict[cm.rating_type];
 		cm.ratingType = ratingConfig.type == 'number' ? 'input' : 'select';
+		if (isEtmAsd && ratingConfig.type == 'number') cm.hideRemarks = true;
 		cm.ratingOptions = ratingConfig.ratingOptions;
 
 		for (var i=0; i<ctx.lrArray.length; i++) {
@@ -794,6 +845,20 @@ function Validator(ctx) {
 		for(var i=0; i<ctx.modules.length; i++) {
 			var cm = ctx.modules[i];
 			if (!cm || cm.type == 'module') continue;
+			if (cm.type == 'multipleRating') {
+				var allMarked = true;
+				cm.lockedOnItem = null;
+				for (var k=0; k<cm.allRating.length; k++) {
+					var child = cm.allRating[k];
+					if (child.lockedOnItem) cm.lockedOnItem = child.lockedOnItem
+					if (!child.isMarkingComplete) {
+						allMarked = false;
+					}
+				}
+				if (allMarked) cm.isMarkingComplete = true;
+				else cm.isMarkingComplete = false;
+				continue;
+			}
 			cm.pos = i;
 
 			var msEarliest = (blockers.all && blockers.ms) ? (blockers.all.pos > blockers.ms.pos ? blockers.all : blockers.ms)
@@ -973,12 +1038,36 @@ function UpdateTrainingBatchDlg($scope, ctx, resolve) {
 			ctx.dbRating.updateRemarksOptionsAndStr(report, opt);
 		};
 
+		dlgScope.bulkMarkMultipleRating = function(selectedModule) {
+			var cm = selectedModule;
+			var bulkDlg = nlDlg.create($scope);
+			bulkDlg.scope.dlgTitle = 'Provide rating';
+			bulkDlg.scope.data = {inputval: '', inputField: true};			
+			var okButton = {text: nl.t('Mark all'), onTap: function(e) {
+				bulkDlg.scope.data.errorMsg = null;
+				if (!bulkDlg.scope.data.inputval) {
+					e.preventDefault();
+					bulkDlg.scope.data.errorMsg = 'Please provide rating and try mark all';
+					return;
+				}
+				var ratingDict = {id: bulkDlg.scope.data.inputval};
+				for(var i=0; i<cm.learningRecords.length; i++) {
+					var lr = cm.learningRecords[i];
+					if (lr.bulkEntry || lr.lockedMessage) continue;
+					lr.rating = angular.copy(ratingDict);
+				}	
+			}};
+			var cancelButton = {text: nl.t('Cancel'), onTap: function(e) {
+			}};
+			bulkDlg.show('view_controllers/learning_reports/lr_bulk_marker_dlg.html',
+				[okButton], cancelButton);	
+		};
 		// Used in lr_update_batch_milestone.html
 		dlgScope.milestoneMarkAll = function(e, selectedModule) {
 			if (dlgScope.isEtmAsd) {
 				var msBulkMarkDlg = nlDlg.create($scope);
 				msBulkMarkDlg.scope.dlgTitle = 'Select date';
-				msBulkMarkDlg.scope.data = {reached: null};
+				msBulkMarkDlg.scope.data = {reached: null, showDate: true};
 				var okButton = {text: nl.t('Mark all'), onTap: function(e) {
 					msBulkMarkDlg.scope.data.errorMsg = null;
 					if (!msBulkMarkDlg.scope.data.reached) {
@@ -990,7 +1079,7 @@ function UpdateTrainingBatchDlg($scope, ctx, resolve) {
 				}};
 				var cancelButton = {text: nl.t('Cancel'), onTap: function(e) {
 				}};
-				msBulkMarkDlg.show('view_controllers/learning_reports/lr_bulk_milestone_marker.html',
+				msBulkMarkDlg.show('view_controllers/learning_reports/lr_bulk_marker_dlg.html',
 					[okButton], cancelButton);	
 			} else {
 				ctx.dbMilestone.markAll(selectedModule, true);
@@ -1034,10 +1123,11 @@ function UpdateTrainingBatchDlg($scope, ctx, resolve) {
 		dlgScope.selectedModule = newCm || null;
 		for(var i=0; i<ctx.modules.length; i++) {
 			var cm = ctx.modules[i];
-			cm.canShowInModuleList = (cm.type == dlgtype)
+			cm.canShowInModuleList = (cm.type == dlgtype || (dlgtype == 'rating' && cm.type == 'multipleRating'))
 				|| (dlgtype == 'all' && (cm.type == 'module' || cm.type in ctx.trainerItemTypes));
 			if (cm.canShowInModuleList && !_isModuleSearchPass(dlgScope, cm)) cm.canShowInModuleList = false;
 			if (!cm.canShowInModuleList) continue;
+			if (cm.hideRatingInGui) continue;
 			_myTreeListSrv.addItem(cm);
 		}
 		_showVisible(dlgScope);
@@ -1168,6 +1258,10 @@ function UpdateTrainingBatchDlg($scope, ctx, resolve) {
 		var oldModules = nl.utils.arrayToDictById(ctx.oldModules);
 		for (var i=0; i<ctx.modules.length; i++) {
 			var cm = ctx.modules[i];
+			if (cm.type == 'multipleRating') {
+				delete oldModules[cm.id];
+				continue;
+			}
 			var oldCm = oldModules[cm.id];
 			if (!oldCm) {
 				changes.push({cm: cm, type: 'New session added'});
@@ -1205,9 +1299,7 @@ function UpdateTrainingBatchDlg($scope, ctx, resolve) {
 			cm.lockedOnItem ? ctx.modulesToSave.push(oldCm) : ctx.modulesToSave.push(cm);
 			delete oldModules[cm.id];
 		}
-		for (var cmid in oldModules) {
-			changes.push({cm: oldModules[cmid], type: 'Session deleted'});
-		}
+		for (var cmid in oldModules) changes.push({cm: oldModules[cmid], type: 'Session deleted'});
 		return changes;
 	}
 

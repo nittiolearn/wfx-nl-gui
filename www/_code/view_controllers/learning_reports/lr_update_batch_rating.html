@@ -22,7 +22,7 @@
             <td style='width: 20%;'>
                 Rating
             </td>
-            <td>
+            <td ng-hide='selectedModule.hideRemarks'>
                 Remarks
             </td>
         </tr>
@@ -48,7 +48,7 @@
                     {{report.error}}
                 </div>
             </td>
-            <td>
+            <td ng-hide='selectedModule.hideRemarks'>
                 <div ng-if='report.lockedMessage'
                      class='nl-dlg-field-value'>
                      {{report.lockedMessage}}
