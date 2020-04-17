@@ -149,7 +149,8 @@ function _getContext(courseAssignment, modules, learningRecords, groupInfo) {
 				var dict = {learnername: lr[j].learnername, learnerid: lr[j].learnerid, pos: j, lockedMessage: lr[j].lockedMessage};
 				userlist.push(dict);
 			}
-			ctx.modules.splice (i, 0, {id: '_id'+uniqueId, parnetId: parentId, name: 'Day 1 Score', type: 'multipleRating', userlist: userlist, allRating: setOfRatings});
+			var folder = ctx.folders[parentId];
+			ctx.modules.splice (i, 0, {id: '_id'+uniqueId, parnetId: parentId, name: nl.t('{} : scores',folder.name), type: 'multipleRating', userlist: userlist, allRating: setOfRatings});
 			uniqueId++;
 		}
 	}

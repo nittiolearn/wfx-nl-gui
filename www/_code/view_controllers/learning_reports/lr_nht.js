@@ -54,6 +54,7 @@ function(nl, nlReportHelper, nlGetManyStore) {
         statsCountObj['batchid'] = record.raw_record.assignment;
         statsCountObj['delayDays'] = stats.delayDays || 0;
         statsCountObj['customScores'] = stats.customScores || [];
+        if (stats.attritionType && (stats.attritionType == 'attrition' || stats.attritionType == 'transfered_out')) statsCountObj['dontCountAttrition'] = true;
         if (stats.inductionDropOut) {
                 statsCountObj['inductionDropOut'] = 1;
             return statsCountObj;
@@ -195,7 +196,7 @@ function NhtCounts(nl, nlGetManyStore, nlGroupInfo) {
     this.updateBatchCount = function(batchInfo, statusCnt) {
         var updatedStats = self.getBatch(batchInfo);
         _updateBatchInfo(updatedStats, batchInfo.batchId, statusCnt);
-        if (updatedStats.batchStatus == 'Closed') statusCnt['cntCompletedTotal'] = 1;
+        if (updatedStats.batchStatus == 'Closed' && !statusCnt.dontCountAttrition) statusCnt['cntCompletedTotal'] = 1;
         _updateStatsCount(updatedStats, statusCnt);
     };
 
@@ -227,6 +228,8 @@ function NhtCounts(nl, nlGetManyStore, nlGroupInfo) {
         return;
     }
 
+    var certifiedStats = {'certified': true, 'failed': true, 'attrition-certification' : true, 
+                          'attrition-recertification': true, 'customScores': true}
     function _updateStatsCount(updatedStats, statusCnt) { 
         //updatedStats is object fetched from _statusCountTree. Value from statusCnt object are added to updatedStats
         for(var key in statusCnt) {
@@ -237,6 +240,7 @@ function NhtCounts(nl, nlGetManyStore, nlGroupInfo) {
                 }
                 continue;
             }
+            if (('dontCountAttrition' in statusCnt) && (key in certifiedStats)) continue;
             if(key == 'customScores') {
                 var customScores = statusCnt[key];
                 for(var i=0; i<customScores.length; i++) {

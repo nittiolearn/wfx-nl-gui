@@ -1125,7 +1125,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 
 		columns.push({id: 'failed', name: 'Total Not Certified', hidePerc:true, table: false, showAlways: true}); //This is not asked by abrar
 		columns.push({id: 'batchFirstPass', name: 'First Pass Percentage', showIn: 'closed', hidePerc: true, table: true, showAlways: true});
-		columns.push({id: 'batchThroughput', name: 'Batch Throughput', showIn: 'closed', hidePerc: true, table: true, showAlways: true});
+		columns.push({id: 'batchThroughput', name: 'e2e throughput', showIn: 'closed', hidePerc: true, table: true, showAlways: true});
 
 		// Others - not asked by customer but may be needed
 		columns.push({id: 'avgDelay', name: 'Average delay(In days)', hidePerc: true, table: true, showAlways: true});

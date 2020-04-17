@@ -257,6 +257,7 @@ function(nl, nlRouter, nlDlg, nlGroupInfo, nlLrHelper, nlLrFilter, nlGetManyStor
             customScores: stainf.customScores,
             attritedAt: stainf.attritedAt,
             attritionStr: stainf.attritionStr,
+            attritionType: stainf.attritionType,
             delayDays: Math.round(stainf.delayDays || 0),
             isCertified: stainf.isCertified,
             customScoreDict: stainf.customScoreDict,
