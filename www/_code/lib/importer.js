@@ -51,7 +51,10 @@ function(nl, nlDlg) {
                 var cells = _splitIntoCells(row);
                 if (!cells) continue;
                 if (cols === null) cols = cells.length;
-                if (cols !== cells.length && !config.ignore_column_count) error = 'Not all rows have same number of columns';
+                if (cols !== cells.length && !config.ignore_column_count && !error) {
+                    error = nl.fmt2('Row {}: Either new line character found in column {} or number of columns does not match the header.',
+                        i+1, cells.length);
+                }
                 table.push(cells);
             }
             resolve({table:table, error:error, cols: cols});

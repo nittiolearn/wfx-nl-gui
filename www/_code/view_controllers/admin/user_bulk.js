@@ -197,30 +197,34 @@ function(nl, nlDlg, nlGroupInfo, nlImporter, nlProgressLog, nlRouter, nlServerAp
         var csvFile = dlgScope.data.filelist[0].resource;
         self.pl.imp('Import started: ' + csvFile.name);
         nlImporter.readCsv(csvFile).then(function(result) {
-            if (result.error)
+            try {
+                if (result.error)
                 _throwException(nl.fmt2('Error parsing CSV file. {}', result.error));
-            self.pl.imp('Read successful', angular.toJson(result, 2));
-            self.setProgress('fileRead');
-            var table = result.table;
-            _processCsvFile(table).then(function(rows) {
-                self.setProgress('processCsv');
-                var missingCnt = Object.keys(self.missingOus).length;
-                if (missingCnt == 0) {
-                    self.pl.imp(nl.fmt2('Processing CSV file successful - {} changes found',
-                    	self.statusCnts.process), angular.toJson(rows, 2));
-                } else if (dlgScope.data.createMissingOus) {
-                    self.pl.imp(nl.fmt2('{} ou(s) are not present in tree - these will be added to the tree before updating user information.', missingCnt), self.missingOus);
-                } else {
-                    self.pl.error(nl.fmt2('{} ou(s) are not present in tree. You may enable the option to create missing organization units.', missingCnt), self.missingOus);
-                }
-                if (dlgScope.data.validateOnly) {
-                    _done(true);
-                    return;
-                }
-                _updateServerAfterConfirmIfNeeded(false, rows, dlgScope.data.createMissingOus);
-            }, function(e) {
+                self.pl.imp('Read successful', angular.toJson(result, 2));
+                self.setProgress('fileRead');
+                var table = result.table;
+                _processCsvFile(table).then(function(rows) {
+                    self.setProgress('processCsv');
+                    var missingCnt = Object.keys(self.missingOus).length;
+                    if (missingCnt == 0) {
+                        self.pl.imp(nl.fmt2('Processing CSV file successful - {} changes found',
+                            self.statusCnts.process), angular.toJson(rows, 2));
+                    } else if (dlgScope.data.createMissingOus) {
+                        self.pl.imp(nl.fmt2('{} ou(s) are not present in tree - these will be added to the tree before updating user information.', missingCnt), self.missingOus);
+                    } else {
+                        self.pl.error(nl.fmt2('{} ou(s) are not present in tree. You may enable the option to create missing organization units.', missingCnt), self.missingOus);
+                    }
+                    if (dlgScope.data.validateOnly) {
+                        _done(true);
+                        return;
+                    }
+                    _updateServerAfterConfirmIfNeeded(false, rows, dlgScope.data.createMissingOus);
+                }, function(e) {
+                    _error(e);
+                });
+            } catch (e) {
                 _error(e);
-            });
+            }
         }, function(e) {
             _error(nl.t('Error reading CSV file: {}', e));
         });
