@@ -1120,8 +1120,8 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		columns.push({id: 'certifiedFirstAttempt', name: 'Certified in First Attempt', hidePerc: true, table: true, showAlways: true});
 		columns.push({id: 'certifiedSecondAttempt', name: 'Certified in 2nd Attempt', hidePerc: true, table: true, showAlways: true});
 		columns.push({id: 'certified', name: 'Total Certified', hidePerc: true, table: true, showAlways: true});
-		columns.push({id: 'notCertified', name: 'Not certified', hidePerc: true, table: true, showAlways: true});
-		columns.push({id: 'certificationThroughput', name: 'certification throughput', hidePerc: true, table: true, showAlways: true});
+		columns.push({id: 'notCertified', name: 'Not Certified', hidePerc: true, table: true, showAlways: true});
+		columns.push({id: 'certificationThroughput', name: 'Certification Throughput', hidePerc: true, table: true, showAlways: true});
 
 		columns.push({id: 'failed', name: 'Total Not Certified', hidePerc:true, table: false, showAlways: true}); //This is not asked by abrar
 		columns.push({id: 'batchFirstPass', name: 'First Pass Percentage', showIn: 'closed', hidePerc: true, table: true, showAlways: true});
