@@ -54,7 +54,7 @@ function(nl, nlReportHelper, nlGetManyStore) {
         statsCountObj['batchid'] = record.raw_record.assignment;
         statsCountObj['delayDays'] = stats.delayDays || 0;
         statsCountObj['customScores'] = stats.customScores || [];
-        if (stats.attritionType && (stats.attritionType == 'attrition' || stats.attritionType == 'transfered_out')) statsCountObj['dontCountAttrition'] = true;
+        if (stats.attritionStr == 'Attrition-Involuntary' || stats.attritionStr == 'Transfer-Out') statsCountObj['dontCountAttrition'] = true;
         if (stats.inductionDropOut) {
                 statsCountObj['inductionDropOut'] = 1;
             return statsCountObj;

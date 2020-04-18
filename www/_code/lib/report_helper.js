@@ -177,7 +177,7 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
             nQuizes: 0, nQuizAttempts: 0, nPassedQuizes: 0, nFailedQuizes: 0, 
             nTotalQuizScore: 0, nTotalQuizMaxScore: 0,
             onlineTimeSpentSeconds: 0, iltTimeSpent: 0, iltTotalTime: 0,
-            feedbackScore: '', customScores: [], attritedAt: null, attritionStr: null, attritionType: null,
+            feedbackScore: '', customScores: [], attritedAt: null, attritionStr: null,
             isCertified: false, certid: null,
             customScoreDict: {},
             inductionDropOut: null
@@ -233,7 +233,6 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
                 isAttrition = true;
                 ret.attritedAt = cm.id;
                 ret.attritionStr = itemInfo.state;
-                ret.attritionType = itemInfo.stateStr;
                 itemInfo.status = 'attrition';
                 var suffix = itemInfo.customStatus ? '-' +  itemInfo.customStatus : '';
                 defaultCourseStatus = 'attrition' + suffix;
