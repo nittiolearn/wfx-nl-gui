@@ -989,9 +989,14 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		nlLrNht.clearStatusCountTree();
 		var records = $scope.tabData.records;
 		var reportDict = {};
+		var transferedOut = {};
 		for(var i=0; i<records.length; i++) {
 			var record = records[i];
 			if(!record.raw_record.isNHT) continue;
+			if (record.stats.attritionStr == 'Transfer-Out') {
+				transferedOut[record.user.user_id] = record;
+				continue;
+			}
 			var msInfo = nlGetManyStore.getBatchMilestoneInfo(record.raw_record);
 			if(isRunning && msInfo.batchStatus == 'Closed' ||
 				!isRunning && msInfo.batchStatus != 'Closed') continue;
@@ -1002,6 +1007,10 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			var oldUserRecord = reportDict[record.user.user_id];
 			if(oldUserRecord.repcontent.updated > record.repcontent.updated) continue;
 			reportDict[record.user.user_id] = record;
+		}
+		for (var transferid in transferedOut) {
+			if (transferid in reportDict) continue;
+			reportDict[transferid] = transferedOut[transferid];
 		}
 		for(var key in reportDict) {
 			var record = reportDict[key];

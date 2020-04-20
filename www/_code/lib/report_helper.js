@@ -296,14 +296,20 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
         if (msInfo.status && msInfo.status == 'done' && learnerMsInfo.marked == 'done') {
             var actualMarked = learnerMsInfo.reached ? new Date(learnerMsInfo.reached) : '';
             var msDelay = 0;
-            if (actualMarked > msPlanned) msDelay = itemInfo.delayDays = 1.0*(actualMarked - msPlanned)/1000.0/3600.0/24;
+            if (msPlanned && actualMarked > msPlanned) {
+                msDelay = 1.0*(actualMarked - msPlanned)/1000.0/3600.0/24;
+                itemInfo.delayDays = msDelay;
+            }
             msInfoDict.latestMarkedMilestone = {delayDays: Math.round(msDelay)};            
         }
 
         if ((!learnerMsInfo.marked || learnerMsInfo.marked != 'done') && !msInfoDict.firstPendingMs) {
             var msDelay = 0;
             var now = new Date();
-            if (now > msPlanned) msDelay =itemInfo.delayDays = 1.0*(now - msPlanned)/1000.0/3600.0/24;
+            if (msPlanned && now > msPlanned) {
+                msDelay = 1.0*(now - msPlanned)/1000.0/3600.0/24;
+                itemInfo.delayDays = msDelay;
+            }
             if (!msInfoDict.latestMarkedMilestone) msDelay = 0;
 
             msInfoDict.firstPendingMs = {delayDays: Math.round(msDelay)};
