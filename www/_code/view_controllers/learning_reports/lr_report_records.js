@@ -69,7 +69,7 @@ function(nl, nlRouter, nlDlg, nlGroupInfo, nlLrHelper, nlLrFilter, nlGetManyStor
     };
     
     this.addRecord = function(report) {
-        if (!_canProcess(report)) return false;
+        if (!_canProcess(report)) return null;
         if (report.ctype == _nl.ctypes.CTYPE_COURSE)
             report = _processCourseReport(report);
         else if (report.ctype == _nl.ctypes.CTYPE_MODULE)
@@ -88,8 +88,9 @@ function(nl, nlRouter, nlDlg, nlGroupInfo, nlLrHelper, nlLrFilter, nlGetManyStor
     function _canProcess(report) {
         var type = nlLrFilter.getType();
         var detailedReport = nlLrFilter.isDetailedReport();
-        if (type != 'module' && !detailedReport) return true;
+        if (!(type == 'module' && detailedReport)) return true;
         var moduleid = nlLrFilter.getModuleId();
+        if (!moduleid) return true;
         var content = angular.fromJson(report.content);
         if (content.courseReportModuleId == moduleid) return true;
         return false;
