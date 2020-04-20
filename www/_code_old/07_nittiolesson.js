@@ -538,10 +538,23 @@ nlesson = function() {
         var _onPreLoadDoneFn = null;
         this.onPreLoadDone = function(pageId) {
             if (pageId in _loadingPages) delete _loadingPages[pageId];
+            _preloadStatusMessage();
             if (!_onPreLoadDoneFn || Object.keys(_loadingPages).length > 0) return;
             _onPreLoadDoneFn(true);
             _onPreLoadDoneFn = null;
         };
+
+        function _preloadStatusMessage() {
+            var pending = Object.keys(_loadingPages).length;
+            if (pending == 0) {
+                njs_helper.Dialog.popupStatus('', 0);
+                return;
+            }
+            var total = lesson.pages.length;
+            var done = total - pending;
+            njs_helper.Dialog.popupStatus(njs_helper.fmt2('Preparing to print: {} of {} - please wait ...',
+                done, total), false);
+        }
         
         function _preLoadOtherPages(self, pgNo) {
             var pgStart = pgNo - 4;
@@ -2520,10 +2533,8 @@ var modulePopup = new ModulePopupHadler();
 		
         nittio.printHandler(function() {
             njs_helper.Dialog.moveBack();
-            njs_helper.Dialog.popupStatus('Preparing to print - please wait ...', false);
             g_lesson.postRenderingQueue.preLoadAllPages(function(status) {
 		        if (!status) return;
-		        njs_helper.Dialog.popupStatus('', 0);
 		        setTimeout(function() {
 	                window.print();
 	                njs_helper.Dialog.moveFront();
