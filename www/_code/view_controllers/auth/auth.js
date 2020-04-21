@@ -429,7 +429,6 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlMobileConnector) {
                     nlDlg.popupStatus(nl.t('You have been signed out from the system'));
                     nl.log.debug('LogoutCtrl:onPageEnter - done');
                     nl.location.url('/login_now?msg=logout');
-                    nlMobileConnector.setScreenshotFlag(false);
                     resolve(true);
                 });
             }, function(reason) {

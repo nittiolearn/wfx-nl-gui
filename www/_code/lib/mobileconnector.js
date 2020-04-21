@@ -9,42 +9,48 @@ function module_init() {
     .service('nlMobileConnector', NlMobileConnector);
 }
 
+var g_appVersionFeatureMarkup = {
+
+    // versionCode = 1
+    // Feature: use of iframe, ionic 1,
+    
+    // versionCode = 200
+    // Feature: use of IAB instead of iframe, disable zoom, ionic 4+, hardware back btn, initial loading time of app.
+    
+    // versionCode = 210
+    // Feature: Push Notification
+    // nittio_mobile_msginfo is introduced which sends 'appversion' to the client when notification was received by the mobile.
+    
+    // versionCode = 211
+    // Bugfix: Sometimes nittio launching link was getting opened in browser instead of App because of unavailability of fcm token. Corrected
+
+    // versionCode = 22000: introduced #1170
+    // Feature: Can open playstore link in playstore, 
+    // Addition of launch link,
+    // 2 way communication between nittio-mobile inappbrowser and nittioapp
+    // Send an initMessage to nittioapp from nittio-mobile once the app is loaded. The data which is send as message is :-
+    //    data = { 
+    //        nittio_mobile_msginfo: {apptype: 'android', 
+    //        appversion: 22000},
+    //        notif_type: 'init_mobile_app'
+    //    };
+    'launch_link'               : '22000', // #1170 Launch link in system browser
+
+    // 22010: introduced #1191, #1190 (regresion test issue)
+    // Feature: Sceenshot, Use of iframe instead of IAB. IAB is still in use for launching of links to native system browser and corresponding apps.
+    'nl_iframe_embed_ionic4'    : '22010', // nittio_mobile uses iframe instead of IAB (so call postmessages instead of IAB method).
+    'nl_enable_screenshot'      : '22010', // see issue #1191
+    'nl_disable_screenshot'     : '22010', // see issue #1191
+    'nl_take_screenshot'        : '22010', // see issue #1191
+    'nl_exitapp_with_back_btn'  : '22010'  // To inform nittio_mobile to exit or not on back button
+};
+
 //-------------------------------------------------------------------------------------------------
-/*********************Features and modification in multifarious app version:***********************
+// 'msgtype' supported from nittioapp to nittiomoble: 
+// In appversion(22000) : 'launch_link'
+// In appversion(22010) : Additionally: 'nl_enable_screenshot', 'nl_disable_screenshot', 'nl_take_screenshot', 'nl_exitapp_with_back_btn'
+//-------------------------------------------------------------------------------------------------
 
-versionCode = 1
-Feature: use of iframe, ionic 1,
-
-versionCode = 200
-Feature: use of IAB instead of iframe, disable zoom, ionic 4+, hardware back btn, initial loading time of app.
-
-versionCode = 210
-Feature: Push Notification
-nittio_mobile_msginfo is introduced which sends 'appversion' to the client when notification was received by the mobile.
-
-versionCode = 211
-Bugfix: Sometimes nittio launching link was getting opened in browser instead of App because of unavailability of fcm token. Corrected
-
-versionCode = 22000
-Feature: Can open playstore link in playstore, 
-         Addition of launch link,
-         2 way communication between nittio-mobile inappbrowser and nittioapp
-         Send an initMessage to nittioapp from nittio-mobile once the app is loaded. The data which is send as message is :-
-            data = { 
-                nittio_mobile_msginfo: {apptype: 'android', 
-                appversion: 22000},
-                notif_type: 'init_mobile_app'
-            };
-
-versionCode = 22010
-Feature: Sceenshot, Use of iframe instead of IAB. IAB is still in use for launching of links to native system browser and corresponding apps.
-
-
-'msgtype' supported from nittioapp to nittiomoble: 
-In appversion(22000) : 'launch_link'
-In appversion(22010) : 'nl_enable_screenshot', 'nl_disable_screenshot', 'nl_take_screenshot', 'nl_exitapp_with_back_btn'
-
-***************************************************************************************************/
 //-------------------------------------------------------------------------------------------------
 var NlMobileConnector = ['nl', 'nlConfig', 
 function(nl, nlConfig) {
@@ -64,11 +70,9 @@ function(nl, nlConfig) {
     var self = this;
 
     var previousExitStatus = true;
-    var screenshotFlagForEnableAndDisable = false;      // The flag is used to run the enable or disable only once
-    var _canShowPrint = false;
-    this.setScreenshotFlag = function(flag) {
-        screenshotFlagForEnableAndDisable = flag;
-    };
+    var screenCaptureEnabled = null;      // The flag is used to run the enable or disable only on change
+    var _canShowPrintScreenBtn = true;
+    var _onScreenshotDoneFn = null;
 
     this.exitFromAppMessageIfRequired = function() {
         var exitApps = {
@@ -86,9 +90,8 @@ function(nl, nlConfig) {
         }
     };
 
-    this.isMarkupMobileApp = function() {
-        if (!_mobileAppInfo.appversion) return false;
-        return true;
+    this.isMarkupSupportedByMobileApp = function() {
+        return _appVersionFeatureMarkup('launch_link');
     };
 
     this.launchLinkInNewTab = function(url) {
@@ -97,38 +100,38 @@ function(nl, nlConfig) {
     };
 
     this.enableScreenshot = function() {
-        if(screenshotFlagForEnableAndDisable) return;
-        screenshotFlagForEnableAndDisable = true;
+        if(screenCaptureEnabled === true) return;
+        screenCaptureEnabled = true;
         if (_appVersionFeatureMarkup('nl_enable_screenshot')) _sendMsgToNittioMobile('nl_enable_screenshot');
         return;
     };
     this.disableScreenshot = function() {
-        if(screenshotFlagForEnableAndDisable) return;
-        screenshotFlagForEnableAndDisable = true;
+        if(screenCaptureEnabled === false) return;
+        screenCaptureEnabled = false;
         if (_appVersionFeatureMarkup('nl_disable_screenshot')) _sendMsgToNittioMobile('nl_disable_screenshot');
         return;
     };
 
-    this._canShowPrintScreenBtn = function() {
-        if(_appVersionFeatureMarkup('nl_take_screenshot')) return true;
+    this.canShowPrintScreenBtn = function() {
+        return _appVersionFeatureMarkup('nl_take_screenshot') && _canShowPrintScreenBtn;
     };
 
-    this.takeScreenshot = function() {
+    this.takeScreenshot = function(onDoneFn) {
+        if (_onScreenshotDoneFn) return;
+        _canShowPrintScreenBtn = false;
+        _onScreenshotDoneFn = onDoneFn;
         if (_appVersionFeatureMarkup('nl_take_screenshot')) _sendMsgToNittioMobile('nl_take_screenshot');
     };
 
+    function _screenshotSuccessFromNittioMobile(data) {
+        _canShowPrintScreenBtn = true;
+        if (_onScreenshotDoneFn) _onScreenshotDoneFn();
+        _onScreenshotDoneFn = null;
+    }
+
     function _appVersionFeatureMarkup(featurename) {
-        // 'nl_iframe_embed_ionic4' represents iframe is used in ionic 4+ for postmessages.
-        var appVersionFeatureMarkup = {
-            'launch_link'               : '22000',
-            'nl_iframe_embed_ionic4'    : '22010',
-            'nl_enable_screenshot'      : '22010',
-            'nl_disable_screenshot'     : '22010',
-            'nl_take_screenshot'        : '22010',
-            'nl_exitapp_with_back_btn'  : '22010'
-        };
-        if (!self.isMarkupMobileApp()) return false;
-        if (appVersionFeatureMarkup[featurename] > _mobileAppInfo.appversion) return false;
+        if (!_mobileAppInfo.appversion) return false;
+        if (g_appVersionFeatureMarkup[featurename] > _mobileAppInfo.appversion) return false;
         return true;
     }
 
@@ -163,10 +166,6 @@ function(nl, nlConfig) {
         handlerFn(data);
     }
     
-    function _screenshotSuccessFromNittioMobile(data) {
-        _canShowPrint = true;
-    }
-
     var cacheKey = "MOBILE_APP_INFO";
     function _onInitMobileFromNittioMobile(data) {
         _mobileAppInfo = data.nittio_mobile_msginfo;
