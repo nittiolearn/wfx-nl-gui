@@ -270,6 +270,9 @@ function DbAttendanceObject(courseAssignment, ctx) {
 	this.changeSessionShiftTime = function(cm) {
 		if (!cm.shiftHrs || !cm.shiftHrs.id || !cm.shiftMins || !cm.shiftMins) return;
 		var shiftEndHrs = parseInt(cm.shiftHrs.id) + 9;
+		if (shiftEndHrs && shiftEndHrs > 23) {
+			shiftEndHrs = shiftEndHrs % 24;
+		}
 		cm.shiftEnd = nl.t('{}:{}', shiftEndHrs, cm.shiftMins.id);
 	};
 
