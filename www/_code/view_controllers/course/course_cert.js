@@ -24,8 +24,8 @@ function($stateProvider, $urlRouterProvider) {
 }];
 
 //-------------------------------------------------------------------------------------------------
-var NlCourseCertCtrl = ['nl', 'nlRouter', '$scope', 'nlServerApi', 'nlPrinter',
-function(nl, nlRouter, $scope, nlServerApi, nlPrinter) {
+var NlCourseCertCtrl = ['nl', 'nlRouter', '$scope', 'nlServerApi', 'nlPrinter', 'nlMobileConnector', 'nlDlg',
+function(nl, nlRouter, $scope, nlServerApi, nlPrinter, nlMobileConnector, nlDlg) {
     var nlContainer = null;
     $scope.available = false;
 	$scope.sample = false;
@@ -43,6 +43,14 @@ function(nl, nlRouter, $scope, nlServerApi, nlPrinter) {
     
     $scope.onPrint = function() {
         nlPrinter.print(nl.fmt2('{} - {} certificate', $scope.userName, $scope.courseName));
+    };
+
+    $scope.onScreenshot = function() {
+        nlDlg.popupConfirm({title: 'Print Certificate', template: 'Do you want to take the screenshot of the certificate', 
+            okText: 'Yes', cancelText: 'No'}).then(function(result) {
+            $scope.canShowPrintBtn = false;
+            nlMobileConnector.takeScreenshot();
+        });
     };
 
     function _onPageEnterImpl(userInfo) {
@@ -82,6 +90,7 @@ function(nl, nlRouter, $scope, nlServerApi, nlPrinter) {
 	        }
         }
         $scope.available = true;
+        $scope.canShowPrintBtn = nlMobileConnector.canShowPrintScreenBtn() || nlMobileConnector._canShowPrint;
     }
 
     function _hideScore(cm) {

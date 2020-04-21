@@ -157,6 +157,8 @@ function(nl, nlDlg, nlServerApi, nlMarkup, $state, nlTopbarSrv, nlMobileConnecto
                 } else {
                     nlMobileConnector.enableScreenshot();
                 }
+            } else if(userInfo.groupinfo && ('features' in userInfo.groupinfo)) {
+                nlMobileConnector.enableScreenshot();
             }
             if ('onPageEnter' in $scope.$parent) $scope.$parent.onPageEnter(userInfo);
             pageEnterFn(userInfo, e).then(function(status) {

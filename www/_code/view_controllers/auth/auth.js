@@ -415,8 +415,8 @@ function _loginControllerImpl(ctrlType, nl, nlRouter, $scope, nlServerApi, nlDlg
 }
 
 //-------------------------------------------------------------------------------------------------
-var LogoutCtrl = ['nl', 'nlRouter', '$scope', 'nlServerApi', 'nlDlg',
-function(nl, nlRouter, $scope, nlServerApi, nlDlg) {
+var LogoutCtrl = ['nl', 'nlRouter', '$scope', 'nlServerApi', 'nlDlg', 'nlMobileConnector',
+function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlMobileConnector) {
     function _onPageEnter(userInfo) {
         return nl.q(function(resolve, reject) {
             nl.log.debug('LogoutCtrl:onPageEnter - enter');
@@ -429,6 +429,7 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg) {
                     nlDlg.popupStatus(nl.t('You have been signed out from the system'));
                     nl.log.debug('LogoutCtrl:onPageEnter - done');
                     nl.location.url('/login_now?msg=logout');
+                    nlMobileConnector.setScreenshotFlag(false);
                     resolve(true);
                 });
             }, function(reason) {

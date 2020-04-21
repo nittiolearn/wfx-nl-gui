@@ -48,6 +48,11 @@ In appversion(22010) : 'nl_enable_screenshot', 'nl_disable_screenshot', 'nl_take
 //-------------------------------------------------------------------------------------------------
 var NlMobileConnector = ['nl', 'nlConfig', 
 function(nl, nlConfig) {
+
+    var _handlerFns = {};
+    var _lastMessage = null;
+    var _mobileAppInfo = {};
+    var _knownNotifTypes = {'init_mobile_app': true, 'navigate_to_lr': true, 'screenshot_success': true};
     
     // nittio-mobile to nittioapp: different callbacks for different message types are listed here
     this.onNavigateToLrMsgFromNittioMobile = function(handlerFn) {
@@ -56,16 +61,15 @@ function(nl, nlConfig) {
         _lastMessage = null;
     };
 
-    // TODo-NOW: Create a button at the certificate page and then call this canShowPrintScreenBtn,
-    // Attach an click event to call a function which hides the button and call the method "this.takeScreenshot()"
-    // this.canShowPrintScreenBtn = function(status) {
-    //     return status;
-    // }
-
     var self = this;
 
     var previousExitStatus = true;
     var screenshotFlagForEnableAndDisable = false;      // The flag is used to run the enable or disable only once
+    var _canShowPrint = false;
+    this.setScreenshotFlag = function(flag) {
+        screenshotFlagForEnableAndDisable = flag;
+    };
+
     this.exitFromAppMessageIfRequired = function() {
         var exitApps = {
             '/home': true,
@@ -80,12 +84,12 @@ function(nl, nlConfig) {
             previousExitStatus = false;
             if (_appVersionFeatureMarkup('nl_exitapp_with_back_btn')) _sendMsgToNittioMobile('nl_exitapp_with_back_btn', {exitStatus: false});   
         }
-    }
+    };
 
     this.isMarkupMobileApp = function() {
         if (!_mobileAppInfo.appversion) return false;
         return true;
-    }
+    };
 
     this.launchLinkInNewTab = function(url) {
         if (_appVersionFeatureMarkup('launch_link')) _sendMsgToNittioMobile('launch_link', {url: url});
@@ -104,6 +108,11 @@ function(nl, nlConfig) {
         if (_appVersionFeatureMarkup('nl_disable_screenshot')) _sendMsgToNittioMobile('nl_disable_screenshot');
         return;
     };
+
+    this._canShowPrintScreenBtn = function() {
+        if(_appVersionFeatureMarkup('nl_take_screenshot')) return true;
+    };
+
     this.takeScreenshot = function() {
         if (_appVersionFeatureMarkup('nl_take_screenshot')) _sendMsgToNittioMobile('nl_take_screenshot');
     };
@@ -133,13 +142,7 @@ function(nl, nlConfig) {
             msg = JSON.stringify(msg);
             iab.postMessage(msg);
         }
-    };
-
-    //---------------------------------------------------------------------------------------------
-    var _handlerFns = {};
-    var _lastMessage = null;
-    var _mobileAppInfo = {};
-    var _knownNotifTypes = {'init_mobile_app': true, 'navigate_to_lr': true};
+    }
 
     function _onMsgFromNittioMobile(event) {
         if (!event || !event.data) return;
@@ -160,6 +163,10 @@ function(nl, nlConfig) {
         handlerFn(data);
     }
     
+    function _screenshotSuccessFromNittioMobile(data) {
+        _canShowPrint = true;
+    }
+
     var cacheKey = "MOBILE_APP_INFO";
     function _onInitMobileFromNittioMobile(data) {
         _mobileAppInfo = data.nittio_mobile_msginfo;
@@ -172,6 +179,7 @@ function(nl, nlConfig) {
             if(!(_mobileAppInfo)) _mobileAppInfo = result || {};
         });
         _handlerFns.init_mobile_app = _onInitMobileFromNittioMobile;
+        _handlerFns.screenshot_success = _screenshotSuccessFromNittioMobile;
         window.addEventListener('message', _onMsgFromNittioMobile);
     }
     _init();
