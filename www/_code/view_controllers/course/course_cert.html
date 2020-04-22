@@ -81,7 +81,6 @@
     </style>
     <div ng-if='available'
          class='cert'>
-         <button ng-if='canShowPrintBtn' class='nl-button' ng-click='onScreenshot()'>Take Screenshot</button>
          <div ng-if='!bgimg' class='minbgimg'></div>
          <img ng-if='bgimg' class='minbgimg' ng-src='{{bgimg}}'>
          <div ng-if='certlogo' class='certlogo text-center'>
@@ -116,6 +115,12 @@
             <button class='nl-button w100' ng-click='onPrint()'>Print</button>
         </div>
     </div>
+    <div ng-show='available && canShowMobileDownloadBtn' class='padding-mid'>
+        <div class='padding-mid text-center'>
+            <button class='nl-button w100' ng-click='onScreenshot()'>Download</button>
+        </div>
+    </div>
+
     <div ng-if='!available'
          class='cert'>
         <h3>Error</h3>

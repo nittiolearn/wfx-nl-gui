@@ -214,7 +214,6 @@ function(nl, nlDlg, nlServerApi, nlMarkup, $state, nlTopbarSrv, nlMobileConnecto
             nl.location.url(rerouteToUrl);
         }
         
-        var newUrl = rerouteToUrl || nl.location.url();
         nlMobileConnector.exitFromAppMessageIfRequired();
         nl.pginfo.isPageShown = true;
         nl.pginfo.windowTitle = _getWindowTitle();

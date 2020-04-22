@@ -46,12 +46,13 @@ function(nl, nlRouter, $scope, nlServerApi, nlPrinter, nlMobileConnector, nlDlg)
     };
 
     $scope.onScreenshot = function() {
-        nlDlg.popupConfirm({title: 'Print Certificate', template: 'Do you want to take the screenshot of the certificate', 
+        nlDlg.popupConfirm({title: 'Download Certificate', template: 'Do you want to download the certificate?', 
             okText: 'Yes', cancelText: 'No'}).then(function(result) {
-            $scope.canShowPrintBtn = false;
-            nlMobileConnector.takeScreenshot(function() {
+            if (!result) return;
+            $scope.canShowMobileDownloadBtn = false;
+            nlMobileConnector.takeScreenshot(1, function() {
                 nl.timeout(function() {
-                    $scope.canShowPrintBtn = true;
+                    $scope.canShowMobileDownloadBtn = true;
                 });
             });
         });
@@ -94,7 +95,7 @@ function(nl, nlRouter, $scope, nlServerApi, nlPrinter, nlMobileConnector, nlDlg)
 	        }
         }
         $scope.available = true;
-        $scope.canShowPrintBtn = nlMobileConnector.canShowPrintScreenBtn();
+        $scope.canShowMobileDownloadBtn = nlMobileConnector.canShowPrintScreenBtn();
     }
 
     function _hideScore(cm) {

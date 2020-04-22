@@ -57,7 +57,8 @@ function(nl, nlConfig) {
 
     var _handlerFns = {};
     var _lastMessage = null;
-    var _mobileAppInfo = {};
+    var _defMobileAppInfo = {};
+    var _mobileAppInfo = _defMobileAppInfo;
     var _knownNotifTypes = {'init_mobile_app': true, 'navigate_to_lr': true, 'screenshot_success': true};
     
     // nittio-mobile to nittioapp: different callbacks for different message types are listed here
@@ -67,27 +68,19 @@ function(nl, nlConfig) {
         _lastMessage = null;
     };
 
-    var self = this;
-
-    var previousExitStatus = true;
-    var screenCaptureEnabled = null;      // The flag is used to run the enable or disable only on change
+    var _screenCaptureEnabled = null;      // The flag is used to run the enable or disable only on change
     var _canShowPrintScreenBtn = true;
     var _onScreenshotDoneFn = null;
 
     this.exitFromAppMessageIfRequired = function() {
+        if (!_appVersionFeatureMarkup('nl_exitapp_with_back_btn')) return;
         var exitApps = {
             '/home': true,
             '/login_now': true
         }
         var activeUrlPath = nl.location.path();
-        if ((activeUrlPath in exitApps) && (previousExitStatus != true)) {
-            previousExitStatus = true;
-            if (_appVersionFeatureMarkup('nl_exitapp_with_back_btn')) _sendMsgToNittioMobile('nl_exitapp_with_back_btn', {exitStatus: true});
-            return;
-        } else if (!(activeUrlPath in exitApps) && (previousExitStatus == true)) {
-            previousExitStatus = false;
-            if (_appVersionFeatureMarkup('nl_exitapp_with_back_btn')) _sendMsgToNittioMobile('nl_exitapp_with_back_btn', {exitStatus: false});   
-        }
+        var payload = {exitStatus: (activeUrlPath in exitApps)};
+        _sendMsgToNittioMobile('nl_exitapp_with_back_btn', payload);
     };
 
     this.isMarkupSupportedByMobileApp = function() {
@@ -100,14 +93,14 @@ function(nl, nlConfig) {
     };
 
     this.enableScreenshot = function() {
-        if(screenCaptureEnabled === true) return;
-        screenCaptureEnabled = true;
+        if(_screenCaptureEnabled === true) return;
+        _screenCaptureEnabled = true;
         if (_appVersionFeatureMarkup('nl_enable_screenshot')) _sendMsgToNittioMobile('nl_enable_screenshot');
         return;
     };
     this.disableScreenshot = function() {
-        if(screenCaptureEnabled === false) return;
-        screenCaptureEnabled = false;
+        if(_screenCaptureEnabled === false) return;
+        _screenCaptureEnabled = false;
         if (_appVersionFeatureMarkup('nl_disable_screenshot')) _sendMsgToNittioMobile('nl_disable_screenshot');
         return;
     };
@@ -116,11 +109,13 @@ function(nl, nlConfig) {
         return _appVersionFeatureMarkup('nl_take_screenshot') && _canShowPrintScreenBtn;
     };
 
-    this.takeScreenshot = function(onDoneFn) {
+    this.takeScreenshot = function(parentsToSkip, onDoneFn) {
         if (_onScreenshotDoneFn) return;
         _canShowPrintScreenBtn = false;
         _onScreenshotDoneFn = onDoneFn;
-        if (_appVersionFeatureMarkup('nl_take_screenshot')) _sendMsgToNittioMobile('nl_take_screenshot');
+        if (_appVersionFeatureMarkup('nl_take_screenshot')) {
+            _sendMsgToNittioMobile('nl_take_screenshot', null, parentsToSkip);
+        }
     };
 
     function _screenshotSuccessFromNittioMobile(data) {
@@ -135,16 +130,25 @@ function(nl, nlConfig) {
         return true;
     }
 
-    function _sendMsgToNittioMobile(msgtype, payload) {
+    function _sendMsgToNittioMobile(msgtype, payload, parentsToSkip) {
+        if (!payload) payload = null;
+        if (!parentsToSkip) parentsToSkip=0;
         var msg = {msgtype: msgtype, payload: payload, nittioapp_msginfo: {}};
         if (_appVersionFeatureMarkup('nl_iframe_embed_ionic4')) {
-            window.parent.postMessage(msg, "*");
+            var parent = _findParent(parentsToSkip);
+            parent.postMessage(msg, "*");
         } else {
             var iab = ((webkit || {}).messageHandlers || {}).cordova_iab;
             if (!iab) return;
             msg = JSON.stringify(msg);
             iab.postMessage(msg);
         }
+    }
+
+    function _findParent(parentsToSkip) {
+        var parent = window.parent;
+        for(var i=0; i<parentsToSkip; i++) parent = parent.parent;
+        return parent;
     }
 
     function _onMsgFromNittioMobile(event) {
@@ -173,15 +177,16 @@ function(nl, nlConfig) {
         });
     }
 
-    function _init() {
+    function _init(self) {
         nlConfig.loadFromDb(cacheKey, function(result) {
-            if(!(_mobileAppInfo)) _mobileAppInfo = result || {};
+            if(!(_mobileAppInfo)) _mobileAppInfo = result || _defMobileAppInfo;
         });
         _handlerFns.init_mobile_app = _onInitMobileFromNittioMobile;
         _handlerFns.screenshot_success = _screenshotSuccessFromNittioMobile;
         window.addEventListener('message', _onMsgFromNittioMobile);
+        self.exitFromAppMessageIfRequired();
     }
-    _init();
+    _init(this);
 
 }];
 
