@@ -763,7 +763,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 
 	function _initChartData() {
 		$scope.overviewArray = [];
-		var labels =  ['done', 'failed', 'started', 'pending'];
+		var labels =  ['done', 'failed', 'active-ongoing', 'pending'];
 		var colors = [_nl.colorsCodes.done, _nl.colorsCodes.failed, _nl.colorsCodes.started, _nl.colorsCodes.pending];
 
 		var type = nlLrFilter.getType();
@@ -877,10 +877,10 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		pendingPerc = Math.round(pendingPerc)
 		$scope.overviewArray = [
 			{title: nl.fmt2('{} completed', typeStr), desc:'', perc: completedPerc, showperc:1},
-			{title: nl.fmt2('{} started', typeStr), desc:'', perc: startedPerc, showperc:1},
+			{title: nl.fmt2('{} Active-Ongoing', typeStr), desc:'', perc: startedPerc, showperc:1},
 			{title: nl.fmt2('{} yet to start', typeStr), desc:'', perc: pendingPerc, showperc:1},
 			{title: nl.fmt2('{} completed', 'Learners'), desc:'', perc: uDone, showperc:0},
-			{title: nl.fmt2('{} started', 'Learners'), desc:'', perc: uStarted, showperc:0},
+			{title: nl.fmt2('{} Active-Ongoing', 'Learners'), desc:'', perc: uStarted, showperc:0},
 			{title: nl.fmt2('{} yet to start', 'Learners'), desc:'', perc: uPending, showperc:0}];
 	}
 
@@ -1135,7 +1135,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		columns.push({id: 'failed', name: 'Total Not Certified', hidePerc:true, table: false, showAlways: true}); //This is not asked by abrar
 		columns.push({id: 'batchFirstPass', name: 'First Pass Percentage', showIn: 'closed', hidePerc: true, table: true, showAlways: true});
 		columns.push({id: 'batchThroughput', name: 'E2E Throughput', showIn: 'closed', hidePerc: true, table: true, showAlways: true});
-
+		columns.push({id: 'runningThroughput', name: 'Running Throughput', showIn: 'running', hidePerc: true, table: true, showAlways: true});
 		// Others - not asked by customer but may be needed
 		columns.push({id: 'avgDelay', name: 'Average delay(In days)', hidePerc: true, table: true, showAlways: true});
 		columns.push({id: 'avgScore', name: 'Avg Quiz score', table: true, background: 'nl-bg-blue', hidePerc:true});
@@ -1252,7 +1252,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			columns.push({id: 'certifiedInReattempt', name: 'Certified in Reattempt', percid: 'percCertifiedInReattempt', indentation: 'padding-left-66'});
 		}
 		columns.push({id: 'failed', name: 'Failed', percid: 'percFailed', table: true, indentation: 'padding-left-44'});
-		columns.push({id: 'started', name: 'Started', percid: 'percStarted', table: true, indentation: 'padding-left-22', showAlways: true});
+		columns.push({id: 'started', name: 'Active-Ongoing', percid: 'percStarted', table: true, indentation: 'padding-left-22', showAlways: true});
 		if(customStartedStates.length > 0) {
 			for(var i=0; i<customStartedStates.length; i++) {
 				if(customStartedStates[i] in statusDict)
@@ -1671,7 +1671,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		'pending' : 'Pending',
 		'waiting' : 'Locked',
 		'delayed' : 'Pending',
-		'started' : 'Started',
+		'started' : 'Active-Ongoing',
 		'partial_success': 'Partial success'
 	};
 

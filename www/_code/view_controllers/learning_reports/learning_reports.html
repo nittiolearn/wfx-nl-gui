@@ -37,7 +37,7 @@
         <div class='row row-center margin0 padding0 bb1'
             style='height: 36px; overflow: hidden;'>
             <div class='col text-center fsh6 padding-mid' style='height: 36px; overflow: hidden'>
-                <span ng-show='filterStr && screenSize != "small"'>{{filterStr}}</span>
+                <span ng-show='filterStr && screenSize == "large"'>{{filterStr}}</span>
                 <span ng-show='fetchInProgress' class='forange fsh6 anim fade'
                     title='Fetching the data from server. Please wait ...'>
                     <i class="icon ion-alert-circled padding-mid"></i>
@@ -53,6 +53,12 @@
                     <i class="icon ion-alert-circled padding-mid"></i>
                     <span class='padding-mid'>More available.</span>
                 </span>
+                <span ng-show='tabData.records.length > 0 && !fetchInProgress' class='fgrey fsh6 margin0 padding-mid anim fade'
+                    title="Fetch completed.">
+                    <i class="icon ion-checkmark-circled"></i>
+                    <span class='padding-mid'>Fetched.
+                    </span>
+                </span>
             </div>
             <nl-table-view-selector ng-show='nhtViewSelectorConfig && (tabData.selectedTab.id == "nhtrunning" || tabData.selectedTab.id == "nhtclosed")  && !tabData.processingOnging'
                 config=nhtViewSelectorConfig></nl-table-view-selector>
@@ -67,7 +73,7 @@
             </span>
         </div>
         <div class='padding-small'></div>
-        <div ng-show='filterStr && screenSize == "small"' class='fsh6 padding-mid anim fade'>
+        <div ng-show='filterStr && screenSize != "large"' class='fsh6 padding-mid anim fade'>
             {{filterStr}} 
         </div>    
 

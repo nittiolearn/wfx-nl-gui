@@ -54,9 +54,15 @@ function(nl, nlReportHelper, nlGetManyStore) {
         statsCountObj['batchid'] = record.raw_record.assignment;
         statsCountObj['delayDays'] = stats.delayDays || 0;
         statsCountObj['customScores'] = stats.customScores || [];
-        if (stats.attritionStr == 'Attrition-Involuntary' || stats.attritionStr == 'Transfer-Out') statsCountObj['dontCountAttrition'] = true;
+        if (stats.attritionStr == 'Attrition-Involuntary' || stats.attritionStr == 'Transfer-Out') {
+            statsCountObj['cntTotalAttrition'] = 1;
+            if (stats.attritionStr == 'Attrition-Involuntary') statsCountObj['attritionInvoluntary'] = 1;
+            if (stats.attritionStr == 'Transfer-Out') statsCountObj['transferOut'] = 1;
+            statsCountObj['dontCountAttrition'] = true;
+        }
         if (stats.inductionDropOut) {
-                statsCountObj['inductionDropOut'] = 1;
+            statsCountObj['inductionDropOut'] = 1;
+            statsCountObj['dontCountAttrition'] = true;
             return statsCountObj;
         }
         statsCountObj['cntTotal'] = 1;
@@ -78,6 +84,7 @@ function(nl, nlReportHelper, nlGetManyStore) {
         if(statusStr.indexOf('attrition') == 0) {
             statsCountObj[statusStr] = 1;
             statsCountObj['attrition'] = 1;
+            statsCountObj['cntTotalAttrition'] = 1;
             return;
         }
         if (status.id != nlReportHelper.STATUS_STARTED) {
@@ -133,7 +140,7 @@ function NhtCounts(nl, nlGetManyStore, nlGroupInfo) {
 
     var statsCountItem = {cntTotal: 0, cntCompletedTotal: 0, batchIdDict: {}, batchTotal:0, delayDays: 0, pending:0, failed: 0,
         completed: 0, certifiedFirstAttempt: 0, certifiedSecondAttempt: 0, certified: 0, 
-        percScore: 0, isOpen: false};
+        percScore: 0, isOpen: false, cntTotalAttrition: 0, attritionInvoluntary: 0, transferOut: 0, inductionDropOut:0};
     var _customScores = {};
     var _customScoresArray = [];
     var batches = {};
@@ -287,6 +294,7 @@ function NhtCounts(nl, nlGetManyStore, nlGroupInfo) {
 
     function _updateStatsPercs(updatedStats) {
         if (!updatedStats.batchName) updatedStats.batchName = updatedStats.batchTotal;
+
         if (updatedStats['cntCompletedTotal'])
             updatedStats['batchThroughput'] = '' + Math.round(100*updatedStats['certified']/updatedStats['cntCompletedTotal']) + ' %';
         var reachedCertification = _getReachedCertification(updatedStats);
@@ -300,6 +308,9 @@ function NhtCounts(nl, nlGetManyStore, nlGroupInfo) {
         if(updatedStats.cntTotal > 0) {
             updatedStats['avgDelay'] = Math.round(updatedStats.delayDays/updatedStats.cntTotal);
             updatedStats['avgScore'] = (updatedStats.percScore != 0 && updatedStats.completed != 0) ? Math.round(updatedStats.percScore/updatedStats.completed)+' %' : 0;
+            var numerator = updatedStats['cntTotal'] - updatedStats['cntTotalAttrition'];
+            var denominator = updatedStats['cntTotal'] - updatedStats['attritionInvoluntary'] - updatedStats['transferOut'];
+            updatedStats['runningThroughput'] = Math.round(100*numerator/denominator);
         }
         for(var i=0; i<_customScoresArray.length; i++) {
             var itemName = _customScoresArray[i];

@@ -985,14 +985,20 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlCourseEditor, nlC
 
     function _updateState(cm, state) {
         // statusIcon, statusText, statusShortText
-        if (state in _CM_STATES) {
-            cm.state = angular.copy(_CM_STATES[state] || _CM_STATES.hidden);
-        } else if (state.toLowerCase().indexOf('attrition') == 0) {
-            cm.state = angular.copy(_CM_STATES.failed);
-            cm.state.title = state;
+        if (cm.type == 'iltsession' && state == 'failed') {
+            cm.state = {icon: 'ion-ios-circle-filled fgrey'};
+            cm.state.title = cm.statusStr;  
         } else {
-            cm.state = angular.copy(_CM_STATES.started);
-            cm.state.title = state;
+            if (state in _CM_STATES) {
+                cm.state = angular.copy(_CM_STATES[state] || _CM_STATES.hidden);
+                if (cm.type == 'iltsession') cm.state.title = cm.statusStr;
+            } else if (state.toLowerCase().indexOf('attrition') == 0) {
+                cm.state = {icon: 'ion-ios-circle-filled fgrey'};
+                cm.state.title = cm.statusStr;
+            } else {
+                cm.state = angular.copy(_CM_STATES.started);
+                cm.state.title = state;
+            }    
         }
         cm.state.status = state;
         if (state != 'waiting') return;
@@ -1092,6 +1098,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlCourseEditor, nlC
         cm.start = itemInfo.start;
         cm.url = itemInfo.url;
         cm.notes = itemInfo.notes;
+        cm.statusStr = itemInfo.state || '';
     }
  
     function _updateGateData(cm, itemInfo) {
