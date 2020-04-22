@@ -36,9 +36,9 @@
     <div class='nl-topsection'>
         <div class='row row-center margin0 padding0 bb1'
             style='height: 36px; overflow: hidden;'>
-            <div class='col text-center fsh6 padding-mid' style='height: 36px; overflow: hidden'>
+            <div class='col text-center padding-mid' style='height: 36px; overflow: hidden'>
                 <span ng-show='filterStr && screenSize == "large"'>{{filterStr}}</span>
-                <span ng-show='fetchInProgress' class='forange fsh6 anim fade'
+                <span ng-show='fetchInProgress' class='forange fsh6 anim fade fsmall1'
                     title='Fetching the data from server. Please wait ...'>
                     <i class="icon ion-alert-circled padding-mid"></i>
                     <span class='padding-mid'>Fetching</span>
@@ -53,7 +53,7 @@
                     <i class="icon ion-alert-circled padding-mid"></i>
                     <span class='padding-mid'>More available.</span>
                 </span>
-                <span ng-show='tabData.records.length > 0 && !fetchInProgress' class='fgrey fsh6 margin0 padding-mid anim fade'
+                <span ng-show='tabData.records.length > 0 && !fetchInProgress' class='fgrey fsh6 margin0 padding-mid anim fade fsmall1'
                     title="Fetch completed.">
                     <i class="icon ion-checkmark-circled"></i>
                     <span class='padding-mid'>Fetched.
