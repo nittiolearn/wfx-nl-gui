@@ -122,6 +122,7 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
     var _userAttendanceDict = {};
     var _userRatingDict = {};
     var _grpAttendanceDict = {};
+    var _grpMilestoneDict = {};
     var _grpRatingDict = {};
     var _milestone = {};
     var _isNHT = false;
@@ -142,6 +143,7 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
         _userAttendanceDict = _arrayToDict(attendance[report.id]);
         _userRatingDict = _arrayToDict(rating[report.id]);
         _grpAttendanceDict = _arrayToDict((groupinfo || {}).attendance);
+        _grpMilestoneDict = _arrayToDict((groupinfo || {}).milestones);
         _grpRatingDict = _arrayToDict((groupinfo || {}).ratings);
         if (!_modules) {
             _modules = angular.copy(((course || repcontent || {}).content || {}).modules || []); 
@@ -590,11 +592,13 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
 
     function _getRawStatusOfMilestone(cm, itemInfo) {
         var _msKey = 'milestone__'+cm.id;
+        var defMilestone = _grpMilestoneDict[cm.milestone_type];
         var repid = report.id;
         var markedMilestone = _milestone[cm.id] || {};
         if('learnersDict' in markedMilestone && markedMilestone.learnersDict[repid]) {
             var learnerDict = markedMilestone.learnersDict[repid] || {}
             itemInfo.rawStatus = learnerDict.marked == 'done' ? 'success' : 'pending';
+            if (itemInfo.rawStatus == 'success' && defMilestone.batch_status) itemInfo.customStatus = defMilestone.batch_status;
             itemInfo.score = itemInfo.rawStatus == 'pending' ? null : 100;
             itemInfo.remarks = learnerDict.remarks || "";
             itemInfo.planned = _msDates[_msKey] || '';
@@ -796,11 +800,11 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
         } else {
             ret.status = defaultCourseStatus;
         }
-        if (!_isNHT || !groupinfo.etmUserStates || groupinfo.etmUserStates.length === 0) return; 
+        if (!_isNHT) return; 
         if (!_isEndItemState(itemInfo.status)) return;
         if (!itemInfo.unlockedOn) return;
         ret.status = defaultCourseStatus;
-
+        return;
         var etmUserStates = groupinfo.etmUserStates;
         var lastItem = etmUserStates[etmUserStates.length - 1];
         var tenures = lastItem.tenures || [];

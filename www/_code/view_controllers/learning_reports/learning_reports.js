@@ -1087,9 +1087,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		var columns = [];
 		_customScoresHeader = nlLrReportRecords.getCustomScoresHeader();
 		var customScoresHeaderWithType = nlLrReportRecords.getCustomScoresHeaderWithType();
-		var etmUserStates = _groupInfo.props.etmUserStates || [];
 		var milestones = _groupInfo.props.milestones || [];
-		var statusDict = _getStatusDictFromArray();
 		columns.push({id: 'cntTotal', name: 'Head Count', table: true, hidePerc:true, smallScreen: true, background: 'bggrey', showAlways: true});
 		columns.push({id: 'batchStatus', name: 'Batch Status', table: true, hidePerc:true, smallScreen: true, showAlways: true});
 		columns.push({id: 'batchName', name: 'Batch', table: true, hidePerc:true, smallScreen: true, background: 'bggrey', showAlways: true});
@@ -1097,17 +1095,21 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		columns.push({id: 'lob', name: _groupInfo.props.subjectlabel || 'LOB', table: true, hidePerc:true, smallScreen: true, background: 'bggrey', showAlways: true});
 
 		columns.push({id: 'inductionDropOut', name: 'Induction drop out', table: true, hidePerc:true, smallScreen: true, background: 'bggrey', showAlways: true});
+		var allBatchStatus = [];
+		for(var i=0; i<milestones.length; i++) {
+			var item = milestones[i];
+			if (item.batch_status) allBatchStatus.push(item.batch_status);
+		}
 
-		for(var i=0; i<etmUserStates.length-1; i++) {
-			var userState = etmUserStates[i];
-			columns.push({id: 'attrition-' + userState.id, 
-				name: 'Attrition during ' + userState.name, hidePerc:true, table: true, showAlways: true});
+		for(var i=0; i<allBatchStatus.length-1; i++) {
+			var userState = allBatchStatus[i];
+			columns.push({id: 'attrition-' + userState, 
+				name: 'Attrition during ' + userState, hidePerc:true, table: true, showAlways: true});
 		}
 		columns.push({id: 'attrition', name: 'Total Attrition', hidePerc:true, table: true, showAlways: true});
 
 		columns.push({id: 'batchtype', name: 'Batch Type', table: true, hidePerc:true, smallScreen: true, background: 'bggrey', showAlways: true});
 		columns.push({id: 'trainer', name: 'Trainer', table: true, hidePerc:true, smallScreen: true, background: 'bggrey', showAlways: true});
-
 		for(var i=0; i<milestones.length; i++) {
 			var item = milestones[i];
 			columns.push({id: item.id+'planned', name: nl.t('Planned {} date', item.name), table: true, hidePerc:true, style:'min-width:fit-content'});
@@ -1118,14 +1120,10 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			columns.push({id: item.id+'actual', name: nl.t('Actual {} date', item.name), table: true, hidePerc:true, style:'min-width:fit-content'});	
 		}
 
-		for(var i=0; i<etmUserStates.length; i++) {
-			var userState = etmUserStates[i];
-			columns.push({id: userState.id, name: nl.t('In {} Count',userState.name), showIn: 'running', hidePerc: true, showAlways: true, table: true});
-			if(userState.tenures) {
-				for (var j=userState.tenures.length-1; j>=0; j--) columns.push({id: userState.tenures[j].id, name: nl.t('In {} Count', userState.tenures[j].name), showIn: 'closed', hidePerc: true, showAlways: true, table: true});
-			}
+		for (var i=0; i<allBatchStatus.length; i++) {
+			var status = allBatchStatus[i];
+			columns.push({id: status, name: nl.t('In {} Count',status), showIn: 'running', hidePerc: true, showAlways: true, table: true});
 		}
-
 		columns.push({id: 'certifiedFirstAttempt', name: 'Certified in First Attempt', hidePerc: true, table: true, showAlways: true});
 		columns.push({id: 'certifiedSecondAttempt', name: 'Certified in 2nd Attempt', hidePerc: true, table: true, showAlways: true});
 		columns.push({id: 'certified', name: 'Total Certified', hidePerc: true, table: true, showAlways: true});
@@ -1281,14 +1279,11 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 	}
 
 	function _getStatusDictFromArray() {
-		var newStatus = _groupInfo.props.etmUserStates || [];
+		var courseStates = _groupInfo.props.milestones || [];
 		var ret = {};
-		for(var i=0; i<newStatus.length; i++) {
-			var userState = newStatus[i];
-			ret[userState.id] = userState.name;
-			if(userState.tenures) {
-				for (var j=userState.tenures.length-1; j>=0; j--) ret[userState.tenures[j].id] = userState.tenures[j].name;
-			}
+		for(var i=0; i<courseStates.length; i++) {
+			var userState = courseStates[i];
+			if (userState.batch_status) ret[userState.batch_status] = userState.batch_status;
 		}
 		return ret;
 	}

@@ -350,6 +350,7 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
 	}
 
 	function _canShowNewState(attr) {
+		return false;
 		if (attr.name != 'customStatus') return true;
 		return (_etm && _groupInfo && ('etmUserStates' in _groupInfo.props));
 	}
