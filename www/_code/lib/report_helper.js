@@ -399,7 +399,6 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
     function _getRawStatusOfItem(cm, itemInfo, itemIdToInfo) {
         itemInfo.type = cm.type;
         itemInfo.name = cm.name;
-        itemInfo.customStatus = cm.customStatus || null;
         itemInfo.completionPerc = cm.completionPerc || null;
         if (_isCertificate(cm)) {
             var sinfo = _statusinfo[cm.id] || {};
