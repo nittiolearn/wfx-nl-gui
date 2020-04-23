@@ -223,24 +223,11 @@ function(nl, nlDlg, nlServerApi, nlMarkup, $state, nlTopbarSrv, nlMobileConnecto
 
     function _informAppUpdateIfNeeded(userInfo, pageUrl, resolve) {
         if (!permission.isUpdateCheckPage(pageUrl)) return resolve(userInfo);
-        if (userInfo.appType != 'android') return resolve(userInfo);
-        if (userInfo.appVersion == '200') {
-            var notifyBy = ('groupinfo' in userInfo && userInfo.groupinfo.notifyBy) ? userInfo.groupinfo.notifyBy : []; 
-            if (!_appNotificationEnaled(notifyBy)) return resolve(userInfo);
-            _informAppUpdate(resolve, userInfo);
-        } else {
-            resolve(userInfo);
-        }
-    }
-
-    var _informedAppUpdateAt = null;
-    function _informAppUpdate(resolve, userInfo) {
-        var now = (new Date()).getTime();
-        if (_informedAppUpdateAt && (now - _informedAppUpdateAt) < 30000) return resolve(userInfo);
-        _informedAppUpdateAt = now;
-        var msg = nl.t('A major version update of the app is available. Kindly update the app from playstore.');
-        var data = {title: 'Update the App', template: msg};
-        nlDlg.popupAlert(data);
+        var grpInfo = userInfo.groupinfo || {};
+        var notifyBy = grpInfo.notifyBy || []; 
+        var bAppNotification = _appNotificationEnaled(notifyBy)
+        var bScreenCaptureDisable = ((grpInfo.features || {}).mobile || {}).disable_screen_capture;
+        nlMobileConnector.showAppUpdateMessageIfNeeded(bAppNotification, bScreenCaptureDisable);
         resolve(userInfo);
     }
 

@@ -20,6 +20,7 @@ var g_appVersionFeatureMarkup = {
     // versionCode = 210
     // Feature: Push Notification
     // nittio_mobile_msginfo is introduced which sends 'appversion' to the client when notification was received by the mobile.
+    'nl_push_notification'         : '210',
     
     // versionCode = 211
     // Bugfix: Sometimes nittio launching link was getting opened in browser instead of App because of unavailability of fcm token. Corrected
@@ -121,9 +122,31 @@ function(nl, nlConfig) {
         _canShowPrintScreenBtn = false;
         _onScreenshotDoneFn = onDoneFn;
         if (_appVersionFeatureMarkup('nl_take_screenshot')) {
-            _sendMsgToNittioMobile('nl_take_screenshot', {fname: name});
+            _sendMsgToNittioMobile('nl_take_screenshot', {name: name});
         }
     };
+
+    this.showAppUpdateMessageIfNeeded = function(bAppNotification, bScreenCaptureDisable) {
+        var mobileAppInfo = _windowContext.nittioMobileAppInfo;
+        if (mobileAppInfo.apptype != 'android') return true;
+        var askForUpdate = false;
+        if (bAppNotification) askForUpdate = !_appVersionFeatureMarkup('nl_push_notification');
+        if (bScreenCaptureDisable && !askForUpdate) askForUpdate = !_appVersionFeatureMarkup('nl_disable_screenshot');
+        if (!askForUpdate) return true;
+        _showAppUpdateMessage(onDoneFn);
+        return false;
+    }
+
+    var _informedAppUpdateAt = null;
+    function _showAppUpdateMessage(onDoneFn) {
+        var now = (new Date()).getTime();
+        if (_informedAppUpdateAt && (now - _informedAppUpdateAt) < 30000) return;
+        _informedAppUpdateAt = now;
+        var msg = nl.t('A major version update of the app is available. Kindly update the app from playstore.');
+        var data = {title: 'Update the App', template: msg};
+        // TODO-NOW: Deepti put this code
+        nlDlg.popupAlert(data);
+    }
 
     function _screenshotSuccessFromNittioMobile(data) {
         _canShowPrintScreenBtn = true;
