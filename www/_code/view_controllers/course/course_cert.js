@@ -50,12 +50,18 @@ function(nl, nlRouter, $scope, nlServerApi, nlPrinter, nlMobileConnector, nlDlg)
             okText: 'Yes', cancelText: 'No'}).then(function(result) {
             if (!result) return;
             _hideToolbarAndButtons();
-            var name=nl.fmt2('certificate-{}', (new Date()).getTime());
-            nlMobileConnector.takeScreenshot(name, function() {
-                nl.timeout(function() {
-                    _showToolbarAndButtons();
+            nl.timeout(function() {
+                var name=nl.fmt2('certificate-{}', (new Date()).getTime());
+                nlMobileConnector.takeScreenshot(name, function(status) {
+                    nl.timeout(function() {
+                        if (status) nlDlg.popupAlert({title: 'Saved', 
+                            template: 'Certificate saved in your default picture gallery.'});
+                        else nlDlg.popupAlert({title: 'Error', 
+                            template: 'Failed to save the certificate. Please allow permission to save files.'});
+                        _showToolbarAndButtons();
+                    });
                 });
-            });
+            }, 500);
         });
     };
 

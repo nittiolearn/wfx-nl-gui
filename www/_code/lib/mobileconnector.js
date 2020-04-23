@@ -53,15 +53,23 @@ var g_appVersionFeatureMarkup = {
 //-------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
-var NlMobileConnector = ['nl', 'nlConfig', 
-function(nl, nlConfig) {
+var NlMobileConnector = ['nl', 'nlConfig', 'nlDlg',
+function(nl, nlConfig, nlDlg) {
 
     var _handlerFns = {};
     var _lastMessage = null;
-    var _defMobileAppInfo = {};
+
     var _windowContext = window;
-    _windowContext.nittioMobileAppInfo = _defMobileAppInfo;
-    var _knownNotifTypes = {'init_mobile_app': true, 'navigate_to_lr': true, 'screenshot_success': true};
+    _windowContext.nittioMobileAppInfo = {};
+    function _initCtx() {
+        var ctx = _windowContext.nittioMobileAppInfo;
+        ctx.canShowPrintScreenBtn = true;
+        ctx.onScreenshotDoneFn = null;
+    }
+    _initCtx();
+
+    var _knownNotifTypes = {'init_mobile_app': true, 'navigate_to_lr': true, 
+        'screenshot_success': true, 'screenshot_failure': true};
     
     // nittio-mobile to nittioapp: different callbacks for different message types are listed here
     this.onNavigateToLrMsgFromNittioMobile = function(handlerFn) {
@@ -71,12 +79,10 @@ function(nl, nlConfig) {
     };
 
     var _screenCaptureEnabled = null;      // The flag is used to run the enable or disable only on change
-    var _canShowPrintScreenBtn = true;
-    var _onScreenshotDoneFn = null;
 
     this.initWindowContext = function(parentsToSkip) {
-        if (!parentsToSkip) parentsToSkip = 0;
         _windowContext = window;
+        if (!parentsToSkip) return;
         for(var i=0; i<parentsToSkip; i++) _windowContext = _windowContext.parent;
     };
 
@@ -114,50 +120,64 @@ function(nl, nlConfig) {
     };
 
     this.canShowPrintScreenBtn = function() {
-        return _appVersionFeatureMarkup('nl_take_screenshot') && _canShowPrintScreenBtn;
+        var ctx = _windowContext.nittioMobileAppInfo;
+        return _appVersionFeatureMarkup('nl_take_screenshot') && ctx.canShowPrintScreenBtn;
     };
 
     this.takeScreenshot = function(name, onDoneFn) {
-        if (_onScreenshotDoneFn) return;
-        _canShowPrintScreenBtn = false;
-        _onScreenshotDoneFn = onDoneFn;
+        var ctx = _windowContext.nittioMobileAppInfo;
+        if (ctx.onScreenshotDoneFn) return;
+        ctx.canShowPrintScreenBtn = false;
+        ctx.onScreenshotDoneFn = onDoneFn;
         if (_appVersionFeatureMarkup('nl_take_screenshot')) {
             _sendMsgToNittioMobile('nl_take_screenshot', {name: name});
         }
     };
 
     this.showAppUpdateMessageIfNeeded = function(bAppNotification, bScreenCaptureDisable) {
-        var mobileAppInfo = _windowContext.nittioMobileAppInfo;
-        if (mobileAppInfo.apptype != 'android') return true;
+        var ctx = _windowContext.nittioMobileAppInfo;
+        if (ctx.apptype != 'android') return true;
         var askForUpdate = false;
         if (bAppNotification) askForUpdate = !_appVersionFeatureMarkup('nl_push_notification');
         if (bScreenCaptureDisable && !askForUpdate) askForUpdate = !_appVersionFeatureMarkup('nl_disable_screenshot');
         if (!askForUpdate) return true;
-        _showAppUpdateMessage(onDoneFn);
+        _showAppUpdateMessage();
         return false;
     }
 
     var _informedAppUpdateAt = null;
-    function _showAppUpdateMessage(onDoneFn) {
+    function _showAppUpdateMessage() {
         var now = (new Date()).getTime();
         if (_informedAppUpdateAt && (now - _informedAppUpdateAt) < 30000) return;
         _informedAppUpdateAt = now;
-        var msg = nl.t('A major version update of the app is available. Kindly update the app from playstore.');
+        var playstoreUrl = _appVersionFeatureMarkup('launch_link') ? 'market://details?id=com.nittiolearn.live' :  null;
+        var urlStr = playstoreUrl ? nl.fmt2('<a href="{}">Click here</a> to', playstoreUrl) : 'Please ';
+        var msg = nl.fmt2('A major version update of the app is available. {} update the app from playstore.', urlStr);
         var data = {title: 'Update the App', template: msg};
-        // TODO-NOW: Deepti put this code
-        nlDlg.popupAlert(data);
+        nlDlg.popupAlert(data).then(function() {
+            if (playstoreUrl) nl.window.open(playstoreUrl,'_blank');
+        });
     }
 
-    function _screenshotSuccessFromNittioMobile(data) {
-        _canShowPrintScreenBtn = true;
-        if (_onScreenshotDoneFn) _onScreenshotDoneFn();
-        _onScreenshotDoneFn = null;
+    function _screenshotSuccessFromNittioMobile() {
+        _screenshotDone(true);
+    }
+
+    function _screenshotFailedFromNittioMobile() {
+        _screenshotDone(false);
+    }
+
+    function _screenshotDone(status) {
+        var ctx = _windowContext.nittioMobileAppInfo;
+        ctx.canShowPrintScreenBtn = true;
+        if (ctx.onScreenshotDoneFn) ctx.onScreenshotDoneFn(status);
+        ctx.onScreenshotDoneFn = null;
     }
 
     function _appVersionFeatureMarkup(featurename) {
-        var mobileAppInfo = _windowContext.nittioMobileAppInfo;
-        if (!mobileAppInfo.appversion) return false;
-        if (g_appVersionFeatureMarkup[featurename] > mobileAppInfo.appversion) return false;
+        var ctx = _windowContext.nittioMobileAppInfo;
+        if (!ctx.appversion) return false;
+        if (g_appVersionFeatureMarkup[featurename] > ctx.appversion) return false;
         return true;
     }
 
@@ -196,17 +216,23 @@ function(nl, nlConfig) {
     
     var cacheKey = "MOBILE_APP_INFO";
     function _onInitMobileFromNittioMobile(data) {
-        _windowContext.nittioMobileAppInfo = data.nittio_mobile_msginfo;
-        nlConfig.saveToDb(cacheKey, _windowContext.nittioMobileAppInfo, function(res) {
+        var ctx = _windowContext.nittioMobileAppInfo;
+        ctx.apptype = data.nittio_mobile_msginfo.apptype;
+        ctx.appversion = data.nittio_mobile_msginfo.appversion;
+        nlConfig.saveToDb(cacheKey, ctx, function(res) {
         });
     }
 
     function _init(self) {
         nlConfig.loadFromDb(cacheKey, function(result) {
-            if(!(_windowContext.nittioMobileAppInfo)) _windowContext.nittioMobileAppInfo = result || _defMobileAppInfo;
+            var ctx = _windowContext.nittioMobileAppInfo;
+            if(ctx.apptype) return; 
+            ctx.apptype = result.apptype;
+            ctx.appversion = result.appversion;
         });
         _handlerFns.init_mobile_app = _onInitMobileFromNittioMobile;
         _handlerFns.screenshot_success = _screenshotSuccessFromNittioMobile;
+        _handlerFns.screenshot_failure = _screenshotFailedFromNittioMobile;
         window.addEventListener('message', _onMsgFromNittioMobile);
         self.exitFromAppMessageIfRequired();
     }
