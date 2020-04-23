@@ -49,14 +49,25 @@ function(nl, nlRouter, $scope, nlServerApi, nlPrinter, nlMobileConnector, nlDlg)
         nlDlg.popupConfirm({title: 'Download Certificate', template: 'Do you want to download the certificate?', 
             okText: 'Yes', cancelText: 'No'}).then(function(result) {
             if (!result) return;
-            $scope.canShowMobileDownloadBtn = false;
-            nlMobileConnector.takeScreenshot(1, function() {
+            _hideToolbarAndButtons();
+            var name=nl.fmt2('certificate-{}', (new Date()).getTime());
+            nlMobileConnector.takeScreenshot(name, function() {
                 nl.timeout(function() {
-                    $scope.canShowMobileDownloadBtn = true;
+                    _showToolbarAndButtons();
                 });
             });
         });
     };
+
+    function _hideToolbarAndButtons() {
+        $scope.canShowMobileDownloadBtn = false;
+        nlContainer.setMaxModeFlag(true);
+    }
+
+    function _showToolbarAndButtons() {
+        $scope.canShowMobileDownloadBtn = true;
+        nlContainer.setMaxModeFlag(false);
+    }
 
     function _onPageEnterImpl(userInfo) {
         var brandingInfo = nlServerApi.getBrandingInfo() || {};
@@ -95,6 +106,7 @@ function(nl, nlRouter, $scope, nlServerApi, nlPrinter, nlMobileConnector, nlDlg)
 	        }
         }
         $scope.available = true;
+        nlMobileConnector.initWindowContext(1);
         $scope.canShowMobileDownloadBtn = nlMobileConnector.canShowPrintScreenBtn();
     }
 

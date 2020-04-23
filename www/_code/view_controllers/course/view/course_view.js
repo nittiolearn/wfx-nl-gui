@@ -659,6 +659,10 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlCourseEditor, nlC
         $scope.updateVisiblePanes();
     });
 
+    $scope.popout = function(bPopout) {
+        _popout(bPopout);
+    };
+
     function _popout(bPopout) {
         nlTopbarSrv.showTopbar(!bPopout);
         $scope.popupView = bPopout;
@@ -725,6 +729,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlCourseEditor, nlC
             _showVisible();
             $scope.ext.setCurrentItem(nlTreeListSrv.getRootItem());
             if(!$scope.expandedView) _popout(false);
+            else nlTopbarSrv.showTopbar(true);
         }
         _confirmIframeClose(null, _impl);
     };
@@ -1768,6 +1773,13 @@ function NlContainer(nl, nlDlg, nlServerApi, $scope, modeHandler) {
     var _onSaveHandler = null;
     this.onSave = function(fn) {
         _onSaveHandler = fn;
+    };
+
+    this.setMaxModeFlag = function(flag) {
+        nl.timeout(function() {
+            if (flag) $scope.popout(true);
+            $scope.ext.maxMode = flag;
+        });
     };
     
     this.log = nl.log;

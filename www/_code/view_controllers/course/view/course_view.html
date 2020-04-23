@@ -24,6 +24,16 @@
         width: auto;
         height: auto;
     }
+    .frame-max-mode {
+        position: absolute;
+        top: 0px;
+        bottom: 0;
+        left: 0px;
+        right: 0;
+        width: auto;
+		height: auto;
+		z-index: 1;
+    }
     .no-tb.frame0, .no-tb.frame1 {
     	top: 0;
     }
@@ -36,7 +46,7 @@
 		    	class='{{vp.tb ? "": "no-tb"}} {{vp.i ? "frame1" : "frame0"}} anim'>
 		    </nl-course-view-content-active>
 		
-			<div ng-if='iframeUrl' class='padding-small {{vp.t ? "frame2" : "frame0"}}'>
+			<div ng-if='iframeUrl' class='padding-small {{vp.t ? "frame2" : "frame0"}} {{ext.maxMode ? "frame-max-mode" : ""}}'>
 			    <div class='padding-mid nl-thin-scroll' style='height: 100%'>
 		            <nl-course-view-frame ng-show='vp.i' class='anim fade'></nl-course-view-frame>
 			    </div>
