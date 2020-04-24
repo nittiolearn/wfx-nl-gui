@@ -80,6 +80,12 @@ function(nl, nlConfig, nlDlg) {
 
     var _screenCaptureEnabled = null;      // The flag is used to run the enable or disable only on change
 
+    this.initAppVersion = function(userInfo) {
+        var ctx = _windowContext.nittioMobileAppInfo;
+        ctx.apptype = userInfo.appType;
+        ctx.appversion = userInfo.appVersion;
+    };
+
     this.initWindowContext = function(parentsToSkip) {
         _windowContext = window;
         if (!parentsToSkip) return;
@@ -225,16 +231,18 @@ function(nl, nlConfig, nlDlg) {
 
     function _init(self) {
         nlConfig.loadFromDb(cacheKey, function(result) {
+            if (!result || !result.apptype) return;
             var ctx = _windowContext.nittioMobileAppInfo;
-            if(ctx.apptype) return; 
-            ctx.apptype = result.apptype;
-            ctx.appversion = result.appversion;
+            if (!ctx.apptype) {
+                ctx.apptype = result.apptype;
+                ctx.appversion = result.appversion;
+            }
+            self.exitFromAppMessageIfRequired();
         });
         _handlerFns.init_mobile_app = _onInitMobileFromNittioMobile;
         _handlerFns.screenshot_success = _screenshotSuccessFromNittioMobile;
         _handlerFns.screenshot_failure = _screenshotFailedFromNittioMobile;
         window.addEventListener('message', _onMsgFromNittioMobile);
-        self.exitFromAppMessageIfRequired();
     }
     _init(this);
 

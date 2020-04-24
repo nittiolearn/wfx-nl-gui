@@ -201,6 +201,7 @@ function(nl, nlDlg, nlServerApi, nlMarkup, $state, nlTopbarSrv, nlMobileConnecto
         var promise = permission.isOpenPage(pageUrl) ? nlServerApi.getUserInfoFromCache()
             : nlServerApi.getUserInfoFromCacheOrServer();
         promise.then(function(userInfo) {
+            nlMobileConnector.initAppVersion(userInfo);
             _informAppUpdateIfNeeded(userInfo, pageUrl, resolve);
         }, reject);
     }
