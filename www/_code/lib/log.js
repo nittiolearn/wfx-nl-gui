@@ -192,7 +192,7 @@ function _showLogViewer(nl, nlDlg, nlServerApi, $scope) {
 
     function _save() {
         logImpl.storeLogs();
-        nlDlg.popupAlert({title:'Saved', template:'Sved to local DB'});
+        nlDlg.popupAlert({title:'Saved', template:'Saved to local DB'});
     }
 
     logViewerDlg.show('lib/logviewer.html');

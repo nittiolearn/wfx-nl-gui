@@ -934,7 +934,7 @@ nittio = function() {
 		window.nlapp = nlapp;
 		setTimeout(function() {
 			if (window.nlapp.nlLogViewer.isEnabled()) jQuery('#nl_debug_log').show();
-		}, 500);
+		}, 2000);
 	};
 
 	return {

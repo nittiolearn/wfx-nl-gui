@@ -84,9 +84,7 @@ function(nl, nlConfig, nlDlg) {
         var ctx = _windowContext.nittioMobileAppInfo;
         ctx.apptype = userInfo.appType;
         ctx.appversion = userInfo.appVersion;
-        nl.log.test('initAppVersion - saving to db', ctx.apptype, ctx.appversion); // TODO-NOW
         nlConfig.saveToDb(cacheKey, ctx, function(res) {
-            nl.log.test('initAppVersion - saved to db', ctx.apptype, ctx.appversion); // TODO-NOW
         });
     };
 
@@ -104,7 +102,6 @@ function(nl, nlConfig, nlDlg) {
         }
         var activeUrlPath = nl.location.path();
         var payload = {exitStatus: (activeUrlPath in exitApps)};
-        nl.log.test('mobile efam: ', activeUrlPath, payload.exitStatus); // TODO-NOW
         _sendMsgToNittioMobile('nl_exitapp_with_back_btn', payload);
     };
 
@@ -230,24 +227,19 @@ function(nl, nlConfig, nlDlg) {
         var ctx = _windowContext.nittioMobileAppInfo;
         ctx.apptype = data.nittio_mobile_msginfo.apptype;
         ctx.appversion = data.nittio_mobile_msginfo.appversion;
-        nl.log.test('msg from mobile - saving to db', ctx.apptype, ctx.appversion); // TODO-NOW
         nlConfig.saveToDb(cacheKey, ctx, function(res) {
-            nl.log.test('msg from mobile - saved to db', ctx.apptype, ctx.appversion); // TODO-NOW
         });
     }
 
     function _init(self) {
-        nl.log.test('mobile connector - init: ', nl.location.path()); // TODO-NOW
+        nl.log.debug('mobile connector - init: ', nl.location.path());
         nlConfig.loadFromDb(cacheKey, function(result) {
-            if (result) nl.log.test('loaded from db: ', result.apptype, result.appversion); // TODO-NOW
-            else nl.log.test('loaded from db: empty'); // TODO-NOW
             if (!result || !result.apptype) return;
             var ctx = _windowContext.nittioMobileAppInfo;
             if (!ctx.apptype) {
                 ctx.apptype = result.apptype;
                 ctx.appversion = result.appversion;
             }
-            nl.log.test('mobile connector - appversion: ', ctx.appversion); // TODO-NOW
             self.exitFromAppMessageIfRequired();
         });
         _handlerFns.init_mobile_app = _onInitMobileFromNittioMobile;
