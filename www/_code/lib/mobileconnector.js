@@ -84,8 +84,9 @@ function(nl, nlConfig, nlDlg) {
         var ctx = _windowContext.nittioMobileAppInfo;
         ctx.apptype = userInfo.appType;
         ctx.appversion = userInfo.appVersion;
+        nl.log.test('initAppVersion - saving to db', ctx.apptype, ctx.appversion); // TODO-NOW
         nlConfig.saveToDb(cacheKey, ctx, function(res) {
-            nl.log.test('mobile connector - saved to db after initApp'); // TODO-NOW
+            nl.log.test('initAppVersion - saved to db', ctx.apptype, ctx.appversion); // TODO-NOW
         });
     };
 
@@ -229,16 +230,17 @@ function(nl, nlConfig, nlDlg) {
         var ctx = _windowContext.nittioMobileAppInfo;
         ctx.apptype = data.nittio_mobile_msginfo.apptype;
         ctx.appversion = data.nittio_mobile_msginfo.appversion;
-        nl.log.test('mobile connector - saving to db'); // TODO-NOW
+        nl.log.test('msg from mobile - saving to db', ctx.apptype, ctx.appversion); // TODO-NOW
         nlConfig.saveToDb(cacheKey, ctx, function(res) {
-            nl.log.test('mobile connector - saved to db'); // TODO-NOW
+            nl.log.test('msg from mobile - saved to db', ctx.apptype, ctx.appversion); // TODO-NOW
         });
     }
 
     function _init(self) {
         nl.log.test('mobile connector - init: ', nl.location.path()); // TODO-NOW
         nlConfig.loadFromDb(cacheKey, function(result) {
-            nl.log.test('mobile connector - loaded: ', result && result.apptype || '(not found)'); // TODO-NOW
+            if (result) nl.log.test('loaded from db: ', result.apptype, result.appversion); // TODO-NOW
+            else nl.log.test('loaded from db: empty'); // TODO-NOW
             if (!result || !result.apptype) return;
             var ctx = _windowContext.nittioMobileAppInfo;
             if (!ctx.apptype) {
