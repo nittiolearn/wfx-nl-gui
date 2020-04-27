@@ -32,6 +32,7 @@ function(nl, nlRouter, nlDlg, nlGroupInfo, nlLrHelper, nlLrFilter, nlGetManyStor
     var _canManage = false;
     var _canSend = false;
     var _canAddReportRecord = null;
+    var _batchStatus = {};
     this.init = function(userinfo, groupInfo, canAddReportRecord) {
         _userInfo = userinfo;
         _records = {};
@@ -46,6 +47,7 @@ function(nl, nlRouter, nlDlg, nlGroupInfo, nlLrHelper, nlLrFilter, nlGetManyStor
         _canSend = nlRouter.isPermitted(_userInfo, 'assignment_send');
         _pastUserInfosFetcher.init(groupInfo);
         _canAddReportRecord = canAddReportRecord || function() {return true;};
+        _batchStatus = {};
     };
     
     this.isReattemptEnabled = function() {
@@ -131,6 +133,10 @@ function(nl, nlRouter, nlDlg, nlGroupInfo, nlLrHelper, nlLrFilter, nlGetManyStor
             return (b.stats.status.id - a.stats.status.id);
         });
         return ret;
+    };
+
+    this.getNhtBatchStatus = function() {
+        return _batchStatus;
     };
     
     function _convertAttendanceArrayToObj(attendanceArray) {
@@ -309,6 +315,10 @@ function(nl, nlRouter, nlDlg, nlGroupInfo, nlLrHelper, nlLrFilter, nlGetManyStor
         report.url = nl.fmt2('#/course_view?id={}&mode=report_view', report.id);
         report.urlTitle = nl.t('View report');
         stats.status = nlReportHelper.getStatusInfoFromCourseStatsObj(stainf);
+        if (report.isNHT) {
+            if (!(report.assignment in _batchStatus)) _batchStatus[report.assignment] = {};
+            _batchStatus[report.assignment][stats.status.txt] = true;
+        }
 
         if ((stainf.status == 'certified' || stainf.isCertified) && stats.certid) {
             var certInfo = stainf.itemIdToInfo[stats.certid];

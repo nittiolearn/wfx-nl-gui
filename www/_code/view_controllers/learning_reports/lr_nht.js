@@ -211,7 +211,7 @@ function NhtCounts(nl, nlGetManyStore, nlGroupInfo) {
         if (updatedStats.propertiesUpdated) return;
         updatedStats.propertiesUpdated = true;
         var report = batches[batchid];
-        var msInfo = nlGetManyStore.getBatchMilestoneInfo(report.raw_record);
+        var msInfo = nlGetManyStore.getBatchMilestoneInfo(report.raw_record, {});
         for (var key in msInfo) updatedStats[key] = msInfo[key];
         updatedStats['start'] = report.not_before;
         updatedStats['end'] = report.not_after;

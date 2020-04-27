@@ -132,8 +132,9 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo) {
     this.getNhtBatchStates = function() {
         return _nhtBatchStatus;
     }
-    this.getBatchMilestoneInfo = function(reportRecord) {
+    this.getBatchMilestoneInfo = function(reportRecord, nhtBatchStatus) {
         var courseAssignment = this.getAssignmentRecordFromReport(reportRecord) || {};
+        var _batchStatus = nhtBatchStatus[reportRecord.assignment] || {};
         if (!courseAssignment.id) return {};
         if (courseAssignment.id in _msInfoCache) {
             var msInfo = _msInfoCache[courseAssignment.id];
@@ -144,7 +145,10 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo) {
         var ret = {batchStatus: ''};
         _msInfoCache[courseAssignment.id] = ret;
 
-        var grpMilestoneDict = _getGroupMilestonesAsDict();
+        var groupMsInfo = _getGroupMilestonesAsDict();
+        var grpMilestoneDict = groupMsInfo.ret;
+        var defaultBatchStatus = groupMsInfo.defaultBatchStatus;
+        _updateBatchStatusWithDefaultStates(defaultBatchStatus, _batchStatus);
         if (!grpMilestoneDict) return ret;
 
         var course = this.getRecord(this.getContentKeyFromReport(reportRecord));
@@ -176,14 +180,19 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo) {
             }
             ret[mstype+'planned'] = nl.fmt.date2StrDDMMYY(nl.fmt.json2Date(plannedMs || '', 'date'));
             lastPlanned = plannedMs;
+            var grpMileStoneObj = grpMilestoneDict[mstype];
             if (!allMilestonesReached) continue;
+
+            if (grpMileStoneObj.batch_status && !(grpMileStoneObj.batch_status in _batchStatus)) {
+                allMilestonesReached = false;
+                continue;
+            }
             if(!actualMs.reached || actualMs.status != 'done') {
                 allMilestonesReached = false;
                 continue;
             }
             lastActual = nl.fmt.json2Date(actualMs.reached || '', 'date');
             ret[mstype+'actual'] = nl.fmt.date2StrDDMMYY(nl.fmt.json2Date(actualMs.reached || '', 'date'));
-            var grpMileStoneObj = grpMilestoneDict[mstype];
             if (grpMileStoneObj && grpMileStoneObj.batch_status)
                 ret.batchStatus = grpMileStoneObj.batch_status;
         }
@@ -198,13 +207,31 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo) {
         return ret;
     };
 
+    function _updateBatchStatusWithDefaultStates(defaultBatchStatus, _batchStatus) {
+        var status = angular.copy(_batchStatus);
+        for (var key in status) {
+            var index = defaultBatchStatus[key];
+            _updateBatchStates(index, _batchStatus, defaultBatchStatus);
+        }
+    }
+
+    function _updateBatchStates(index, _batchStatus, defaultBatchStatus) {
+        for (var key in defaultBatchStatus) {
+            if (defaultBatchStatus[key] < index) _batchStatus[key] = true;
+        }
+    }
+
     function  _getGroupMilestonesAsDict() {
         var groupInfo = nlGroupInfo.get();
         if (!groupInfo.props.milestones) return null;
         var milestones = groupInfo.props.milestones;
         var ret = {};
-        for(var i=0; i<milestones.length; i++) ret[milestones[i].id] = milestones[i];
-        return ret;
+        var defaultBatchStatus = {};
+        for(var i=0; i<milestones.length; i++) {
+            ret[milestones[i].id] = milestones[i];
+            if (milestones[i].batch_status) defaultBatchStatus[milestones[i].batch_status] = i;
+        }
+        return {ret: ret, defaultBatchStatus: defaultBatchStatus};
     }
 
 }];

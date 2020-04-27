@@ -800,8 +800,6 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
             ret.status = defaultCourseStatus;
         }
         if (!_isNHT) return; 
-        if (!_isEndItemState(itemInfo.status)) return;
-        if (!itemInfo.unlockedOn) return;
         ret.status = defaultCourseStatus;
         return;
         var etmUserStates = groupinfo.etmUserStates;
