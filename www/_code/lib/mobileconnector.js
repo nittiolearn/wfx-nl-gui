@@ -84,6 +84,9 @@ function(nl, nlConfig, nlDlg) {
         var ctx = _windowContext.nittioMobileAppInfo;
         ctx.apptype = userInfo.appType;
         ctx.appversion = userInfo.appVersion;
+        nlConfig.saveToDb(cacheKey, ctx, function(res) {
+            nl.log.test('mobile connector - saved to db after initApp'); // TODO-NOW
+        });
     };
 
     this.initWindowContext = function(parentsToSkip) {
