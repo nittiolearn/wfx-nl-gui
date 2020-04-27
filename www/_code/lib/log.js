@@ -1,7 +1,7 @@
 (function() {
 
 //-------------------------------------------------------------------------------------------------
-// nl.js: 
+// log.js: 
 // Colection of many utilities which are required in different services, 
 // directives and controllers
 //-------------------------------------------------------------------------------------------------
@@ -38,20 +38,33 @@ function($log, $location) {
     this.error = function() {
         logImpl.log(logImpl.LOG_LEVEL.ERROR, $log.error, arguments);
     };
-    
-    logImpl.initDebugUrl($location);
+
+    // Put only for testing issues. Don't checkin with this code!
+    this.test = function() {
+        logImpl.log(logImpl.LOG_LEVEL.TEST, $log.info, arguments);
+    };
 }];
     
 //-------------------------------------------------------------------------------------------------
-var NlLogViewer = ['nl', 'nlDlg', 'nlServerApi', 
-function(nl, nlDlg, nlServerApi) {
+var NlLogViewer = ['nl', 'nlDlg', 'nlServerApi', 'nlConfig',
+function(nl, nlDlg, nlServerApi, nlConfig) {
     this.show = function($scope) {
         _showLogViewer(nl, nlDlg, nlServerApi, $scope);
     };
-    
-    this.showOnStartupIfRequired = function($scope) {
-        _showLogViewerOnStartupIfRequired(nl, nlDlg, nlServerApi, $scope);
+
+    this.isEnabled = function() {
+        return logImpl.isEnabled();
     };
+
+    this.getLogMenuItem = function($scope) {
+        var self = this;
+        return {id: 'nl_logviewer_show', type: 'menu', name: nl.t(' Debug Log'),
+            onClick: function() { self.show($scope); },
+            canShow: function() {return logImpl.isEnabled();}
+        };
+    };
+
+    logImpl.initLogViewer(nl, nlConfig);
 }];
 
 //-------------------------------------------------------------------------------------------------
@@ -60,24 +73,29 @@ function LogImpl() {
     
     //---------------------------------------------------------------------------------------------
     // Configuration data
-    this.LOG_LEVEL = {DEBUG: 0, INFO: 1, WARN: 2, ERROR: 3};
-    this.LOG_LEVEL_TEXTS = ['debug', 'info', 'warn', 'error'];
-    this.storeLogs = true;
-    this.maxLogCount = 1000;
-    this.lowWaterMark = 800;
+    this.LOG_LEVEL = {DEBUG: 0, INFO: 1, WARN: 2, ERROR: 3, TEST: 4};
+    this.LOG_LEVEL_TEXTS = ['debug', 'info', 'warn', 'error', 'test'];
+    this.maxLogCount = 50;
+    this.lowWaterMark = 40;
+    this.nlConfig = null;
+    this.STORAGE_KEY ='NL_LOGVIEWER_DATA';
     
+    this.enabled = undefined; // Will later be set to true or false;
+    this.isEnabled = function() {
+        return this.enabled;
+    };
+
     //---------------------------------------------------------------------------------------------
     // Runtime data
     this.logId = 0;
     this.recentLogs = [];
-    this.currentLogLevel = this.LOG_LEVEL.ERROR;
+    this.currentLogLevel = this.LOG_LEVEL.TEST;
+    this.resultFromDB = null;
 
     //---------------------------------------------------------------------------------------------
     // Log viewer related data
     this.showLogConfig = false;
     this.showHideLable = '';
-    this.showOnStartup = false;
-    this.startupTimeout = 10*1000;
     
     //---------------------------------------------------------------------------------------------
     // Logging related methods
@@ -93,9 +111,7 @@ function LogImpl() {
             logFn(msg);
         }
     
-        if (!self.storeLogs) return;
         self.logId++;
-    
         var argsJson = '';
         try {
             argsJson = angular.toJson(logArgs);
@@ -103,6 +119,7 @@ function LogImpl() {
             argsJson = 'angular.toJson() failed: ' + e.message;
         }
         self.recentLogs.push({pos: self.logId, logtime: new Date(), level:self.LOG_LEVEL_TEXTS[level], msg:msg, args:argsJson});
+        self.storeLogs();
         if (self.recentLogs.length < self.maxLogCount) return;
         var toRemove = self.maxLogCount - self.lowWaterMark;
         self.recentLogs.splice(0, toRemove);
@@ -116,14 +133,6 @@ function LogImpl() {
 
     //---------------------------------------------------------------------------------------------
     // Log GUI related init method
-    this.initDebugUrl = function($location) {
-        var params = $location.search();
-        if (!('loglevel' in params)) return;
-        this.currentLogLevel= parseInt(params.loglevel);
-        this.showOnStartup = true;
-        if ('logtimeout' in params) this.startupTimeout = parseInt(params.logtimeout);
-    };
-
     this.updateShowHideLable = function() {
         this.showHideLable = this.showLogConfig ? 'Hide log config': 'Show log config';
     };
@@ -131,7 +140,36 @@ function LogImpl() {
     //---------------------------------------------------------------------------------------------
     // Initialization code
     this.updateShowHideLable();
-    
+
+    this.initLogViewer = function(nl, nlConfig) {
+        var params = nl.window.location.search;
+        if (params.indexOf('mobile_debug') > 0) this.enabled = true;
+        this.nlConfig = nlConfig;
+        var self = this;
+        this.nlConfig.loadFromDb(this.STORAGE_KEY, function(result) {
+            if (!result) result = {recentLogs: []};
+            self.resultFromDB = result;
+            if (self.recentLogs.length > 0) {
+                for(var i=0; i<self.recentLogs.length; i++) {
+                    result.recentLogs.push(self.recentLogs[i]);
+                }
+            }
+            self.recentLogs = result.recentLogs;
+            if (self.enabled === undefined) self.enabled = result.enabled;
+            if (result.currentLogLevel !== undefined) self.currentLogLevel = result.currentLogLevel;
+            if (result.maxLogCount !== undefined) self.maxLogCount = result.maxLogCount;
+            if (result.lowWaterMark !== undefined) self.lowWaterMark = result.lowWaterMark;
+            self.storeLogs();
+        });
+    };
+
+    this.storeLogs = function() {
+        if (!this.resultFromDB || !this.enabled) return;
+        var data = {recentLogs: this.recentLogs, enabled: this.enabled, currentLogLevel: this.currentLogLevel,
+            maxLogCount: this.maxLogCount, lowWaterMark: this.lowWaterMark};
+        this.nlConfig.saveToDb(this.STORAGE_KEY, data, function(res) {
+        });
+    };
 }
 
 function _showLogViewer(nl, nlDlg, nlServerApi, $scope) {
@@ -145,26 +183,20 @@ function _showLogViewer(nl, nlDlg, nlServerApi, $scope) {
 
     logViewerDlg.scope.clearLogs = function() {
         logImpl.recentLogs = [];
+        _save();
     };
 
-    logViewerDlg.scope.sendMail = function() {
-        nlDlg.popupAlert({title:'Send Mail', template:'TODO'});
+    logViewerDlg.scope.saveNow = function() {
+        _save();
     };
-    logViewerDlg.scope.exportToCsv = function() {
-        nlDlg.popupAlert({title:'Export to CSV', template:'TODO'});
-    };
+
+    function _save() {
+        logImpl.storeLogs();
+        nlDlg.popupAlert({title:'Saved', template:'Sved to local DB'});
+    }
 
     logViewerDlg.show('lib/logviewer.html');
 }
-
-function _showLogViewerOnStartupIfRequired(nl, nlDlg, nlServerApi, $scope) {
-    if (!logImpl.showOnStartup) return;
-    logImpl.showOnStartup = false;
-    nl.timeout(function() {
-        _showLogViewer(nl, nlDlg, nlServerApi, $scope);
-    }, logImpl.startupTimeout); // 10 seconds by default
-}
-    
 
 //-------------------------------------------------------------------------------------------------
 module_init();

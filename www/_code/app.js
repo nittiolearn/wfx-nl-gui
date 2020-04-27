@@ -170,7 +170,6 @@ function(nl, $scope, $anchorScroll, nlKeyboardHandler, nlAnnouncementSrv, nlRout
     };
 
     _initScreenSize(nl);
-    nlLogViewer.showOnStartupIfRequired($scope);
     
     var homeUrl = '/#/home';
     $scope.homeMenuTitle = nl.t('Home');
@@ -221,6 +220,7 @@ function(nl, $scope, $anchorScroll, nlKeyboardHandler, nlAnnouncementSrv, nlRout
                 onClick: function() { nlServerSideUserSettings.updateSettings($scope, userInfo); }
             });
         }
+        topbarMenus.push(nlLogViewer.getLogMenuItem($scope));
         topbarMenus.push({
             id: 'logout',
             type: 'menu',

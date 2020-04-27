@@ -100,6 +100,7 @@ function(nl, nlConfig, nlDlg) {
         }
         var activeUrlPath = nl.location.path();
         var payload = {exitStatus: (activeUrlPath in exitApps)};
+        nl.log.test('mobile efam: ', activeUrlPath, payload.exitStatus); // TODO-NOW
         _sendMsgToNittioMobile('nl_exitapp_with_back_btn', payload);
     };
 
@@ -225,18 +226,23 @@ function(nl, nlConfig, nlDlg) {
         var ctx = _windowContext.nittioMobileAppInfo;
         ctx.apptype = data.nittio_mobile_msginfo.apptype;
         ctx.appversion = data.nittio_mobile_msginfo.appversion;
+        nl.log.test('mobile connector - saving to db'); // TODO-NOW
         nlConfig.saveToDb(cacheKey, ctx, function(res) {
+            nl.log.test('mobile connector - saved to db'); // TODO-NOW
         });
     }
 
     function _init(self) {
+        nl.log.test('mobile connector - init: ', nl.location.path()); // TODO-NOW
         nlConfig.loadFromDb(cacheKey, function(result) {
+            nl.log.test('mobile connector - loaded: ', result && result.apptype || '(not found)'); // TODO-NOW
             if (!result || !result.apptype) return;
             var ctx = _windowContext.nittioMobileAppInfo;
             if (!ctx.apptype) {
                 ctx.apptype = result.apptype;
                 ctx.appversion = result.appversion;
             }
+            nl.log.test('mobile connector - appversion: ', ctx.appversion); // TODO-NOW
             self.exitFromAppMessageIfRequired();
         });
         _handlerFns.init_mobile_app = _onInitMobileFromNittioMobile;

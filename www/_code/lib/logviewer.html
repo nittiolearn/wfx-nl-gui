@@ -22,10 +22,6 @@
         <div><button ng-click='toggleLogConfig()'>{{logConfig.showHideLable}}</button></div>
         <table class='nl-log-dlg-config' ng-show='logConfig.showLogConfig'>
             <tr>
-                <td>Store logs</td>
-                <td><input type='checkbox' ng-model='logConfig.storeLogs'></input></td>
-            </tr>
-            <tr>
                 <td>Current log level</td>
                 <td>
                     <select ng-model="logConfig.currentLogLevel" convert-to-number>
@@ -44,19 +40,18 @@
             <tr>
                 <td>Total available logs</td>
                 <td>{{logConfig.recentLogs.length}} 
-                    <button ng-click='clearLogs()'>Clear Logs</button>
-                    <button ng-click='sendMail()'>Send Mail</button>
-                    <button ng-click='exportToCsv()'>Export to CSV</button>
+                    <button ng-click='clearLogs()'>Clear and Save to Local DB Now</button>
+                    <button ng-click='saveNow()'>Just Save to Local DB Now</button>
                 </td>
             </tr>
         </table>
 
         <div class='nl-log-dlg-box'>
-            </span><input type='text' ng-model='filter' autofocus placeholder="Filter">
+            </span><input type='text' ng-model='filter' placeholder="Filter">
             <h4>{{(logConfig.recentLogs | filter:filter).length}} of {{logConfig.recentLogs.length}} logs displayed.</h4>
         </div>
 
-        <div ng-repeat='log in logs = (logConfig.recentLogs | filter:filter)' class='nl-log-entry'>
+        <div ng-repeat='log in logs = (logConfig.recentLogs | filter:filter) track by $index' class='nl-log-entry'>
             {{log.pos}}: {{log.logtime}} <b>{{log.level}}</b> {{log.msg}} {{log.args}}
         </div>
     </nl-dlg-content>

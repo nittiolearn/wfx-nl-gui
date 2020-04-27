@@ -912,6 +912,10 @@ nittio = function() {
 		return g_staticVersion;
 	}
 
+	function onDebugLog() {
+		window.nlapp.nlLogViewer.show(window.nlapp.nl.rootScope);
+	}
+
     var printCallback = null;
     function printHandler(fn) {
         printCallback = fn;
@@ -928,6 +932,9 @@ nittio = function() {
 	window.nlapp = null;
 	window.setupNlAppInGlobal = function(nlapp) {
 		window.nlapp = nlapp;
+		setTimeout(function() {
+			if (window.nlapp.nlLogViewer.isEnabled()) jQuery('#nl_debug_log').show();
+		}, 500);
 	};
 
 	return {
@@ -977,6 +984,7 @@ nittio = function() {
 		resizeImagesToAspectRatio : resizeImagesToAspectRatio,
 		isAspectRaioWide : isAspectRaioWide,
 		onWindowResize: onWindowResize,
+		onDebugLog: onDebugLog,
 
 		//Print
 		onPrint : onPrint,

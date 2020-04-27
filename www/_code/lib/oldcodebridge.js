@@ -10,9 +10,9 @@ function module_init() {
 }
 
 //-------------------------------------------------------------------------------------------------
-var NlOldCodeBridge = ['nl', 'nlDlg', 'nlServerApi', 'nlApproveDlg', 'nlMarkup',
-'$compile', 'NittioLesson',
-function(nl, nlDlg, nlServerApi, nlApproveDlg, nlMarkup, $compile, NittioLesson) {
+var NlOldCodeBridge = ['nl', 'nlDlg', 'nlServerApi', 'nlApproveDlg', 'nlMarkup', 
+'$compile', 'NittioLesson', 'nlLogViewer',
+function(nl, nlDlg, nlServerApi, nlApproveDlg, nlMarkup, $compile, NittioLesson, nlLogViewer) {
     var self = this;
     this.expose = function() {
         if (!nl.window.setupNlAppInGlobal) {
@@ -27,7 +27,8 @@ function(nl, nlDlg, nlServerApi, nlApproveDlg, nlMarkup, $compile, NittioLesson)
             nlApproveDlg: nlApproveDlg,
             NittioLesson: NittioLesson,
             scope: nl.rootScope.$new(),
-            compile: _compile
+            compile: _compile,
+            nlLogViewer: nlLogViewer
         };
         nl.window.setupNlAppInGlobal(self.bridge);
     };

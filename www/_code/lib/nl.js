@@ -438,12 +438,9 @@ function NlDb(nl) {
             ydnDb.onReady(function(e) {
                 if (db !== null) return _execute(traceData, dbFn, resolve, reject);
                 if (!e) {
-                    nl.log.info('NlDB DB is ready');
                     db = ydnDb;
                     return _execute(traceData, dbFn, resolve, reject);
                 }
-                if (e.target.error) nl.log.error('NlDB Error: ' + e.target.error.name + ' ' + e.target.error.message);
-                nl.log.error('NlDB Error: ', e);
                 db = new DbDummy();
                 return _execute(traceData, dbFn, resolve, reject);
             });
@@ -452,23 +449,14 @@ function NlDb(nl) {
 
     function _execute(traceData, dbFn, resolve, reject) {
         try {
-            nl.log.debug('nlDb._execute enter: ', traceData);
             dbFn().then(function(result) {
-                if (result === undefined) {
-                    nl.log.info('nlDb._execute returned undefined: ', traceData);
-                } else {
-                    nl.log.debug('nlDb._execute done: ', traceData);
-                }
                 resolve(result);
             }, function(e) {
-                nl.log.warn('nlDb._execute error: ', traceData, e);
                 reject(e);
             });
         } catch (e) {
-            nl.log.error('nlDb._execute exception: ', traceData, e);
             reject(e);
         }
-        nl.log.debug('nlDb._execute initiated: ', traceData);
         return true;
     }
     
