@@ -181,7 +181,7 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo) {
             ret[mstype+'planned'] = nl.fmt.date2StrDDMMYY(nl.fmt.json2Date(plannedMs || '', 'date'));
             lastPlanned = plannedMs;
             var grpMileStoneObj = grpMilestoneDict[mstype];
-            if (!allMilestonesReached) continue;
+            if (!allMilestonesReached || !grpMileStoneObj) continue;
 
             if(grpMileStoneObj.batch_status && !(grpMileStoneObj.batch_status in _batchStatus)) {
                 allMilestonesReached = false;
@@ -223,7 +223,7 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo) {
 
     function  _getGroupMilestonesAsDict() {
         var groupInfo = nlGroupInfo.get();
-        if (!groupInfo.props.milestones) return null;
+        if (!groupInfo.props.milestones) return {ret: null, defaultBatchStatus: {}};
         var milestones = groupInfo.props.milestones;
         var ret = {};
         var defaultBatchStatus = {};

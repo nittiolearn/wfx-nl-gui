@@ -597,7 +597,7 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
         if('learnersDict' in markedMilestone && markedMilestone.learnersDict[repid]) {
             var learnerDict = markedMilestone.learnersDict[repid] || {}
             itemInfo.rawStatus = learnerDict.marked == 'done' ? 'success' : 'pending';
-            if (itemInfo.rawStatus == 'success' && defMilestone.batch_status) itemInfo.customStatus = defMilestone.batch_status;
+            if (itemInfo.rawStatus == 'success' && defMilestone && defMilestone.batch_status) itemInfo.customStatus = defMilestone.batch_status;
             itemInfo.score = itemInfo.rawStatus == 'pending' ? null : 100;
             itemInfo.remarks = learnerDict.remarks || "";
             itemInfo.planned = _msDates[_msKey] || '';
