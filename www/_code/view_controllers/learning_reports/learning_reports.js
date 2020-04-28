@@ -620,13 +620,13 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 
 	function _getFilteredRecords(summaryStats) {
 		var records = nlLrReportRecords.getRecords();
-		var batchStatusDict = nlLrReportRecords.getNhtBatchStatus();
+		var batchStatusObj = nlLrReportRecords.getNhtBatchStatus();
 		var tabData = $scope.tabData;
 		var searchInfo = _getSearchInfo(tabData);
 		var filteredRecords  = [];
 		for (var recid in records) {
 			var record = records[recid];
-			if (record.raw_record.isNHT) nlGetManyStore.getBatchMilestoneInfo(record.raw_record, batchStatusDict);	
+			if (record.raw_record.isNHT) nlGetManyStore.getBatchMilestoneInfo(record.raw_record, batchStatusObj);	
 			if (!_recordsFilter.doesPassFilter(record)) continue;
 			if (!_doesPassSearch(record, searchInfo)) continue;
 			filteredRecords.push(record);
@@ -991,7 +991,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		var records = $scope.tabData.records;
 		var reportDict = {};
 		var transferedOut = {};
-		var batchStatusDict = nlLrReportRecords.getNhtBatchStatus();
+		var batchStatusObj = nlLrReportRecords.getNhtBatchStatus();
 
 		for(var i=0; i<records.length; i++) {
 			var record = records[i];
@@ -1000,7 +1000,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 				transferedOut[record.user.user_id] = record;
 				continue;
 			}
-			var msInfo = nlGetManyStore.getBatchMilestoneInfo(record.raw_record, batchStatusDict);
+			var msInfo = nlGetManyStore.getBatchMilestoneInfo(record.raw_record, batchStatusObj);
 			if(isRunning && msInfo.batchStatus == 'Closed' ||
 				!isRunning && msInfo.batchStatus != 'Closed') continue;
 			if(!(record.user.user_id in reportDict)) {

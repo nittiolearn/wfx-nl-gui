@@ -802,6 +802,7 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
         if (!_isNHT) return; 
         ret.status = defaultCourseStatus;
         return;
+        
         var etmUserStates = groupinfo.etmUserStates;
         var lastItem = etmUserStates[etmUserStates.length - 1];
         var tenures = lastItem.tenures || [];

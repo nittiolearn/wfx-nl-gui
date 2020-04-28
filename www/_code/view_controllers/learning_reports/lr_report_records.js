@@ -316,7 +316,7 @@ function(nl, nlRouter, nlDlg, nlGroupInfo, nlLrHelper, nlLrFilter, nlGetManyStor
         report.urlTitle = nl.t('View report');
         stats.status = nlReportHelper.getStatusInfoFromCourseStatsObj(stainf);
         if (report.isNHT) {
-            if (!(report.assignment in _batchStatus)) _batchStatus[report.assignment] = {};
+            if(!(report.assignment in _batchStatus)) _batchStatus[report.assignment] = {};
             _batchStatus[report.assignment][stats.status.txt] = true;
         }
 

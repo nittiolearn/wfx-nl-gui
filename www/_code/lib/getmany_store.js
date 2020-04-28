@@ -183,7 +183,7 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo) {
             var grpMileStoneObj = grpMilestoneDict[mstype];
             if (!allMilestonesReached) continue;
 
-            if (grpMileStoneObj.batch_status && !(grpMileStoneObj.batch_status in _batchStatus)) {
+            if(grpMileStoneObj.batch_status && !(grpMileStoneObj.batch_status in _batchStatus)) {
                 allMilestonesReached = false;
                 continue;
             }
