@@ -293,7 +293,7 @@ function DbAttendanceObject(courseAssignment, ctx) {
 			return;
 		}
 		if (cm.sessiondate && cm.sessiondate > new Date()) {
-			cm.dateValidationErrorIfSomeAtdFilled = 'Session date cannot be future date.';
+			cm.dateValidationErrorIfSomeAtdFilled = 'Date cannot be in future.';
 			return;
 		}
 		var myDate = nl.fmt.date2Str(cm.sessiondate, 'date');
@@ -747,7 +747,7 @@ function DbMilestoneObject(courseAssignment, ctx) {
 			return;
 		}
 		if (lr.reached && lr.reached > new Date()) {
-			lr.validationErrorMsg = nl.fmt2('Achieved date cannot be future date for {}', lr.learnername);
+			lr.validationErrorMsg = nl.fmt2('Date cannot be in future');
 			if (!cm.validationErrorMsg) cm.validationErrorMsg = lr.validationErrorMsg || null;
 			return;
 		}
@@ -1086,6 +1086,11 @@ function UpdateTrainingBatchDlg($scope, ctx, resolve) {
 					if (!msBulkMarkDlg.scope.data.reached) {
 						e.preventDefault();
 						msBulkMarkDlg.scope.data.errorMsg = 'Please select the milestone date';
+						return;
+					}
+					if (msBulkMarkDlg.scope.data.reached && msBulkMarkDlg.scope.data.reached > new Date()) {
+						e.preventDefault();
+						msBulkMarkDlg.scope.data.errorMsg = 'Selected date cannot be in future';
 						return;
 					}
 					ctx.dbMilestone.markAll(selectedModule, true, msBulkMarkDlg.scope.data.reached);
