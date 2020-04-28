@@ -292,6 +292,10 @@ function DbAttendanceObject(courseAssignment, ctx) {
 			cm.dateValidationErrorIfSomeAtdFilled = 'Date mandatory';
 			return;
 		}
+		if (cm.sessiondate && cm.sessiondate > new Date()) {
+			cm.dateValidationErrorIfSomeAtdFilled = 'Session date cannot be future date.';
+			return;
+		}
 		var myDate = nl.fmt.date2Str(cm.sessiondate, 'date');
 		var lastDate = cmValidationCtx.lastFixedSessionDate || null;
 		if (lastDate && myDate <= lastDate) {
@@ -738,7 +742,12 @@ function DbMilestoneObject(courseAssignment, ctx) {
 		if (!cm.isMarkingComplete) return;
 		if (!isEtmAsd && lr.milestoneMarked) return;
 		if (lr.milestoneMarked && !lr.reached) {
-				lr.validationErrorMsg = nl.fmt2('Achieved on date mandatory for {}', lr.learnername);
+			lr.validationErrorMsg = nl.fmt2('Achieved on date mandatory for {}', lr.learnername);
+			if (!cm.validationErrorMsg) cm.validationErrorMsg = lr.validationErrorMsg || null;
+			return;
+		}
+		if (lr.reached && lr.reached > new Date()) {
+			lr.validationErrorMsg = nl.fmt2('Achieved date cannot be future date for {}', lr.learnername);
 			if (!cm.validationErrorMsg) cm.validationErrorMsg = lr.validationErrorMsg || null;
 			return;
 		}
