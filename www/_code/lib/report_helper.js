@@ -800,7 +800,8 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
             ret.status = defaultCourseStatus;
         }
         if (!_isNHT) return; 
-        ret.status = defaultCourseStatus;
+        if (cm.type != 'certificate' && itemInfo.status == 'waiting') 
+            ret.status = defaultCourseStatus;
         return;
         
         var etmUserStates = groupinfo.etmUserStates;

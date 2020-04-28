@@ -293,7 +293,8 @@ function DbAttendanceObject(courseAssignment, ctx) {
 			return;
 		}
 		if (cm.sessiondate && cm.sessiondate > new Date()) {
-			cm.dateValidationErrorIfSomeAtdFilled = 'Date cannot be in future.';
+			cm.dateValidationError = nl.fmt2('Date cannot be in future.');
+			cm.validationErrorMsg = nl.fmt2('Date cannot be in future.');
 			return;
 		}
 		var myDate = nl.fmt.date2Str(cm.sessiondate, 'date');
