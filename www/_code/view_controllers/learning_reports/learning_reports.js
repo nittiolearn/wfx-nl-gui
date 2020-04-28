@@ -1655,7 +1655,15 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			else if (itemStatus.status == 'success') recordItem.statusStr = 'Passed';
 			if (itemStatus.otherRemarks) recordItem.remarks = nl.fmt2('{} ({})', recordItem.remarks, itemStatus.otherRemarks);
 		} else if (cm.type == 'milestone') {
-			if (itemStatus.status == 'success') recordItem.statusStr = 'Achieved';
+			if (itemStatus.status == 'success') {
+				var reachedOn = null;
+				if (itemStatus.reached) 
+					reachedOn = nl.fmt.date2StrDDMMYY(nl.fmt.json2Date(itemStatus.reached || ''), null);
+				else 
+					reachedOn = cm.milestoneObj.reached;
+				recordItem.statusStr = nl.t('Achieved');
+				recordItem.statusStr2 = nl.t('{}', reachedOn);
+			}
 		}
 		if (!(itemStatus.status in internalStatusMap)) {
 			internalStatusMap[itemStatus.status] = {};

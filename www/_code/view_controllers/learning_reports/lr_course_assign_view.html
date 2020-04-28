@@ -114,7 +114,7 @@
 				</div>
 				<div ng-if='selectedModule.milestoneObj.status'
 					class='padding-mid fsh6'>
-					The milestone was reached on <b>{{selectedModule.milestoneObj.reached}}</b>
+					Milestone achieved.</b>
 				</div>
 				<div ng-if='selectedModule.milestoneObj.status' class='padding-mid'> <span><b> Milestone remark: </b></span> <span>{{selectedModule.milestoneObj.comment}}</span></div>
 			</div>
@@ -167,7 +167,7 @@
 						{{user.id}}
 					</td>
 					<td>
-						{{user.statusStr}}
+						{{user.statusStr}} {{user.statusStr2 ? 'on '+user.statusStr2 : ''}}
 					</td>
 					<td ng-if='selectedModule.showScore'>
 						{{user.score || '-'}} {{user.score ? '%' : ''}}
