@@ -175,15 +175,17 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 
 	var _lrColumns = null;
 	var _tableNavPos = {};
+	var MAX_VISIBLE = 100;
 	function _initScope() {
 		$scope.debug = nlLrFilter.isDebugMode();
 		$scope.toolbar = _getToolbar();
 		$scope.learningRecords = nlLrReportRecords.getRecords();
 		$scope.metaHeaders = nlLrHelper.getMetaHeaders(true);
 		_lrColumns = _selectedLrCols || _getLrColumns();
-		_tableNavPos = {currentpos: 0, nextpos: 100};
+		_tableNavPos = {currentpos: 0, nextpos: MAX_VISIBLE};
 		$scope.utable = {
 			search: {disabled : true},
+			maxVisible: MAX_VISIBLE,
 			columns: _lrColumns,
 			styleTable: 'nl-table nl-table-styled3 rowlines',
 			styleHeader: ' ',
@@ -381,9 +383,13 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 	};
 
 	$scope.getMaxVisibleString = function() {
-		var startpos = _tableNavPos.currentpos;
-		var endpos = _tableNavPos.currentpos + $scope.utable._internal.visibleRecs.length;
-		return nl.t ('Showing {} - {} records of {} items.', startpos, endpos, $scope.tabData.records.length);
+		var posStr = '';
+		if ($scope.tabData.records.length > MAX_VISIBLE) {
+			var startpos = _tableNavPos.currentpos + 1;
+			var endpos = _tableNavPos.currentpos + $scope.utable._internal.visibleRecs.length;
+			posStr = nl.t('{} - {} of ', startpos, endpos);
+		}
+		return nl.t ('Showing {}{} items.', posStr, $scope.tabData.records.length);
 	};
 
 	$scope.canShowPrev = function() {
@@ -392,22 +398,22 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 	};
 
 	$scope.canShowNext = function() {
-		if (_tableNavPos.currentpos + 100 < $scope.tabData.records.length) return true;
+		if (_tableNavPos.currentpos + MAX_VISIBLE < $scope.tabData.records.length) return true;
 		return false;
 	};
 
 	$scope.onClickOnNext = function () {
-		if (_tableNavPos.currentpos + 100 > $scope.tabData.records.length) return;
+		if (_tableNavPos.currentpos + MAX_VISIBLE > $scope.tabData.records.length) return;
 		if (_tableNavPos.currentpos < $scope.tabData.records.length) {
-			_tableNavPos.currentpos += 100;
+			_tableNavPos.currentpos += MAX_VISIBLE;
 		}
 		nlTable.updateTableObject($scope.utable, $scope.tabData.records, _tableNavPos.currentpos);
 	};
 
 	$scope.onClickOnPrev = function () {
 		if (_tableNavPos.currentpos == 0) return;
-		if (_tableNavPos.currentpos >= 100) {
-			_tableNavPos.currentpos -= 100;
+		if (_tableNavPos.currentpos >= MAX_VISIBLE) {
+			_tableNavPos.currentpos -= MAX_VISIBLE;
 		}
 		nlTable.updateTableObject($scope.utable, $scope.tabData.records, _tableNavPos.currentpos);
 	}
@@ -658,7 +664,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		var tabData = $scope.tabData;
 		var searchInfo = _getSearchInfo(tabData);
 		var filteredRecords  = [];
-		_tableNavPos = {currentpos: 0, nextpos: 100};
+		_tableNavPos = {currentpos: 0, nextpos: MAX_VISIBLE};
 		for (var recid in records) {
 			var record = records[recid];
 			if (record.raw_record.isNHT) nlGetManyStore.getBatchMilestoneInfo(record.raw_record, batchStatusObj);	
@@ -787,7 +793,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		nl.pginfo.pageTitle = nlLrFilter.getTitle();	
 		$scope.fetchInProgress = nlLrFetcher.fetchInProgress(true);
 		$scope.canFetchMore = nlLrFetcher.canFetchMore();
-		_tableNavPos = {currentpos: 0, nextpos: 100};
+		_tableNavPos = {currentpos: 0, nextpos: MAX_VISIBLE};
 		_updateTabs();
 		var anyRecord = nlLrReportRecords.getAnyRecord();
 		_setSubTitle(anyRecord);

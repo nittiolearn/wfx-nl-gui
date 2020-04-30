@@ -230,23 +230,18 @@
             ******************************************************************* -->
             <div ng-if='tabData.selectedTab.id == "learningrecords" && !tabData.processingOnging'
                 class='anim-enter1 flyfrom-t padding-mid'>
-                <div class='padding-mid-v fgrey'>
-                    <div class="row row-center margin0 padding-mid">
-                        <div class='col padding-mid'>
-                            {{getMaxVisibleString()}}
-                            <span ng-show='tabData.records.length > 100' class='nl-link-text'>
-                                <span ng-if='canShowPrev()' ng-click='onClickOnPrev()'
-                                    title='Click to view previous set of hundred reords'>
-                                    <u>Prev</u>
-                                </span>
-                                <span ng-if='canShowNext()' ng-click='onClickOnNext()'
-                                     title='Click to view next set of hundred reords'>
-                                   <u>Next</u>
-                                </span>
-                            </span>
-                        </div>
-                    </div>
+                <div class='padding-small fgrey'>
+                    {{getMaxVisibleString()}}
+                    <span ng-if='canShowPrev()' ng-click='onClickOnPrev()' class='nl-link-text'
+                        title='Click to view previous reords'>
+                        <u>Show previous.</u>
+                    </span>
+                    <span ng-if='canShowNext()' ng-click='onClickOnNext()' class='nl-link-text'
+                            title='Click to view next reords'>
+                        <u>Show next.</u>
+                    </span>
                 </div>
+                <div class='padding-small'></div>
                 <nl-table info='utable'></nl-table>
            </div>
 
