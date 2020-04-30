@@ -115,8 +115,9 @@ function(nl, nlDlg, $templateCache) {
         info._internal.searcher = new Searcher(nl, nlDlg, info);
     };
 
-    this.updateTableObject = function(info, records) {
+    this.updateTableObject = function(info, records, startpos) {
         info._internal.recs = records;
+        info._internal.searcher.initStartPos(startpos);
         info._internal.searcher.onClick(null);
     };
     
@@ -156,9 +157,9 @@ function(nl, nlDlg, $templateCache) {
 //-------------------------------------------------------------------------------------------------
 function Searcher(nl, nlDlg, info) {
     var self = this;
-
     function _init() {
         self.infotxt = '';
+        self.startpos = 0;
         self.searchAttrs = _getSearchAttrs();
 
         nl.resizeHandler.onResize(function() {
@@ -166,6 +167,10 @@ function Searcher(nl, nlDlg, info) {
         });
         _onResize();
     }
+
+    self.initStartPos = function(startpos) {
+        self.startpos = startpos || 0;
+    };
 
     self.onKeyDown = function(event) {
         var MAX_KEYSEARCH_DELAY = 200;
@@ -178,12 +183,13 @@ function Searcher(nl, nlDlg, info) {
         self.clickDebouncer.debounce(timeout, _onClick)();
     };
 
-    function _onClick() {
+    function _onClick(startpos) {
         var filter = _getFilter();
         var records = info._internal.recs;
         var max = records.length > info.maxVisible ? info.maxVisible: records.length;
         var visible = [];
-        for (var i=0; i<records.length; i++) {
+        var startpos = self.startpos;
+        for (var i=startpos; i<records.length; i++) {
              records[i].passesFilter = false;
             if (!_isFilterPass(records[i], filter)) continue;
             if (visible.length < max)

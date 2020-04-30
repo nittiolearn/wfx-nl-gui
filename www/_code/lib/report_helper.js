@@ -374,26 +374,47 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
 
     function _updateILTtoLocked(cm, itemInfo, earlierTrainerItems) {
         if(_pendingOrWaiting(earlierTrainerItems.milestone) ||
-            _pendingOrWaitingIlt(earlierTrainerItems)) itemInfo.status = 'waiting';
+            _pendingOrWaitingIlt(earlierTrainerItems)) {
+            itemInfo.dependencyArray = [];
+            itemInfo.status = 'waiting';
+            if (_pendingOrWaiting(earlierTrainerItems.milestone)) {
+                var str = nl.t('This is locked unless the milestone {} is marked', earlierTrainerItems.milestone.name);
+                itemInfo.dependencyArray.push(str);
+            }
+            if (_pendingOrWaitingIlt(earlierTrainerItems)) itemInfo.dependencyArray.push('This is locked unless the previous session is marked');
+        }
         _computeCombinedStatusAndTimePerc(cm, itemInfo, earlierTrainerItems);
     }
 
     function _updateRatingtoLocked(cm, itemInfo, earlierTrainerItems) {
         if(_pendingOrWaiting(earlierTrainerItems.milestone)) {
             itemInfo.status = 'waiting';
+            var str = nl.t('This is locked unless the milestone {} is marked', earlierTrainerItems.milestone.name);
+            itemInfo.dependencyArray = [str]
             return;
         }
         if(cm.rating_type == 'rag') return;
         if (earlierTrainerItems.maxTimePerc == 0) {
             itemInfo.status = 'waiting';
-            return;
+            itemInfo.dependencyArray = ['This is locked unless the previous session is marked'];
+        return;
         }
     }
 
     function _updateMilestonetoLocked(cm, itemInfo, earlierTrainerItems) {
-        if(_pendingOrWaiting(earlierTrainerItems.milestone)) itemInfo.status = 'waiting';
-        else if(_pendingOrWaitingIlt(earlierTrainerItems)) itemInfo.status = 'waiting';
-        else if(_pendingOrWaiting(earlierTrainerItems.rating)) itemInfo.status = 'waiting';
+        itemInfo.dependencyArray = [];
+        if(_pendingOrWaiting(earlierTrainerItems.milestone)) {
+            itemInfo.status = 'waiting';
+            var str = nl.t('This is locked unless the milestone {} is marked', earlierTrainerItems.milestone.name);
+            itemInfo.dependencyArray.push(str);
+        } else if(_pendingOrWaitingIlt(earlierTrainerItems)) {
+            itemInfo.status = 'waiting';
+            itemInfo.dependencyArray.push('This is locked unless the previous session is marked');
+        } else if(_pendingOrWaiting(earlierTrainerItems.rating)) {
+            itemInfo.status = 'waiting';
+            var str = nl.t('This is locked unless the rating {} is marked', earlierTrainerItems.rating.name);
+            itemInfo.dependencyArray.push(str);
+        }
     }
 
     function _getRawStatusOfItem(cm, itemInfo, itemIdToInfo) {

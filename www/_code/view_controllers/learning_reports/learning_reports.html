@@ -230,10 +230,23 @@
             ******************************************************************* -->
             <div ng-if='tabData.selectedTab.id == "learningrecords" && !tabData.processingOnging'
                 class='anim-enter1 flyfrom-t padding-mid'>
-                <nl-table info='utable'></nl-table>
-                 <div ng-show='tabData.records.length > 100' class='padding-mid-v fgrey'>
-                    Showing {{utable._internal.visibleRecs.length}} of {{tabData.records.length}} items. Search if you are looking for specific item.
+                <div ng-show='tabData.records.length > 100' class='padding-mid-v fgrey'>
+                    <div class="row row-center margin0 padding-mid">
+                        <div class='col padding-mid'>
+                            {{getMaxVisibleString()}}
+                        </div>                    
+                        <div class="nl-link-text nl-button-highlight" 
+                            ng-click='onClickOnPrev()'>
+                            Prev
+                        </div>
+                        <span class='padding-small'></span>
+                        <div class="nl-link-text nl-button-highlight" 
+                            ng-click='onClickOnNext()'>
+                            Next
+                        </div>
+                    </div>
                 </div>
+                <nl-table info='utable'></nl-table>
            </div>
 
             <!-- **************************************************************
