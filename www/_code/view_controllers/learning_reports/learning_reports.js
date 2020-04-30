@@ -383,7 +383,17 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 	$scope.getMaxVisibleString = function() {
 		var startpos = _tableNavPos.currentpos;
 		var endpos = _tableNavPos.currentpos + $scope.utable._internal.visibleRecs.length;
-		return nl.t ('Showing {} - {} records of {} items. Search or click navigation buttons to see specific item', startpos, endpos, $scope.tabData.records.length);
+		return nl.t ('Showing {} - {} records of {} items.', startpos, endpos, $scope.tabData.records.length);
+	};
+
+	$scope.canShowPrev = function() {
+		if (_tableNavPos.currentpos > 0) return true;
+		return false;
+	};
+
+	$scope.canShowNext = function() {
+		if (_tableNavPos.currentpos + 100 < $scope.tabData.records.length) return true;
+		return false;
 	};
 
 	$scope.onClickOnNext = function () {
