@@ -577,7 +577,7 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
         if(_launchMode == 'learner' && grpRatingObj.hideRating) itemInfo.hideItem = true;
         itemInfo.remarks = userCmRating.remarks || '';
         itemInfo.otherRemarks = userCmRating.otherRemarks || '';
-        if (!grpRatingObj || !userCmRating || (!('attId' in userCmRating)) || userCmRating.attId === "") {
+        if (!grpRatingObj || !userCmRating || (!('attId' in userCmRating)) || userCmRating.attId === "" || userCmRating.attId === null) {
             itemInfo.score = null;
             itemInfo.rawStatus = 'pending';
             return;
