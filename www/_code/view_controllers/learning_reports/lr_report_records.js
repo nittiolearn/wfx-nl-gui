@@ -317,7 +317,11 @@ function(nl, nlRouter, nlDlg, nlGroupInfo, nlLrHelper, nlLrFilter, nlGetManyStor
         stats.status = nlReportHelper.getStatusInfoFromCourseStatsObj(stainf);
         if (report.isNHT) {
             if(!(report.assignment in _batchStatus)) _batchStatus[report.assignment] = {};
-            _batchStatus[report.assignment][stats.status.txt] = true;
+            if (stats.isCertified || stats.status.txt == 'failed') 
+                _batchStatus[report.assignment]['Closed'] = true;
+            else
+                _batchStatus[report.assignment][stats.status.txt] = true;
+
         }
 
         if ((stainf.status == 'certified' || stainf.isCertified) && stats.certid) {

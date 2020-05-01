@@ -397,7 +397,7 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
         if (earlierTrainerItems.maxTimePerc == 0) {
             itemInfo.status = 'waiting';
             itemInfo.dependencyArray = ['This is locked unless the previous session is marked'];
-        return;
+            return;
         }
     }
 

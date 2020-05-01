@@ -211,12 +211,14 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo) {
         var status = angular.copy(_batchStatus);
         for (var key in status) {
             var index = defaultBatchStatus[key];
+            if (!(key in defaultBatchStatus)) continue;
             _updateBatchStates(index, _batchStatus, defaultBatchStatus);
         }
     }
 
     function _updateBatchStates(index, _batchStatus, defaultBatchStatus) {
         for (var key in defaultBatchStatus) {
+
             if (defaultBatchStatus[key] < index) _batchStatus[key] = true;
         }
     }
