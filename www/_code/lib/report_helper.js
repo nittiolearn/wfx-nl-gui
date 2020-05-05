@@ -802,10 +802,25 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
         return itemInfo.customStatus;
     }
 
+    function _checkAndUpdateRecordStatus(ret) {
+        var firstMilestoneItem = _getFirstMilestoneElem();
+        if (!firstMilestoneItem) return;
+        var groupMsObj = _grpMilestoneDict[firstMilestoneItem.milestone_type];
+        if (groupMsObj.batch_status) ret.status = groupMsObj.batch_status;
+    }
+
+    function _getFirstMilestoneElem() {
+        for (var i=0; i<_modules.length; i++) {
+            if (_modules[i].type == 'milestone') return _modules[i];
+        }    
+        return null;
+    }
+
     function _updateCourseLevelStatus(ret, isAttrition, defaultCourseStatus) {
         if (isAttrition || (defaultCourseStatus == 'pending')) {
             ret.status = defaultCourseStatus;
-            return;
+            if (defaultCourseStatus == 'pending') _checkAndUpdateRecordStatus(ret, defaultCourseStatus);
+            return; 
         }
         var cm = _modules[_modules.length -1];
         var itemInfo = ret.itemIdToInfo[cm.id];
