@@ -314,6 +314,7 @@ function(nl, nlRouter, nlDlg, nlGroupInfo, nlLrHelper, nlLrFilter, nlGetManyStor
         
         report.url = nl.fmt2('#/course_view?id={}&mode=report_view', report.id);
         report.urlTitle = nl.t('View report');
+        if (user.state == 0 && !nlReportHelper.isCourseCompleted(stainf)) stainf.status = nl.t('attrition-{}', stainf.status);   
         stats.status = nlReportHelper.getStatusInfoFromCourseStatsObj(stainf);
         if (report.isNHT) {
             if(!(report.assignment in _batchStatus)) _batchStatus[report.assignment] = {};
