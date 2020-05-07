@@ -188,6 +188,7 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo) {
                 continue;
             }
             if(!actualMs.reached || actualMs.status != 'done') {
+                if(grpMileStoneObj.batch_status in _batchStatus) ret.batchStatus = grpMileStoneObj.batch_status;
                 allMilestonesReached = false;
                 continue;
             }

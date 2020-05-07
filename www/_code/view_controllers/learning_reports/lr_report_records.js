@@ -33,6 +33,7 @@ function(nl, nlRouter, nlDlg, nlGroupInfo, nlLrHelper, nlLrFilter, nlGetManyStor
     var _canSend = false;
     var _canAddReportRecord = null;
     var _batchStatus = {};
+    var _qsMaxLen = 0;
     this.init = function(userinfo, groupInfo, canAddReportRecord) {
         _userInfo = userinfo;
         _records = {};
@@ -48,6 +49,7 @@ function(nl, nlRouter, nlDlg, nlGroupInfo, nlLrHelper, nlLrFilter, nlGetManyStor
         _pastUserInfosFetcher.init(groupInfo);
         _canAddReportRecord = canAddReportRecord || function() {return true;};
         _batchStatus = {};
+        _qsMaxLen = 0;
     };
     
     this.isReattemptEnabled = function() {
@@ -70,6 +72,10 @@ function(nl, nlRouter, nlDlg, nlGroupInfo, nlLrHelper, nlLrFilter, nlGetManyStor
         return _nominatedUsers;
     };
     
+    this.getQsMaxLength = function() {
+        return _qsMaxLen;
+    };
+
     this.addRecord = function(report) {
         if (!_canProcess(report)) return null;
         if (report.ctype == _nl.ctypes.CTYPE_COURSE)
@@ -355,7 +361,9 @@ function(nl, nlRouter, nlDlg, nlGroupInfo, nlLrHelper, nlLrFilter, nlGetManyStor
         } else if (usermd.meta_mobile) {
             user.mobile = usermd.meta_mobile;
         }
+        if (_qsMaxLen < stainf.quizScore.length) _qsMaxLen = stainf.quizScore.length;
         var ret = {raw_record: report, repcontent: repcontent, course: course, user: user, orgparts: _updateOrgByParts(user),
+            quizscore: stainf.quizScore,
             usermd: nlLrHelper.getMetadataDict(user), stats: stats,
             created: nl.fmt.fmtDateDelta(report.created, null, 'minute'),
             updated: nl.fmt.fmtDateDelta(report.updated, null, 'minute'),

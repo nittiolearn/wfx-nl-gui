@@ -577,6 +577,12 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		_customScoresHeader = nlLrReportRecords.getCustomScoresHeader();
 		var mh = nlLrHelper.getMetaHeaders(false);
 		var type = nlLrFilter.getType();
+		var qsMaxLength = nlLrReportRecords.getQsMaxLength();
+		var quizArray = [];
+		for (var i=0; i<qsMaxLength; i++) {
+			quizArray.push(nl.t('Quiz {} name', i+1));
+			quizArray.push(nl.t('Quiz {} score', i+1));
+		}
 		var columns = [];
 		columns.push(_col('user.user_id', 'User Id', type == 'user'));
 		columns.push(_col('user.name', 'User Name', type == 'user'));
@@ -598,7 +604,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		columns.push(_col('stats.nScore', 'Achieved Score'));
 		
 		for(var i=0; i< _customScoresHeader.length; i++) columns.push(_col('stats.customScoreDict.' + _customScoresHeader[i], _customScoresHeader[i]));
-
+		columns.push(_col('quizscore', 'Quiz score', false, null, quizArray));
 		columns.push(_col('stats.feedbackScore', 'Feedback score'));
 		columns.push(_col('stats.timeSpentMinutes', 'Online Time Spent (minutes)'));
 		columns.push(_col('stats.iltTimeSpent', 'ILT time spent(minutes)'));
@@ -638,8 +644,8 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		return _lrColumns;
 	}
 	
-	function _col(id, name, hideInMode, icon) {
-		var __column = { id: id, name: name, allScreens: true, canShow:true, hideInMode: hideInMode, styleTd: 'minw-number nl-text-center'};
+	function _col(id, name, hideInMode, icon, multipleArray) {
+		var __column = { id: id, name: name, allScreens: true, canShow:true, hideInMode: hideInMode, styleTd: 'minw-number nl-text-center', insertCols: multipleArray ? true: false, children: multipleArray};
 		if(icon) __column.icon = icon;
 		return __column;
 	}
@@ -1511,8 +1517,18 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		if(!_selectedLrCols) {
 			_lrSelectedColumns(_defaultLrCol)
 		}
-		var lrStats = {columns: _selectedLrCols};
-
+		var _defcolumns = [];
+		for(var i=0; i<_selectedLrCols.length; i++) {
+			if (_selectedLrCols[i].insertCols) {
+				var children = _selectedLrCols[i].children || [];
+				for (var j=0; j<children.length; j++) {
+					_defcolumns.push({id: nl.t('{}{}', _selectedLrCols[i].id, j), name: children[j]});
+				}
+			} else {
+				_defcolumns.push(_selectedLrCols[i]);
+			}
+		}
+		var lrStats = {columns: _defcolumns};
 		var certificateStats = null;
 		if (nlLrFilter.getType() == 'course' && nlLrFilter.getMode() == 'cert_report') {
 			certificateStats = _certHandler.getExportData();

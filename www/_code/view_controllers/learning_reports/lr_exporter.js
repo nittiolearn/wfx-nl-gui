@@ -386,6 +386,16 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
     function _updateLrRow(reports) {
         var lrHeaderRow = _lrDict.columns;
         for(var i=0; i<reports.length; i++) {
+            var quizscore = reports[i].quizscore;
+            var count = 0;
+            for (var j=0;j<quizscore.length; j++) {
+                var key = nl.t('quizscore{}', count);
+                reports[i][key] = quizscore[j].name;
+                count++;
+                var key2 = nl.t('quizscore{}', count);
+                reports[i][key2] = quizscore[j].score;
+                count++;
+            }
             if (_exportFormat == 'csv') 
                 ctx.lrRow.push(nlExporter.getCsvRow(lrHeaderRow, reports[i]));
             else
