@@ -182,7 +182,8 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
             feedbackScore: '', customScores: [], attritedAt: null, attritionStr: null,
             isCertified: false, certid: null,
             customScoreDict: {},
-            inductionDropOut: null
+            inductionDropOut: null,
+            quizScore: []
             // Also may have has following:
             // reattempt: true/false
         };
@@ -203,6 +204,9 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
             if (cm.isReattempt) ret['reattempt'] = false;
             itemIdToInfo[cm.id] = itemInfo;
             _getRawStatusOfItem(cm, itemInfo, itemIdToInfo);
+            if (cm.type == 'lesson' && !itemInfo.selfLearningMode) {
+                _updateQuizScore(ret, cm, itemInfo);
+            }
             itemInfo.status = itemInfo.rawStatus;
             if (isAttrition) {
                 itemInfo.status = 'waiting';
@@ -274,6 +278,20 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
         ret.feedbackScore = _getFeedbackScoreForCourse(_lessonReports);
         ret.feedbackScore = ret.feedbackScore ? '' + Math.round(ret.feedbackScore*10)/10 + '%' : '';
         return ret;
+    }
+
+    function _updateQuizScore(ret, cm, itemInfo) {
+        var quizScore = ret.quizScore || [];
+        var quizRepeated = false;
+        for (var i=0; i<quizScore.length; i++) {
+            var item = quizScore[i];
+            if (item.name == cm.name) {
+                quizRepeated = true;
+                if (item.score < itemInfo.score) ret.quizScore.push({name: cm.name, score: itemInfo.score});
+            }
+        }
+        if (ret.quizScore.length >= 10) return;
+        if (!quizRepeated) ret.quizScore.push({name: cm.name, score: itemInfo.score});
     }
 
     function _updateCourseDelayForNHT(ret) {
@@ -629,6 +647,7 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
         }
         itemInfo.rawStatus = (cm.id in _milestone) && _milestone[cm.id].status == 'done' ?
             'success' : 'pending';
+        if (itemInfo.rawStatus == 'success' && defMilestone && defMilestone.batch_status) itemInfo.customStatus = defMilestone.batch_status;
         itemInfo.score = itemInfo.rawStatus == 'pending' ? null : 100;
         itemInfo.remarks = (cm.id in _milestone) ? _milestone[cm.id].comment : "";
         itemInfo.planned = _msDates[_msKey] || '';
@@ -802,10 +821,25 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
         return itemInfo.customStatus;
     }
 
+    function _checkAndUpdateRecordStatus(ret) {
+        var firstMilestoneItem = _getFirstMilestoneElem();
+        if (!firstMilestoneItem) return;
+        var groupMsObj = _grpMilestoneDict[firstMilestoneItem.milestone_type];
+        if (groupMsObj.batch_status) ret.status = groupMsObj.batch_status;
+    }
+
+    function _getFirstMilestoneElem() {
+        for (var i=0; i<_modules.length; i++) {
+            if (_modules[i].type == 'milestone') return _modules[i];
+        }    
+        return null;
+    }
+
     function _updateCourseLevelStatus(ret, isAttrition, defaultCourseStatus) {
         if (isAttrition || (defaultCourseStatus == 'pending')) {
             ret.status = defaultCourseStatus;
-            return;
+            if (defaultCourseStatus == 'pending') _checkAndUpdateRecordStatus(ret, defaultCourseStatus);
+            return; 
         }
         var cm = _modules[_modules.length -1];
         var itemInfo = ret.itemIdToInfo[cm.id];

@@ -24,6 +24,12 @@ function(nl, nlDlg) {
             $scope.onItemClick = function(rec, action) {
                 $scope.info.onItemClick($scope, rec, action);
             };
+            $scope.checkOverflow = function() {
+                var document = nl.window.document;
+                var element = document.getElementsByClassName("nl-left-tabbed-content");
+                var isOverflowing = element[0].clientWidth < element[0].scrollWidth;
+                return isOverflowing;
+            };
         }
     };
 }];
@@ -218,6 +224,17 @@ function Searcher(nl, nlDlg, info) {
         var ret = {_raw: record};
         for(var i=0; i<info.columns.length; i++) {
             var col = info.columns[i];
+            if (col.insertCols) {
+                var array = record[col.id];
+                var fmtArray = [];
+                for (var j=0; j<array.length; j++) {
+                    fmtArray.push(array[j].name);
+                    fmtArray.push(array[j].score);
+                }
+                ret[col.id] = {txt: fmtArray, 
+                    icon: col.icon ? self.getFieldValue(record, col.icon) : ''};
+                continue;
+            }
             ret[col.id] = {txt: self.getFieldValue(record, col.id), 
                 icon: col.icon ? self.getFieldValue(record, col.icon) : ''};
         }

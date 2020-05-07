@@ -159,7 +159,7 @@ function _getContext(courseAssignment, modules, learningRecords, groupInfo) {
 		cm.learningRecords = [];
 		for (var j=0; j<ctx.lrArray.length; j++) {
 			var lr = ctx.lrArray[j];
-			var report = {id: lr.raw_record.id, learnername: lr.user.name, learnerid: lr.user.user_id};
+			var report = {id: lr.raw_record.id, learnername: lr.user.name, learnerid: lr.user.user_id, inactive: lr.user.state == 0 ? true : false};
 			if (addAfterCm) {
 				if ('locked_waiting' in addAfterCm) report.locked_waiting = addAfterCm.locked_waiting;
 			} else {
@@ -351,6 +351,11 @@ function DbAttendanceObject(courseAssignment, ctx) {
 			} else if (sessionDate && lrAtdMarked) {
 				lrBlocker.atdMarkedDates[sessionDate] = cm;
 			}
+		}
+		if (lr.inactive && !lr.attendance.id) {
+			lr.lockedMessage = nl.fmt2('Learner is inactive');
+			if (!lrBlocker.all) lrBlocker.all = lr;
+			return;
 		}
 		if (!lr.attendance.id) cm.isMarkingComplete = false;
 		else cm.someAtdFilled = true;
@@ -628,6 +633,14 @@ function DbRatingObject(courseAssignment, ctx) {
 
 	this.validateLr = function(lr, cm, lrBlocker) {
 		var ratingConfig = _ratingDict[cm.rating_type];
+		if (lr.inactive) {
+			if (!lr.rating.id && lr.rating.id !== 0) {
+				lr.lockedMessage = nl.fmt2('Learner is inactive');
+				if (!lrBlocker.ms) lrBlocker.ms = lr;
+			}
+			return;
+		}
+
 		if (ratingConfig.id != 'rag' && lrBlocker.lastSessionAttended === false) {
 			// === to distinguesh null (where there was no earlie session) and false (absent)
 			lr.lockedMessage = 'Not present in earlier session';
@@ -731,6 +744,7 @@ function DbMilestoneObject(courseAssignment, ctx) {
 	this.markAll = function(cm, checked, date) {
 		for (var i=1; i<ctx.lrArray.length; i++) {
 			var itemLr = cm.learningRecords[i];
+			if (itemLr.lockedMessage) continue;
 			itemLr.milestoneMarked = checked;
 			if (checked && date) itemLr.reached = date;
 		}
@@ -742,6 +756,12 @@ function DbMilestoneObject(courseAssignment, ctx) {
 
 	this.validateLr = function(lr, cm, lrBlocker) {
 		var isEtmAsd = ctx.dbAttendance.getEtmAsd().length > 0;
+		if (lr.inactive && !lr.reached) {
+			lr.lockedMessage = nl.fmt2('Learner is inactive');
+			if (!lrBlocker.all) lrBlocker.all = lr;
+			return;
+		}
+
 		if (!cm.isMarkingComplete) return;
 		if (!isEtmAsd && lr.milestoneMarked) return;
 		if (lr.milestoneMarked && !lr.reached) {
