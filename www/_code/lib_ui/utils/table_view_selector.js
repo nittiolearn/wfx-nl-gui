@@ -256,9 +256,18 @@
             _updateNotSelectedColumns();
         };
 
-        _dlg.scope.moveItem = function(fromIndex, toIndex) {
-            _dlg.scope.renameCol = undefined;
-            var _selectedColumns = _dlg.scope.selectedColumns;
+        var _reorderDlg = nlDlg.create($scope);
+        _dlg.scope.reorderList = function() {
+            _reorderDlg.setCssClass('nl-height-max nl-width-max');
+            _reorderDlg.scope.data = {};
+            _reorderDlg.scope.data.title = nl.t('Reorder the List');
+            _reorderDlg.scope.data.selectedColumns = _dlg.scope.selectedColumns || [];
+            var closeButton = {text: nl.t('Close')};
+            _reorderDlg.show('lib_ui/utils/reorder_list.html', [], closeButton, false);
+        }
+
+        _reorderDlg.scope.moveItem = function(fromIndex, toIndex) {
+            var _selectedColumns = _reorderDlg.scope.data.selectedColumns;
             if (!(_selectedColumns)) return;
             _selectedColumns.splice(toIndex, 0, _selectedColumns.splice(fromIndex, 1)[0]);
         };
