@@ -567,6 +567,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		for(var i=0;i<selectedColumns.length;i++) {
 			var colid = selectedColumns[i].id || selectedColumns[i];
 			if ((!(colid in lrColumnsDict)) || lrColumnsDict[colid].hideInMode) continue;
+			lrColumnsDict[colid].name = selectedColumns[i].name ? selectedColumns[i].name : lrColumnsDict[colid].name;
 			ret.push(lrColumnsDict[colid]);
 		}
 		$scope.utable.columns = ret;
@@ -1076,6 +1077,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 	function _initNhtColumns() {
 		var defColumns = ["cntTotal", "batchStatus", "batchName", "partner", "lob", "trainer", "avgDelay", "batchFirstPass", "batchThroughput"];
 		_nhtColumns = _getNhtColumns();
+		//TODO-NOW: find a solution for renaming initial column (for nht and lr)
 		if (!_selectedNhtColumns) {
 			var nhtColumnsDict = nl.utils.arrayToDictById(_nhtColumns);
 			_selectedNhtColumns = [];
@@ -1126,6 +1128,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 					continue;
 				}
 				col.canShow = !_nhtColumnsSelectedInView || _nhtColumnsSelectedInView[col.id];
+				col.name = _selectedNhtColumns[i].name ? _selectedNhtColumns[i].name : col.name;
 			}	
 		}
 	}

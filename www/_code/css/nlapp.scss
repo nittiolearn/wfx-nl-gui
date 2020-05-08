@@ -505,6 +505,14 @@ $animation-duration: 200ms !default;
   border-top: 1px solid #CCCCDD;
 }
 
+.border-circle-forange {
+  border: 1px solid $nlOrange1;
+}
+
+.border-circle-fblue2 {
+  border: 1px solid $nlBlue2;
+}
+
 .compact {
   td { padding: 4px;}
 }
@@ -536,6 +544,14 @@ tr.summary {
 .nl-24 {
   width: 24px;
   height: 24px;
+}
+
+.nl-w-auto {
+  width:auto !important;
+}
+
+.nl-display-inline-block {
+  display: inline-block;
 }
 
 .nl-max-50 {
@@ -2400,6 +2416,10 @@ img.nl-full-width {
   padding-right: 8px;
 }
 
+.padding-mid-left {
+  padding-left: 8px;
+}
+
 .padding-small-v {
     padding-top: 4px;
     padding-bottom: 4px;
@@ -2412,6 +2432,11 @@ img.nl-full-width {
 
 .padding-mid-left {
   padding-left: 8px;
+}
+
+.padding-mid-x {
+  padding-left: 8px;
+  padding-right: 8px;
 }
 
 .margin0, .row.margin0 {

@@ -30,6 +30,7 @@
                 $scope.selected = option;
                 $scope.isOpen = false;
                 if (!$scope.config || !$scope.config.onViewChange) return;
+                _groupSettings.updateAllColumnNames($scope.config.tableType, $scope.config.allColumns);
                 var columns = _validateColumns(option.columns, $scope.config.allColumns);
                 $scope.config.onViewChange(columns);
             };
@@ -85,7 +86,7 @@
     function GroupSettings(nl, nlDlg, nlServerApi) {
         var _settings = {};
         this.load = function(settingsType, onLoadDoneFn) {
-            if (settingsType in _settings) return onLoadDoneFn(_get(settingsType));
+            if (settingsType in _settings) return onLoadDoneFn(_getViews(settingsType));
             this.reload(settingsType, onLoadDoneFn, true);
         };
 
@@ -95,18 +96,22 @@
             .then(function(data) {
                 if (showHideLoadingScreen) nlDlg.hideLoadingScreen();
                 _settings[settingsType] = data || _defaultSettings();
-                onLoadDoneFn(_get(settingsType));
+                onLoadDoneFn(_getViews(settingsType));
             }, function(err) {
                 onLoadDoneFn(null);
             });
         };
 
-        this.get = function(settingsType) {
-            return _get(settingsType);
+        this.getViews = function(settingsType) {
+            return _getViews(settingsType);
         };
 
-        this.update = function(settingsType, views) {
-            var info = {views: views};
+        this.getColumnNames = function(settingsType) {
+            return _getColumnNames(settingsType);
+        };
+
+        this.update = function(settingsType, views, columnNames) {
+            var info = {views: views, columnNames: columnNames};
             var promise = nlServerApi.updateGroupSettings({settings_type: settingsType, info: info});
             promise.then(function(data) {
                 _settings[settingsType] = data || _defaultSettings();
@@ -114,13 +119,26 @@
             return promise;
         };
 
-        function _get(settingsType) {
-            var data = _settings[settingsType]; // {views: [{id: xx, name: XX, columns: ['col3', 'col5', 'col1']}, ...]}
+        this.updateAllColumnNames = function(settingsType, allColumns) {
+            var updatedColumnNamesDict = _getColumnNames(settingsType);
+            for(var i=0; i<allColumns.length; i++) {
+                if(allColumns[i].id in updatedColumnNamesDict)
+                    allColumns[i].name = updatedColumnNamesDict[allColumns[i].id] ;
+            }
+        }
+
+        function _getViews(settingsType) {
+            var data = _settings[settingsType] || {}; // {views: [{id: xx, name: XX, columns: ['col3', 'col5', 'col1']}, ...]}
             return data.views || [];
         }
 
+        function _getColumnNames(settingsType) {
+            var data = _settings[settingsType] || {}; // "columnNames": {"columnid1": "column1NameToDisplay", "columnid2": "column2NameToDisplay", ...},
+            return data.columnNames || {};
+        }
+
         function _defaultSettings() {
-            return {views: []};
+            return {views: [], columnNames: {}};
         }
     }
 
@@ -132,9 +150,11 @@
         function _init() {
             _dlg.setCssClass('nl-height-max nl-width-max');
             _dlg.scope.selectedView = null;
-            _dlg.scope.data = {newViewName: '', selectedColumn: null};
-            _dlg.scope.views = angular.copy(_groupSettings.get($scope.config.tableType) || []);
+            _dlg.scope.data = {newViewName: '', selectedColumn: null, newName : ''};
+            _dlg.scope.views = angular.copy(_groupSettings.getViews($scope.config.tableType) || []);
+            _dlg.scope.columnNames = angular.copy(_groupSettings.getColumnNames($scope.config.tableType) || {});
             _dlg.scope.allColumns = angular.copy($scope.config.allColumns);
+            _groupSettings.updateAllColumnNames($scope.config.tableType, $scope.config.allColumns);
             _dlg.scope.selectedColumns = [];
             _dlg.scope.notSelectedColumns = _dlg.scope.allColumns;
             _updateCurrentColumnSelections();
@@ -220,38 +240,50 @@
             });
         };
 
-        _dlg.scope.onColumnSelect = function() {
-            var column = _dlg.scope.data.selectedColumn;
-            if (!column || column.selected) return;
+        _dlg.scope.onColumnAdd = function(index) {
+            _dlg.scope.renameCol = undefined;
+            var column = _dlg.scope.notSelectedColumns[index];
+            if (!column) return;
             column.selected = true;
             _dlg.scope.selectedColumns.push(column);
             _updateNotSelectedColumns();
         };
 
-        _dlg.scope.onColumnUnselect = function(pos) {
-            _dlg.scope.selectedColumns[pos].selected = false;
-            _dlg.scope.selectedColumns.splice(pos, 1);
+        _dlg.scope.removeItem = function(index) {
+            _dlg.scope.renameCol = undefined;
+            _dlg.scope.selectedColumns[index].selected = false;
+            _dlg.scope.selectedColumns.splice(index, 1);
             _updateNotSelectedColumns();
         };
 
-        _dlg.scope.onColumnMoveUp = function(pos) {
-            if (pos-1 < 0 || pos > _dlg.scope.selectedColumns.length - 1) return;
-            var temp = _dlg.scope.selectedColumns[pos];
-            _dlg.scope.selectedColumns[pos] = _dlg.scope.selectedColumns[pos-1];
-            _dlg.scope.selectedColumns[pos-1] = temp;
+        _dlg.scope.moveItem = function(fromIndex, toIndex) {
+            _dlg.scope.renameCol = undefined;
+            var _selectedColumns = _dlg.scope.selectedColumns;
+            if (!(_selectedColumns)) return;
+            _selectedColumns.splice(toIndex, 0, _selectedColumns.splice(fromIndex, 1)[0]);
         };
 
-        _dlg.scope.onColumnMoveDown = function(pos) {
-            if (pos < 0 || pos+1 > _dlg.scope.selectedColumns.length - 1) return;
-            var temp = _dlg.scope.selectedColumns[pos];
-            _dlg.scope.selectedColumns[pos] = _dlg.scope.selectedColumns[pos+1];
-            _dlg.scope.selectedColumns[pos+1] = temp;
+        _dlg.scope.renameColumn = function(index) {
+            _dlg.scope.data.newName = _dlg.scope.notSelectedColumns[index].name;
+            _dlg.scope.renameCol = index;
+        };
+
+        _dlg.scope.renameColClose = function(index) {
+            _dlg.scope.renameCol = undefined;
+        };
+
+        _dlg.scope.renameColDone = function(index) {
+            var _colid = _dlg.scope.notSelectedColumns[index].id;
+            _dlg.scope.notSelectedColumns[index].name = _dlg.scope.data.newName;
+            _dlg.scope.columnNames[_colid] = _dlg.scope.notSelectedColumns[index].name;
+            _dlg.scope.renameCol = undefined;
         };
 
         function _onUpdate(e) {
             _updateCurrentView();
-            var serverViewsOld = _arrayToDict(_groupSettings.get($scope.config.tableType));
+            var serverViewsOld = _arrayToDict(_groupSettings.getViews($scope.config.tableType));
             var guiViews = _arrayToDict(_dlg.scope.views);
+            var updatedColumnNames = _dlg.scope.columnNames;
             var lastSelectedView = angular.copy(_dlg.scope.selectedView);
             nl.timeout(function() {
                 nlDlg.showLoadingScreen();
@@ -269,7 +301,7 @@
                         }
                     }
                     serverViewsLatest = _dictToSortedArray(serverViewsLatest);
-                    _groupSettings.update($scope.config.tableType, serverViewsLatest)
+                    _groupSettings.update($scope.config.tableType, serverViewsLatest, updatedColumnNames)
                     .then(function() {
                         for(var i=0; i<serverViewsLatest.length; i++) {
                             if(lastSelectedView.id == serverViewsLatest[i].id) {
