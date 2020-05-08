@@ -1,4 +1,91 @@
-<div class='nl-learning-report-body padding-small nl-thin-scroll' style='position:absolute; width: 100%; height: 100%'>
+<div class='row row-center row-wrap margin0 padding0 row-justify-evenly'>
+    <div class='resp2Col80'>
+        <div class='row row-center row-wrap padding0 margin0'>
+            <div ng-class='respCol331' style='width:100%'>
+                <nl-summary-box number='item.perc' 
+                    title='item.title' 
+                    class='col padding0 small-summary-box'
+                    desc='item.desc'
+                    showperc='item.showperc'
+                    boxclass='"bgdefault"'>
+                </nl-summary-box>
+            </div>
+            <div ng-class='respCol331' style='width:100%'>
+                <nl-summary-box number='item.perc' 
+                    title='item.title' 
+                    class='col padding0 small-summary-box'
+                    desc='item.desc'
+                    showperc='item.showperc'
+                    boxclass='"bgdefault"'>
+                </nl-summary-box>
+            </div>
+            <div ng-class='respCol331' style='width:100%'>
+                <nl-summary-box number='item.perc' 
+                    title='item.title' 
+                    class='col padding0 small-summary-box'
+                    desc='item.desc'
+                    showperc='item.showperc'
+                    boxclass='"bgdefault"'>
+                </nl-summary-box>
+            </div>
+        </div>
+        <div class='row row-center row-wrap padding0 margin0'>
+            <div ng-class='respCol331' ng-repeat='item in data.nhtOverViewArrayRow2'>
+                <nl-summary-box number='item.perc' 
+                    title='item.title' 
+                    class='col padding0 small-summary-box'
+                    desc='item.desc'
+                    showperc='item.showperc'
+                    boxclass='"bgdefault"'>
+                </nl-summary-box>
+            </div>
+        </div>
+        <div class='row row-center row-wrap padding0 margin0'>
+            <div ng-class='respCol331' ng-repeat='item in data.nhtOverViewArrayRow3'>
+                <nl-summary-box number='item.perc' 
+                    title='item.title' 
+                    class='col padding0 small-summary-box'
+                    desc='item.desc'
+                    showperc='item.showperc'
+                    boxclass='"bgdefault"'>
+                </nl-summary-box>
+            </div>
+        </div>
+        <div class='row row-center row-wrap padding0 margin0'>
+            <div ng-class='respCol331' ng-repeat='item in data.nhtOverViewArrayRow4'>
+                <nl-summary-box number='item.perc' 
+                    title='item.title' 
+                    class='col padding0 small-summary-box'
+                    desc='item.desc'
+                    showperc='item.showperc'
+                    boxclass='"bgdefault"'>
+                </nl-summary-box>
+            </div>
+        </div>
+    </div>
+    <div ng-class='resp2Col20'>
+        <div class='padding-small'></div>
+        <div class='fsh5 padding-mid'>NHT overview</div>
+        <div class='padding-small'></div>
+        <div>
+            <canvas class='chart chart-doughnut'
+                    height='250'
+                    width='250'
+                    chart-data='data.chartData[0].data'
+                    chart-labels='data.chartData[0].labels'
+                    chart-colours='data.chartData[0].colors'
+                    chart-series='data.chartData[0].series'
+                    chart-options='data.chartData[0].options'>
+            </canvas>
+        </div>
+    </div>
+</div>
+
+
+
+
+
+<div ng-if='!hideColsGui' class='nl-learning-report-body padding-small nl-thin-scroll' style='position:absolute; width: 100%; height: 100%'>
         <div class='row row-center margin0 padding0'
             style='height: 36px; overflow: hidden; border-bottom: 1px solid rgba(0, 0, 0, 0.1)'>
             <nl-table-view-selector config=tableViewConfig></nl-table-view-selector>

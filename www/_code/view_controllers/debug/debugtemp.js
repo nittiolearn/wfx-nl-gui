@@ -40,12 +40,49 @@ function(nl, nlRouter, $scope) {
         console.log('TODO: onFilterClick');
     }
 
+    function _getNhtOverViewArrayRow1() {
+        return [
+            {perc: 80, title: 'Nht title1', desc: '', showperc: false}, 
+            {perc: 80, title: 'Nht title2', desc: '', showperc: false}, 
+            {perc: 80, title: 'Nht title3', desc: '', showperc: false}
+        ];
+    }
+    function _getNhtOverViewArrayRow2() {
+        return [
+            {perc: 80, title: 'Nht title1', desc: '', showperc: false}, 
+            {perc: 80, title: 'Nht title2', desc: '', showperc: false}, 
+            {perc: 80, title: 'Nht title3', desc: '', showperc: false}
+        ];
+    }
+    function _getNhtOverViewArrayRow3() {
+        return [
+            {perc: 80, title: 'Nht title1', desc: '', showperc: false}, 
+            {perc: 80, title: 'Nht title2', desc: '', showperc: false}, 
+            {perc: 80, title: 'Nht title3', desc: '', showperc: false}
+        ];
+    }
+    function _getNhtOverViewArrayRow4() {
+        return [
+            {perc: 80, title: 'Nht title1', desc: '', showperc: false}, 
+            {perc: 80, title: 'Nht title2', desc: '', showperc: false}, 
+            {perc: 80, title: 'Nht title3', desc: '', showperc: false}
+        ];
+    }
+
     function _initScope(userInfo) {
         $scope.toolbar = [
             {id: 'filter', title: 'Filter', icon: 'ion-filter', onClick: _onFilterClick}
         ];
         $scope.columns = _mergeColumns(_getOptionalColumns());
-        $scope.data = _generateRandomData($scope.columns);
+        //$scope.data = _generateRandomData($scope.columns);
+        $scope.data = {};
+        $scope.data.nhtOverViewArrayRow1 = _getNhtOverViewArrayRow1();
+        $scope.data.nhtOverViewArrayRow2 = _getNhtOverViewArrayRow2();
+        $scope.data.nhtOverViewArrayRow3 = _getNhtOverViewArrayRow3();
+        $scope.data.nhtOverViewArrayRow4 = _getNhtOverViewArrayRow4();
+        $scope.data.chartData = [{type: 'doughnut', data: [12, 34, 35, 20, 10], labels: ['Training', 'OJT', 'Certification', 'Re-certification', 'Closed'], 
+                                  colors:[_nl.colorsCodes.started, _nl.colorsCodes.pending, _nl.colorsCodes.done, _nl.colorsCodes.pending, _nl.colorsCodes.pending], series: [], options: []}];
+        $scope.hideColsGui = true;
         $scope.tableViewConfig = {
             canEdit: nlRouter.isPermitted(userInfo, 'assignment_manage'),
             tableType: 'nht_views',
