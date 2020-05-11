@@ -1,20 +1,3 @@
-<style>
-.col-styling-w175{
-    width: 175px;
-    min-width: 150px;
-    white-space: nowrap;
-    text-overflow: ellipsis;
-    overflow: hidden;
-}
-.col-styling-w225{
-    width: 225px;
-    min-width: 150px;
-    white-space: nowrap;
-    text-overflow: ellipsis;
-    overflow: hidden;
-}
-
-</style>
 <div ng-hide='info.search.disabled'>
     <div class='padding-small'></div>
     <div class='row row-center margin0 padding0'>
@@ -30,47 +13,7 @@
     <div class='padding-small'></div>
 </div>
 <div ng-transclude></div>
-<div style='width: {{checkOverflow() ? "fit-content" : "100%"}}; border: 1px solid #CCCCCC'>
-    <div class='row row-center padding0 margin0 {{info.styleHeader}}'
-        style='background-color:#f5f5f5; color:#575B5E; font-weight:bold; border-bottom: 1px solid #CCCCCC'>
-        <div ng-repeat='col in info.columns track by $index'
-            ng-show='col.canShow'
-            class='col {{!col.insertCols ? "col-styling-w175" : ""}}'>
-            <span ng-if='!col.insertCols'>{{col.name}}</span>
-            <div ng-if='col.insertCols' class='row row-center padding0 margin0'>
-                <div ng-repeat='col2 in col.children' class='col col-styling-w225'>{{col2}}</div>
-            </div>
-        </div>
-    </div>
-    <div ng-repeat='rec in info._internal.visibleRecs track by $index'>
-        <div class='row row-center padding0 margin0 nl-link-text2'
-            ng-click='onItemClick(rec, info.onRowClick)'
-            style='border-bottom: 1px solid #CCCCCC'>
-            <div ng-repeat='col in info.columns track by $index'
-                ng-show='col.canShow'
-                class='col {{!col.insertCols ? "col-styling-w175" : ""}}'>
-                <i ng-if='rec[col.id].icon' class='icon fsh4 {{rec[col.id].icon}}'></i>
-                <span ng-hide='col.insertCols'>{{rec[col.id].txt || ''}}</span>
-                <div ng-if='col.insertCols' 
-                    class='row row-center padding0 margin0'>
-                    <div ng-repeat='val in rec[col.id].txt track by $index' 
-                        class='col col-styling-w225'>
-                        {{val || '-'}}
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div ng-show='rec.canShowDetails'>
-            <div colspan='{{info.columns.length}}'>
-                <div class='padding-mid'>
-                    <div ng-show='rec.details' nl-compile='rec.details' class="{{info.styleDetail}}"></div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<table class='{{info.styleTable}}' ng-show='0'>
+<table class='{{info.styleTable}}'>
     <tr class='header {{info.styleHeader}}'>
         <td ng-repeat='col in info.columns track by $index'
             ng-show='col.canShow'

@@ -444,6 +444,8 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlCourseEditor, nlC
             var module = angular.copy(modules[i]);
             var userRecords = [];
             _initModule(module);
+            if (module.type == 'lesson' && modeHandler.mode == MODES.EDIT) 
+                module.type = module.isQuiz ? 'lesson-assesment' : 'lesson-self';
             allModules.push(module);
             for(var j=0; j<userRecords.length; j++) {
                 _initModule(userRecords[j]);

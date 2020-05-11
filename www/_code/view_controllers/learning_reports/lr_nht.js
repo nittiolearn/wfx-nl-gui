@@ -100,6 +100,8 @@ function(nl, nlReportHelper, nlGetManyStore) {
             statsCountObj['certified'] = 1;
             if (stats.reattempt) statsCountObj['certifiedSecondAttempt'] = 1;
             else statsCountObj['certifiedFirstAttempt'] = 1;
+            statsCountObj[statusStr] = 1;
+            return;
         }
         statsCountObj[statusStr] = 1;
         if(record.user.state == 0) statsCountObj['attrition'] = 1;

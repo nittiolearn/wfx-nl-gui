@@ -122,6 +122,7 @@ function(nl, nlDlg, $templateCache) {
     };
 
     this.updateTableObject = function(info, records, startpos) {
+        _updateTableColumns(info);
         info._internal.recs = records;
         info._internal.searcher.initStartPos(startpos);
         info._internal.searcher.onClick(null);
@@ -130,6 +131,24 @@ function(nl, nlDlg, $templateCache) {
     this.getSummaryRow = function(info) {
         return info._internal.summaryRow;
     };
+
+    function _updateTableColumns(info) {
+        info.columns = [];
+        for (var i=0;i<info.origColumns.length; i++) {
+            var column = info.origColumns[i];
+            if (column.insertCols) {
+                for (var j=0; j<column.children.length; j++) {
+                    var key = nl.t('{}{}', column.id, j);
+                    var defCols = angular.copy(column);
+                    defCols.id = key;
+                    defCols.name = column.children[j];
+                    info.columns.push(defCols);
+                }
+            } else {
+                info.columns.push(column);
+            }
+        }
+    }
 
     function _onItemClickHandler($scope, rec, action) {
         if (!action) return;
@@ -222,17 +241,19 @@ function Searcher(nl, nlDlg, info) {
     
     function _getDisplayRecord(record) {
         var ret = {_raw: record};
-        for(var i=0; i<info.columns.length; i++) {
-            var col = info.columns[i];
+        for(var i=0; i<info.origColumns.length; i++) {
+            var col = info.origColumns[i];
             if (col.insertCols) {
-                var array = record[col.id];
-                var fmtArray = [];
+                var array = record[col.id] || [];
+                var count = 0;
                 for (var j=0; j<array.length; j++) {
-                    fmtArray.push(array[j].name);
-                    fmtArray.push(array[j].score);
+                    var key1 = nl.t('{}{}', col.id, count);
+                    ret[key1] = {txt: array[j].name};
+                    count++;
+                    var key2 = nl.t('{}{}', col.id, count);
+                    ret[key2] = {txt: array[j].score};
+                    count++;
                 }
-                ret[col.id] = {txt: fmtArray, 
-                    icon: col.icon ? self.getFieldValue(record, col.icon) : ''};
                 continue;
             }
             ret[col.id] = {txt: self.getFieldValue(record, col.id), 

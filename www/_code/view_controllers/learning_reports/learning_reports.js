@@ -187,6 +187,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			search: {disabled : true},
 			maxVisible: MAX_VISIBLE,
 			columns: _lrColumns,
+			origColumns: _lrColumns,
 			styleTable: 'nl-table nl-table-styled3 rowlines',
 			styleHeader: ' ',
 			onRowClick: 'expand',
@@ -384,12 +385,13 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 
 	$scope.getMaxVisibleString = function() {
 		var posStr = '';
-		if ($scope.tabData.records.length > MAX_VISIBLE) {
+		var records = $scope.tabData.records || [];
+		if (records.length > MAX_VISIBLE) {
 			var startpos = _tableNavPos.currentpos + 1;
 			var endpos = _tableNavPos.currentpos + $scope.utable._internal.visibleRecs.length;
 			posStr = nl.t('{} - {} of ', startpos, endpos);
 		}
-		return nl.t ('Showing {}{} items.', posStr, $scope.tabData.records.length);
+		return nl.t ('Showing {}{} items.', posStr, records.length);
 	};
 
 	$scope.canShowPrev = function() {
@@ -398,7 +400,8 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 	};
 
 	$scope.canShowNext = function() {
-		if (_tableNavPos.currentpos + MAX_VISIBLE < $scope.tabData.records.length) return true;
+		var records = $scope.tabData.records || [];
+		if (_tableNavPos.currentpos + MAX_VISIBLE < records.length) return true;
 		return false;
 	};
 
@@ -571,6 +574,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			ret.push(lrColumnsDict[colid]);
 		}
 		$scope.utable.columns = ret;
+		$scope.utable.origColumns = ret;
 		_selectedLrCols = ret;
 	}
 
@@ -605,7 +609,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		columns.push(_col('stats.nScore', 'Achieved Score'));
 		
 		for(var i=0; i< _customScoresHeader.length; i++) columns.push(_col('stats.customScoreDict.' + _customScoresHeader[i], _customScoresHeader[i]));
-		columns.push(_col('quizscore', 'Quiz score', false, null, quizArray));
+		columns.push(_col('quizscore', 'Individual quiz scores (names and scores)', false, null, quizArray));
 		columns.push(_col('stats.feedbackScore', 'Feedback score'));
 		columns.push(_col('stats.timeSpentMinutes', 'Online Time Spent (minutes)'));
 		columns.push(_col('stats.iltTimeSpent', 'ILT time spent(minutes)'));

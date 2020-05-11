@@ -745,7 +745,7 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
             {id: 'page', name:'Page No'},
             {id: 'title', name:'Page Title'},
             {id: 'maxScore', name:'Maximum Score'},
-            {id: 'score', name:'Acheived Score'},
+            {id: 'score', name:'Achieved Score'},
             {id: 'answer', name:'Answers provided'}];
     var _h1Feedback = [
             {id: 'page', name:'Page No'},

@@ -204,9 +204,7 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
             if (cm.isReattempt) ret['reattempt'] = false;
             itemIdToInfo[cm.id] = itemInfo;
             _getRawStatusOfItem(cm, itemInfo, itemIdToInfo);
-            if (cm.type == 'lesson' && !itemInfo.selfLearningMode) {
-                _updateQuizScore(ret, cm, itemInfo);
-            }
+            if (cm.type == 'lesson' && cm.isQuiz) _updateQuizScore(ret, cm, itemInfo);
             itemInfo.status = itemInfo.rawStatus;
             if (isAttrition) {
                 itemInfo.status = 'waiting';
@@ -281,17 +279,8 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
     }
 
     function _updateQuizScore(ret, cm, itemInfo) {
-        var quizScore = ret.quizScore || [];
-        var quizRepeated = false;
-        for (var i=0; i<quizScore.length; i++) {
-            var item = quizScore[i];
-            if (item.name == cm.name) {
-                quizRepeated = true;
-                if (item.score < itemInfo.score) ret.quizScore.push({name: cm.name, score: itemInfo.score});
-            }
-        }
-        if (ret.quizScore.length >= 10) return;
-        if (!quizRepeated) ret.quizScore.push({name: cm.name, score: itemInfo.score});
+        if (ret.quizScore.length >= 100) return;
+        ret.quizScore.push({name: cm.name, score: itemInfo.score});
     }
 
     function _updateCourseDelayForNHT(ret) {

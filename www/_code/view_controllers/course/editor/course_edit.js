@@ -128,7 +128,7 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
 			itemInfo.id = cm.id;
 			itemInfo.type = cm.type;
 			if (!itemInfo.name) itemInfo.name = cm.name;
-			if(cm.type == 'lesson' && !itemInfo.refid) itemInfo.refid = '';
+			if ((cm.type == 'lesson-assesment' || cm.type == 'lesson-self') && !itemInfo.refid) itemInfo.refid = '';
 		}
 		nl.pginfo.pageTitle = selectedLangInfo.name || _course.name;
 		if ($scope.ext.item.id != '_root') $scope.editorCb.onIconClick(e, $scope.ext.item);
@@ -294,10 +294,10 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
 		if (!_groupInfo) return;
 		if (attr.valueNamesUpdated) return;
 		attr.valueNamesUpdated = true;
-		attr.valueNames = {'module': 'Folder', 'lesson': 'Module',
+		attr.valueNames = {'module': 'Folder', 'lesson-assesment': 'Assessment module', 'lesson-self': 'Self learning module',
 			'link': 'Link', 'info': 'Information', 'certificate': 'Certificate',
 			'iltsession': 'ILT session', 'milestone': 'Milestone', 'rating': 'Rating', 'gate': 'Gate'};
-		attr.values = ['module', 'lesson', 'info', 'certificate'];
+		attr.values = ['module', 'lesson-assesment', 'lesson-self', 'info', 'certificate'];
     	if (cm.type == 'link' || _debug)
 		   attr.values.push('link');
 		if (cm.type == 'iltsession' || (_groupInfo && _groupInfo.props.features['training'])) 
@@ -659,11 +659,11 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
     };
     
     var moduleAttrs = [
-		{name: 'type', stored_at: 'module', fields: ['module', 'lesson', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating', 'gate'], type: 'list', text: 'Element type',
+		{name: 'type', stored_at: 'module', fields: ['module', 'lesson-assesment', 'lesson-self', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating', 'gate'], type: 'list', text: 'Element type',
 			// possible values will be updated in _updateTypeDropdown
 			valueNamesUpdated: false, valueNames: {}, values: [], 
             updateDropdown: _updateTypeDropdown},
-		{name: 'refid', stored_at: 'module', fields: ['lesson'], type: 'lessonlink', contentType: 'integer', text: 'Module-id'},
+		{name: 'refid', stored_at: 'module', fields: ['lesson-assesment', 'lesson-self'], type: 'lessonlink', contentType: 'integer', text: 'Module-id'},
 		{name: 'rating_type', stored_at: 'module', fields: ['rating'], type: 'list', text: 'Rating type',
 			// possible values will be updated in _updateRatingDropdown
 			valueNamesUpdated: false, valueNames: {}, values: [], 
@@ -672,8 +672,8 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
 			// possible values will be updated in _updateMilestoneDropdown
 			valueNamesUpdated: false, valueNames: {}, values: [], 
 			updateDropdown: _updateMilestoneDropdown},
-		{name: 'name', stored_at: 'module', fields: ['module', 'lesson', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating', 'gate'], type: 'string', text: 'Name'}, 
-		{name: 'maxDuration', stored_at: 'module', fields: ['lesson'], type: 'string', contentType: 'integer', text: 'Time limit (minutes)'},
+		{name: 'name', stored_at: 'module', fields: ['module', 'lesson-assesment', 'lesson-self', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating', 'gate'], type: 'string', text: 'Name'}, 
+		{name: 'maxDuration', stored_at: 'module', fields: ['lesson-assesment', 'lesson-self'], type: 'string', contentType: 'integer', text: 'Time limit (minutes)'},
         {name: 'action', stored_at: 'module', fields: ['link'], type: 'lessonlink', text: 'Action'},
         {name: 'urlParams', stored_at: 'module', fields: ['link'], type: 'string', text: 'Url-Params'},
         {name: 'certificate_image', stored_at: 'module', fields: ['certificate'], type: 'string', text: 'Certificate image'},
@@ -686,36 +686,36 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
         {name: 'trainer_notes', stored_at: 'module', fields: ['iltsession'], type: 'object_with_gui', contentType: 'object', text: 'Trainer notes'},
         {name: 'gateFormula', stored_at: 'module', fields: ['gate'], text: 'Formula',type: 'intellitext'},
         {name: 'gatePassscore', stored_at: 'module', fields: ['gate'], text: 'Gate pass score',type: 'number', min:0, max:100},
-        {name: 'start_after', stored_at: 'module', fields: ['lesson', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating', 'gate'], type: 'object_with_gui', contentType: 'object', text: 'Start after'},
+        {name: 'start_after', stored_at: 'module', fields: ['lesson-assesment', 'lesson-self', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating', 'gate'], type: 'object_with_gui', contentType: 'object', text: 'Start after'},
         {name: 'canMarkAttendance', stored_at: 'module', text: 'Learner can mark attendance', type:'hidden', fields: ['iltsession']},
-        {name: 'grp_depAttrs', stored_at: 'module', fields: ['lesson', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating', 'gate'], type: 'group', text: 'Planning', debug: true},
-        {name: 'start_date', stored_at: 'module', fields: ['lesson', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating', 'gate'], type: 'date', text: 'Start date', group: 'grp_depAttrs', debug: true},
-        {name: 'planned_date', stored_at: 'module', fields: ['lesson', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating', 'gate'], type: 'date', text: 'Planned date', group: 'grp_depAttrs', debug: true},
-        {name: 'grp_additionalAttrs', stored_at: 'module', fields: ['module', 'lesson', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating', 'gate'], type: 'group', text: 'Advanced properties'},
-        {name: 'maxAttempts', stored_at: 'module', fields: ['lesson'], type: 'number', text: 'Maximum attempts', group: 'grp_additionalAttrs'},
-        {name: 'exclude_quiz', stored_at: 'module', fields: ['lesson'], type: 'boolean', text: 'Exclude score',  desc: 'Exclude this score from course report average score', group: 'grp_additionalAttrs'},
-        {name: 'hide_locked', stored_at: 'module', fields: ['lesson', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating', 'gate'], type: 'boolean', text: 'Hide if locked', desc: 'Hide this item in learner/report view if item state is locked.', group: 'grp_additionalAttrs'},
-        {name: 'reopen_on_fail', stored_at: 'module', fields: ['lesson'], type: 'object', text: 'Reopen on fail', contentType: 'object',group: 'grp_additionalAttrs'},
+        {name: 'grp_depAttrs', stored_at: 'module', fields: ['lesson-assesment', 'lesson-self', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating', 'gate'], type: 'group', text: 'Planning', debug: true},
+        {name: 'start_date', stored_at: 'module', fields: ['lesson-assesment', 'lesson-self', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating', 'gate'], type: 'date', text: 'Start date', group: 'grp_depAttrs', debug: true},
+        {name: 'planned_date', stored_at: 'module', fields: ['lesson-assesment', 'lesson-self', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating', 'gate'], type: 'date', text: 'Planned date', group: 'grp_depAttrs', debug: true},
+        {name: 'grp_additionalAttrs', stored_at: 'module', fields: ['module', 'lesson-assesment', 'lesson-self', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating', 'gate'], type: 'group', text: 'Advanced properties'},
+        {name: 'maxAttempts', stored_at: 'module', fields: ['lesson-assesment', 'lesson-self'], type: 'number', text: 'Maximum attempts', group: 'grp_additionalAttrs'},
+        {name: 'exclude_quiz', stored_at: 'module', fields: ['lesson-assesment', 'lesson-self'], type: 'boolean', text: 'Exclude score',  desc: 'Exclude this score from course report average score', group: 'grp_additionalAttrs'},
+        {name: 'hide_locked', stored_at: 'module', fields: ['lesson-assesment', 'lesson-self', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating', 'gate'], type: 'boolean', text: 'Hide if locked', desc: 'Hide this item in learner/report view if item state is locked.', group: 'grp_additionalAttrs'},
+        {name: 'reopen_on_fail', stored_at: 'module', fields: ['lesson-assesment', 'lesson-self'], type: 'object', text: 'Reopen on fail', contentType: 'object',group: 'grp_additionalAttrs'},
         {name: 'showInReport', stored_at: 'module', fields: ['gate', 'rating'], text: 'Show in the report', desc: 'Show score in the report', type: 'boolean', group: 'grp_additionalAttrs'},
         {name: 'hide_remarks', stored_at: 'module', fields: ['info', 'link'], type: 'boolean', text: 'Disable remarks', group: 'grp_additionalAttrs'},
         {name: 'autocomplete', stored_at: 'module', fields: ['link'], type: 'boolean', text: 'Auto complete',  desc: 'Mark as completed when viewed the first time', group: 'grp_additionalAttrs'},
-        {name: 'icon', stored_at: 'module', fields: ['module', 'lesson', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating', 'gate'], type: 'string', text: 'Icon', group: 'grp_additionalAttrs'},
-        {name: 'text', stored_at: 'module', fields: ['module', 'lesson', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating', 'gate'], type: 'wikitext', valueName: 'textHtml', text: 'Description', group: 'grp_additionalAttrs', debug: true},
-		{name: 'completionPerc', stored_at: 'module', fields: ['lesson', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating', 'gate'], text: 'Completion percentage',type: 'number', group: 'grp_additionalAttrs', debug: true},
-		{name: 'customStatus', stored_at: 'module', fields: ['lesson', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating', 'gate'], text: 'New status',type: 'list', group: 'grp_additionalAttrs', 
+        {name: 'icon', stored_at: 'module', fields: ['module', 'lesson-assesment', 'lesson-self', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating', 'gate'], type: 'string', text: 'Icon', group: 'grp_additionalAttrs'},
+        {name: 'text', stored_at: 'module', fields: ['module', 'lesson-assesment', 'lesson-self', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating', 'gate'], type: 'wikitext', valueName: 'textHtml', text: 'Description', group: 'grp_additionalAttrs', debug: true},
+		{name: 'completionPerc', stored_at: 'module', fields: ['lesson-assesment', 'lesson-self', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating', 'gate'], text: 'Completion percentage',type: 'number', group: 'grp_additionalAttrs', debug: true},
+		{name: 'customStatus', stored_at: 'module', fields: ['lesson-assesment', 'lesson-self', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating', 'gate'], text: 'New status',type: 'list', group: 'grp_additionalAttrs', 
 			valueNamesUpdated: false, valueNames: {}, values: [], 
 			updateDropdown: _updateNewStatusDropdown,
 			canShow: function(attr){return _canShowNewState(attr)}},
-		{name: 'isReattempt', stored_at: 'module', fields: ['lesson', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating', 'gate'], text: 'Mark as reattempt', desc: 'Mark this to indicate learner has reattempted', type: 'boolean', group: 'grp_additionalAttrs', 
+		{name: 'isReattempt', stored_at: 'module', fields: ['lesson-assesment', 'lesson-self', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating', 'gate'], text: 'Mark as reattempt', desc: 'Mark this to indicate learner has reattempted', type: 'boolean', group: 'grp_additionalAttrs', 
 			canShow: function(attr) {return _canShowReattempt(attr);}
 		},
-        {name: 'parentId', stored_at: 'module', fields: ['module', 'lesson', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating', 'gate'], type: 'readonly', debug: true, text: 'Parent ID', group: 'grp_additionalAttrs', readonly: true}, 
-        {name: 'id', stored_at: 'module', fields: ['module', 'lesson', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating', 'gate'], type: 'readonly', text: 'Unique ID', group: 'grp_additionalAttrs', readonly: true}, 
-        {name: 'dependencyType', stored_at: 'module', fields: ['module', 'lesson', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating', 'gate'], type: 'readonly', text: 'Dependency type', group: 'grp_additionalAttrs', debug: true, readonly: true}, 
+        {name: 'parentId', stored_at: 'module', fields: ['module', 'lesson-assesment', 'lesson-self', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating', 'gate'], type: 'readonly', debug: true, text: 'Parent ID', group: 'grp_additionalAttrs', readonly: true}, 
+        {name: 'id', stored_at: 'module', fields: ['module', 'lesson-assesment', 'lesson-self', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating', 'gate'], type: 'readonly', text: 'Unique ID', group: 'grp_additionalAttrs', readonly: true}, 
+        {name: 'dependencyType', stored_at: 'module', fields: ['module', 'lesson-assesment', 'lesson-self', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating', 'gate'], type: 'readonly', text: 'Dependency type', group: 'grp_additionalAttrs', debug: true, readonly: true}, 
     	{name: 'totalItems', stored_at: 'module', fields : ['module'], type: 'readonly', text: 'Total items', group: 'grp_additionalAttrs'},
-        {name: 'grp_canvasAttrs', stored_at: 'module', type: 'group', text: 'Canvas properties', fields: ['module', 'lesson', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating', 'gate']},
-        {name: 'posX', stored_at: 'module', type: 'number', text: 'X Position', group: 'grp_canvasAttrs', fields: ['module', 'lesson', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating', 'gate']},
-        {name: 'posY', stored_at: 'module', type: 'number', text: 'Y Position', group: 'grp_canvasAttrs', fields: ['module', 'lesson', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating', 'gate']},
+        {name: 'grp_canvasAttrs', stored_at: 'module', type: 'group', text: 'Canvas properties', fields: ['module', 'lesson-assesment', 'lesson-self', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating', 'gate']},
+        {name: 'posX', stored_at: 'module', type: 'number', text: 'X Position', group: 'grp_canvasAttrs', fields: ['module', 'lesson-assesment', 'lesson-self', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating', 'gate']},
+        {name: 'posY', stored_at: 'module', type: 'number', text: 'Y Position', group: 'grp_canvasAttrs', fields: ['module', 'lesson-assesment', 'lesson-self', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating', 'gate']},
         {name: 'bgimg', stored_at: 'module', type: 'string', text: 'Background image', group: 'grp_canvasAttrs', fields: ['module']},
         {name: 'bgcolor', stored_at: 'module', type: 'string', text: 'Background color', group: 'grp_canvasAttrs', fields: ['module']}
 	];
@@ -989,6 +989,8 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
 			if (newModule.type == 'milestone') milestoneAdded = true;
 			if (newModule.type == 'rating') ratingAdded = true;
 			if (newModule.type == 'iltsession' && !modeHandler.course.content.blended) modeHandler.course.content.blended = true;
+			if (newModule.type == 'lesson-assesment') newModule.isQuiz = true;
+			if (newModule.type == 'lesson-assesment' || newModule.type == 'lesson-self') newModule.type = 'lesson';
 		    modeHandler.course.content.modules.push(newModule);
 		}
 		if (bPublish && _etm) {
@@ -1151,7 +1153,7 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
 			var langInfo = languageInfo[lang];
 			for(var key in langInfo) {
 				if(key == 'name' || key == 'description') continue;
-				if (langInfo[key].type != 'lesson') continue;
+				if (langInfo[key].type != 'lesson-assesment' && langInfo[key].type != 'lesson-self') continue;
 				if (langInfo[key].refid) continue;
 				var moduleName = _getLanguageName(lang);
 				return _validateFail(errorLocation, 'languageInfo', nl.t('Module id is mandatory for {} for language {}', langInfo[key].name, moduleName));
@@ -1282,7 +1284,7 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
     }
     
     function _validateLessonModule(errorLocation, module) {
-    	if(module.type != 'lesson') return true;
+    	if(module.type != 'lesson-assesment' && module.type != 'lesson-self') return true;
         if(!module.refid) return _validateFail(errorLocation, 'Module-id', 'Module-id is mandatory', module);
         if(!angular.isNumber(module.refid)) return _validateFail(errorLocation, 'Module-id', 'Module-id seems incorrect', module);
         return true;
@@ -1555,7 +1557,7 @@ function StartAfterDlg(nl, nlDlg, $scope, _allModules, cm) {
 			if(!(item.module in idsToTypeMapping)) continue;
 			var dict = {module: {id: item.module, type: idsToTypeMapping[item.module].type, rating_type: idsToTypeMapping[item.module].rating_type}, min_score: item.min_score || '', 
 						max_score: item.max_score || '', error: ''};
-			if(idsToTypeMapping[item.module].type == 'lesson' || idsToTypeMapping[item.module].type == 'rating' || idsToTypeMapping[item.module].type == 'gate'){
+			if(idsToTypeMapping[item.module].type == 'lesson-assesment' || idsToTypeMapping[item.module].type == 'lesson-self' || idsToTypeMapping[item.module].type == 'rating' || idsToTypeMapping[item.module].type == 'gate'){
 				dict.canShowMaxScore = true;
 				dict.canShowMinScore = true;
 			}
