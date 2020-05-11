@@ -40,8 +40,8 @@ function(nl, nlDlg, nlTreeSelect, nlModuleStatusInfo, nlResourceAddModifySrv) {
 		   		title: nl.t('Select this option to create a single page module.')},
 		   {id: 'description', name: nl.t('Description'), type: 'textarea', group:'optional_attr'},
 		   {id: 'esttime', name: nl.t('Estimated time'), type: 'number', group:'optional_attr', min: 1, max: 600},
-		   {id: 'learningMode', name: nl.t('Module type'), type: 'select', group:'optional_attr', condition: 'isNotQuestionBank'},
-		   {id: 'passScore', name: nl.t('Pass score %'), type: 'number', group:'optional_attr', condition:'isAssesment', min: 0, max: 100},
+		   {id: 'learningMode', name: nl.t('Module type'), type: 'select', group:'optional_attr'},
+		  {id: 'passScore', name: nl.t('Pass score %'), type: 'number', group:'optional_attr', condition:'isQbOrAssessment', min: 0, max: 100},
 		   {id: 'allowed_max_score', name: nl.t('Score limit'), type: 'number', condition: 'isQuestionBank', group:'optional_attr', min: 0},
 		   {id: 'check_all_question_answered', name: nl.t('Ensure completion'), type: 'check', group:'optional_attr',
 		   		title: nl.t('Learner must complete the page to progress to next page.')},
@@ -50,7 +50,7 @@ function(nl, nlDlg, nlTreeSelect, nlModuleStatusInfo, nlResourceAddModifySrv) {
 		   {id: 'animScheme', name: nl.t('Animation scheme'), type:'select', condition: 'isAnimationShown', group:'optional_attr'},
 		   {id: 'resetAnimation', name: nl.t('Reset page animations'), type: 'check', condition: 'isAnimationShown', group:'optional_attr', 
 		   	title: nl.t('Selecting this checkbox will reset page level animations to currently selected animation scheme')},
-		   {id: 'additional_attr', name: nl.t('Advanced properties'), type: 'group', condition: 'isBleedingEdge'},
+		   {id: 'additional_attr', name: nl.t('Advanced properties'), type: 'group', condition: 'isBleedingEdge'}, 
 		   {id: 'templateStylesCss', name: nl.t('Styles'), type: 'textarea', group:'additional_attr', condition: 'isBleedingEdge'},
 		   {id: 'templateBgimgs', name: nl.t('Resource library'), type: 'textarea', group:'additional_attr', condition: 'isBleedingEdge'},
 		   {id: 'templatePageTypes', name: nl.t('Page types'), type: 'textarea', group:'additional_attr', condition: 'isBleedingEdge'},
@@ -61,7 +61,8 @@ function(nl, nlDlg, nlTreeSelect, nlModuleStatusInfo, nlResourceAddModifySrv) {
 
 	
 	var learningMode = [{id:'assesment', name:nl.t('Assesment module')},
-						{id:'self', name: nl.t('Self learning module')}];
+						{id:'self', name: nl.t('Self learning module')},
+						{id:'question', name: nl.t('Question bank module')}];
 
 	var lessonStates = {};
 	var lessonStatusDesc = null;
@@ -177,8 +178,11 @@ function(nl, nlDlg, nlTreeSelect, nlModuleStatusInfo, nlResourceAddModifySrv) {
 		_oLesson.esttime = data.esttime;
 		_oLesson.passScore = data.passScore;
 		_oLesson.check_all_question_answered = data.check_all_question_answered || false;
-		if('allowed_max_score' in data) {
-			_oLesson.allowed_max_score = data.allowed_max_score;
+		if(data.learningMode.id == 'question') {
+			_oLesson.allowed_max_score = data.allowed_max_score || 0;
+		}
+		else{
+			delete _oLesson.allowed_max_score;
 		}
 		_oLesson.templateStylesCss = data.templateStylesCss;
 		_oLesson.templateBgimgs = data.templateBgimgs;
@@ -238,7 +242,7 @@ function(nl, nlDlg, nlTreeSelect, nlModuleStatusInfo, nlResourceAddModifySrv) {
 
 	function _initEditDlg(editDlg) {
 		editDlg.scope.dlgTitle = nl.t('Module properties');
-				
+		
 		editDlg.scope.data = {};
 		editDlg.scope.options = {};
 		editDlg.scope.data.items = _moduleProps;
@@ -255,7 +259,7 @@ function(nl, nlDlg, nlTreeSelect, nlModuleStatusInfo, nlResourceAddModifySrv) {
         editDlg.scope.data.animScheme = animInfo.selected;
         editDlg.scope.data.resetAnimation = false;
 		_updateSelectedBg(editDlg.scope.data);
-
+		
 		editDlg.scope.data.showSearch = {};
 		editDlg.scope.data.check_all_question_answered = _oLesson.check_all_question_answered || false;
 		if('allowed_max_score' in _oLesson) {
@@ -295,14 +299,13 @@ function(nl, nlDlg, nlTreeSelect, nlModuleStatusInfo, nlResourceAddModifySrv) {
 		editDlg.scope.data.subject = {id: _oLesson.subject, name: _oLesson.subject};						 
 		editDlg.scope.data.icon = nl.url.lessonIconUrl(_oLesson.image || 'NittioSun.png');
 		editDlg.scope.data.lessonState = lessonStates[_oLesson.state] || lessonStates[0];
-		editDlg.scope.data.learningMode = _oLesson.selfLearningMode ? learningMode[1] : learningMode[0]; 
-
+		editDlg.scope.data.learningMode = ('allowed_max_score' in _oLesson) ? learningMode[2]
+			: _oLesson.selfLearningMode ? learningMode[1] : learningMode[0];
 		editDlg.scope.data.canShow = function(condition, item) {
 			if (item.group in editDlg.scope.data.showGroup && !editDlg.scope.data.showGroup[item.group]) return false;
 			if (condition == 'isPdf') return _isPdf;
-			if (condition == 'isQuestionBank') return "allowed_max_score" in _oLesson;
-			if (condition == 'isNotQuestionBank') return "allowed_max_score" in _oLesson ? false : true;
-			if (condition == 'isAssesment') return (editDlg.scope.data.learningMode.id == 'assesment');
+			if (condition == 'isQuestionBank') return (editDlg.scope.data.learningMode.id == 'question');
+			if (condition == 'isQbOrAssessment') return (editDlg.scope.data.learningMode.id == 'assesment')||(editDlg.scope.data.learningMode.id == 'question');
 			if (condition == 'isBleedingEdge') return (_moduleConfig.grpProps.isBleedingEdge);
 			if (condition == 'isAnimationShown') return editDlg.scope.showAnimScheme;
 			if (condition == 'isSelfLearningMode') return (editDlg.scope.data.learningMode.id == 'self');
