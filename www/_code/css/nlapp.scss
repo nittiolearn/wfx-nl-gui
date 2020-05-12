@@ -509,8 +509,12 @@ $animation-duration: 200ms !default;
   border: 1px solid $nlOrange1;
 }
 
-.border-circle-fblue2 {
-  border: 1px solid $nlBlue2;
+.border-circle-fyellow {
+  border: 1px solid $nlOrange3;
+}
+
+.border-circle-fblue {
+  border: 1px solid $nlBlue1;
 }
 
 .compact {
@@ -1262,7 +1266,7 @@ input.nl-dlg-field-error, .nl-dlg-field-error {
    border: 1px solid;
    padding: 6px 18px;
    border-radius: 15px;
-   background-color: $nlBlue2;;
+   background-color: $nlBlue2;
    color: #FFFFFF;
  }
  .dropdown-selected {
@@ -2502,6 +2506,7 @@ img.nl-full-width {
 
 .bggrey {background-color: $nlGrey1;}
 .bgdefault {background-color: $nlGrey4;}
+.bgyellow {background-color: $nlOrange3;}
 
 .bgclear {background-color: none !important;}
 
@@ -2723,7 +2728,7 @@ img.nl-full-width {
   .padding, .padding-top, .padding-vertical {
     padding-top: $nlpad_y_small;
   }
-
+  
   .padding, .padding-right, .padding-horizontal {
     padding-right: $nlpad_x_small;
   }
