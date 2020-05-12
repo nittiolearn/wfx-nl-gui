@@ -17,9 +17,9 @@
             return this.reload(['nht_views', 'lr_views']);
         };
 
-        this.reload = function(setings_types) {
+        this.reload = function(settings_types) {
             return nl.q(function(resolve, reject) {
-                nlServerApi.getGroupSettings({setings_types: setings_types}).then(function(data) {
+                nlServerApi.getGroupSettings({settings_types: settings_types}).then(function(data) {
                     for (var k in data) {
                         _settings[k] = data[k];
                         if (!_settings[k]) _settings[k] = _defaultSettings();
@@ -55,6 +55,7 @@
                     }
         */
        this.update = function(settingsType, info) {
+            _cleanupDeletedCustomColumns(info);
             return nlServerApi.updateGroupSettings({settings_type: settingsType, info: info})
             .then(function(data) {
                 _settings[settingsType] = data || _defaultSettings();
@@ -106,7 +107,6 @@
         function _isCustomColumn(colid) {
             return colid.indexOf('custom.') == 0;
         }
-        for (var viewId in serverViewsLatest) _cleanupDeletedCustomColumns(serverViewsLatest[viewId]);
     }];
 
     //-------------------------------------------------------------------------------------------------
@@ -366,13 +366,14 @@
         _dlg.scope.editColumnDone = function(index) {
             var column = _dlg.scope.columnType == 'custom' ? _dlg.scope.notSelectedCustomColumns[index] : _dlg.scope.notSelectedFixedColumns[index];
             var colid = column.id;
-            column.name = _dlg.scope.data.newName;
-            _dlg.scope.columnNames[colid] = column.name;
+            if(!_validateColumnName(_dlg.scope.data.newName)) return;
             if(_dlg.scope.columnType == 'custom') {
                 if(!_validateCustomColumnFormula(_dlg.scope.data.newFormula, index)) return;
                 column.formula = _dlg.scope.data.newFormula;
                 _editCustomFormula(colid, column.formula);
             }
+            column.name = _dlg.scope.data.newName;
+            _dlg.scope.columnNames[colid] = column.name;
             _dlg.scope.editColumnClose();
         };
 
@@ -390,12 +391,8 @@
         };
 
         _dlg.scope.addCustomColumnDone = function() {
-
-            if(!(_dlg.scope.data.newName && _dlg.scope.data.newFormula)) {
-                return _errorMesg('Name and Formula is mandatory for the custom column');
-            }
-            _validateCustomColumnName(_dlg.scope.data.newName);
-            _validateCustomColumnFormula(_dlg.scope.data.newFormula);
+            if(!_validateColumnName(_dlg.scope.data.newName)) return;
+            if(!_validateCustomColumnFormula(_dlg.scope.data.newFormula)) return;
             var _newCustomColumn = {id: _getUniqueId('custom.'), name: _dlg.scope.data.newName, formula: _dlg.scope.data.newFormula};
             _dlg.scope.notSelectedCustomColumns.push(_newCustomColumn);
             _dlg.scope.customColumns.push(_newCustomColumn);
@@ -434,15 +431,23 @@
             }
         }
 
-        function _validateCustomColumnName(value) {
-            for(var i=0; i< _dlg.scope.customColumns.length; i++ ) {
-                var _column = _dlg.scope.customColumns[i];
-                if(_column.name == value) return _errorMesg('Column Name alredy exist');
+        function _validateColumnName(value) {
+            if(!value) return _errorMesg('Name is mandatory');
+            if(!(__validateColumnName(value, _dlg.scope.customColumns) && __validateColumnName(value, _dlg.scope.allColumns)))
+                return _errorMesg('Column Name alredy exist')
+            return true;
+        }
+
+        function __validateColumnName(value, columns) {
+            for(var i=0; i< columns.length; i++ ) {
+                var column = columns[i];
+                if(column.name.toLowerCase() == value.toLowerCase()) return false;
             }
             return true;
         }
 
         function _validateCustomColumnFormula(value, currentCustomColumnId) {
+            if(!value) return _errorMesg('Formula is mandatory');
             var _idsAboveCustomField = _getAvpsForCustomFormula(currentCustomColumnId);
             var payload = {strExpression: value, dictAvps: _idsAboveCustomField};
             nlExpressionProcessor.process(payload);
@@ -457,16 +462,17 @@
 
         function _onUpdate(e) {
             _updateCurrentView();
-            var serverViewsOld = nl.utls.arrayToDictById(nlTableViewSelectorSrv.getViews($scope.config.tableType));
-            var guiViews = nl.utls.arrayToDictById(_dlg.scope.views);
+            var serverViewsOld = nl.utils.arrayToDictById(nlTableViewSelectorSrv.getViews($scope.config.tableType));
+            var guiViews = nl.utils.arrayToDictById(_dlg.scope.views);
             var updatedColumnNames = _dlg.scope.columnNames;
             var updatedCustomColumns = _dlg.scope.customColumns;
             var lastSelectedView = angular.copy(_dlg.scope.selectedView);
             nl.timeout(function() {
                 nlDlg.showLoadingScreen();
-                nlTableViewSelectorSrv.reload([$scope.config.tableType], function() {
+                nlTableViewSelectorSrv.reload([$scope.config.tableType])
+                .then(function() {
                     var serverViewsLatest = nlTableViewSelectorSrv.getViews($scope.config.tableType);
-                    serverViewsLatest = nl.utls.arrayToDictById(serverViewsLatest);
+                    serverViewsLatest = nl.utils.arrayToDictById(serverViewsLatest);
                     for (var viewId in _deletedViewIds) {
                         if (viewId in serverViewsLatest) delete serverViewsLatest[viewId];
                     }
