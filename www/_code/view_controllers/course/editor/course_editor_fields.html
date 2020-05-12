@@ -57,7 +57,7 @@
                     ng-model='editor.course.content.languageInfo[editor.targetLang][item.id].type'>
             </div>
         </div>
-        <div class='row row-top row-wrap margin0 padding0' ng-if='item.type == "lesson"'>
+        <div class='row row-top row-wrap margin0 padding0' ng-if='item.type == "lesson-assesment" || item.type == "lesson-self"'>
             <div ng-class='$root.resp2Col33'
                 class='padding-mid'>
                 <div class='row row-center row-wrap margin0 padding0'>

@@ -42,9 +42,10 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
 	var _userInfo = null;
 	var _groupInfo = null;
 	var _etm = null;
+	var _modes = null;
 	var _languageTree = nlLanguageTranslateSrv.getTranslationLangs();
 
-	this.init = function(_scope, _modeHandler, userInfo) {
+	this.init = function(_scope, _modeHandler, userInfo, modes) {
 		var promise = nlGroupInfo.init1();
 		promise.then(function() {
 			nlGroupInfo.update();
@@ -55,6 +56,7 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
         $scope = _scope;
         modeHandler = _modeHandler;
 		_userInfo = userInfo;
+		_modes = modes;
 		_etm = (_userInfo && _userInfo.groupinfo && _userInfo.groupinfo.features['etm']) || false;
 		var params = nl.location.search();
         if ('debug' in params) _debug = true;
@@ -101,7 +103,7 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
 	
 	function _onTargetLangChange(e, selected) {
 		$scope.editor.canShowLangSection = false;
-        if(!_validateInputs(modeHandler.course, $scope.ext.item)) {
+        if(modeHandler.mode == _modes.EDIT && !_validateInputs(modeHandler.course, $scope.ext.item)) {
 			if(e) e.preventDefault();
             return;
 		}
@@ -432,7 +434,8 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
     }
 
 	var _startAfterTypeToSuported = {
-		'lesson': {'min_score': true, 'max_score': true},
+		'lesson-assesment': {'min_score': true, 'max_score': true},
+		'lesson-self': {},
 		'info': {},
 		'link': {},
 		'certificate': {},
@@ -990,6 +993,7 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
 			if (newModule.type == 'rating') ratingAdded = true;
 			if (newModule.type == 'iltsession' && !modeHandler.course.content.blended) modeHandler.course.content.blended = true;
 			if (newModule.type == 'lesson-assesment') newModule.isQuiz = true;
+			if (newModule.type == 'lesson-self') newModule.isQuiz = false;			
 			if (newModule.type == 'lesson-assesment' || newModule.type == 'lesson-self') newModule.type = 'lesson';
 		    modeHandler.course.content.modules.push(newModule);
 		}
@@ -1394,7 +1398,11 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
     	if(!_validateInputs(modeHandler.course, cm)) {
     		return;
     	} else {
-	    	$scope.editorCb.launchModule($event, cm);			
+			if (cm.type == 'lesson-assesment' || cm.type == 'lesson-self') {
+				var tempCm = angular.copy(cm);
+				tempCm.type = 'lesson';
+				$scope.editorCb.launchModule($event, tempCm);
+			}
     	}
     }
     
@@ -1532,7 +1540,7 @@ function StartAfterDlg(nl, nlDlg, $scope, _allModules, cm) {
 			item.canShowMinScore = false;
 			item.canShowMaxScore = false;
 			if(!(item && item.module)) return;
-			if(item.module.type == "lesson" || item.module.type == "rating" || item.module.type == "gate") {
+			if(item.module.type == "lesson-assesment" || item.module.type == "rating" || item.module.type == "gate") {
 				item.canShowMinScore = true;
 				item.canShowMaxScore = true;
 			}

@@ -444,8 +444,8 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlCourseEditor, nlC
             var module = angular.copy(modules[i]);
             var userRecords = [];
             _initModule(module);
-            if (module.type == 'lesson' && modeHandler.mode == MODES.EDIT) 
-                module.type = module.isQuiz ? 'lesson-assesment' : 'lesson-self';
+            if (module.type == 'lesson' && modeHandler.mode == MODES.EDIT)
+                module.type = module.isQuiz ? 'lesson-assesment': 'lesson-self';
             allModules.push(module);
             for(var j=0; j<userRecords.length; j++) {
                 _initModule(userRecords[j]);
@@ -566,7 +566,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlCourseEditor, nlC
         	    $scope.onIconClick(e, cm);
             }
         };
-        return nlCourseEditor.init($scope, modeHandler, _userInfo);
+        return nlCourseEditor.init($scope, modeHandler, _userInfo, MODES);
     }
 
     // One or more of the below panes could be visible at any time
@@ -1501,6 +1501,8 @@ function ScopeExtensions(nl, modeHandler, nlContainer, nlCourseEditor, nlCourseC
         'iltsession': 'ion-map fblue',
         'milestone': 'ion-flag fblue',
         'lesson': 'ion-document-text fblue',
+        'lesson-assesment': 'ion-document-text fblue',
+        'lesson-self': 'ion-document-text fblue',
         'quiz': 'ion-help-circled fblue',
         'info': 'ion-information-circled fblue',
         'certificate': 'ion-android-star fblue',

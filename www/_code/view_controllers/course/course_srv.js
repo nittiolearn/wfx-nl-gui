@@ -18,13 +18,13 @@ function(nl) {
         return nl.fmt2(action.url, urlParams);
     };
 
-	var CURRENT_CONTENT_VERSION=4;    
+	var CURRENT_CONTENT_VERSION=5;
     this.migrateCourse = function(course) {
         if (!course.content) course.content = {};
         if (course.content.contentVersion == CURRENT_CONTENT_VERSION) return course;
         if (!course.content.modules) course.content.modules= [];
         for(var i=0; i<course.content.modules.length; i++) {
-        	var item = course.content.modules[i];
+            var item = course.content.modules[i];
         	if(item.type == 'link' && item.urlParams.indexOf('course_cert') >= 0) {
             	item.type = 'certificate';
             	item.autocomplete =  true;
@@ -37,6 +37,7 @@ function(nl) {
                 item.urlParams = '/default/home/#/course_cert';
                 if (!item.certificate_format) item.certificate_format = 'default';
             }
+            if (item.type == 'lesson' && !('isQuiz' in item)) item.isQuiz = true;
         }
         if (course.content.certificate) delete course.content.certificate;
         course.content.contentVersion = CURRENT_CONTENT_VERSION;
