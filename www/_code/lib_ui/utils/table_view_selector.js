@@ -6,13 +6,112 @@
     //-------------------------------------------------------------------------------------------------
     function module_init() {
         angular.module('nl.ui.table_view_selector', [])
-        .directive('nlTableViewSelector', TableViewSelector);
+        .directive('nlTableViewSelector', TableViewSelector)
+        .service('nlTableViewSelectorSrv', TableViewSelectorSrv);
     }
     
     //-------------------------------------------------------------------------------------------------
-    var TableViewSelector = ['nl', 'nlDlg', 'nlServerApi',
-    function(nl, nlDlg, nlServerApi) {
-        var _groupSettings = new GroupSettings(nl, nlDlg, nlServerApi);
+    var TableViewSelectorSrv = ['nl', 'nlServerApi',
+    function(nl, nlServerApi) {
+        this.init = function() {
+            return this.reload(['nht_views', 'lr_views']);
+        };
+
+        this.reload = function(settings_types) {
+            return nl.q(function(resolve, reject) {
+                nlServerApi.getGroupSettings({settings_types: settings_types}).then(function(data) {
+                    for (var k in data) {
+                        _settings[k] = data[k];
+                        if (!_settings[k]) _settings[k] = _defaultSettings();
+                    }
+                    resolve(true);
+                }, function(err) {
+                    resolve(false);
+                });
+            });
+        };
+
+        /* data = _settings[settingsType] = 
+                    {
+                        "views": [
+                            {
+                                "id": "id_1588757267240_nr58ivn44",
+                                "columns": ["raw_record.typeStr", "raw_record._batchName", "raw_record.subject", "not_after"], 
+                                "name": "custom view 2"
+                            },
+                            {
+                                "id": "id_1582191876044_i3w7jq0d1", 
+                                "columns": ["raw_record.subject", "raw_record._batchName", "raw_record._grade", "repcontent.name"],
+                                "name": "my  custom view"
+                            }
+                        ],
+                        "columnNames": {
+                            "colid": "nameToDISTPLAY"
+                        },
+                        "customColumns": [
+                            {"id": "custom.1589265801125_en9pyu1km", "name": "custom column 1", "formula": "$date_format{'YYYY-MM-DD' , _id.created}"}, 
+                            {"id": "custom.1589265840230_wfanbt209", "name": "custom column 2", "formula": "$date_format{'YY-MM-DD' , _id.created}"}
+                        ]
+                    }
+        */
+       this.update = function(settingsType, info) {
+            _cleanupDeletedCustomColumns(info);
+            return nlServerApi.updateGroupSettings({settings_type: settingsType, info: info})
+            .then(function(data) {
+                _settings[settingsType] = data || _defaultSettings();
+            });
+        };
+
+        this.getViews = function(settingsType) {
+            var data = _settings[settingsType] || {};
+            return data.views || [];
+        };
+
+        this.getColumnNames = function(settingsType) {
+            var data = _settings[settingsType] || {};
+            return data.columnNames || {};
+        };
+
+        this.getCustomColumns = function(settingsType) {
+            var data = _settings[settingsType] || {};
+            return data.customColumns || [];
+        };
+
+        this.updateAllColumnNames = function(settingsType, allColumns) {
+            var updatedColumnNamesDict = this.getColumnNames(settingsType);
+            for(var i=0; i<allColumns.length; i++) {
+                if(allColumns[i].id in updatedColumnNamesDict)
+                    allColumns[i].name = updatedColumnNamesDict[allColumns[i].id] ;
+            }
+        };
+
+        var _settings = {};
+        function _defaultSettings() {
+            return {views: [], columnNames: {}, customColumns: []};
+        }
+
+        function _cleanupDeletedCustomColumns(info) {
+            var customColumnsDict = nl.utils.arrayToDictById(info.customColumns);
+            for (var i=0; i<info.views.length; i++) {
+                var view = info.views[i];
+                var newColumns = [];
+                for (var j=0; j<view.columns.length; j++) {
+                    var colid = view.columns[j];
+                    if (_isCustomColumn(colid) && !(colid in customColumnsDict)) continue;
+                    newColumns.push(colid);
+                };
+                info.views[i].columns = newColumns;
+            }
+        }
+
+        function _isCustomColumn(colid) {
+            return colid.indexOf('custom.') == 0;
+        }
+    }];
+
+    //-------------------------------------------------------------------------------------------------
+    var TableViewSelector = ['nl', 'nlDlg', 'nlTableViewSelectorSrv', 'nlExpressionProcessor',
+    function(nl, nlDlg, nlTableViewSelectorSrv, nlExpressionProcessor) {
         var _defaultOption = {id: 'default', name: 'Default', columns: null};
         var _allOption = {id: null, name: 'All Columns', columns: null};
         var _loading = {id: null, name: 'Loading ...', columns: null};
@@ -30,7 +129,7 @@
                 $scope.selected = option;
                 $scope.isOpen = false;
                 if (!$scope.config || !$scope.config.onViewChange) return;
-                _groupSettings.updateAllColumnNames($scope.config.tableType, $scope.config.allColumns);
+                nlTableViewSelectorSrv.updateAllColumnNames($scope.config.tableType, $scope.config.allColumns);
                 var columns = _validateColumns(option.columns, $scope.config.allColumns);
                 $scope.config.onViewChange(columns);
             };
@@ -38,7 +137,7 @@
             $scope.onCustomizeViews = function() {
                 if (!$scope.config || !$scope.config.canEdit) return;
                 $scope.isOpen = false;
-                var tableViewEditDlg = new TableViewEditDlg(nl, nlDlg, _groupSettings, $scope);
+                var tableViewEditDlg = new TableViewEditDlg(nl, nlDlg, nlExpressionProcessor, nlTableViewSelectorSrv, $scope);
                 tableViewEditDlg.show();
             }
         }
@@ -51,14 +150,13 @@
 
         function _loadOptionsIfNeeded($scope) {
             if (!$scope.config) return;
-            _groupSettings.load($scope.config.tableType, function(options) {
-                if (!options) return _initScope($scope);
-                if ($scope.config.defaultViewColumns) $scope.options = [$scope.config.defaultViewColumns, _allOption];
-                else $scope.options = [_defaultOption, _allOption];
-                for (var i=0; i<options.length; i++) {
-                    $scope.options.push(options[i]);
-                }
-            });
+            var options =  nlTableViewSelectorSrv.getViews($scope.config.tableType);
+            if (!options) return _initScope($scope);
+            if ($scope.config.defaultViewColumns) $scope.options = [$scope.config.defaultViewColumns, _allOption];
+            else $scope.options = [_defaultOption, _allOption];
+            for (var i=0; i<options.length; i++) {
+                $scope.options.push(options[i]);
+            }
         }
 
         function _validateColumns(selectedColumns, allColumns) {
@@ -83,92 +181,32 @@
     }];
 
     //-------------------------------------------------------------------------------------------------
-    function GroupSettings(nl, nlDlg, nlServerApi) {
-        var _settings = {};
-        this.load = function(settingsType, onLoadDoneFn) {
-            if (settingsType in _settings) return onLoadDoneFn(_getViews(settingsType));
-            this.reload(settingsType, onLoadDoneFn, true);
-        };
-
-        this.reload = function(settingsType, onLoadDoneFn, showHideLoadingScreen) {
-            if (showHideLoadingScreen) nlDlg.showLoadingScreen();
-            nlServerApi.getGroupSettings({settings_type: settingsType})
-            .then(function(data) {
-                if (showHideLoadingScreen) nlDlg.hideLoadingScreen();
-                _settings[settingsType] = data || _defaultSettings();
-                onLoadDoneFn(_getViews(settingsType));
-            }, function(err) {
-                onLoadDoneFn(null);
-            });
-        };
-
-        this.getViews = function(settingsType) {
-            return _getViews(settingsType);
-        };
-
-        this.getColumnNames = function(settingsType) {
-            return _getColumnNames(settingsType);
-        };
-
-        this.update = function(settingsType, views, columnNames) {
-            var info = {views: views, columnNames: columnNames};
-            var promise = nlServerApi.updateGroupSettings({settings_type: settingsType, info: info});
-            promise.then(function(data) {
-                _settings[settingsType] = data || _defaultSettings();
-            });
-            return promise;
-        };
-
-        this.updateAllColumnNames = function(settingsType, allColumns) {
-            var updatedColumnNamesDict = _getColumnNames(settingsType);
-            for(var i=0; i<allColumns.length; i++) {
-                if(allColumns[i].id in updatedColumnNamesDict)
-                    allColumns[i].name = updatedColumnNamesDict[allColumns[i].id] ;
-            }
-        }
-
-        function _getViews(settingsType) {
-            var data = _settings[settingsType] || {}; // {views: [{id: xx, name: XX, columns: ['col3', 'col5', 'col1']}, ...]}
-            return data.views || [];
-        }
-
-        function _getColumnNames(settingsType) {
-            var data = _settings[settingsType] || {}; // "columnNames": {"columnid1": "column1NameToDisplay", "columnid2": "column2NameToDisplay", ...},
-            return data.columnNames || {};
-        }
-
-        function _defaultSettings() {
-            return {views: [], columnNames: {}};
-        }
-    }
-
-    //-------------------------------------------------------------------------------------------------
-    function TableViewEditDlg(nl, nlDlg, _groupSettings, $scope) {
+    function TableViewEditDlg(nl, nlDlg, nlExpressionProcessor, nlTableViewSelectorSrv, $scope) {
         var _dlg = nlDlg.create($scope);
         var _deletedViewIds = {};
 
         function _init() {
             _dlg.setCssClass('nl-height-max nl-width-max');
             _dlg.scope.selectedView = null;
-            _dlg.scope.data = {newViewName: '', selectedColumn: null, newName : ''};
-            _dlg.scope.views = angular.copy(_groupSettings.getViews($scope.config.tableType) || []);
-            _dlg.scope.columnNames = angular.copy(_groupSettings.getColumnNames($scope.config.tableType) || {});
+            _dlg.scope.data = {newViewName: '', selectedColumn: null, newName : '', newFormula : ''};
+            _dlg.scope.views = angular.copy(nlTableViewSelectorSrv.getViews($scope.config.tableType));
+            _dlg.scope.columnNames = angular.copy(nlTableViewSelectorSrv.getColumnNames($scope.config.tableType));
+            _dlg.scope.customColumns = angular.copy(nlTableViewSelectorSrv.getCustomColumns($scope.config.tableType));
+            nlTableViewSelectorSrv.updateAllColumnNames($scope.config.tableType, $scope.config.allColumns);
             _dlg.scope.allColumns = angular.copy($scope.config.allColumns);
-            _groupSettings.updateAllColumnNames($scope.config.tableType, $scope.config.allColumns);
             _dlg.scope.selectedColumns = [];
-            _dlg.scope.notSelectedColumns = _dlg.scope.allColumns;
+            _dlg.scope.notSelectedFixedColumns = _dlg.scope.allColumns;
+            _dlg.scope.notSelectedCustomColumns= angular.copy(nlTableViewSelectorSrv.getCustomColumns($scope.config.tableType));
             _updateCurrentColumnSelections();
+            _dlg.scope.getIntelliTextOptions= _getIntelliTextOptions;
         }
 
         function _updateCurrentColumnSelections() {
             _dlg.scope.selectedColumns = [];
-            _dlg.scope.notSelectedColumns = _dlg.scope.allColumns;
+            _dlg.scope.notSelectedFixedColumns = _dlg.scope.allColumns;
             var columnDict = {};
-            for(var i=0; i<_dlg.scope.allColumns.length; i++) {
-                var column = _dlg.scope.allColumns[i];
-                column.selected = false;
-                columnDict[column.id] = column;
-            }
+            _selectionFalseOfColumns(_dlg.scope.allColumns, columnDict);
+            _selectionFalseOfColumns(_dlg.scope.customColumns, columnDict);
             if (!_dlg.scope.selectedView) return;
             var columns = _dlg.scope.selectedView.columns || [];
             for (var i=0; i<columns.length; i++) {
@@ -180,11 +218,49 @@
             _updateNotSelectedColumns();
         }
 
+        function _selectionFalseOfColumns(columns, columnDict) {
+            for(var i=0; i<columns.length; i++) {
+                var column = columns[i];
+                column.selected = false;
+                columnDict[column.id] = column;
+            }
+        }
+
         function _updateNotSelectedColumns() {
-            _dlg.scope.notSelectedColumns = [];
-            for(var i=0; i<_dlg.scope.allColumns.length; i++) {
-                var column = _dlg.scope.allColumns[i];
-                if (!column.selected) _dlg.scope.notSelectedColumns.push(column);
+            _dlg.scope.notSelectedFixedColumns = [];
+            _dlg.scope.notSelectedCustomColumns = [];
+            __updateNotSelectedColumns(_dlg.scope.notSelectedFixedColumns, _dlg.scope.allColumns);
+            __updateNotSelectedColumns(_dlg.scope.notSelectedCustomColumns, _dlg.scope.customColumns);
+        }
+
+        function __updateNotSelectedColumns(updateColumns, allColumns) {
+            for(var i=0; i<allColumns.length; i++) {
+                var column = allColumns[i];
+                if (!column.selected) updateColumns.push(column);
+            }
+        }
+
+        function _getIntelliTextOptions(column) {
+            var ret = {
+                '$':[
+                        { "name": "$date_format - (MM-YY)", "val": "$date_format{'MM-YY', }", "cursor": -1},
+                        { "name": "$date_format - (MMM-YY)", "val": "$date_format{'MMM-YY', }", "cursor": -1},
+                        { "name": "$date_format - (MMMM-YY)", "val": "$date_format{'MMMM-YY', }", "cursor": -1}
+                    ],
+                '_':[]
+            };
+            _modifyIntelliTextOptions(_dlg.scope.allColumns, ret);
+            _modifyIntelliTextOptions(_dlg.scope.customColumns, ret, column);
+            return ret;
+        }
+
+        function _modifyIntelliTextOptions(columns, ret, column) {
+            for(var i=0; i < columns.length; i++) {
+                var m = columns[i];
+                if(column && column.id == m.id) break;
+                var mid = '_id.' + m.id;
+                var n = nl.fmt2('{} ({})', m.name, mid);
+                ret['_'].push({name: n, val: mid, cursor: 0});
             }
         }
 
@@ -208,18 +284,18 @@
             if (!_dlg.scope.data.newViewName) {
                 return nlDlg.popupAlert({title: 'Name needed', template: "Name cannot be empty. Please enter a view name."});
             }
-            var newView = {id: _getUniqueId(), name: _dlg.scope.data.newViewName};
+            var newView = {id: _getUniqueId('id_'), name: _dlg.scope.data.newViewName};
             _dlg.scope.views.push(newView);
             _dlg.scope.data.newViewName = '';
             _dlg.scope.onSelectView(newView);
         };
 
-        function _getUniqueId() {
+        function _getUniqueId(prefix) {
             // Thanks to https://gist.github.com/gordonbrander/2230317
             // Math.random should be unique because of its seeding algorithm.
             // Convert it to base 36 (numbers + letters), and grab the first 9 characters
             // after the decimal.
-            return 'id_' + (new Date()).getTime() + '_' + Math.random().toString(36).substr(2, 9);
+            return prefix + (new Date()).getTime() + '_' + Math.random().toString(36).substr(2, 9);
         }
 
         _dlg.scope.onDeleteView = function(selectedView) {
@@ -240,9 +316,9 @@
             });
         };
 
-        _dlg.scope.onColumnAdd = function(index) {
-            _dlg.scope.renameCol = undefined;
-            var column = _dlg.scope.notSelectedColumns[index];
+        _dlg.scope.onColumnAdd = function(index, type) {
+            _dlg.scope.editColumnClose();
+            var column = (type == 'custom') ? _dlg.scope.notSelectedCustomColumns[index] : _dlg.scope.notSelectedFixedColumns[index];
             if (!column) return;
             column.selected = true;
             _dlg.scope.selectedColumns.push(column);
@@ -250,7 +326,7 @@
         };
 
         _dlg.scope.removeItem = function(index) {
-            _dlg.scope.renameCol = undefined;
+            _dlg.scope.editColumnClose();
             _dlg.scope.selectedColumns[index].selected = false;
             _dlg.scope.selectedColumns.splice(index, 1);
             _updateNotSelectedColumns();
@@ -272,32 +348,131 @@
             _selectedColumns.splice(toIndex, 0, _selectedColumns.splice(fromIndex, 1)[0]);
         };
 
-        _dlg.scope.renameColumn = function(index) {
-            _dlg.scope.data.newName = _dlg.scope.notSelectedColumns[index].name;
+        _dlg.scope.editColumnDetail = function(index, typeOfColumn) {
+            _dlg.scope.columnType = typeOfColumn || '';
+            var column = _dlg.scope.columnType == 'custom' ? _dlg.scope.notSelectedCustomColumns[index] : _dlg.scope.notSelectedFixedColumns[index];
+            if(_dlg.scope.columnType == 'custom') _dlg.scope.data.newFormula = column.formula;
+            _dlg.scope.data.newName = column.name;
             _dlg.scope.renameCol = index;
         };
 
-        _dlg.scope.renameColClose = function(index) {
+        _dlg.scope.editColumnClose = function() {
             _dlg.scope.renameCol = undefined;
+            _dlg.scope.columnType = undefined;
+            _dlg.scope.data.newName = '';
+            _dlg.scope.data.newFormula = '';
         };
 
-        _dlg.scope.renameColDone = function(index) {
-            var _colid = _dlg.scope.notSelectedColumns[index].id;
-            _dlg.scope.notSelectedColumns[index].name = _dlg.scope.data.newName;
-            _dlg.scope.columnNames[_colid] = _dlg.scope.notSelectedColumns[index].name;
-            _dlg.scope.renameCol = undefined;
+        _dlg.scope.editColumnDone = function(index) {
+            var column = _dlg.scope.columnType == 'custom' ? _dlg.scope.notSelectedCustomColumns[index] : _dlg.scope.notSelectedFixedColumns[index];
+            var colid = column.id;
+            if(!_validateColumnName(_dlg.scope.data.newName)) return;
+            if(_dlg.scope.columnType == 'custom') {
+                if(!_validateCustomColumnFormula(_dlg.scope.data.newFormula, index)) return;
+                column.formula = _dlg.scope.data.newFormula;
+                _editCustomFormula(colid, column.formula);
+            }
+            column.name = _dlg.scope.data.newName;
+            _dlg.scope.columnNames[colid] = column.name;
+            _dlg.scope.editColumnClose();
         };
+
+        function _editCustomFormula(colid, formula) {
+            for(var i=0; i< _dlg.scope.customColumns.length; i++) {
+                if(_dlg.scope.customColumns[i].id == colid){
+                    _dlg.scope.customColumns[i].formula = formula;
+                };
+            }
+        }
+
+        _dlg.scope.addCustomColumn = function() {
+            _dlg.scope.editColumnClose();
+            _dlg.scope.columnType = 'addCustomColumn';
+        };
+
+        _dlg.scope.addCustomColumnDone = function() {
+            if(!_validateColumnName(_dlg.scope.data.newName)) return;
+            if(!_validateCustomColumnFormula(_dlg.scope.data.newFormula)) return;
+            var _newCustomColumn = {id: _getUniqueId('custom.'), name: _dlg.scope.data.newName, formula: _dlg.scope.data.newFormula};
+            _dlg.scope.notSelectedCustomColumns.push(_newCustomColumn);
+            _dlg.scope.customColumns.push(_newCustomColumn);
+            _dlg.scope.editColumnClose();
+        };
+
+        _dlg.scope.removeCustomColumn = function(index) {
+            var column = _dlg.scope.columnType == 'custom' ? _dlg.scope.notSelectedCustomColumns[index] : {};
+            var colid = column.id;
+            nlDlg.popupConfirm({title: nl.t('Please confirm'), template: 'Do you want to delete the column : <b>'+ column.name + '</b>'}).then(function(result) {
+	    		if (!result) return;
+                _dlg.scope.notSelectedCustomColumns.splice(index,1);
+                for(var i=0; i< _dlg.scope.customColumns.length; i++) {
+                    if(_dlg.scope.customColumns[i].id == colid) {
+                        _dlg.scope.customColumns.splice(i,1);
+                        break;
+                    }
+                }
+                _dlg.scope.editColumnClose();
+	    	});  
+        };
+        
+        function _getAvpsForCustomFormula(currentCustomColumnId) {
+            var ret = {};
+            _getAvps(ret, _dlg.scope.allColumns);
+            _getAvps(ret, _dlg.scope.customColumns, currentCustomColumnId);
+            return ret;
+        }
+
+        function _getAvps(ret, columns, currentCustomColumnId) {
+            for(var i=0; i<columns.length; i++) {
+                var column = columns[i];
+                if(column.id == currentCustomColumnId) break;
+                var cid = '_id.' + column.id;
+                ret[cid] = null;
+            }
+        }
+
+        function _validateColumnName(value) {
+            if(!value) return _errorMesg('Name is mandatory');
+            if(!(__validateColumnName(value, _dlg.scope.customColumns) && __validateColumnName(value, _dlg.scope.allColumns)))
+                return _errorMesg('Column Name alredy exist')
+            return true;
+        }
+
+        function __validateColumnName(value, columns) {
+            for(var i=0; i< columns.length; i++ ) {
+                var column = columns[i];
+                if(column.name.toLowerCase() == value.toLowerCase()) return false;
+            }
+            return true;
+        }
+
+        function _validateCustomColumnFormula(value, currentCustomColumnId) {
+            if(!value) return _errorMesg('Formula is mandatory');
+            var _idsAboveCustomField = _getAvpsForCustomFormula(currentCustomColumnId);
+            var payload = {strExpression: value, dictAvps: _idsAboveCustomField};
+            nlExpressionProcessor.process(payload);
+            if(payload.error) return _errorMesg(payload.error);
+            return true;
+        }
+
+        function _errorMesg(msg) {
+            nlDlg.popupAlert({title: 'Error', template: msg});
+            return false;
+        }
 
         function _onUpdate(e) {
             _updateCurrentView();
-            var serverViewsOld = _arrayToDict(_groupSettings.getViews($scope.config.tableType));
-            var guiViews = _arrayToDict(_dlg.scope.views);
+            var serverViewsOld = nl.utils.arrayToDictById(nlTableViewSelectorSrv.getViews($scope.config.tableType));
+            var guiViews = nl.utils.arrayToDictById(_dlg.scope.views);
             var updatedColumnNames = _dlg.scope.columnNames;
+            var updatedCustomColumns = _dlg.scope.customColumns;
             var lastSelectedView = angular.copy(_dlg.scope.selectedView);
             nl.timeout(function() {
                 nlDlg.showLoadingScreen();
-                _groupSettings.reload($scope.config.tableType, function(serverViewsLatest) {
-                    serverViewsLatest = _arrayToDict(serverViewsLatest);
+                nlTableViewSelectorSrv.reload([$scope.config.tableType])
+                .then(function() {
+                    var serverViewsLatest = nlTableViewSelectorSrv.getViews($scope.config.tableType);
+                    serverViewsLatest = nl.utils.arrayToDictById(serverViewsLatest);
                     for (var viewId in _deletedViewIds) {
                         if (viewId in serverViewsLatest) delete serverViewsLatest[viewId];
                     }
@@ -310,7 +485,8 @@
                         }
                     }
                     serverViewsLatest = _dictToSortedArray(serverViewsLatest);
-                    _groupSettings.update($scope.config.tableType, serverViewsLatest, updatedColumnNames)
+                    var info = {views: serverViewsLatest, columnNames: updatedColumnNames, customColumns: updatedCustomColumns};
+                    nlTableViewSelectorSrv.update($scope.config.tableType, info)
                     .then(function() {
                         for(var i=0; i<serverViewsLatest.length; i++) {
                             if(lastSelectedView.id == serverViewsLatest[i].id) {
@@ -324,16 +500,8 @@
             });
         }
 
-        function _arrayToDict(arr) {
-            if (!arr) arr = [];
-            var ret = {};
-            for(var i=0; i<arr.length; i++) ret[arr[i].id] = arr[i];
-            return ret;
-        }
-
         function _dictToSortedArray(viewDict) {
-            var ret = [];
-            for (var viewId in viewDict) ret.push(viewDict[viewId]);
+            var ret = nl.utils.dictToList(viewDict);
             ret.sort(function(a, b) {
                 return a.name < b.name ? -1 : a.name > b.name ? 1 : 0;
             })

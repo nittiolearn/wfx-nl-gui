@@ -477,7 +477,7 @@ function(nl, nlDlg, nlConfig, Upload) {
 	// group_settings entities
     //---------------------------------------------------------------------------------------------
 	this.getGroupSettings = function(data) {
-        // data = {settings_type: 'xx'}; returns group_settings object
+        // data = {settings_types: ['nht_views', 'lr_views']}; returns dict of settings_type to group_settings object
         return server.post('_serverapi/group_settings_get.json', data);				
 	};
 

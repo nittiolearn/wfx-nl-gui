@@ -714,13 +714,13 @@ function DbRatingObject(courseAssignment, ctx) {
 
 //-------------------------------------------------------------------------------------------------
 function DbMilestoneObject(courseAssignment, ctx) {
-	var lastMilestonesAcheived = {};
+	var lastMilestonesAchieved = {};
 	function _init() {
 		_dbobj = courseAssignment.milestone ? angular.fromJson(courseAssignment.milestone) : {};
 	}
 
 	this.initLastAchecivedDict = function() {
-		lastMilestonesAcheived = {};
+		lastMilestonesAchieved = {};
 	};
 
 	this.updateItem = function(cm) {
@@ -774,12 +774,12 @@ function DbMilestoneObject(courseAssignment, ctx) {
 			if (!cm.validationErrorMsg) cm.validationErrorMsg = lr.validationErrorMsg || null;
 			return;
 		}
-		if (lr.reached && lr.reached < lastMilestonesAcheived[lr.learnerid]) {
+		if (lr.reached && lr.reached < lastMilestonesAchieved[lr.learnerid]) {
 			lr.validationErrorMsg = nl.fmt2('Milestone achieved on date should be greater than earlier marked date for {}', lr.learnername);
 			if (!cm.validationErrorMsg) cm.validationErrorMsg = lr.validationErrorMsg || null;
 			return;
 		}
-		if (isEtmAsd && lr.reached) lastMilestonesAcheived[lr.learnerid] = lr.reached;
+		if (isEtmAsd && lr.reached) lastMilestonesAchieved[lr.learnerid] = lr.reached;
 		if (lr.milestoneMarked) return;
 		lr.cantProceedMessage = nl.fmt2('{} not reached', nlReportHelper.getItemName(cm));
 		if (!lrBlocker.all) lrBlocker.all = lr;

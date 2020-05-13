@@ -128,7 +128,7 @@ function(nl) {
     }
 
     function _replaceVars(inputStr, payload) {
-        return inputStr.replace(/_id[0-9]+/g, function(varName) {
+        return inputStr.replace(/_id[\.\_a-zA-Z0-9]+/g, function(varName) {
             if (varName in payload['dictAvps']) {
                 var varVal = payload['dictAvps'][varName];
                 if (varVal === null) payload['inputNotDefined'] = true;
@@ -162,6 +162,7 @@ function(nl) {
         '$avg_top(': '_ExpressionProcessor_avg_top(',
         '$nth_min(': '_ExpressionProcessor_nth_min(',
         '$if(': '_ExpressionProcessor_if(',
+        '$date_format(': '_ExpressionProcessor_date_format(',
     };
 
     function _ExpressionProcessor_min(inputArgs) {
@@ -239,6 +240,13 @@ function(nl) {
         _ExpressionProcessor_check(inputArgs, 'if');
         if (inputArgs.length != 3) throw(nl.fmt2('$if(...) function takes 3 arguments, {} given.', inputArgs.length));
         return inputArgs[0] ? inputArgs[1] : inputArgs[2];
+    }
+
+    // TODO-NOW:
+    function _ExpressionProcessor_date_format(inputArgs) {
+        _ExpressionProcessor_check(inputArgs, 'date_format');
+        var ret = inputArgs[0] || 0;
+        return ret;
     }
 
     function _ExpressionProcessor_check(inputArgs, fn) {

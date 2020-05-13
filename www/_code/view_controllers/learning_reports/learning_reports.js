@@ -104,22 +104,22 @@ function($scope, nlLearningReports) {
 	reportView.show();
 }];
 	
-var NlLearningReports = ['nl', 'nlDlg', 'nlRouter', 'nlServerApi', 'nlGroupInfo', 'nlTable', 'nlSendAssignmentSrv',
+var NlLearningReports = ['nl', 'nlDlg', 'nlRouter', 'nlServerApi', 'nlGroupInfo', 'nlTable', 'nlTableViewSelectorSrv', 'nlSendAssignmentSrv',
 'nlLrHelper', 'nlReportHelper', 'nlLrFilter', 'nlLrFetcher', 'nlLrExporter', 'nlLrReportRecords', 'nlLrSummaryStats', 'nlGetManyStore', 
 'nlTreeListSrv', 'nlMarkup', 'nlLrDrilldown', 'nlCourse', 'nlLrNht', 'nlLrUpdateBatchDlg',
-function(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlTable, nlSendAssignmentSrv,
+function(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlTable, nlTableViewSelectorSrv, nlSendAssignmentSrv,
 	nlLrHelper, nlReportHelper, nlLrFilter, nlLrFetcher, nlLrExporter, nlLrReportRecords, nlLrSummaryStats,
 	nlGetManyStore, nlTreeListSrv, nlMarkup, nlLrDrilldown, nlCourse, nlLrNht, nlLrUpdateBatchDlg) {
 	this.create = function($scope, settings) {
 		if (!settings) settings = {};
-		return new NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlTable, nlSendAssignmentSrv,
+		return new NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlTable, nlTableViewSelectorSrv, nlSendAssignmentSrv,
 			nlLrHelper, nlReportHelper, nlLrFilter, nlLrFetcher, nlLrExporter, nlLrReportRecords, nlLrSummaryStats,
 			$scope, settings, nlGetManyStore, nlTreeListSrv, nlMarkup, nlLrDrilldown, nlCourse, nlLrNht, nlLrUpdateBatchDlg);
 	};
 }];
 	
 //-------------------------------------------------------------------------------------------------
-function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlTable, nlSendAssignmentSrv,
+function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlTable, nlTableViewSelectorSrv, nlSendAssignmentSrv,
 			nlLrHelper, nlReportHelper, nlLrFilter, nlLrFetcher, nlLrExporter, nlLrReportRecords, nlLrSummaryStats,
 			$scope, settings, nlGetManyStore, nlTreeListSrv, nlMarkup, nlLrDrilldown, nlCourse, nlLrNht, nlLrUpdateBatchDlg) {
 	var _userInfo = null;
@@ -137,10 +137,12 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			nlGroupInfo.init2().then(function() {
 				nlGroupInfo.update();
 				_groupInfo = nlGroupInfo.get();
-				_recordsFilter = new RecordsFilter(nl, nlDlg, nlLrFilter, nlGroupInfo, _groupInfo, $scope, _onApplyFilter);
-				_init();
-				resolve(true); // Has to be before next line for loading screen
-				_showRangeSelection();
+				nlTableViewSelectorSrv.init().then(function() {
+					_recordsFilter = new RecordsFilter(nl, nlDlg, nlLrFilter, nlGroupInfo, _groupInfo, $scope, _onApplyFilter);
+					_init();
+					resolve(true); // Has to be before next line for loading screen
+					_showRangeSelection();
+				});
 			}, function(err) {
 				resolve(false);
 			});
@@ -649,6 +651,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		columns.push(_col('raw_record.typeStr', 'Type', type != 'user'));
 		columns.push(_col('repcontent.targetLang', 'Language'));
 		_lrColumns = columns;
+		nlTableViewSelectorSrv.updateAllColumnNames('lr_views', _lrColumns);
 		return _lrColumns;
 	}
 	
@@ -1171,7 +1174,6 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 	function _initNhtColumns() {
 		var defColumns = ["cntTotal", "batchStatus", "batchName", "partner", "lob", "trainer", "avgDelay", "batchFirstPass", "batchThroughput"];
 		_nhtColumns = _getNhtColumns();
-		//TODO-NOW: find a solution for renaming initial column (for nht and lr)
 		if (!_selectedNhtColumns) {
 			var nhtColumnsDict = nl.utils.arrayToDictById(_nhtColumns);
 			_selectedNhtColumns = [];
@@ -1297,6 +1299,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		columns.push({id: 'end', name: 'Batch end date', table: false, hidePerc:true, style:'min-width:fit-content'});
 		columns.push({id: 'pending', name: 'Pending', hidePerc:true, table: false, showAlways: true});
 		columns.push({id: 'batchTotal', name: 'Batches', table: false, hidePerc:true, showAlways: true});
+		nlTableViewSelectorSrv.updateAllColumnNames('nht_views', columns);
 		return columns;
 	}
 
