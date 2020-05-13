@@ -464,6 +464,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 	
 	function _someTabDataChanged() {
 		$scope.drillDownInfo = {};
+		$scope.nhtOverviewInfo = {};
 		$scope.nhtRunningInfo = {};
 		$scope.nhtClosedInfo = {};
 		$scope.iltBatchInfo = {};
@@ -542,6 +543,8 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			_updateILTBatch();
 		} else if (tab.id == 'certificate') {
 			_certHandler.updateCertificateTab();
+		} else if (tab.id == 'nhtoverview') {
+			_updateNhtOverviewBatch();
 		}
 	}
 
@@ -867,6 +870,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 				colors: [_nl.colorsCodes.blue2]
 			}],
 			$scope.drillDownInfo = {};
+			$scope.nhtOverviewInfo = {};
 			$scope.nhtRunningInfo = {};
 			$scope.nhtClosedInfo = {};
 			$scope.batchinfo = {};
@@ -1025,6 +1029,84 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 	}
 
 	//---------------------------------------------------------------------------------------------------------------------------------------------------------
+	// NHT overview tab
+	//---------------------------------------------------------------------------------------------------------------------------------------------------------
+	function _updateNhtOverviewBatch() {
+		nlLrNht.clearStatusCountTree();
+		var records = $scope.tabData.records;
+		var reportDict = {};
+		for(var i=0; i<records.length; i++) {
+			var record = records[i];
+			if(!record.raw_record.isNHT) continue;
+			if(!(record.user.user_id in reportDict)) {
+				reportDict[record.user.user_id] = record;
+				continue;
+			}	
+			var oldUserRecord = reportDict[record.user.user_id];
+			if(oldUserRecord.repcontent.updated > record.repcontent.updated) continue;
+			reportDict[record.user.user_id] = record;
+		}
+		for(var key in reportDict) nlLrNht.addCount(reportDict[key]);
+		var overviewStats = nlLrNht.getStatsCountDict();
+
+		$scope.nhtOverviewInfo = {firstInfoGraphics: _getfirstInfoGraphicsArray(overviewStats), 
+								  secondInfoGraphics: _getSecondInfoGraphicsArray(overviewStats),
+								  thirdInfoGraphics: _getThirdInfoGraphicsArray(overviewStats),
+								  fourthInfoGraphics: _getFourthInfoGraphicsArray(overviewStats),
+							      chartData: _getNhtChartData(overviewStats)};
+	};
+
+	function _getNhtChartData(overviewStats) {
+		var allCount = overviewStats[0].cnt;
+		var chartData = [{type: 'doughnut', labels: ['Training', 'OJT', 'Certification', 'Re-certification', 'Closed'], 
+						colors:[_nl.colorsCodes.waiting, _nl.colorsCodes.started, _nl.colorsCodes.done, _nl.colorsCodes.done, _nl.colorsCodes.done], series: [], options: []}];
+			chartData[0].data = [allCount.Training || 0, allCount.OJT || 0, allCount.Certification || 0, allCount['Re-certification'] || 0, allCount.completed];
+		return chartData;
+	}
+
+	function _getfirstInfoGraphicsArray(overviewStats) {
+		var allCount = overviewStats[0].cnt;
+		var ret = [];
+		var str1 = allCount.batchFirstPass || '';
+		if (str1.length > 0) str1 = str1.substring(0, str1.length-2);
+		ret.push({title: 'FPA', perc: str1 || '-', showperc: true});
+		var str2 = allCount.certificationThroughput || '';
+		if (str2.length > 0) str2 = str2.substring(0, str2.length-2);
+		ret.push({title: 'Cert throughput', perc: str2 || '-', showperc: true});
+		var str3 = allCount.batchThroughput || '';
+		if (str3.length > 0) str3 = str3.substring(0, str3.length-2);
+		ret.push({title: 'E2E throughput', perc: str3 || '-', showperc: true});
+		return ret;
+    }
+
+	function _getSecondInfoGraphicsArray(overviewStats) {
+		var allCount = overviewStats[0].cnt;
+		var ret = [];
+		ret.push({title: 'Initial HC', perc: allCount.cntTotal, showperc: false});
+		var currentHc = allCount.cntTotal - (allCount.attrition || 0) - (allCount.failed || 0);
+		ret.push({title: 'Current HC', perc: currentHc || 0, showperc: false});
+		ret.push({title: 'Attrition', perc: allCount.attrition || 0, showperc: false});
+		return ret;
+    }
+
+	function _getThirdInfoGraphicsArray(overviewStats) {
+		var allCount = overviewStats[0].cnt;
+		var ret = [];
+		ret.push({title: 'Training', perc: allCount.Training || 0, showperc: false});
+		ret.push({title: 'OJT', perc: allCount.OJT || 0, showperc: false});
+		ret.push({title: 'Certification', perc: allCount.Certification || 0, showperc: false});
+		return ret;
+    }
+
+	function _getFourthInfoGraphicsArray(overviewStats) {
+		var allCount = overviewStats[0].cnt;
+		var ret = [];
+		ret.push({title: 'Re-certification', perc: allCount['Re-certification'] || 0, showperc: false});
+		ret.push({title: 'certified', perc: allCount.certified || 0, showperc: false});
+		ret.push({title: 'failed', perc: allCount.failed || 0, showperc: false});
+		return ret;
+    }
+	//---------------------------------------------------------------------------------------------------------------------------------------------------------
 	//Running NHT tab
 	//---------------------------------------------------------------------------------------------------------------------------------------------------------
 	var _nhtColumns = null;
@@ -1041,27 +1123,35 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 	function _getNhtTab(isRunning) {
 		_initNhtColumns();
 		nlLrNht.clearStatusCountTree();
-		var records = $scope.tabData.records;
+		var records = angular.copy($scope.tabData.records);
 		var reportDict = {};
 		var transferedOut = {};
 		var batchStatusObj = nlLrReportRecords.getNhtBatchStatus();
-
-		for(var i=0; i<records.length; i++) {
+		var nhtRecords = [];
+		for (var i=0; i<records.length; i++) {
 			var record = records[i];
-			if(!record.raw_record.isNHT) continue;
+			if (record.raw_record.isNHT) nhtRecords.push(record);
+		}
+		nhtRecords.sort(function(a, b) {
+			if(b.repcontent.updated < a.repcontent.updated) return 1;
+			if(b.repcontent.updated > a.repcontent.updated) return -1;
+			if(b.repcontent.updated == a.repcontent.updated) return 0;				
+		});
+
+		for(var i=0; i<nhtRecords.length; i++) {
+			var record = nhtRecords[i];
 			if (record.stats.attritionStr == 'Transfer-Out') {
 				transferedOut[record.user.user_id] = record;
 				continue;
 			}
+			var oldUserRecord = reportDict[record.user.user_id] || null;
+			if(oldUserRecord && oldUserRecord.repcontent.updated > record.repcontent.updated) continue;
 			var msInfo = nlGetManyStore.getBatchMilestoneInfo(record.raw_record, batchStatusObj);
 			if(isRunning && msInfo.batchStatus == 'Closed' ||
-				!isRunning && msInfo.batchStatus != 'Closed') continue;
-			if(!(record.user.user_id in reportDict)) {
-				reportDict[record.user.user_id] = record;
+				!isRunning && msInfo.batchStatus != 'Closed') {
+				if (record.user.user_id in reportDict) delete reportDict[record.user.user_id];
 				continue;
-			}	
-			var oldUserRecord = reportDict[record.user.user_id];
-			if(oldUserRecord.repcontent.updated > record.repcontent.updated) continue;
+			}
 			reportDict[record.user.user_id] = record;
 		}
 		for (var transferid in transferedOut) {
@@ -3228,6 +3318,7 @@ function LrTabManager(tabData, nlGetManyStore, nlLrFilter, _groupInfo) {
 			_addLrTab(tabs);
 		} else {
 			_addOverviewTabs(tabs);
+			_addNhtOverviewTabs(tabs);
 			_addDrilldownTab(tabs);
 			_addNhtTabs(tabs);
 			_addAttendanceTab(tabs);
@@ -3238,6 +3329,8 @@ function LrTabManager(tabData, nlGetManyStore, nlLrFilter, _groupInfo) {
 	};
 
 	function _addOverviewTabs(tabs) {
+		var subtype = nlLrFilter.getRepSubtype();
+		if (subtype == 'nht') return;
 		tabs.push({
 			title : 'Click here to see reports overview',
 			name: 'Overview',
@@ -3246,6 +3339,23 @@ function LrTabManager(tabData, nlGetManyStore, nlLrFilter, _groupInfo) {
 			updated: false,
 			tables: []
 		});
+	}
+
+	function _addNhtOverviewTabs(tabs) {
+		var subtype = nlLrFilter.getRepSubtype();
+		var batchStatus = nlGetManyStore.getNhtBatchStates();
+		if (subtype == 'lms' && !(batchStatus.running || batchStatus.closed)) return;
+		if(batchStatus.running || batchStatus.closed) {
+			tabs.push({
+				title : 'Click here to see NHT reports overview',
+				name: 'NHT overview',
+				icon : 'ion-stats-bars',
+				id: 'nhtoverview',
+				iconsuperscript : 'N',
+				updated: false,
+				tables: []
+			});
+		}
 	}
 
 	function _addDrilldownTab(tabs) {

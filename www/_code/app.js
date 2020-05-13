@@ -294,6 +294,11 @@ var _resp2ColNgClasses = {
     resp2Col80 : {large: 80, medium: 80, small: 1},
 };
 
+var _resp3ColNgClasses = {
+    resp3Col20 : {large: 20, medium: 1, small: 1},
+    resp3Col80 : {large: 80, medium: 1, small: 1},
+}
+
 // The resultant classes applied for a given class
 var _respColClasses = {
     // For number of columns based systems
@@ -320,6 +325,12 @@ function _updateResponsiveColClasses(nl) {
         var columns = nlClassData[nl.rootScope.screenSize];
         nl.rootScope[ngClass] = _respColClasses[columns];
     }
+    for (var ngClass in _resp3ColNgClasses) {
+        var nlClassData = _resp3ColNgClasses[ngClass];
+        var columns = nlClassData[nl.rootScope.screenSize];
+        nl.rootScope[ngClass] = _respColClasses[columns];
+    }
+
 }
 
 //-------------------------------------------------------------------------------------------------

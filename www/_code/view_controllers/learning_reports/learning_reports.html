@@ -224,6 +224,87 @@
                     </div>
                 </div>
             </div>
+            <!-- **************************************************************
+            NHT Overview tab
+            ******************************************************************* -->
+            <div  ng-if='tabData.selectedTab.id == "nhtoverview" && !tabData.processingOnging'
+                class='anim-enter1 flyfrom-l'>
+                <div class='row row-center row-wrap row-justify-evenly padding0 margin0'>
+                    <div ng-class='$root.resp3Col80'>
+                        <div class='row row-center row-wrap row-justify-evenly text-center padding0 margin0'>
+                            <div ng-class='$root.respCol331' 
+                                ng-repeat='overview in nhtOverviewInfo.firstInfoGraphics'>
+                                <div  style='width: 100%'>
+                                    <nl-summary-box number='overview.perc' 
+                                        title='overview.title' 
+                                        class='col padding0 small-summary-box'
+                                        desc='overview.desc'
+                                        showperc='overview.showperc'
+                                        boxclass='"bgdefault"'>
+                                    </nl-summary-box>
+                                </div>
+                            </div>
+                        </div>
+                        <div class='row row-center row-wrap row-justify-evenly text-center padding0 margin0'>
+                            <div ng-class='$root.respCol331' 
+                                ng-repeat='overview in nhtOverviewInfo.secondInfoGraphics'>
+                                <div  style='width: 100%'>
+                                    <nl-summary-box number='overview.perc' 
+                                        title='overview.title' 
+                                        class='col padding0 small-summary-box'
+                                        desc='overview.desc'
+                                        showperc='overview.showperc'
+                                        boxclass='"bgdefault"'>
+                                    </nl-summary-box>
+                                </div>
+                            </div>
+                        </div>
+                        <div class='row row-center row-wrap row-justify-evenly text-center padding0 margin0'>
+                            <div ng-class='$root.respCol331' 
+                                ng-repeat='overview in nhtOverviewInfo.thirdInfoGraphics'>
+                                <div  style='width: 100%'>
+                                    <nl-summary-box number='overview.perc' 
+                                        title='overview.title' 
+                                        class='col padding0 small-summary-box'
+                                        desc='overview.desc'
+                                        showperc='overview.showperc'
+                                        boxclass='"bgdefault"'>
+                                    </nl-summary-box>
+                                </div>
+                            </div>
+                        </div>
+                        <div class='row row-center row-wrap row-justify-evenly text-center padding0 margin0'>
+                            <div ng-class='$root.respCol331' 
+                                ng-repeat='overview in nhtOverviewInfo.fourthInfoGraphics'>
+                                <div  style='width: 100%'>
+                                    <nl-summary-box number='overview.perc' 
+                                        title='overview.title' 
+                                        class='col padding0 small-summary-box'
+                                        desc='overview.desc'
+                                        showperc='overview.showperc'
+                                        boxclass='"bgdefault"'>
+                                    </nl-summary-box>
+                                </div>
+                            </div>
+                        </div>
+                    </div> 
+                    <div ng-class='$root.resp3Col20'
+                        style='min-width: 150px;min-height:150px' class='text-center'>
+                        <div class='fsh5 padding-mid' style='text-align: center'>NHT overview</div>
+                        <div>
+                            <canvas class='chart chart-doughnut'
+                                    height='150'
+                                    width='150'
+                                    chart-data='nhtOverviewInfo.chartData[0].data'
+                                    chart-labels='nhtOverviewInfo.chartData[0].labels'
+                                    chart-colours='nhtOverviewInfo.chartData[0].colors'
+                                    chart-series='nhtOverviewInfo.chartData[0].series'
+                                    chart-options='nhtOverviewInfo.chartData[0].options'>
+                            </canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
 
             <!-- **************************************************************
                 Learning records tab

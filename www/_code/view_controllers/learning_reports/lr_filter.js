@@ -97,6 +97,10 @@ var NlLrFilter = ['nl', 'nlDlg', 'nlRouter', 'nlOuUserSelect', function(nl, nlDl
     	return _data.type;
 	};
 
+	this.getRepSubtype = function() {
+		return _data.repsubtype;
+	};
+
 	this.isDetailedReport = function() {
 		return _data.assignid ? true : false;
 	};
