@@ -1024,9 +1024,9 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
         var modules = report.course.content.modules;
         if (_groupInfo.props.etmAsd && _groupInfo.props.etmAsd.length > 0) {
             var courseAssign = nlGetManyStore.getRecord(nlGetManyStore.key('course_assignment', report.raw_record.assignment));
-            var g_attendance = courseAssign.attendance ? angular.fromJson(courseAssign.attendance) : {};
-                g_attendance = nlCourse.migrateCourseAttendance(g_attendance);
-                modules = nlReportHelper.getAsdUpdatedModules(modules || [], g_attendance);    
+            var attendance = courseAssign.attendance ? angular.fromJson(courseAssign.attendance) : {};
+            attendance = nlCourse.migrateCourseAttendance(attendance);
+            modules = nlReportHelper.getAsdUpdatedModules(modules || [], attendance);    
         }
         for(var i=0; i<modules.length; i++) {
             var item = modules[i]
