@@ -14,7 +14,8 @@ function($stateProvider, $urlRouterProvider) {
 }];
 
 //-------------------------------------------------------------------------------------------------
-var NlLrFilter = ['nl', 'nlDlg', 'nlRouter', 'nlOuUserSelect', function(nl, nlDlg, nlRouter, nlOuUserSelect) {
+var NlLrFilter = ['nl', 'nlDlg', 'nlRouter', 'nlOuUserSelect', 'nlGroupInfo',
+function(nl, nlDlg, nlRouter, nlOuUserSelect, nlGroupInfo) {
 	var _dataDefaults = {
 		type: 'course',		// all|module|course|trainig_kind|module_assign|course_assign|module_self_assign|training_batch|user
 		mode: null,			// cert_report
@@ -186,13 +187,13 @@ var NlLrFilter = ['nl', 'nlDlg', 'nlRouter', 'nlOuUserSelect', function(nl, nlDl
 			dlg.scope.singleSelect = true;
 			var selectedUsers = {};
 			if(dataParam.type == 'user' && dataParam.objid) {
-				var userObj = _groupInfo.derived.keyToUsers[dataParam.objid];
+				var userObj = nlGroupInfo.getKeyToUsers(_groupInfo)[dataParam.objid];
 				var selected = userObj.org_unit+'.'+userObj.id;
 					selectedUsers[selected] = true;	
 			}
 			_ouUserSelector = nlOuUserSelect.getOuUserSelector(dlg.scope, 
 				_groupInfo, {}, {});
-			if(Object.keys(selectedUsers).length != 0) _ouUserSelector.updateSelectedIds(selectedUsers)
+			if(Object.keys(selectedUsers).length != 0) _ouUserSelector.updateSelectedIds(selectedUsers);
 		}
 		
 		dlg.scope.data = {timestamptype: {id: dataParam.timestamptype}, createdfrom: dataParam.createdfrom, createdtill: dataParam.createdtill, filterjson: dataParam.filterjson};
@@ -272,7 +273,7 @@ var NlLrFilter = ['nl', 'nlDlg', 'nlRouter', 'nlOuUserSelect', function(nl, nlDl
 		if (_data.repsubtype) ret.push({field: 'repsubtype', val: _data.repsubtype});
 		if (_data.mode == 'cert_report') ret.push({field: 'completed', val: true});
 		if (!_data.myou) return ret;
-		var me = (_groupInfo.derived.keyToUsers || {})[_userInfo.username];
+		var me = nlGroupInfo.getKeyToUsers(_groupInfo)[_userInfo.username];
 		_myou = me.org_unit;
 		var ouParts = (me.org_unit || '').split('.');
 		if (_data.myoulevel !== null) {

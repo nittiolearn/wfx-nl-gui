@@ -42,14 +42,19 @@ function(nl, nlDlg, nlImporter, nlGroupCache) {
         });
     };
 
-    this.update = function(grpid) {
+    this.update = function(grpid, dontLoadUsers) {
         // Update the complete ou tree without checking for restrict_ou permission
-        _updateBasedonPermAndGroupfeature(null, grpid); 
+        _updateBasedonPermAndGroupfeature(null, grpid, dontLoadUsers); 
     };
 
-    this.updateRestrictedOuTree = function(_userInfo, grpid) {
+    this.updateRestrictedOuTree = function(_userInfo, grpid, dontLoadUsers) {
         // Update only parts of tree (or complete tree) based on permission as per restrict_ou feature 
-        _updateBasedonPermAndGroupfeature(_userInfo, grpid);
+        _updateBasedonPermAndGroupfeature(_userInfo, grpid, dontLoadUsers);
+    };
+
+    this.getKeyToUsers = function(groupInfo, reload) {
+        _initUsernameDict(groupInfo, reload);
+        return groupInfo.derived.keyToUsers;
     };
 
     this.formatUserName = function(uInfo) {
@@ -81,7 +86,7 @@ function(nl, nlDlg, nlImporter, nlGroupCache) {
     	var ret = {};
         var groupInfo = self.get();
         var permissions = groupInfo.props.permissions;
-        var users = groupInfo.derived.keyToUsers;
+        var users = self.getKeyToUsers(groupInfo);
         for(var key in users) {
         	var user = users[key];
         	if (!user.isActive()) continue;
@@ -303,7 +308,7 @@ function(nl, nlDlg, nlImporter, nlGroupCache) {
         self.utIcons[self.UT_NITTIOADMIN] = 'dashboard/defadmin.png';
     }
 
-    function _updateBasedonPermAndGroupfeature(_userInfo, grpid) {
+    function _updateBasedonPermAndGroupfeature(_userInfo, grpid, dontLoadUsers) {
         var groupInfo = self.get(grpid);
         groupInfo.derived = {};
         var myOuList = null;
@@ -321,20 +326,26 @@ function(nl, nlDlg, nlImporter, nlGroupCache) {
         for (var ut in typenames) {
             groupInfo.derived.typeNameToUt[typenames[ut]] = parseInt(ut);
         }
-        // Update login id to user dict
-        var udict = {};
-        for(var uid in groupInfo.users) {
-            var user = self.getUserObj(uid, grpid);
-            if (_canAddUser(user, myOuList)) {
-                udict[user.username] = user;
-            }
-        }
-        groupInfo.derived.keyToUsers = udict;
-        
         // Update ou ids to ous dict
         var ouDict = {};
         _getOusAsDict(groupInfo.outree, ouDict);
         groupInfo.derived.ouDict = ouDict;
+    }
+
+    function _initUsernameDict(groupInfo, reload) {
+        if (!reload && groupInfo.derived.keyToUsers) return;
+        // Update login id to user dict
+        var udict = {};
+        for(var uid in groupInfo.users) {
+            var uInfo = groupInfo.users[uid];
+            if (!uInfo) continue;
+            var org_unit = uInfo[self.ORG_UNIT] || '';
+            if (_canAddUser(org_unit, myOuList)) {
+                var user = self.getUserObj(uid, grpid);
+                udict[user.username] = user;
+            }
+        }
+        groupInfo.derived.keyToUsers = udict;
     }
 
     function _getMyOuList(loggedInUser) {
@@ -348,10 +359,10 @@ function(nl, nlDlg, nlImporter, nlGroupCache) {
         return myOuList2;
     }
 
-    function _canAddUser(user, myOuList) {
+    function _canAddUser(org_unit, myOuList) {
         if (!myOuList) return true;
         for (var i=0; i<myOuList.length; i++) {
-            var ou = user.org_unit.trim();
+            var ou = org_unit.trim();
             var myOu = myOuList[i];
             if (ou == myOu || ou.indexOf(myOu + '.') == 0) return true;
             }

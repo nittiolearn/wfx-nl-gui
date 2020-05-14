@@ -273,7 +273,7 @@ function(nl, nlRouter, nlDlg, $scope, nlGroupInfo, nlImporter, nlProgressLog, nl
 	var REPORT_SCHEMA_VERSION = 116;
 	function _getDbRecord(current, reportRecordInfo, moduleInfos) {
 		var username = reportRecordInfo.user_id + '.' + _groupInfo.grpid;
-        var user = _groupInfo.derived.keyToUsers[username];
+        var user = nlGroupInfo.getKeyToUsers(_groupInfo)[username];
         if (!user) user = _data.pastUserInfosFetcher.getUserObj(null, reportRecordInfo.user_id);
         if (!user && _data.pl) _data.pl.warn(nl.fmt2('User {} not found.', reportRecordInfo.user_id));
 		current.dbRec = {student: user ? user.id : 0, 

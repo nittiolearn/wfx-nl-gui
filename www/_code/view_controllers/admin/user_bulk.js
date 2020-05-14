@@ -62,8 +62,9 @@ function(nl, nlDlg, nlGroupInfo, nlExporter) {
     function _export(groupInfo, grpid, resolve) {
         var headers = nlGroupInfo.getUserTableHeaders(grpid);
         var csv = nlExporter.getCsvString(headers, 'name');
-        for(var key in groupInfo.derived.keyToUsers) {
-            var user = groupInfo.derived.keyToUsers[key];
+        var usersDict = nlGroupInfo.getKeyToUsers(groupInfo);
+        for(var key in usersDict) {
+            var user = usersDict[key];
             var md = _getMetadataDict(grpid, user);
             var row = [];
             for(var i=0; i<headers.length; i++) {
@@ -472,14 +473,15 @@ function(nl, nlDlg, nlGroupInfo, nlImporter, nlProgressLog, nlRouter, nlServerAp
         if (!row.username) row.username = row.user_id + '.' + row.gid;
         row.username = row.username.toLowerCase().trim();
         
+        var usersDict = nlGroupInfo.getKeyToUsers(_groupInfo);
         if (row.op != 'i' && row.op != 'c' && row.op != 'C') {
-            if (!(row.username in _groupInfo.derived.keyToUsers))
+            if (!(row.username in usersDict))
                 _throwException('User id not found', row);
         } else if (row.op == 'c' || row.op == 'C') {
 	        var newUserName = row.user_id + '.' + row.gid;
 	        if (newUserName != row.username)
 	            _throwException('User id and username mis match. Please have same username and user id', row);
-            if (row.username in _groupInfo.derived.keyToUsers)
+            if (row.username in usersDict)
                 _throwException('User id already exists', row);
             if (_pastUserInfosFetcher.getUserObj(null, row.user_id))
                 _throwException('User id already exists in archived list', row);
@@ -487,7 +489,7 @@ function(nl, nlDlg, nlGroupInfo, nlImporter, nlProgressLog, nlRouter, nlServerAp
         if (row.op == 'u' || row.op == 'U') {
             var newUserName = row.user_id + '.' + row.gid;
             if (newUserName != row.username) {
-                if (newUserName in _groupInfo.derived.keyToUsers)
+                if (newUserName in usersDict)
                     _throwException('User id already exists', row);
                 if (_pastUserInfosFetcher.getUserObj(null, row.user_id))
                     _throwException('User id already exists in archived list', row);
@@ -498,7 +500,7 @@ function(nl, nlDlg, nlGroupInfo, nlImporter, nlProgressLog, nlRouter, nlServerAp
             _throwException('Duplicate instances of Key/loginid found', row);
         self.foundKeys[row.username] = true;
 
-        var user = _groupInfo.derived.keyToUsers[row.username];
+        var user = userDict[row.username];
 
         if(user && row.user_id != user.user_id) {
             var newUserId = row.user_id;
@@ -515,7 +517,7 @@ function(nl, nlDlg, nlGroupInfo, nlImporter, nlProgressLog, nlRouter, nlServerAp
         row.usertype = nlGroupInfo.getUtStrToInt(row.usertype, _grpid);
         if (row.usertype ===  null)
             _throwException('Invalid Usertype specified', row);
-        var user = _groupInfo.derived.keyToUsers[row.username];
+        var user = nlGroupInfo.getKeyToUsers(_groupInfo)[row.username];
         if (user) {
             if (user.usertype <= nlGroupInfo.UT_PADMIN && row.usertype != user.usertype) 
                 _throwException('Cannot change usertype of this user', row);
@@ -529,7 +531,7 @@ function(nl, nlDlg, nlGroupInfo, nlImporter, nlProgressLog, nlRouter, nlServerAp
 
     this.validateState = function(row) {
         row.state = parseInt(row.state);
-        var user = _groupInfo.derived.keyToUsers[row.username];
+        var user = nlGroupInfo.getKeyToUsers(_groupInfo)[row.username];
         if (row.state != 0 && row.state != 1)
             _throwException('Invalid state specified', row);
         if (user && user.usertype <= nlGroupInfo.UT_PADMIN && row.state == 0) 
@@ -628,7 +630,7 @@ function(nl, nlDlg, nlGroupInfo, nlImporter, nlProgressLog, nlRouter, nlServerAp
     
     this.validateRealChange = function(row) {
         if (row.ignore || row.op != 'u') return;
-        var user = _groupInfo.derived.keyToUsers[row.username];
+        var user = nlGroupInfo.getKeyToUsers(_groupInfo)[row.username];
         row.id = user.id;
         if (user.user_id != row.user_id) return;
         if (user.state != row.state) return;
@@ -651,14 +653,6 @@ function(nl, nlDlg, nlGroupInfo, nlImporter, nlProgressLog, nlRouter, nlServerAp
 
     this.validateManagers = function(row) {
         if(!row.supervisor) row.supervisor = '';
-        /*
-        if(row.supervisor) {
-	        var username = row.supervisor + '.' + row.gid;
-	        username = username.toLowerCase().trim();
-	        if (!(username in _groupInfo.derived.keyToUsers) && !(username in self.foundKeys))
-	            _throwException('Supervisor is not defined', row);
-        }
-        */
     };
     
     this.validateDoj = function(row) {

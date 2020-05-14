@@ -69,7 +69,7 @@ nlAdminUserExport, nlAdminUserImport, nlTreeSelect, nlOuUserSelect, nlServerApi)
 		        nlGroupInfo.update(_grpid);
 		        _groupInfo = nlGroupInfo.get(_grpid);
 		        if (_groupInfo.cacheDirty) {
-		            var userCnt = Object.keys(_groupInfo.derived.keyToUsers).length;
+		            var userCnt = Object.keys(nlGroupInfo.getKeyToUsers(_groupInfo)).length;
 		            var msg = 'Cache building is in progress. ';
 		            msg += 'You may not be seeing the complete list of users. ';
 		            msg += 'Currently <b>{}</b> users are loaded.';
@@ -178,7 +178,7 @@ nlAdminUserExport, nlAdminUserImport, nlTreeSelect, nlOuUserSelect, nlServerApi)
 
 	function _updateCards() {
 		var cards = [];
-		var users = _groupInfo.derived.keyToUsers || {};
+        var users = nlGroupInfo.getKeyToUsers(_groupInfo);
 		for (var key in users) {
 			var card = _createCard(users[key]);
 			cards.push(card);
@@ -270,7 +270,7 @@ nlAdminUserExport, nlAdminUserImport, nlTreeSelect, nlOuUserSelect, nlServerApi)
         var user = null;
 
         if (card) {
-            var users = _groupInfo.derived.keyToUsers || {};
+            var users = nlGroupInfo.getKeyToUsers(_groupInfo);
             user = users[card.username];
             dlg.scope.dlgTitle = nl.t('Modify user: {}', user.username);
             dlg.scope.isModify = true;
