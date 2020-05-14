@@ -819,7 +819,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		$scope.noDataFound = (anyRecord == null);
 		_someTabDataChanged();
 		var tab = $scope.tabData.selectedTab;
-		if (tab.id == 'nhtclosed' || tab.id == 'nhtrunning' || tab.id == 'iltbatchdata') tab.updated = false;
+		if (tab.id == 'nhtclosed' || tab.id == 'nhtrunning' || tab.id == 'iltbatchdata' || tab.id == 'nhtoverview') tab.updated = false;
 		_updateCurrentTab(avoidFlicker, true);
 	}
 
@@ -3339,9 +3339,10 @@ function LrTabManager(tabData, nlGetManyStore, nlLrFilter, _groupInfo) {
 		if (subtype == 'nht') return;
 		tabs.push({
 			title : 'Click here to see reports overview',
-			name: 'Overview',
+			name: 'Learning Overview',
 			icon : 'ion-stats-bars',
 			id: 'overview',
+			iconsuperscript : 'L',
 			updated: false,
 			tables: []
 		});
@@ -3354,10 +3355,10 @@ function LrTabManager(tabData, nlGetManyStore, nlLrFilter, _groupInfo) {
 		if(batchStatus.running || batchStatus.closed) {
 			tabs.push({
 				title : 'Click here to see NHT reports overview',
-				name: 'NHT overview',
+				name: 'Training Overview',
 				icon : 'ion-stats-bars',
 				id: 'nhtoverview',
-				iconsuperscript : 'N',
+				iconsuperscript : 'T',
 				updated: false,
 				tables: []
 			});
@@ -3383,7 +3384,7 @@ function LrTabManager(tabData, nlGetManyStore, nlLrFilter, _groupInfo) {
 		if(batchStatus.running) {
 			tabs.push({
 				title : 'Click here to view running batch summary',
-				name: 'Running NHT Batches',
+				name: 'Running Training Batches',
 				icon : 'ion-filing',
 				iconsuperscript : 'R',
 				id: 'nhtrunning',
@@ -3394,7 +3395,7 @@ function LrTabManager(tabData, nlGetManyStore, nlLrFilter, _groupInfo) {
 		if (batchStatus.closed) {
 			tabs.push({
 				title : 'Click here to view closed batch summary',
-				name: 'Closed NHT Batches',
+				name: 'Closed Training Batches',
 				icon : 'ion-filing',
 				iconsuperscript : 'C',
 				id: 'nhtclosed',

@@ -30,6 +30,9 @@ function(nl, nlDlg) {
                 var isOverflowing = element[0].clientWidth < element[0].scrollWidth;
                 return isOverflowing;
             };
+            $scope.sortRows = function(colid, sortOrder) {
+                $scope.info.sortRows($scope,colid, sortOrder);
+            };
         }
     };
 }];
@@ -77,6 +80,8 @@ function(nl, nlDlg, $templateCache) {
         _internal: {searcher: {}, recs: [], visibleRecs: []}
     }
     */
+
+    var self = this;
     this.initTableObject = function(info) {
         if (!info) throw('table info object error');
         for (var i=0; i<info.columns.length; i++) {
@@ -117,6 +122,7 @@ function(nl, nlDlg, $templateCache) {
             visibleRecs: [],
         };
         info.onItemClick = _onItemClickHandler;
+        info.sortRows = _sortRows;
         
         info._internal.searcher = new Searcher(nl, nlDlg, info);
     };
@@ -176,6 +182,53 @@ function(nl, nlDlg, $templateCache) {
             var txt = icon + item.txt;
             nl.fmt.addAvp(record.avps, col.name, txt);
         }
+    }
+
+    var _sortObj = {colid: null, order: null};
+    function _sortRows($scope,colid, sortOrder) {
+        if(!(colid)) return;
+        _sortObj.colid = colid;
+        _sortObj.order = sortOrder;
+        var info = $scope.info;
+
+        info.sort = {
+            active : sortOrder ? "increase" : "decrease",
+            colid : colid
+        };
+
+        var records = info._internal.recs;
+        records.sort(_sortCompareFn);
+        _sortObj = {colid: null, order: null};
+        self.updateTableObject(info, records);
+    }   
+
+    function _sortCompareFn(a, b) {
+        var colid= _sortObj.colid;
+        var aVal = _getValue(colid, a);
+        var bVal = _getValue(colid, b);
+      
+        if (_sortObj.order) return _compare(aVal,bVal);
+        else return _compare(bVal, aVal);
+    }
+
+    function _compare(a,b) {
+        if (a > b) return 1;
+        else if (a < b) return -1;
+        return 0;
+    }
+
+    function _getValue(colid, item) {
+        var itemVal = item[colid];
+        if(colid.indexOf('.') != -1) itemVal = _getAttrValue(colid.split('.'), item);
+        itemVal = itemVal.toUpperCase();
+        return itemVal
+    }
+
+    function  _getAttrValue(attrAsArray, item) {
+        if (!item || attrAsArray.length == 0) return '';
+        var attrValue = item[attrAsArray[0]];
+        if(attrAsArray.length == 1) return attrValue;
+        return _getAttrValue(attrAsArray.slice(1), attrValue);
     }
 }];
 
