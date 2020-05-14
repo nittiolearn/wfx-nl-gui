@@ -128,6 +128,9 @@ function() {
             $scope.onDetailsClick = function(e, item, columns) {
                 $scope.$parent.$parent.onDetailsClick(e, item, columns);
             };
+            $scope.sortRows = function(colid) {
+                $scope.$parent.$parent.sortRows(colid);
+            };
         }
     }
 }];

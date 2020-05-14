@@ -385,6 +385,37 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		}
 	};
 
+	$scope.sortRows = function(colid) {
+		if(!colid) return;
+		var tabData = $scope.tabData;
+		var tab = tabData.selectedTab;
+		var nht = {};
+		if (tab.id == 'nhtrunning') nht = $scope.nhtRunningInfo;
+		else if (tab.id == 'nhtclosed') nht = $scope.nhtClosedInfo;
+
+		nht.sort = nht.sort || {colid: null, ascending: true};
+		var sortObj = nht.sort;
+		if (colid == sortObj.colid) {
+            sortObj.ascending = sortObj.ascending ? false : true;
+        } else {
+            sortObj.colid = colid;
+            sortObj.ascending = true;
+		}
+
+		nht.rows.sort(function(a, b) {
+			var aVal = a[colid] || "";
+			var bVal = b[colid] || "";
+			if (sortObj.ascending) return _compare(aVal, bVal);
+			else return _compare(bVal, aVal);
+        });
+	}
+
+    function _compare(a,b) {
+        if (a > b) return 1;
+        else if (a < b) return -1;
+        return 0;
+    }
+
 	$scope.getMaxVisibleString = function() {
 		var posStr = '';
 		var records = $scope.tabData.records || [];
@@ -1126,7 +1157,6 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 	}
 
 	function _getNhtTab(isRunning) {
-		// TODO-NOW: Sorting of NHT columns is pending
 		_initNhtColumns();
 		nlLrNht.clearStatusCountTree();
 		var records = angular.copy($scope.tabData.records);

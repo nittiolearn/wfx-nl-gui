@@ -814,7 +814,7 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
         var firstMilestoneItem = _getFirstMilestoneElem();
         if (!firstMilestoneItem) return;
         var groupMsObj = _grpMilestoneDict[firstMilestoneItem.milestone_type];
-        if (groupMsObj.batch_status) ret.status = groupMsObj.batch_status;
+        if (groupMsObj && groupMsObj.batch_status) ret.status = groupMsObj.batch_status;
     }
 
     function _getFirstMilestoneElem() {
