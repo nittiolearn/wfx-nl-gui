@@ -81,7 +81,7 @@
                                 <i class='icon ion-ios-close nl-dlg-field-icon padding-mid-left nl-link-text' ng-click='editColumnClose()' 
                                     ng-show="renameCol == $index && columnType == 'fixed'"></i>
                                 <i class='icon ion-edit padding-mid-x nl-link-text' ng-click="editColumnDetail($index, 'fixed')" 
-                                    ng-show="renameCol == undefined || renameCol != $index || columnType != 'fixed'"></i>
+                                    ng-show="isGrpAdmin && (renameCol == undefined || renameCol != $index || columnType != 'fixed')"></i>
                             </div>
                         </div>
                     </div>
@@ -108,7 +108,7 @@
                             </div>
                             <div class="nl-text-right">
                                 <i class='icon ion-edit padding-mid-x nl-link-text' ng-click="editColumnDetail($index, 'custom')" 
-                                    ng-show="renameCol == undefined || renameCol != $index || columnType != 'custom'"></i>
+                                    ng-show="isGrpAdmin && (renameCol == undefined || renameCol != $index || columnType != 'custom')"></i>
                             </div>
                         </div>
                         <div class='row row-center margin0 padding0' ng-if="renameCol == $index && columnType == 'custom' ">
@@ -145,7 +145,7 @@
                         </div>
                     </div>
 
-                    <div class="padding-mid-top">
+                    <div class="padding-mid-top" ng-if='isGrpAdmin'>
                         <div class="col padding0-left fbold">
                             <span class='add-new-button-style nl-link-text2 bgblue fbold'
                                 ng-click="addCustomColumn()">

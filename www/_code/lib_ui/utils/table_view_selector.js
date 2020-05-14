@@ -13,9 +13,15 @@
     //-------------------------------------------------------------------------------------------------
     var TableViewSelectorSrv = ['nl', 'nlServerApi',
     function(nl, nlServerApi) {
-        this.init = function() {
+        this.init = function(userInfo) {
+            _grpAdmin = ((userInfo || {}).permissions || {}).nittio_support || false;
             return this.reload(['nht_views', 'lr_views']);
         };
+
+        var _grpAdmin = false;
+        this.isGrpAdmin = function() {
+            return _grpAdmin;
+        }; 
 
         this.reload = function(settings_types) {
             return nl.q(function(resolve, reject) {
@@ -130,8 +136,9 @@
                 $scope.isOpen = false;
                 if (!$scope.config || !$scope.config.onViewChange) return;
                 nlTableViewSelectorSrv.updateAllColumnNames($scope.config.tableType, $scope.config.allColumns);
-                var columns = _validateColumns(option.columns, $scope.config.allColumns);
-                $scope.config.onViewChange(columns);
+                var selectedCustColumns = {};
+                var selectedColumns = _getColumnsSelectedInView(option.columns, $scope.config.allColumns, selectedCustColumns);
+                $scope.config.onViewChange(selectedColumns, selectedCustColumns);
             };
 
             $scope.onCustomizeViews = function() {
@@ -159,13 +166,17 @@
             }
         }
 
-        function _validateColumns(selectedColumns, allColumns) {
+        function _getColumnsSelectedInView(selectedColumns, allColumns, selectedCustColumns) {
             if (!selectedColumns) return allColumns;
-            var allColumnIds = {};
-            for(var i=0; i<allColumns.length; i++) allColumnIds[allColumns[i].id] = allColumns[i];
+            var allColumnIds = nl.utils.arrayToDictById(allColumns);
+            var custColsDict = nl.utils.arrayToDictById(nlTableViewSelectorSrv.getCustomColumns(scope.config.tableType));
             var ret = [];
             for(var i=0; i<selectedColumns.length; i++) {
-                if (selectedColumns[i] in allColumnIds) ret.push(allColumnIds[selectedColumns[i]]);
+                var colid = selectedColumns[i];
+                if (colid in custColsDict) {
+                    ret.push(custColsDict[colid]);
+                    selectedCustColumns[colid] = true;
+                } else if (colid in allColumnIds) ret.push(allColumnIds[colid]);
             }
             return ret;
         }
@@ -188,6 +199,7 @@
         function _init() {
             _dlg.setCssClass('nl-height-max nl-width-max');
             _dlg.scope.selectedView = null;
+            _dlg.scope.isGrpAdmin = nlTableViewSelectorSrv.isGrpAdmin();
             _dlg.scope.data = {newViewName: '', selectedColumn: null, newName : '', newFormula : ''};
             _dlg.scope.views = angular.copy(nlTableViewSelectorSrv.getViews($scope.config.tableType));
             _dlg.scope.columnNames = angular.copy(nlTableViewSelectorSrv.getColumnNames($scope.config.tableType));

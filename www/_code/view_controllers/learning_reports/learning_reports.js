@@ -137,7 +137,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			nlGroupInfo.init2().then(function() {
 				nlGroupInfo.update();
 				_groupInfo = nlGroupInfo.get();
-				nlTableViewSelectorSrv.init().then(function() {
+				nlTableViewSelectorSrv.init(userInfo).then(function() {
 					_recordsFilter = new RecordsFilter(nl, nlDlg, nlLrFilter, nlGroupInfo, _groupInfo, $scope, _onApplyFilter);
 					_init();
 					resolve(true); // Has to be before next line for loading screen
@@ -561,7 +561,8 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			tableType: 'lr_views',
 			allColumns: _getLrColumns(),
 			defaultViewColumns: {id: 'default', name: 'Default', columns: _defaultLrCol},
-			onViewChange: function(selectedColumns) {
+			onViewChange: function(selectedColumns, selectedCustColumns) {
+				// TODO-NOW: handle selectedCustColumns
 				_lastSelectedCols = selectedColumns;
 				_lrSelectedColumns(selectedColumns);
 				nlTable.updateTableObject($scope.utable, tabData.records);
@@ -613,7 +614,8 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		columns.push(_col('stats.nMaxScore', 'Maximum Score'));
 		columns.push(_col('stats.nScore', 'Achieved Score'));
 		
-		for(var i=0; i< _customScoresHeader.length; i++) columns.push(_col('stats.customScoreDict.' + _customScoresHeader[i], _customScoresHeader[i]));
+		for(var i=0; i< _customScoresHeader.length; i++)
+			columns.push(_col('stats.customScoreDict.' + _customScoresHeader[i], _customScoresHeader[i]));
 		columns.push(_col('quizscore', 'Individual quiz scores (names and scores)', false, null, quizArray));
 		columns.push(_col('stats.feedbackScore', 'Feedback score'));
 		columns.push(_col('stats.timeSpentMinutes', 'Online Time Spent (minutes)'));
@@ -1189,7 +1191,8 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
             tableType: 'nht_views',
 			allColumns: _nhtColumns,
 			defaultViewColumns: {id: 'default', name: 'Default', columns: defColumns},
-            onViewChange: function(selectedColumns) {
+            onViewChange: function(selectedColumns, selectedCustColumns) {
+				// TODO-NOW: handle selectedCustColumns
 				_nhtColumnsSelectedInView = {};
 				_selectedNhtColumns = selectedColumns;
 				for(var i=0; i<selectedColumns.length; i++) {
@@ -1615,7 +1618,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		}
 
 		if(!_selectedLrCols) {
-			_lrSelectedColumns(_defaultLrCol)
+			_lrSelectedColumns(_defaultLrCol);
 		}
 		var _defcolumns = [];
 		for(var i=0; i<_selectedLrCols.length; i++) {
