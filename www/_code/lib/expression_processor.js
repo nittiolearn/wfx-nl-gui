@@ -242,7 +242,7 @@ function(nl) {
         return inputArgs[0] ? inputArgs[1] : inputArgs[2];
     }
 
-    // TODO-NOW:
+    // TODO-NOW: Implement custom formula functions for reports
     function _ExpressionProcessor_date_format(inputArgs) {
         _ExpressionProcessor_check(inputArgs, 'date_format');
         var ret = inputArgs[0] || 0;

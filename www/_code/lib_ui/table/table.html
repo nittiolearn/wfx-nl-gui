@@ -17,16 +17,14 @@
     <tr class='header {{info.styleHeader}}'>
         <td ng-repeat='col in info.columns track by $index'
             ng-show='col.canShow'
-            class='{{col.styleTd}}'>{{col.name}}
-            <!-- TODO-NOW: work on the ng-show of the 2 icons -->
-            <i  class="icon ion-arrow-up-b nl-dlg-field-icon"
-                ng-show="info.sort.active != 'decrease' && info.sort.colid == col.id"
-                ng-class="{'fblue2': info.sort.colid == col.id}"
-                ng-click='sortRows(col.id, false)'></i>
-            <i  class="icon ion-arrow-down-b nl-dlg-field-icon" 
-                ng-show="info.sort.active != 'increase' || !info.sort.colid || info.sort.colid != col.id"
-                ng-class="{'fblue2': info.sort.colid == col.id && info.sort.active}"
-                ng-click='sortRows(col.id, true)'></i>
+            ng-click='sortRows(col.id)'
+            class='nl-link-text {{col.styleTd}}'>{{col.name}}
+            <i  class="icon ion-arrow-down-b nl-dlg-field-icon fgrey"
+                ng-show="!info.sort || info.sort.colid != col.id"></i>
+            <i  class="icon ion-arrow-down-b nl-dlg-field-icon"
+                ng-show="info.sort && info.sort.colid == col.id && info.sort.ascending"></i>
+            <i  class="icon ion-arrow-up-b nl-dlg-field-icon" 
+                ng-show="info.sort && info.sort.colid == col.id && !info.sort.ascending"></i>
         </td>
     </tr>
     <tr ng-show='info._internal.summaryRow'

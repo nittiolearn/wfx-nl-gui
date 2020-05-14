@@ -30,8 +30,8 @@ function(nl, nlDlg) {
                 var isOverflowing = element[0].clientWidth < element[0].scrollWidth;
                 return isOverflowing;
             };
-            $scope.sortRows = function(colid, sortOrder) {
-                $scope.info.sortRows($scope,colid, sortOrder);
+            $scope.sortRows = function(colid) {
+                $scope.info.sortRows($scope,colid);
             };
         }
     };
@@ -127,7 +127,8 @@ function(nl, nlDlg, $templateCache) {
         info._internal.searcher = new Searcher(nl, nlDlg, info);
     };
 
-    this.updateTableObject = function(info, records, startpos) {
+    this.updateTableObject = function(info, records, startpos, resetSort) {
+        if (resetSort) _initSortObject(info);
         _updateTableColumns(info);
         info._internal.recs = records;
         info._internal.searcher.initStartPos(startpos);
@@ -184,32 +185,30 @@ function(nl, nlDlg, $templateCache) {
         }
     }
 
-    var _sortObj = {colid: null, order: null};
-    function _sortRows($scope,colid, sortOrder) {
+    function _initSortObject(info) {
+        info.sort = {colid: null, ascending: true};
+    }
+
+    function _sortRows($scope, colid) {
         if(!(colid)) return;
-        _sortObj.colid = colid;
-        _sortObj.order = sortOrder;
         var info = $scope.info;
-
-        info.sort = {
-            active : sortOrder ? "increase" : "decrease",
-            colid : colid
-        };
-
+        var sortObj = info.sort;
+        if (colid == sortObj.colid) {
+            sortObj.ascending = sortObj.ascending ? false : true;
+        } else {
+            sortObj.colid = colid;
+            sortObj.ascending = true;
+        }
         var records = info._internal.recs;
-        records.sort(_sortCompareFn);
-        _sortObj = {colid: null, order: null};
+        records.sort(function(a, b) {
+            var colid= sortObj.colid;
+            var aVal = _getValue(colid, a);
+            var bVal = _getValue(colid, b);
+            if (sortObj.ascending) return _compare(aVal, bVal);
+            else return _compare(bVal, aVal);
+        });
         self.updateTableObject(info, records);
     }   
-
-    function _sortCompareFn(a, b) {
-        var colid= _sortObj.colid;
-        var aVal = _getValue(colid, a);
-        var bVal = _getValue(colid, b);
-      
-        if (_sortObj.order) return _compare(aVal,bVal);
-        else return _compare(bVal, aVal);
-    }
 
     function _compare(a,b) {
         if (a > b) return 1;
@@ -221,7 +220,7 @@ function(nl, nlDlg, $templateCache) {
         var itemVal = item[colid];
         if(colid.indexOf('.') != -1) itemVal = _getAttrValue(colid.split('.'), item);
         itemVal = itemVal.toUpperCase();
-        return itemVal
+        return itemVal;
     }
 
     function  _getAttrValue(attrAsArray, item) {

@@ -555,7 +555,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 	var _lastSelectedCols = null;
 	function _updateLearningRecordsTab(tabData) {
 		_lrSelectedColumns(_lastSelectedCols || _defaultLrCol);
-		nlTable.updateTableObject($scope.utable, tabData.records);
+		nlTable.updateTableObject($scope.utable, tabData.records, 0, true);
 		$scope.lrViewSelectorConfig = {
 			canEdit: nlRouter.isPermitted(_userInfo, 'assignment_manage'),
 			tableType: 'lr_views',
@@ -565,7 +565,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 				// TODO-NOW: handle selectedCustColumns
 				_lastSelectedCols = selectedColumns;
 				_lrSelectedColumns(selectedColumns);
-				nlTable.updateTableObject($scope.utable, tabData.records);
+				nlTable.updateTableObject($scope.utable, tabData.records, 0, true);
 			}
 		};
 	}
@@ -1126,6 +1126,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 	}
 
 	function _getNhtTab(isRunning) {
+		// TODO-NOW: Sorting of NHT columns is pending
 		_initNhtColumns();
 		nlLrNht.clearStatusCountTree();
 		var records = angular.copy($scope.tabData.records);

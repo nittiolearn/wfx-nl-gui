@@ -137,7 +137,8 @@
                 if (!$scope.config || !$scope.config.onViewChange) return;
                 nlTableViewSelectorSrv.updateAllColumnNames($scope.config.tableType, $scope.config.allColumns);
                 var selectedCustColumns = {};
-                var selectedColumns = _getColumnsSelectedInView(option.columns, $scope.config.allColumns, selectedCustColumns);
+                var selectedColumns = _getColumnsSelectedInView($scope.config.tableType, option.columns,
+                    $scope.config.allColumns, selectedCustColumns);
                 $scope.config.onViewChange(selectedColumns, selectedCustColumns);
             };
 
@@ -166,10 +167,10 @@
             }
         }
 
-        function _getColumnsSelectedInView(selectedColumns, allColumns, selectedCustColumns) {
+        function _getColumnsSelectedInView(tableType, selectedColumns, allColumns, selectedCustColumns) {
             if (!selectedColumns) return allColumns;
             var allColumnIds = nl.utils.arrayToDictById(allColumns);
-            var custColsDict = nl.utils.arrayToDictById(nlTableViewSelectorSrv.getCustomColumns(scope.config.tableType));
+            var custColsDict = nl.utils.arrayToDictById(nlTableViewSelectorSrv.getCustomColumns(tableType));
             var ret = [];
             for(var i=0; i<selectedColumns.length; i++) {
                 var colid = selectedColumns[i];
