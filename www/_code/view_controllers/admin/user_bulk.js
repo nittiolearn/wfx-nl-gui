@@ -62,7 +62,7 @@ function(nl, nlDlg, nlGroupInfo, nlExporter) {
     function _export(groupInfo, grpid, resolve) {
         var headers = nlGroupInfo.getUserTableHeaders(grpid);
         var csv = nlExporter.getCsvString(headers, 'name');
-        var usersDict = nlGroupInfo.getKeyToUsers(groupInfo);
+        var usersDict = nlGroupInfo.getKeyToUsers(groupInfo, grpid);
         for(var key in usersDict) {
             var user = usersDict[key];
             var md = _getMetadataDict(grpid, user);
@@ -473,7 +473,7 @@ function(nl, nlDlg, nlGroupInfo, nlImporter, nlProgressLog, nlRouter, nlServerAp
         if (!row.username) row.username = row.user_id + '.' + row.gid;
         row.username = row.username.toLowerCase().trim();
         
-        var usersDict = nlGroupInfo.getKeyToUsers(_groupInfo);
+        var usersDict = nlGroupInfo.getKeyToUsers(_groupInfo, _grpid);
         if (row.op != 'i' && row.op != 'c' && row.op != 'C') {
             if (!(row.username in usersDict))
                 _throwException('User id not found', row);
@@ -517,7 +517,7 @@ function(nl, nlDlg, nlGroupInfo, nlImporter, nlProgressLog, nlRouter, nlServerAp
         row.usertype = nlGroupInfo.getUtStrToInt(row.usertype, _grpid);
         if (row.usertype ===  null)
             _throwException('Invalid Usertype specified', row);
-        var user = nlGroupInfo.getKeyToUsers(_groupInfo)[row.username];
+        var user = nlGroupInfo.getKeyToUsers(_groupInfo, _grpid)[row.username];
         if (user) {
             if (user.usertype <= nlGroupInfo.UT_PADMIN && row.usertype != user.usertype) 
                 _throwException('Cannot change usertype of this user', row);
@@ -531,7 +531,7 @@ function(nl, nlDlg, nlGroupInfo, nlImporter, nlProgressLog, nlRouter, nlServerAp
 
     this.validateState = function(row) {
         row.state = parseInt(row.state);
-        var user = nlGroupInfo.getKeyToUsers(_groupInfo)[row.username];
+        var user = nlGroupInfo.getKeyToUsers(_groupInfo, _grpid)[row.username];
         if (row.state != 0 && row.state != 1)
             _throwException('Invalid state specified', row);
         if (user && user.usertype <= nlGroupInfo.UT_PADMIN && row.state == 0) 
@@ -630,7 +630,7 @@ function(nl, nlDlg, nlGroupInfo, nlImporter, nlProgressLog, nlRouter, nlServerAp
     
     this.validateRealChange = function(row) {
         if (row.ignore || row.op != 'u') return;
-        var user = nlGroupInfo.getKeyToUsers(_groupInfo)[row.username];
+        var user = nlGroupInfo.getKeyToUsers(_groupInfo, _grpid)[row.username];
         row.id = user.id;
         if (user.user_id != row.user_id) return;
         if (user.state != row.state) return;

@@ -225,13 +225,12 @@ function(nl, nlRouter, nlDlg, nlGroupInfo, nlLrHelper, nlLrFilter, nlGetManyStor
     }
     
     function _getStudentFromReport(report, repcontent) {
-        var user = nlGroupInfo.getUserObj(''+report.student);
-        if (!user && _pastUserInfosFetcher.canFetchMore()) {
+        var user = nlGroupInfo.getCachedUserObjWithMeta(report.student,repcontent.studentname,
+             _pastUserInfosFetcher);
+        if (!user) {
             _postProcessRecords.push(report);
             return null;
         }
-        if (!user) user = _pastUserInfosFetcher.getUserObj(report.student, repcontent.studentname);
-        if (!user) user = nlGroupInfo.getDefaultUser(repcontent.studentname || '');
         return user;
     }
     
@@ -355,16 +354,15 @@ function(nl, nlRouter, nlDlg, nlGroupInfo, nlLrHelper, nlLrFilter, nlGetManyStor
         } else {
             report.hideDeleteButton = true;
         }
-        var usermd = nlLrHelper.getMetadataDict(user);
         if (user.mobile) {
             if (user.mobile.indexOf('m:') == 0) user.mobile = user.mobile.substring(2);
-        } else if (usermd.meta_mobile) {
-            user.mobile = usermd.meta_mobile;
+        } else if (user.md.meta_mobile) {
+            user.mobile = user.md.meta_mobile;
         }
         if (_qsMaxLen < stainf.quizScore.length) _qsMaxLen = stainf.quizScore.length;
         var ret = {raw_record: report, repcontent: repcontent, course: course, user: user, orgparts: _updateOrgByParts(user),
             quizscore: stainf.quizScore,
-            usermd: nlLrHelper.getMetadataDict(user), stats: stats,
+            usermd: user.md, stats: stats,
             created: nl.fmt.fmtDateDelta(report.created, null, 'minute'),
             updated: nl.fmt.fmtDateDelta(report.updated, null, 'minute'),
             not_before: report.not_before ? nl.fmt.fmtDateDelta(report.not_before, null, 'minute') : '',
@@ -477,14 +475,13 @@ function(nl, nlRouter, nlDlg, nlGroupInfo, nlLrHelper, nlLrFilter, nlGetManyStor
         } else {
             report.hideDeleteButton = true;
         }
-        var usermd = nlLrHelper.getMetadataDict(user);
         if (user.mobile) {
             if (user.mobile.indexOf('m:') == 0) user.mobile = user.mobile.substring(2);
-        } else if (usermd.meta_mobile) {
-            user.mobile = usermd.meta_mobile;
+        } else if (user.md.meta_mobile) {
+            user.mobile = user.md.meta_mobile;
         }
         var ret = {raw_record: report, repcontent: repcontent, user: user, orgparts: _updateOrgByParts(user),
-            usermd: nlLrHelper.getMetadataDict(user), stats: stats,
+            usermd: user.md, stats: stats,
             user_state: user.state ? 'active' : 'inactive',
             created: nl.fmt.fmtDateDelta(report.created, null, 'minute'), 
             updated: nl.fmt.fmtDateDelta(report.updated, null, 'minute'),

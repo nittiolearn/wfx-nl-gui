@@ -243,18 +243,14 @@ function($scope, nl, nlDlg, nlRouter, nlGroupInfo, nlLrFilter, nlServerApi, nlEx
     }
 
     function _updateUserInfoInReports(records, onDoneFn) {
-        var canFetchMore =  _pastUserInfosFetcher.canFetchMore();
         var pendingRecords = {};
         for (var recid in records) {
             var record = records[recid];
             if (record.isProcessed) continue;
-            record.user = nlGroupInfo.getUserObj(''+record.student);
-            if (!record.user) record.user = _pastUserInfosFetcher.getUserObj(record.student);
-            if (!record.user) {
-                if (canFetchMore) pendingRecords[recid] = record;
-                else record.user = nlGroupInfo.getDefaultUser(nl.fmt2('id={}', record.student));
-            }
-            if (record.user) record.isProcessed = true;
+            record.user = nlGroupInfo.getCachedUserObjWithMeta(record.student, nl.fmt2('id={}', record.student),
+                _pastUserInfosFetcher);
+            if (!record.user) pendingRecords[recid] = record;
+            else record.isProcessed = true;
         }
         if (Object.keys(pendingRecords).length == 0) return onDoneFn();
         _pastUserInfosFetcher.fetchNextPastUsersFile().then(function(canFetchMore) {

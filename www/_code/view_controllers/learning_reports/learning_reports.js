@@ -135,8 +135,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		_initAttendanceOptions(_userInfo.groupinfo.attendance);
 		return nl.q(function(resolve, reject) {
 			nlGroupInfo.init2().then(function() {
-				var dontLoadUsers = true;
-				nlGroupInfo.update(null, dontLoadUsers);
+				nlGroupInfo.update();
 				_groupInfo = nlGroupInfo.get();
 				nlTableViewSelectorSrv.init(userInfo).then(function() {
 					_recordsFilter = new RecordsFilter(nl, nlDlg, nlLrFilter, nlGroupInfo, _groupInfo, $scope, _onApplyFilter);
