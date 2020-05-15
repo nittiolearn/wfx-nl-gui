@@ -237,6 +237,9 @@ function(nl, nlRouter, nlDlg, nlGroupInfo, nlLrHelper, nlLrFilter, nlGetManyStor
             _postProcessRecords.push(report);
             return null;
         }
+        if (!user.mobile && user.metadataObj.meta_mobile)
+            user.mobile = user.metadataObj.meta_mobile;
+        if (user.mobile && user.mobile.indexOf('m:') == 0) user.mobile = user.mobile.substring(2);
         return user;
     }
     
@@ -262,7 +265,6 @@ function(nl, nlRouter, nlDlg, nlGroupInfo, nlLrHelper, nlLrFilter, nlGetManyStor
         report.subject = contentmetadata.subject || ''; 
         
         var stats = {nLessonsAttempted: stainf.nPassedQuizes+stainf.nFailedQuizes,
-            internalIdentifier:report.id,
             timeSpentSeconds: stainf.onlineTimeSpentSeconds, 
             timeSpentMinutes: Math.ceil(stainf.onlineTimeSpentSeconds/60),
             iltTimeSpent: stainf.iltTimeSpent, 
@@ -306,21 +308,7 @@ function(nl, nlRouter, nlDlg, nlGroupInfo, nlLrHelper, nlLrFilter, nlGetManyStor
         if(course.name) repcontent.name = course.name;
  
         if(!nlReportHelper.isEndStatusId(statusObj.id) && (nlLrFilter.getType() == 'course_assign')) {
-            if(Object.keys(_reminderDict).length == 0) {
-                _reminderDict['name'] = repcontent.name;
-                _reminderDict['assigned_by'] = repcontent.sendername;
-                _reminderDict['ctype'] = report.ctype;
-                _reminderDict['users'] = [];
-            }
-            var currentDate = new Date();
-            var endtime = repcontent.not_after && !repcontent.submissionAfterEndtime ? nl.fmt.json2Date(repcontent.not_after) : '';
-            if(!endtime || currentDate <= endtime) {
-                var minimalUser = nlGroupInfo.getMinimalUserObj(user);
-                if (minimalUser) {
-                    minimalUser.repid = report.id;
-                    _reminderDict.users.push(minimalUser);
-                }
-            }
+            _updateReminderDict(report, repcontent, user);
         }
         
         report.url = nl.fmt2('#/course_view?id={}&mode=report_view', report.id);
@@ -353,18 +341,7 @@ function(nl, nlRouter, nlDlg, nlGroupInfo, nlLrHelper, nlLrFilter, nlGetManyStor
             }
         }
         report.typeStr = 'Course';
-        if (_canManage) {
-            report.hideDeleteButton = false;
-        } else if (_canSend && _userInfo.userid == repcontent.sender) {
-            report.hideDeleteButton = false;
-        } else {
-            report.hideDeleteButton = true;
-        }
-        if (user.mobile) {
-            if (user.mobile.indexOf('m:') == 0) user.mobile = user.mobile.substring(2);
-        } else if (user.md.meta_mobile) {
-            user.mobile = user.md.meta_mobile;
-        }
+        _updateHideDeleteButton(report);
         if (_qsMaxLen < stainf.quizScore.length) _qsMaxLen = stainf.quizScore.length;
         _filterAttrs.status[stats.status.txt] = stats.status.txt;
         _filterAttrs.batchname[report._batchName] = report._batchName;
@@ -373,7 +350,7 @@ function(nl, nlRouter, nlDlg, nlGroupInfo, nlLrHelper, nlLrFilter, nlGetManyStor
 
         var ret = {raw_record: report, repcontent: repcontent, course: course, user: user, orgparts: _updateOrgByParts(user),
             quizscore: stainf.quizScore,
-            usermd: user.md, stats: stats,
+            usermd: user.metadataObj, stats: stats,
             created: nl.fmt.fmtDateDelta(report.created, null, 'minute'),
             updated: nl.fmt.fmtDateDelta(report.updated, null, 'minute'),
             not_before: report.not_before ? nl.fmt.fmtDateDelta(report.not_before, null, 'minute') : '',
@@ -400,24 +377,10 @@ function(nl, nlRouter, nlDlg, nlGroupInfo, nlLrHelper, nlLrFilter, nlGetManyStor
 
         var stats = { nQuiz: 0,
             timeSpentSeconds: 0, nLessonsAttempted: 0, nScore: 0, nMaxScore: 0,
-            internalIdentifier:report.id, done: 0, nQuiz: 0, avgAttempts: 0};
+            done: 0, nQuiz: 0, avgAttempts: 0};
     
         if(!report.completed && (nlLrFilter.getType() == 'module_assign')) {
-            if(Object.keys(_reminderDict).length == 0) {
-                _reminderDict['name'] = repcontent.name;
-                _reminderDict['assigned_by'] = repcontent.assigned_by;
-                _reminderDict['ctype'] = report.ctype;
-                _reminderDict['users'] = [];
-            }
-            var currentDate = new Date();
-            var endtime = repcontent.not_after && !repcontent.submissionAfterEndtime ? nl.fmt.json2Date(repcontent.not_after) : '';
-            if(!endtime || currentDate <= endtime) {
-                var minimalUser = nlGroupInfo.getMinimalUserObj(user);
-                if (minimalUser) {
-                    minimalUser.repid = report.id;
-                    _reminderDict.users.push(minimalUser);
-                }
-            }
+            _updateReminderDict(report, repcontent, user);
         }
         
         if(repcontent.started) {
@@ -439,7 +402,6 @@ function(nl, nlRouter, nlDlg, nlGroupInfo, nlLrHelper, nlLrFilter, nlGetManyStor
         report.containerid = report.containerid || '';
         report._grade = repcontent.grade || '';
         report.subject = repcontent.subject || '';
-        report.assign_remarks = repcontent.assign_remarks || '';
         var maxScore = repcontent.selfLearningMode ? 0 : parseInt(repcontent.maxScore || 0);
         stats.nQuiz = maxScore ? 1 : 0;
 
@@ -479,25 +441,14 @@ function(nl, nlRouter, nlDlg, nlGroupInfo, nlLrHelper, nlLrFilter, nlGetManyStor
             : stats.status.id == nlReportHelper.STATUS_STARTED ? 'Started' : '100 %';
         stats.percCompleteDesc = '';
         report.typeStr = 'Module';
-        if (_canManage) {
-            report.hideDeleteButton = false;
-        } else if (_canSend && _userInfo.userid == report.assignor) {
-            report.hideDeleteButton = false;
-        } else {
-            report.hideDeleteButton = true;
-        }
-        if (user.mobile) {
-            if (user.mobile.indexOf('m:') == 0) user.mobile = user.mobile.substring(2);
-        } else if (user.md.meta_mobile) {
-            user.mobile = user.md.meta_mobile;
-        }
         _filterAttrs.status[stats.status.txt] = stats.status.txt;
         _filterAttrs.batchname[report._batchName] = report._batchName;
         _filterAttrs.ids[report.lesson_id] = repcontent.name;
         _filterAttrs.usertype[user.usertype] = user.getUtStr(user.usertype, _userInfo.groupinfo.grpid);
 
+        _updateHideDeleteButton(report);
         var ret = {raw_record: report, repcontent: repcontent, user: user, orgparts: _updateOrgByParts(user),
-            usermd: user.md, stats: stats,
+            usermd: user.metadataObj, stats: stats,
             user_state: user.state ? 'active' : 'inactive',
             created: nl.fmt.fmtDateDelta(report.created, null, 'minute'), 
             updated: nl.fmt.fmtDateDelta(report.updated, null, 'minute'),
@@ -505,6 +456,30 @@ function(nl, nlRouter, nlDlg, nlGroupInfo, nlLrHelper, nlLrFilter, nlGetManyStor
             not_after: report.not_after ? nl.fmt.fmtDateDelta(report.not_after, null, 'minute') : ''
         };
         return ret;
+    }
+
+    function _updateReminderDict(report, repcontent, user) {
+        if(Object.keys(_reminderDict).length == 0) {
+            _reminderDict['name'] = repcontent.name;
+            _reminderDict['assigned_by'] = repcontent.assigned_by;
+            _reminderDict['ctype'] = report.ctype;
+            _reminderDict['users'] = [];
+        }
+        var currentDate = new Date();
+        var endtime = repcontent.not_after && !repcontent.submissionAfterEndtime ? nl.fmt.json2Date(repcontent.not_after) : '';
+        if(!endtime || currentDate <= endtime) {
+            _reminderDict.users.push({repid: report.id, user: user});
+        }
+    }
+
+    function _updateHideDeleteButton(report) {
+        if (_canManage) {
+            report.hideDeleteButton = false;
+        } else if (_canSend && _userInfo.userid == report.assignor) {
+            report.hideDeleteButton = false;
+        } else {
+            report.hideDeleteButton = true;
+        }
     }
 
     function _updateOrgByParts(user) {
@@ -518,18 +493,24 @@ function(nl, nlRouter, nlDlg, nlGroupInfo, nlLrHelper, nlLrFilter, nlGetManyStor
     }
 
     function _updateCommonParams(report, ctypestr) {
-        var repcontent = report._transformVersion ? report.repcontent : angular.fromJson(report.content);
+        var repcontent = angular.fromJson(report.content);
         nlGetManyStore.overrideAssignmentParametersInRepContent(report, repcontent);
-        report.gradeLabel = _userInfo.groupinfo.gradelabel;
-        report.subjectLabel = _userInfo.groupinfo.subjectlabel;
         report.updated = nl.fmt.json2Date(report.updated);
         report.created = nl.fmt.json2Date(report.created);
         report._batchName = repcontent.batchname || '';
-        if (repcontent.batchtype) report._batchtype = repcontent.batchtype;
-        report.assign_remarks = (report.ctype == _nl.ctypes.CTYPE_COURSE ? repcontent.remarks : repcontent.assign_remarks) || '';
         report.not_before = repcontent.not_before || '';
         report.not_after = repcontent.not_after || '';
+
+        var repcontent2 = {};
+        nl.utils.copyAttrs(repcontent, repcontent2, ['name', 'batchtype', 'targetLang',
+            'description', 'courseid',
+            'iltVenue', 'iltTrainerName', 'iltCostInfra', 'iltCostTrainer', 'iltCostFoodSta',
+            'iltCostTravelAco', 'iltCostMisc']);
+        repcontent2.assign_remarks = repcontent.assign_remarks || repcontent.remarks || '';
+        repcontent2.assigned_by = repcontent.assigned_by || repcontent.sendername || '';
+        // TODO-NOW: assignid, courseid
         return repcontent;
+        return repcontent2;
     }
     
     function _getAssignTypeStr(assigntype, content) {

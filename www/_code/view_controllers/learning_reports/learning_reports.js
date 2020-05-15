@@ -194,7 +194,9 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			onRowClick: 'expand',
 			detailsTemplate: 'view_controllers/learning_reports/learning_report_details.html',
 			clickHandler: _userRowClickHandler,
-			metas: nlLrHelper.getMetaHeaders(false)
+			metas: nlLrHelper.getMetaHeaders(false),
+			detailsInfo: {gradelabel: _userInfo.groupinfo.gradelabel, 
+				subjectlabel: _userInfo.groupinfo.subjectlabel}
 		};
 		$scope.utable.styleDetail = 'nl-max-1100';
 		nlTable.initTableObject($scope.utable);
@@ -384,7 +386,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		}
 	};
 
-	$scope.sortRows = function(colid) {
+	$scope.sortNhtRows = function(colid) {
 		if(!colid) return;
 		var tabData = $scope.tabData;
 		var tab = tabData.selectedTab;
@@ -677,10 +679,9 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		}
 
 		// Id's are always exported, So the below 3 fields.
-		columns.push(_col('stats.internalIdentifier', 'Report Id'));
-		columns.push(_col('repcontent.assignid', 'Assign Id'));
+		columns.push(_col('raw_record.id', 'Report Id'));
+		columns.push(_col('raw_record.assignment', 'Assign Id'));
 		columns.push(_col('repcontent.courseid', 'Course/ Module Id'));
-		columns.push(_col('raw_record.typeStr', 'Type', type != 'user'));
 		columns.push(_col('repcontent.targetLang', 'Language'));
 		_lrColumns = columns;
 		nlTableViewSelectorSrv.updateAllColumnNames('lr_views', _lrColumns);
@@ -1078,7 +1079,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 				continue;
 			}	
 			var oldUserRecord = reportDict[record.user.user_id];
-			if(oldUserRecord.repcontent.updated > record.repcontent.updated) continue;
+			if(oldUserRecord.raw_record.updated > record.raw_record.updated) continue;
 			reportDict[record.user.user_id] = record;
 		}
 		for(var key in reportDict) nlLrNht.addCount(reportDict[key]);
@@ -1168,9 +1169,9 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			if (record.raw_record.isNHT) nhtRecords.push(record);
 		}
 		nhtRecords.sort(function(a, b) {
-			if(b.repcontent.updated < a.repcontent.updated) return 1;
-			if(b.repcontent.updated > a.repcontent.updated) return -1;
-			if(b.repcontent.updated == a.repcontent.updated) return 0;				
+			if(b.raw_record.updated < a.raw_record.updated) return 1;
+			if(b.raw_record.updated > a.raw_record.updated) return -1;
+			if(b.raw_record.updated == a.raw_record.updated) return 0;				
 		});
 
 		for(var i=0; i<nhtRecords.length; i++) {
@@ -1180,7 +1181,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 				continue;
 			}
 			var oldUserRecord = reportDict[record.user.user_id] || null;
-			if(oldUserRecord && oldUserRecord.repcontent.updated > record.repcontent.updated) continue;
+			if(oldUserRecord && oldUserRecord.raw_record.updated > record.raw_record.updated) continue;
 			var msInfo = nlGetManyStore.getBatchMilestoneInfo(record.raw_record, batchStatusObj);
 			if(isRunning && msInfo.batchStatus == 'Closed' ||
 				!isRunning && msInfo.batchStatus != 'Closed') {
@@ -1476,14 +1477,10 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 	//---------------------------------------------------------------------------------------------------------------------------------------------------------
 	function _updateSessionDates(sessionInfo, sessionDates) {
 		var sessionDate =  sessionInfo.sessiondate || '';
-		if(sessionDate) {;
-			if (sessionInfo.shiftHrs && sessionInfo.shiftMins) {
-				sessionDates[sessionDate] = {start: nl.t('{}:{}', sessionInfo.shiftHrs, sessionInfo.shiftMins), end: _getShiftEnd(sessionInfo)};
-			} else {
-				sessionDates[sessionDate] = {};
-			}
-		}
-
+		if (!sessionDate) return;
+		if (sessionInfo.shiftHrs && sessionInfo.shiftMins)
+			sessionDates[sessionDate] = {start: nl.t('{}:{}', sessionInfo.shiftHrs, sessionInfo.shiftMins), end: _getShiftEnd(sessionInfo)};
+		else sessionDates[sessionDate] = {};
 	}
 
 	function _getShiftEnd(sessionInfo) {
@@ -1494,12 +1491,10 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		}
 	}
 
-	// TODO-NOW: This whould function seems pointless. Check with Naveen!
-	function _updateAsdSessionDates(cm, sessionDates, sessionInfos) {
-		var sessionInfo = sessionInfos[cm.id];
+	function _updateAsdSessionDates(sessionInfo, sessionDates) {
 		for(var j=0; j<sessionInfo.asd.length; j++) {
 			var session = sessionInfo.asd[j];
-			if(session) _updateSessionDates(session, sessionDates, sessionInfos);
+			if(session) _updateSessionDates(session, sessionDates);
 		}
 	}
 
@@ -1513,18 +1508,13 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		var sessionDates = {};
 		var iltSessions = [];
 		var	sessionInfos = attendance.sessionInfos || {};	
-		if ('_root' in sessionInfos) {
-			var rootAsds = sessionInfos['_root'].asd;
-			for(var i=0; i<rootAsds.length; i++) {
-				_updateSessionDates(rootAsds[i], sessionDates)			
-			}
-		}
+		if ('_root' in sessionInfos) _updateAsdSessionDates(sessionInfos['_root'], sessionDates);
 
 		for(var i=0; i<asdAddedModules.length; i++) {
 			var cm = asdAddedModules[i];
 			if (cm.type != 'iltsession') continue;
 			iltSessions.push(cm);
-			if (cm.asdChildren && cm.asdChildren.length > 0) _updateAsdSessionDates(cm, sessionDates, sessionInfos);
+			if (cm.asdChildren && cm.asdChildren.length > 0) _updateAsdSessionDates(sessionInfos[cm.id], sessionDates);
 			if(!cm.asdSession) {
 				var sessionInfo = sessionInfos[cm.id];
 				if(sessionInfo)
@@ -1539,7 +1529,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			var record = records[i];
 			userObj.name = record.user.name;
 			userObj.coursename = record.repcontent.name;
-			userObj.batchname = record.repcontent.batchname;
+			userObj.batchname = record.raw_record._batchName;
 			userObj.not_before = record.not_before ? nl.fmt.fmtDateDelta(record.raw_record.not_before, null, 'date') : '';  //Show only after the feature is enabled for the type=course
 			userObj.not_after = record.not_after ? nl.fmt.fmtDateDelta(record.raw_record.not_after, null, 'date') : '';  //Show only after the feature is enabled for the type=course
 			userObj.learner_status = (record.user.state == 0) ? nl.t('Inactive') : nl.t('Active')
@@ -2057,7 +2047,10 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		var params = {name: reminderDict.name, assigned_by: reminderDict.assigned_by, 
 			ctype: reminderDict.ctype, remarks: remarks, users: []};
 		for (var i=startFrom; i<batchLength; i++){
-			params.users.push(reminderDict.users[i]);
+			var userInfo = reminderDict.users[i];
+			var minimalUser = nlGroupInfo.getMinimalUserObj(userInfo.user);
+			minimalUser.repid = userInfo.repid;
+			params.users.push(minimalUser);
 		}
 		startFrom += batchLength;
 		nlDlg.popupStatus(nl.fmt2('Sending {} of {} reminder notifications ...', startFrom, reminderDict.users.length), false);
