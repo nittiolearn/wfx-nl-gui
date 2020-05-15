@@ -30,6 +30,10 @@
                         _settings[k] = data[k];
                         if (!_settings[k]) _settings[k] = _defaultSettings();
                     }
+                    // TODO-NOW: Migrate column ids
+                    // LR tab:
+                    // repcontent.assignid => raw_record.assignment
+                    // stats.internalIdentifier => raw_record.id
                     resolve(true);
                 }, function(err) {
                     resolve(false);

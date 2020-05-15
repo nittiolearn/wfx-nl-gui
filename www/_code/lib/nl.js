@@ -368,6 +368,15 @@ function Utils() {
         return ret;
     };
 
+    this.copyAttrs = function(src, dest, attrs, defVals, destAttrs) {
+        if (!destAttrs) destAttrs = attrs;
+		for (var i=0; i<attrs.length; i++) {
+			var attr = attrs[i];
+			if (attr in src) dest[destAttrs[i]] = src[attr];
+			else if (defVals && defVals[i] !== undefined) dest[attr] = defVals[i];
+		}
+    };
+
     this.isTouchDevice = function() {
         return ( 'ontouchstart' in window ) || ( navigator.maxTouchPoints > 0 ) || ( navigator.msMaxTouchPoints > 0 ); 
     }

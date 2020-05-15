@@ -822,22 +822,19 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
         if (!content.learningData && !content.pages) return;
         var user = report.user;
         var currentPageRecord = {pos: 0, _user_id: rep._user_id, 
-            studentname: nlGroupInfo.formatUserNameFromRecord(rep), name: rep.name,
+            studentname: user.name, name: rep.name,
             page: null, title: '', score: 0, maxScore: 0, 
             org_unit: rep.org_unit, _stateStr: rep._stateStr, 
             subject: rep.subject, _grade: rep._grade,
             id: rep.id, student: rep.student, lesson_id: rep.lesson_id, 
             _email: rep._email, _assignTypeStr: rep._assignTypeStr, 
             _courseName: rep._courseName, _batchName: rep._batchName,
-            assign_remarks: rep.assign_remarks, assignment: rep.assignment,
+            assign_remarks: report.repcontent.assign_remarks, assignment: rep.assignment,
             _courseId: rep._courseId, containerid: rep.containerid, _attempts : rep._attempts};
             
         for(var i=0; i<mh.length; i++)
             currentPageRecord[mh[i].id] = rep[mh[i].id];
-
-        if (report.raw_record._transformVersion) {
-            _processPageScoreAndFeedbackFromTransformedObj(currentPageRecord, content, filter);
-        } else if (content.learningData) {
+        if (content.learningData) {
             _processReportRecordPageData(currentPageRecord, content, filter);
         } else {
             _processReportRecordPageDataOld(currentPageRecord, content);
@@ -851,61 +848,6 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
     		score += feedback[i];
     	}
     	return (score/feedback.length);
-    }
-
-    function _processPageScoreAndFeedbackFromTransformedObj(currentPageRecord, content, filter) {
-        if (filter.exportTypes.pageScore) {
-            _processPageScoresFromTransformedObj(currentPageRecord, content['_pageQuizScores']);
-        }
-        if (filter.exportTypes.feedback) {
-            _processFeedbacksFromTransformedObj(currentPageRecord, content['_pageFeedbacks']);
-        }
-    }
-
-    function _processPageScoresFromTransformedObj(currentPageRecord, items) {
-        for(var i=0; i<items.length; i++) {
-            var item = items[i];
-            if(item.maxScore == 0) continue;
-            currentPageRecord.page = item.pgNo;
-            currentPageRecord.title = item.title;
-            currentPageRecord.score = item.score;
-            currentPageRecord.maxScore = item.maxScore;
-            currentPageRecord.answer = '';
-            if(item.answersArray) {
-                var answersArray = item.answersArray;
-                if(answersArray.length == 1) {
-                    currentPageRecord.answer = answersArray[0];
-                } else {
-                    for(var j=0; j<answersArray.length; j++) {
-                        var str = answersArray[j];
-                        currentPageRecord.answer += nl.t('answer-{}:"{}"', j+1, str || " ");
-                        currentPageRecord.answer += ',';
-                    }
-                }
-            }
-            ctx.pageCnt++;
-            currentPageRecord.pos = ctx.pageCnt;
-            if(_exportFormat == 'csv')
-                ctx.pScoreRows.push(nlExporter.getCsvRow(_hPageScores, currentPageRecord));
-            else
-                ctx.pScoreRows.push(nlExporter.getItemRow(_hPageScores, currentPageRecord));
-        }
-    }
-
-    function _processFeedbacksFromTransformedObj(currentPageRecord, items) {
-        for(var i=0; i<items.length; i++) {
-            var item = items[i];
-            currentPageRecord.page = item.pgNo;
-            currentPageRecord.title = item.title;
-            currentPageRecord.question = item.question;
-            currentPageRecord.response = item.response;
-            ctx.feedbackCnt++;
-            currentPageRecord.pos = ctx.feedbackCnt;
-            if(_exportFormat == 'csv')
-                ctx.feedbackRows.push(nlExporter.getCsvRow(_hFeedback, currentPageRecord));
-            else 
-                ctx.feedbackRows.push(nlExporter.getItemRow(_hFeedback, currentPageRecord));
-        }
     }
 
     function _processReportRecordPageData(currentPageRecord, content, filter) {
@@ -1011,8 +953,8 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
     }
 
     function _updateCsvCourseDetailsRows(filter, report) {
-        var defaultRowObj = {_user_id: report.user.user_id, studentname: report.repcontent.studentname, 
-            _assignTypeStr: '', _courseName: report.repcontent.name, _batchName: report.repcontent.batchname, _itemname: '',
+        var defaultRowObj = {_user_id: report.user.user_id, studentname: report.user.name, 
+            _assignTypeStr: '', _courseName: report.repcontent.name, _batchName: report.raw_record._batchName, _itemname: '',
             subject: report.raw_record.subject,  _grade: report.raw_record._grade, 
             created: report.raw_record.created, started: '', ended: '', updated: '', 
             not_before: report.repcontent.not_before, not_after: report.repcontent.not_after, 

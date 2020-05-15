@@ -130,7 +130,7 @@ function(nl, nlDlg, nlImporter, nlGroupCache) {
         if (!user) user = pastUserInfosFetcher.getUserObj(uid, username);
         if (!user && pastUserInfosFetcher.canFetchMore()) return null;
         if (!user) user = self.getDefaultUser(username || '');
-        user.md = self.getUserMetadataDict(user);
+        user.metadataObj = self.getUserMetadataDict(user);
         userCache[user] = user;
         return user;
     };

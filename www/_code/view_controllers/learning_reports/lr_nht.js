@@ -38,7 +38,7 @@ function(nl, nlReportHelper, nlGetManyStore) {
         var subOrg = _orgToSubOrgDict[ou] || 'Others';
         var subOrgParts = subOrg.split('.');
         return {partner: subOrgParts[subOrgParts.length -1], lob: record.course.contentmetadata.subject,
-            batchName: record.repcontent.batchname || record.repcontent.name,
+            batchName: record.raw_record._batchName || record.repcontent.name,
             batchType: record.repcontent.batchtype || '',
             batchId: record.raw_record.assignment};
     }
@@ -236,7 +236,7 @@ function NhtCounts(nl, nlGetManyStore, nlGroupInfo) {
             var diffTime = last - first;
             updatedStats['actualCycle'] = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
         }
-        updatedStats['trainer'] = report.repcontent.iltTrainerName || report.repcontent.sendername; 
+        updatedStats['trainer'] = report.repcontent.iltTrainerName || report.repcontent.assigned_by; 
         return;
     }
 
