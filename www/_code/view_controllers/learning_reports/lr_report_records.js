@@ -34,6 +34,7 @@ function(nl, nlRouter, nlDlg, nlGroupInfo, nlLrHelper, nlLrFilter, nlGetManyStor
     var _canAddReportRecord = null;
     var _batchStatus = {};
     var _qsMaxLen = 0;
+    var _filterAttrs = {};
     this.init = function(userinfo, groupInfo, canAddReportRecord) {
         _userInfo = userinfo;
         _records = {};
@@ -50,6 +51,7 @@ function(nl, nlRouter, nlDlg, nlGroupInfo, nlLrHelper, nlLrFilter, nlGetManyStor
         _canAddReportRecord = canAddReportRecord || function() {return true;};
         _batchStatus = {};
         _qsMaxLen = 0;
+        _filterAttrs = {status: {}, ouparts: {}, ids: {}, batchname: {}, usertype: {}};
     };
     
     this.isReattemptEnabled = function() {
@@ -74,6 +76,10 @@ function(nl, nlRouter, nlDlg, nlGroupInfo, nlLrHelper, nlLrFilter, nlGetManyStor
     
     this.getQsMaxLength = function() {
         return _qsMaxLen;
+    };
+
+    this.getFilterAttrs = function() {
+        return _filterAttrs;
     };
 
     this.addRecord = function(report) {
@@ -360,6 +366,11 @@ function(nl, nlRouter, nlDlg, nlGroupInfo, nlLrHelper, nlLrFilter, nlGetManyStor
             user.mobile = user.md.meta_mobile;
         }
         if (_qsMaxLen < stainf.quizScore.length) _qsMaxLen = stainf.quizScore.length;
+        _filterAttrs.status[stats.status.txt] = stats.status.txt;
+        _filterAttrs.batchname[report._batchName] = report._batchName;
+        _filterAttrs.ids[report.lesson_id] = course.name || repcontent.name;
+        _filterAttrs.usertype[user.usertype] = user.getUtStr(user.usertype, _userInfo.groupinfo.id);
+
         var ret = {raw_record: report, repcontent: repcontent, course: course, user: user, orgparts: _updateOrgByParts(user),
             quizscore: stainf.quizScore,
             usermd: user.md, stats: stats,
@@ -480,6 +491,11 @@ function(nl, nlRouter, nlDlg, nlGroupInfo, nlLrHelper, nlLrFilter, nlGetManyStor
         } else if (user.md.meta_mobile) {
             user.mobile = user.md.meta_mobile;
         }
+        _filterAttrs.status[stats.status.txt] = stats.status.txt;
+        _filterAttrs.batchname[report._batchName] = report._batchName;
+        _filterAttrs.ids[report.lesson_id] = repcontent.name;
+        _filterAttrs.usertype[user.usertype] = user.getUtStr(user.usertype, _userInfo.groupinfo.grpid);
+
         var ret = {raw_record: report, repcontent: repcontent, user: user, orgparts: _updateOrgByParts(user),
             usermd: user.md, stats: stats,
             user_state: user.state ? 'active' : 'inactive',
@@ -494,8 +510,10 @@ function(nl, nlRouter, nlDlg, nlGroupInfo, nlLrHelper, nlLrFilter, nlGetManyStor
     function _updateOrgByParts(user) {
         var parts = (user.org_unit || '').split('.');
         var ret = {part1: '', part2: '', part3: '', part4: ''};
-        for(var i=0; i<parts.length && i < 4; i++) 
+        for(var i=0; i<parts.length && i < 4; i++) {
             ret['part'+(i+1)] = parts[i];
+            _filterAttrs.ouparts[parts[i]] = parts[i];
+        }
         return ret;
     }
 

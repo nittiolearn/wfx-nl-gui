@@ -1,30 +1,33 @@
 <nl-dlg dlgtitle='Filter items' show-help='0'>
 	<nl-dlg-content>
-		<table class='nl-table'>
-			<tr ng-if='options.suborg'>
-				<td class='nl-dlg-field-name'>
-					{{help.suborg.name}}
-				</td>
-				<td class='nl-dlg-field-value'>
-					<nl-select fieldmodel='suborg'></nl-select>
-				</td>
-			</tr>
-			<tr ng-if='options.subject'>
-				<td class='nl-dlg-field-name'>
-					{{help.subject.name}}
-				</td>
-				<td class='nl-dlg-field-value'>
-					<nl-select fieldmodel='subject'></nl-select>
-				</td>
-			</tr>
-			<tr ng-if='options.grade'>
-				<td class='nl-dlg-field-name'>
-					{{help.grade.name}}
-				</td>
-				<td class='nl-dlg-field-value'>
-					<nl-select fieldmodel='grade'></nl-select>
-				</td>
-			</tr>
-		</table>
+    <div class='row row-top row-stretch padding0 margin0'>
+        <div style='padding-right:0px; min-width:150px'>
+            <div ng-repeat='tb in data.tabs'
+                 class='nl-link-text nl-show-tooltip {{(tb.id == data.selectedTab.id) ? "nl-left-tab-selected" : "nl-left-tab"}} padding-mid'
+				 style='min-height: 40px'>
+                <div class='padding-mid row row-center margin0 {{tb.filterApplied ? "forange2" : ""}}' 
+                     ng-click='data.onTabSelect(tb)'>
+					 {{tb.name}}
+                </div>
+            </div>
+        </div>
+        <div class='col nl-left-tabbed-content bt1 sandbox padding-mid' style='overflow: auto; height: {{getContTabHeight($event)}}px'>
+           	<nl-tree-select ng-if='data.selectedTab.id != "usermeta"' info='data.selectedTab.tabinfo'></nl-tree-select>
+			<div ng-if='data.selectedTab.id == "usermeta"' class='row row-top row-wrap margin0 padding-mid'
+				ng-repeat='mdFilter in data.selectedTab.tabinfo.mdFilters'>
+				<div ng-class='$root.resp2Col33'
+					class='nl-dlg-field-name'>
+					{{mdFilter.name}}
+				</div>
+				<div ng-class='$root.resp2Col67'
+					class='nl-dlg-field-value'>
+					<nl-tree-select info='mdFilter.value'
+									tabindex='0'
+									autofocus=''>
+					</nl-tree-select>
+				</div>
+			</div>
+		</div>
+	</div>
 	</nl-dlg-content>
 </nl-dlg>
