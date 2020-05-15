@@ -385,7 +385,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		}
 	};
 
-	$scope.sortRows = function(colid) {
+	$scope.sortNhtRows = function(colid) {
 		if(!colid) return;
 		var tabData = $scope.tabData;
 		var tab = tabData.selectedTab;
