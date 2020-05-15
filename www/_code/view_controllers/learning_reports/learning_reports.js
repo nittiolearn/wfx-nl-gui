@@ -1477,14 +1477,10 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 	//---------------------------------------------------------------------------------------------------------------------------------------------------------
 	function _updateSessionDates(sessionInfo, sessionDates) {
 		var sessionDate =  sessionInfo.sessiondate || '';
-		if(sessionDate) {;
-			if (sessionInfo.shiftHrs && sessionInfo.shiftMins) {
-				sessionDates[sessionDate] = {start: nl.t('{}:{}', sessionInfo.shiftHrs, sessionInfo.shiftMins), end: _getShiftEnd(sessionInfo)};
-			} else {
-				sessionDates[sessionDate] = {};
-			}
-		}
-
+		if (!sessionDate) return;
+		if (sessionInfo.shiftHrs && sessionInfo.shiftMins)
+			sessionDates[sessionDate] = {start: nl.t('{}:{}', sessionInfo.shiftHrs, sessionInfo.shiftMins), end: _getShiftEnd(sessionInfo)};
+		else sessionDates[sessionDate] = {};
 	}
 
 	function _getShiftEnd(sessionInfo) {
@@ -1495,12 +1491,10 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		}
 	}
 
-	// TODO-NOW: This whould function seems pointless. Check with Naveen!
-	function _updateAsdSessionDates(cm, sessionDates, sessionInfos) {
-		var sessionInfo = sessionInfos[cm.id];
+	function _updateAsdSessionDates(sessionInfo, sessionDates) {
 		for(var j=0; j<sessionInfo.asd.length; j++) {
 			var session = sessionInfo.asd[j];
-			if(session) _updateSessionDates(session, sessionDates, sessionInfos);
+			if(session) _updateSessionDates(session, sessionDates);
 		}
 	}
 
@@ -1514,18 +1508,13 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		var sessionDates = {};
 		var iltSessions = [];
 		var	sessionInfos = attendance.sessionInfos || {};	
-		if ('_root' in sessionInfos) {
-			var rootAsds = sessionInfos['_root'].asd;
-			for(var i=0; i<rootAsds.length; i++) {
-				_updateSessionDates(rootAsds[i], sessionDates)			
-			}
-		}
+		if ('_root' in sessionInfos) _updateAsdSessionDates(sessionInfos['_root'], sessionDates);
 
 		for(var i=0; i<asdAddedModules.length; i++) {
 			var cm = asdAddedModules[i];
 			if (cm.type != 'iltsession') continue;
 			iltSessions.push(cm);
-			if (cm.asdChildren && cm.asdChildren.length > 0) _updateAsdSessionDates(cm, sessionDates, sessionInfos);
+			if (cm.asdChildren && cm.asdChildren.length > 0) _updateAsdSessionDates(sessionInfos[cm.id], sessionDates);
 			if(!cm.asdSession) {
 				var sessionInfo = sessionInfos[cm.id];
 				if(sessionInfo)
