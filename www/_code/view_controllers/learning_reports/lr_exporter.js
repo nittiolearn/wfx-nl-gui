@@ -600,7 +600,8 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
         var ret = [report.user.user_id, report.user.name];
         ret = ret.concat([report.repcontent.name, report.raw_record._batchName || '', report.raw_record._grade || '',
         	report.raw_record.subject || '', nl.fmt.date2Str(report.raw_record.created), nl.fmt.date2Str(report.raw_record.updated),
-        	report.raw_record.not_before ? nl.fmt.date2Str(nl.fmt.json2Date(report.raw_record.not_before)) : '', report.raw_record.not_after ? nl.fmt.date2Str(nl.fmt.json2Date(report.raw_record.not_after)) : '', 
+            report.repcontent.not_before ? nl.fmt.date2Str(nl.fmt.json2Date(report.repcontent.not_before)) : '',
+            report.repcontent.not_after ? nl.fmt.date2Str(nl.fmt.json2Date(report.repcontent.not_after)) : '', 
             report.stats.status.txt, report.stats.percCompleteStr,
             report.stats.percCompleteDesc, report.stats.avgAttempts || '',
             report.stats.percScoreStr, report.stats.nMaxScore, report.stats.nScore]) 
@@ -641,7 +642,8 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
         ret = ret.concat([report.repcontent.name, report.raw_record._batchName, report.raw_record._grade || '',
         	report.raw_record.subject || '', nl.fmt.date2Str(report.raw_record.created), nl.fmt.date2Str(report.raw_record.updated)]);
 
-        ret = ret.concat([report.raw_record.not_before ? nl.fmt.date2Str(nl.fmt.json2Date(report.raw_record.not_before)) : '', report.raw_record.not_after ? nl.fmt.date2Str(nl.fmt.json2Date(report.raw_record.not_after)) : '', 
+        ret = ret.concat([report.repcontent.not_before ? nl.fmt.date2Str(nl.fmt.json2Date(report.repcontent.not_before)) : '',
+                        report.repcontent.not_after ? nl.fmt.date2Str(nl.fmt.json2Date(report.repcontent.not_after)) : '', 
                         report.stats.status.txt, report.raw_record.completed ? '' + 100 + '%' : 0+'%',
                         report.stats.percCompleteDesc, report.raw_record.completed ? 1 : '',
                         report.stats.percScoreStr || '', report.stats.nMaxScore || '', report.stats.nScore || '']);
@@ -812,8 +814,8 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
         var content = angular.fromJson(report.raw_record.content);
         rep.feedbackScore = _getFeedbackScores(content.feedbackScore || []);
         rep.feedbackScore = rep.feedbackScore ? '' + Math.round(rep.feedbackScore*10)/10 + '%' : '';
-        rep.not_before = report.repcontent.not_before ? nl.fmt.json2Date(report.repcontent.not_before) : '';
-        rep.not_after = report.repcontent.not_after ? nl.fmt.json2Date(report.repcontent.not_after) : '';
+        rep.not_before = report.repcontent.not_before;
+        rep.not_after = report.repcontent.not_after;
         if(_exportFormat == 'csv') 
             ctx.moduleRows.push(nlExporter.getCsvRow(_hModuleRow, rep));
         else

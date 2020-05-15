@@ -218,8 +218,8 @@ function NhtCounts(nl, nlGetManyStore, nlGroupInfo) {
         var report = batches[batchid];
         var msInfo = nlGetManyStore.getBatchMilestoneInfo(report.raw_record, {});
         for (var key in msInfo) updatedStats[key] = msInfo[key];
-        updatedStats['start'] = report.not_before;
-        updatedStats['end'] = report.not_after;
+        updatedStats['start'] = nl.fmt.fmtDateDelta(report.repcontent.not_before, null, 'date');
+        updatedStats['end'] =nl.fmt.fmtDateDelta(report.repcontent.not_after, null, 'date');
         var firstPlanned = msInfo.firstPlanned;
         var lastPlanned = msInfo.lastPlanned;
         var firstActual = msInfo.firstActual;

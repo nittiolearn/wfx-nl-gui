@@ -352,9 +352,7 @@ function(nl, nlRouter, nlDlg, nlGroupInfo, nlLrHelper, nlLrFilter, nlGetManyStor
             quizscore: stainf.quizScore,
             usermd: user.metadataObj, stats: stats,
             created: nl.fmt.fmtDateDelta(report.created, null, 'minute'),
-            updated: nl.fmt.fmtDateDelta(report.updated, null, 'minute'),
-            not_before: report.not_before ? nl.fmt.fmtDateDelta(report.not_before, null, 'minute') : '',
-            not_after: report.not_after ? nl.fmt.fmtDateDelta(report.not_after, null, 'minute') : ''
+            updated: nl.fmt.fmtDateDelta(report.updated, null, 'minute')
         };
         return ret;
     }
@@ -451,9 +449,7 @@ function(nl, nlRouter, nlDlg, nlGroupInfo, nlLrHelper, nlLrFilter, nlGetManyStor
             usermd: user.metadataObj, stats: stats,
             user_state: user.state ? 'active' : 'inactive',
             created: nl.fmt.fmtDateDelta(report.created, null, 'minute'), 
-            updated: nl.fmt.fmtDateDelta(report.updated, null, 'minute'),
-            not_before: report.not_before ? nl.fmt.fmtDateDelta(report.not_before, null, 'minute') : '',
-            not_after: report.not_after ? nl.fmt.fmtDateDelta(report.not_after, null, 'minute') : ''
+            updated: nl.fmt.fmtDateDelta(report.updated, null, 'minute')
         };
         return ret;
     }
@@ -466,7 +462,7 @@ function(nl, nlRouter, nlDlg, nlGroupInfo, nlLrHelper, nlLrFilter, nlGetManyStor
             _reminderDict['users'] = [];
         }
         var currentDate = new Date();
-        var endtime = repcontent.not_after && !repcontent.submissionAfterEndtime ? nl.fmt.json2Date(repcontent.not_after) : '';
+        var endtime = repcontent.not_after && !repcontent.submissionAfterEndtime ? repcontent.not_after : '';
         if(!endtime || currentDate <= endtime) {
             _reminderDict.users.push({repid: report.id, user: user});
         }
@@ -498,19 +494,11 @@ function(nl, nlRouter, nlDlg, nlGroupInfo, nlLrHelper, nlLrFilter, nlGetManyStor
         report.updated = nl.fmt.json2Date(report.updated);
         report.created = nl.fmt.json2Date(report.created);
         report._batchName = repcontent.batchname || '';
-        report.not_before = repcontent.not_before || '';
-        report.not_after = repcontent.not_after || '';
-
-        var repcontent2 = {};
-        nl.utils.copyAttrs(repcontent, repcontent2, ['name', 'batchtype', 'targetLang',
-            'description', 'courseid',
-            'iltVenue', 'iltTrainerName', 'iltCostInfra', 'iltCostTrainer', 'iltCostFoodSta',
-            'iltCostTravelAco', 'iltCostMisc']);
-        repcontent2.assign_remarks = repcontent.assign_remarks || repcontent.remarks || '';
-        repcontent2.assigned_by = repcontent.assigned_by || repcontent.sendername || '';
-        // TODO-NOW: assignid, courseid
+        repcontent.assign_remarks = repcontent.assign_remarks || repcontent.remarks || '';
+        repcontent.assigned_by = repcontent.assigned_by || repcontent.sendername || '';
+        repcontent.not_before_str = repcontent.not_before ? nl.fmt.fmtDateDelta(repcontent.not_before, null, 'minute') : '';
+        repcontent.not_after_str = repcontent.not_after ? nl.fmt.fmtDateDelta(repcontent.not_after, null, 'minute') : '';
         return repcontent;
-        return repcontent2;
     }
     
     function _getAssignTypeStr(assigntype, content) {

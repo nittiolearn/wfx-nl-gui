@@ -53,9 +53,9 @@
     <div class='padding-mid' ng-class='$root.respCol422'>{{rec._raw.updated}}</div>
 
 	<div class='padding-mid' ng-class='$root.respCol422'><b>From :</b></div>
-    <div class='padding-mid' ng-class='$root.respCol422'>{{rec._raw.not_before || '-'}}</div>
+    <div class='padding-mid' ng-class='$root.respCol422'>{{rec._raw.repcontent.not_before_str || '-'}}</div>
     <div class='padding-mid' ng-class='$root.respCol422'><b>Till :</b></div>
-    <div class='padding-mid' ng-class='$root.respCol422'>{{rec._raw.not_after || '-'}}</div>
+    <div class='padding-mid' ng-class='$root.respCol422'>{{rec._raw.repcontent.not_after_str || '-'}}</div>
 
 	<div ng-if='rec._raw.stats.certifiedOn' class='padding-mid' ng-class='$root.respCol422'><b>Cerified on :</b></div>
     <div ng-if='rec._raw.stats.certifiedOn' class='padding-mid' ng-class='$root.respCol422'>{{rec._raw.stats.certifiedOn || '-'}}</div>

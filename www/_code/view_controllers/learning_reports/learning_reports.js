@@ -636,8 +636,8 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		columns.push(_col('raw_record.subject', _userInfo.groupinfo.subjectlabel));
 		columns.push(_col('created', 'Assigned On'));
 		columns.push(_col('updated', 'Last Updated On'));
-		columns.push(_col('not_before', 'From'));
-		columns.push(_col('not_after', 'Till'));
+		columns.push(_col('repcontent.not_before_str', 'From'));
+		columns.push(_col('repcontent.not_after_str', 'Till'));
 		columns.push(_col('stats.status.txt', 'Status', false, 'stats.status.icon'));
 		columns.push(_col('stats.percCompleteStr','Progress'));
 		columns.push(_col('stats.percCompleteDesc', 'Progress Details'));
@@ -1530,8 +1530,8 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			userObj.name = record.user.name;
 			userObj.coursename = record.repcontent.name;
 			userObj.batchname = record.raw_record._batchName;
-			userObj.not_before = record.not_before ? nl.fmt.fmtDateDelta(record.raw_record.not_before, null, 'date') : '';  //Show only after the feature is enabled for the type=course
-			userObj.not_after = record.not_after ? nl.fmt.fmtDateDelta(record.raw_record.not_after, null, 'date') : '';  //Show only after the feature is enabled for the type=course
+			userObj.not_before = nl.fmt.fmtDateDelta(record.repcontent.not_before, null, 'date');
+			userObj.not_after = nl.fmt.fmtDateDelta(record.repcontent.not_after, null, 'date');
 			userObj.learner_status = (record.user.state == 0) ? nl.t('Inactive') : nl.t('Active')
 			var _statusInfos = record.repcontent.statusinfo;
 			userObj.lob = record.course.contentmetadata.subject;
