@@ -2460,30 +2460,11 @@ function FilterManager(nlLrFilter, nlLrReportRecords, nlGroupInfo ,_groupInfo, n
 		_addTab('ou_part2', 'OU Part 2', isManyUsers);
 		_addTab('ou_part3', 'OU Part 3', isManyUsers);
 		_addTab('ou_part4', 'OU Part 4', isManyUsers);
-		_addTab('', '', );
-		// TODO-NOW: Rest pending
-		// TODO-NOW:
+		_addTab('usertype', 'User type', isManyUsers);
+		_addTab('batchname', 'Batch name', isManyUsers);
+		_addTab('usermeta', 'User metadata', isManyUsers);
 		// define suborglabel in group properties similar to gradelable (default: "Locations"). Use in everywhere in GUI (NHT: "Ceners" column title)
 		// add Suborg as a column in learning_reports tab
-
-		_tabs.push({
-			name: 'User type',
-			id: 'usertype',
-			updated: false,
-			tabinfo: {}
-		});	
-		_tabs.push({
-			name: 'Batch name',
-			id: 'batchname',
-			updated: false,
-			tabinfo: {}
-		});	
-		_tabs.push({
-			name: 'User meta data',
-			id: 'usermeta',
-			updated: false,
-			tabinfo: {}
-		});	
 	};
 
 	function _addTab(tabid, name, condition) {
