@@ -10,11 +10,9 @@ function module_init() {
 //-------------------------------------------------------------------------------------------------
 var NlLrNhtSrv = ['nl','nlReportHelper', 'nlGetManyStore',
 function(nl, nlReportHelper, nlGetManyStore) {
-    var _orgToSubOrgDict = {};
     var nhtCounts = null;
     this.init = function(nlGroupInfo) {
         nhtCounts = new NhtCounts(nl, nlGetManyStore, nlGroupInfo);
-        _orgToSubOrgDict = nlGroupInfo.getOrgToSubOrgDict();
     };
 
     this.clearStatusCountTree = function() {
@@ -34,10 +32,7 @@ function(nl, nlReportHelper, nlGetManyStore) {
     }
 
     function _getNhtBatchInfo(record) {
-        var ou = record.user.org_unit;
-        var subOrg = _orgToSubOrgDict[ou] || 'Others';
-        var subOrgParts = subOrg.split('.');
-        return {partner: subOrgParts[subOrgParts.length -1], lob: record.course.contentmetadata.subject,
+        return {suborg: record.user.suborg, subject: record.raw_record.subject,
             batchName: record.raw_record._batchName || record.repcontent.name,
             batchType: record.repcontent.batchtype || '',
             batchId: record.raw_record.assignment};
@@ -179,8 +174,8 @@ function NhtCounts(nl, nlGetManyStore, nlGroupInfo) {
         if (rootId in _statusCountTree) return _statusCountTree[rootId];
         var stats = angular.copy(statsCountItem);
         stats['name'] = 'All';
-        stats['partner'] = 'All';
-        stats['lob'] = '';
+        stats['suborg'] = 'All';
+        stats['subject'] = '';
         stats['batchName'] = '';
         _statusCountTree[rootId] = {cnt: stats, children: {}};
         return _statusCountTree[rootId];
@@ -192,8 +187,8 @@ function NhtCounts(nl, nlGetManyStore, nlGroupInfo) {
         if (batchInfo.batchId in batches) return batches[batchInfo.batchId];
         var stats = angular.copy(statsCountItem);
         stats['name'] = batchInfo.batchName;
-        stats['partner'] = batchInfo.partner;
-        stats['lob'] = batchInfo.lob;
+        stats['suborg'] = batchInfo.suborg;
+        stats['subject'] = batchInfo.subject;
         stats['batchName'] = batchInfo.batchName;
         stats['batchtype'] = batchInfo.batchType || '';
         batches[batchInfo.batchId] = {cnt: angular.copy(stats)};

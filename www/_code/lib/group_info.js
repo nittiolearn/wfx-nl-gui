@@ -131,13 +131,17 @@ function(nl, nlDlg, nlImporter, nlGroupCache) {
         if (!user && pastUserInfosFetcher.canFetchMore()) return null;
         if (!user) user = self.getDefaultUser(username || '');
         user.metadataObj = self.getUserMetadataDict(user);
+        var subOrgMapping = groupInfo.derived.orgToSubOrgMapping;
+        if (subOrgMapping) user.suborg = subOrgMapping[user.org_unit];
+        _updateOrgByParts(user);
         userCache[user] = user;
         return user;
     };
 
     this.getUserObj = function(uid, grpid) {
-        if (!(uid in self.get(grpid).users)) return null;
-        var uInfo = self.get(grpid).users[uid];
+        var groupInfo = self.get(grpid);
+        if (!(uid in groupInfo.users)) return null;
+        var uInfo = groupInfo.users[uid];
         var ret = {
             username: uInfo[this.USERNAME] || '',
             state: uInfo[this.STATE] || 0,
@@ -173,9 +177,8 @@ function(nl, nlDlg, nlImporter, nlGroupCache) {
         return ret;
     };
 
-    this.getOrgToSubOrgDict = function(grpid) {
-        var orgToSubOrgMapping = _getOrgToSubOrgMapping(grpid);
-        return orgToSubOrgMapping;
+    this.getOrgToSubOrgDict = function(groupInfo) {
+        return groupInfo.derived.orgToSubOrgMapping;
     };
 
     this.isSubOrgEnabled = function(grpid) {
@@ -347,6 +350,7 @@ function(nl, nlDlg, nlImporter, nlGroupCache) {
         var ouDict = {};
         _getOusAsDict(groupInfo.outree, ouDict);
         groupInfo.derived.ouDict = ouDict;
+        _initOrgToSubOrgMapping(groupInfo);
     }
 
     function _initUsernameDict(groupInfo, grpid) {
@@ -395,28 +399,29 @@ function(nl, nlDlg, nlImporter, nlGroupCache) {
         }
     }
 
+    function _updateOrgByParts(user) {
+        var parts = (user.org_unit || '').split('.');
+        for(var i=0; i < 4; i++)
+            user['ou_part' + (i+1)] = (i < parts.length) ? parts[i] : '';
+    }
+
     //##################################################################################################
     // org to suborg mapping
     //##################################################################################################
-
-    function _getOrgToSubOrgMapping(grpid) {
-        if (!grpid) grpid = '';
-        var groupinfo = _groupInfos[grpid]; 
-        if (groupinfo.orgToSubOrgMapping) return groupinfo.orgToSubOrgMapping;
+    function _initOrgToSubOrgMapping(groupInfo) {
         var orgToSubOrgMapping = {};
-        groupinfo.orgToSubOrgMapping = orgToSubOrgMapping;
+        groupInfo.derived.orgToSubOrgMapping = orgToSubOrgMapping;
         for(var i=0; i<groupinfo.outree.length; i++) {
             var ou = groupinfo.outree[i];
             _addSubOrgTree(ou, orgToSubOrgMapping, groupinfo);
         }
-        return groupinfo.orgToSubOrgMapping;
     }
 
     function _addSubOrgTree(ou, orgToSubOrgMapping, groupinfo) {
         var suborg = ou.suborg || 0;
         if (suborg == 1) {
             groupinfo.isSubOrgEnabled = true;
-            var suborgId = ou.id;
+            var suborgId = _getSubOrgLastPart(ou.id);
             _addSubTreeToSubOrg(ou, suborgId, orgToSubOrgMapping);
             return;
         }
@@ -431,9 +436,14 @@ function(nl, nlDlg, nlImporter, nlGroupCache) {
         groupinfo.isSubOrgEnabled = true;
         for(var i=0; i<ou.children.length; i++) {
             var child = ou.children[i];
-            var suborgId = child.id;
+            var suborgId = _getSubOrgLastPart(child.id);
             _addSubTreeToSubOrg(child, suborgId, orgToSubOrgMapping);
         }
+    }
+
+    function _getSubOrgLastPart(subOrgId) {
+        var subOrgParts = subOrgId.split('.');
+        return subOrgParts[subOrgParts.length -1];
     }
 
     function _addSubTreeToSubOrg(ou, suborgId, orgToSubOrgMapping) {

@@ -30,12 +30,21 @@
                         _settings[k] = data[k];
                         if (!_settings[k]) _settings[k] = _defaultSettings();
                     }
-                    // TODO-NOW: Migrate column ids
-                    // LR tab:
-                    // repcontent.assignid => raw_record.assignment
-                    // stats.internalIdentifier => raw_record.id
-                    // not_before => repcontent.not_before_str
-                    // not_after => repcontent.not_after_str
+                    /* TODO-NOW: Migrate column ids
+                    LR tab:
+                    'repcontent.assignid': r'aw_record.assignment',
+                    'stats.internalIdentifier': 'raw_record.id',
+                    'not_before': 'repcontent.not_before_str',
+                    'not_after': 'repcontent.not_after_str',
+                    'orgparts.part1': 'user.ou_part1',
+                    'orgparts.part2': 'user.ou_part2',
+                    'orgparts.part3': 'user.ou_part3',
+                    'orgparts.part4': 'user.ou_part4',
+                    
+                    NHT tab:
+                    'lob': 'subject',
+                    'partner': 'suborg',
+                    */
                     resolve(true);
                 }, function(err) {
                     resolve(false);

@@ -12,14 +12,12 @@ function module_init() {
 
 var NlLrDrilldownSrv = ['nlReportHelper',
 function(nlReportHelper) {
-    var _orgToSubOrgDict = {};
     var _attritionObj = {};
     var _customStartedStatusObj = {};
     var _isSubOrgEnabled = false;
     var StatsCount = new StatsCounts();
 
     this.init = function(nlGroupInfo) {
-		_orgToSubOrgDict = nlGroupInfo.getOrgToSubOrgDict();
         _isSubOrgEnabled = nlGroupInfo.isSubOrgEnabled();
     };
 
@@ -45,11 +43,8 @@ function(nlReportHelper) {
 
     this.addCount = function(record) {
         var contentid = record.raw_record.lesson_id;
-        var ou = record.user.org_unit;
-        var subOrg = _isSubOrgEnabled ? _orgToSubOrgDict[ou] : ou;
-        if(!subOrg) subOrg = "Others";
         var statusCntObj = _getStatusCountObj(record);
-        _addCount(contentid, subOrg, _isSubOrgEnabled ? ou : '', statusCntObj, record.repcontent.name);
+        _addCount(contentid, record.user.suborg, _isSubOrgEnabled ? ou : '', statusCntObj, record.repcontent.name);
     }
 
     function _getSortedArrayFromObj(dict) {

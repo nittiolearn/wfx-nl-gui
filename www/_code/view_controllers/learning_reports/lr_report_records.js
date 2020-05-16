@@ -348,9 +348,8 @@ function(nl, nlRouter, nlDlg, nlGroupInfo, nlLrHelper, nlLrFilter, nlGetManyStor
         _filterAttrs.ids[report.lesson_id] = course.name || repcontent.name;
         _filterAttrs.usertype[user.usertype] = user.getUtStr(user.usertype, _userInfo.groupinfo.id);
 
-        var ret = {raw_record: report, repcontent: repcontent, course: course, user: user, orgparts: _updateOrgByParts(user),
-            quizscore: stainf.quizScore,
-            usermd: user.metadataObj, stats: stats,
+        var ret = {raw_record: report, repcontent: repcontent, course: course,
+            user: user, usermd: user.metadataObj, stats: stats, quizscore: stainf.quizScore,
             created: nl.fmt.fmtDateDelta(report.created, null, 'minute'),
             updated: nl.fmt.fmtDateDelta(report.updated, null, 'minute')
         };
@@ -445,9 +444,8 @@ function(nl, nlRouter, nlDlg, nlGroupInfo, nlLrHelper, nlLrFilter, nlGetManyStor
         _filterAttrs.usertype[user.usertype] = user.getUtStr(user.usertype, _userInfo.groupinfo.grpid);
 
         _updateHideDeleteButton(report);
-        var ret = {raw_record: report, repcontent: repcontent, user: user, orgparts: _updateOrgByParts(user),
-            usermd: user.metadataObj, stats: stats,
-            user_state: user.state ? 'active' : 'inactive',
+        var ret = {raw_record: report, repcontent: repcontent,
+            user: user, usermd: user.metadataObj, stats: stats,
             created: nl.fmt.fmtDateDelta(report.created, null, 'minute'), 
             updated: nl.fmt.fmtDateDelta(report.updated, null, 'minute')
         };
