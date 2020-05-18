@@ -484,11 +484,10 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		ret.nothingToDisplay = false;
 		ret.onSearch = _onSearch;
 		ret.onFilter = function() {
-			_updateSelectedLrColumns();
-			_recordsFilter.showFilterDialog();
+			_recordsFilter.showFilterDialog(_getLrCustomizedNamesDict());
 		};
 		ret.onTabSelect = _onTabSelect;
-		_tabManager.update(true);
+		_tabManager.update(false);
 	}
 
 	function _someTabDataChanged() {
@@ -552,7 +551,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			tabData.records = _getFilteredRecords(summaryStats);
 			tabData.summaryStats = summaryStats.asList();
 			tabData.summaryStatSummaryRow = _getSummaryStatSummaryRow(tabData.summaryStats);
-			_tabManager.update();
+			_tabManager.update(true);
 		}
 		if (!tab) tab = $scope.tabData.selectedTab;
 		tab.updated = true;
@@ -609,6 +608,17 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		$scope.utable.origColumns = ret;
 	}
 
+	function _getLrCustomizedNamesDict() {
+		var ret = {};
+		var allColumns = _getLrColumns();
+		var colIdToCustomNames = nlTableViewSelectorSrv.getColumnNames('lr_views');
+		for(var i=0;i<allColumns.length;i++) {
+			var col = allColumns[i];
+			ret[col.id] = colIdToCustomNames[col.id] || col.name;
+		}
+		return ret;
+	}
+
 	function _getLrColumns() {
 		_customScoresHeader = nlLrReportRecords.getCustomScoresHeader();
 		var mh = nlLrHelper.getMetaHeaders(false);
@@ -657,7 +667,8 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		columns.push(_col('user.stateStr', 'User state'));
 		columns.push(_col('user.email', 'Email Id'));
 		columns.push(_col('user.org_unit', 'Org'));
-		columns.push(_col('user.suborg', 'Center'));
+		if (nlGroupInfo.isSubOrgEnabled())
+			columns.push(_col('user.suborg', 'Center'));
 		columns.push(_col('user.ou_part1', 'OU - part 1'));
 		columns.push(_col('user.ou_part2', 'OU - part 2'));
 		columns.push(_col('user.ou_part3', 'OU - part 3'));
@@ -702,6 +713,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 	}
 
 	function _onApplyFilter() {
+		$scope.filterCount = _recordsFilter.getFilterCount();
 		_someTabDataChanged();
 		_updateCurrentTab();
 	}
@@ -2177,9 +2189,9 @@ function LrTabManager(tabData, nlGetManyStore, nlLrFilter, _groupInfo) {
 		_recordsFound.lms = true;
 	};
 
-	this.update = function(dontUpdatedSelectedTab) {
+	this.update = function(bUpdateSelectedTab) {
 		_updateCanShowOfTabs();
-		_updateSelectedTab(tabData.tabs, dontUpdatedSelectedTab);
+		if (bUpdateSelectedTab) _updateSelectedTab(tabData.tabs);
 	};
 
 	var _recordsFound = null;
@@ -2298,11 +2310,12 @@ function LrTabManager(tabData, nlGetManyStore, nlLrFilter, _groupInfo) {
 		_tabsDict.overview.canShow = _recordsFound.lms && subtype != 'nht' || subtype == 'lms';
 		_tabsDict.nhtoverview.canShow = _recordsFound.nht && subtype != 'lms' || subtype == 'nht';
 		_tabsDict.nhtrunning.canShow =  (type != 'user' && batchStatus.running);
-		_tabsDict.nhtbatchattendance.canShow =  (type != 'user' && batchStatus.closed);
+		_tabsDict.nhtclosed.canShow =  (type != 'user' && batchStatus.closed);
+		_tabsDict.nhtbatchattendance.canShow = (type == 'course_assign' && _recordsFound.nht);
 	}
 
-	function _updateSelectedTab(tabs, dontUpdatedSelectedTab) {
-		if (dontUpdatedSelectedTab || (tabData.selectedTab && tabData.selectedTab.canShow)) return;
+	function _updateSelectedTab(tabs) {
+		if (tabData.selectedTab && tabData.selectedTab.canShow) return;
 		tabData.selectedTab = null;
 
 		var isSelTabFound = false;
@@ -2317,6 +2330,7 @@ function LrTabManager(tabData, nlGetManyStore, nlLrFilter, _groupInfo) {
 //-------------------------------------------------------------------------------------------------
 function RecordsFilter(nl, nlDlg, nlLrFilter, nlGroupInfo, _groupInfo, $scope, nlLrReportRecords, 
 	nlTreeSelect, nlTable, onApplyFilterFn) {
+	// TODO-NOW: remove filtering code in export (just give a checkbox to use the filters applied in GUI)
 
 	$scope.canShowFilterDialog = false;
 
@@ -2331,8 +2345,8 @@ function RecordsFilter(nl, nlDlg, nlLrFilter, nlGroupInfo, _groupInfo, $scope, n
 		}
 	};
 
-	this.showFilterDialog = function() {
-		_updateTabNames();
+	this.showFilterDialog = function(lrColNamesDict) {
+		_updateTabNames(lrColNamesDict);
 		var dlg = nlDlg.create($scope);
 		dlg.setCssClass('nl-width-max nl-height-max')
 		dlg.scope.data = {};
@@ -2346,17 +2360,17 @@ function RecordsFilter(nl, nlDlg, nlLrFilter, nlGroupInfo, _groupInfo, $scope, n
 			_updateTabs(seletedTab);
 			_getFilterInfo(); // For side effect of computing the filled filters
 		}
-		var clearButton = {text: nl.t('Clear'), onTap: function(e) {
+		var clearButton = {text: nl.t('Clear Filters'), onTap: function(e) {
 			_clearSelections();
-			_filterInfo = {};
-			onApplyFilterFn();
-		}};
-
-		var okButton = {text: nl.t('Apply'), onTap: function(e) {
 			_filterInfo = _getFilterInfo();
 			onApplyFilterFn();
 		}};
-		var cancelButton = {text: nl.t('Close')};
+
+		var okButton = {text: nl.t('Apply Filters'), onTap: function(e) {
+			_filterInfo = _getFilterInfo();
+			onApplyFilterFn();
+		}};
+		var cancelButton = {text: nl.t('Cancel')};
 		dlg.show('view_controllers/learning_reports/lr_records_filter_dlg.html',
 			[okButton, clearButton], cancelButton);
 	};
@@ -2364,10 +2378,14 @@ function RecordsFilter(nl, nlDlg, nlLrFilter, nlGroupInfo, _groupInfo, $scope, n
 	this.doesPassFilter = function(record) {
 		for (var tabid in _filterInfo) {
 			var filter = _filterInfo[tabid];
-			var fieldVal = nlTable.getFieldValue($scope.utable, record, tabid);
+			var fieldVal = '' + nlTable.getFieldValue($scope.utable, record, tabid);
 			if (!(fieldVal in filter)) return false;
 		}
 		return true;
+	};
+
+	this.getFilterCount = function() {
+		return Object.keys(_filterInfo).length;
 	};
 
 	//---------------------------------------------------------------------------------------------
@@ -2378,7 +2396,7 @@ function RecordsFilter(nl, nlDlg, nlLrFilter, nlGroupInfo, _groupInfo, $scope, n
 	function _initTabs() {
 		_tabs = [];
 		_tabsDict = {};
-		var _filterInfo = {};
+		_filterInfo = {};
 		var type = nlLrFilter.getType();
 		var isManyCourseOrModules = ((type == 'course' || type == 'module') && !nlLrFilter.getObjectId() || type == 'user');
 		var isManyBatches = (type != 'course_assign' && type != 'module_assign');
@@ -2388,7 +2406,7 @@ function RecordsFilter(nl, nlDlg, nlLrFilter, nlGroupInfo, _groupInfo, $scope, n
 		_addTab('user.suborg', isManyUsers && nlGroupInfo.isSubOrgEnabled());
 		_addTab('stats.status.txt', true);
 		_addTab('repcontent.courseid', isManyCourseOrModules, 'repcontent.name');
-		_addTab('raw_record._batchName', isManyBatches, 'raw_record.assignment');
+		_addTab('raw_record.assignment', isManyBatches, 'raw_record._batchName');
 		_addTab('user.org_unit', isManyUsers);
 		_addTab('user.ou_part1', isManyUsers);
 		_addTab('user.ou_part2', isManyUsers);
@@ -2397,6 +2415,7 @@ function RecordsFilter(nl, nlDlg, nlLrFilter, nlGroupInfo, _groupInfo, $scope, n
 		_addTab('user.usertypeStr', isManyUsers);
 		var metadataFields = _groupInfo.props.usermetadatafields || [];
 		for (var i=0; i< metadataFields.length; i++) {
+            if (!metadataFields[i].filterable) continue;
 			var tabid = 'usermd.' + metadataFields[i].id;
 			_addTab(tabid, isManyUsers);
 		}
@@ -2416,13 +2435,11 @@ function RecordsFilter(nl, nlDlg, nlLrFilter, nlGroupInfo, _groupInfo, $scope, n
 		}
 	}
 	
-	function _updateTabNames() {
-		// TODO-NOW: We need all LR Columns - origColumns has only selected columns.
-		var lrColumns = $scope.utable.origColumns;
-		var lrColumnsDict = nl.utils.arrayToDictById(lrColumns);
+	function _updateTabNames(lrColNamesDict) {
 		for(var tabid in _tabsDict) {
-			var column = lrColumnsDict[tabid];
-			_tabsDict[tabid].name = column && column.name ? column.name : tabid;
+			var tab = _tabsDict[tabid];
+			var key = tab.valueFiledId || tabid;
+			tab.name = lrColNamesDict[key] || tabid;
 		}		
 	}
 
@@ -2435,59 +2452,33 @@ function RecordsFilter(nl, nlDlg, nlLrFilter, nlGroupInfo, _groupInfo, $scope, n
 	function _updateInfo(tab) {
 		var records = nlLrReportRecords.getRecords();
 		var treeData = null;
-		if (tab.id == 'user.org_unit') {
-			var outreeArray = _getOuTreeArray(_groupInfo.outree);
-			treeData = nlTreeSelect.strArrayToTreeArray(outreeArray || []);
-		} else if (tab.id == 'raw_record.subject') {
-			treeData = nlTreeSelect.strArrayToTreeArray(_groupInfo.props.subjects || []);	
-		} else if (tab.id == 'raw_record._grade') {
-			treeData = nlTreeSelect.strArrayToTreeArray(_groupInfo.props.grades || []);	
-		} else {
-			var fieldValues = {};
-			for(var key in records) {
-				var record = records[key];
-				var objid = nlTable.getFieldValue($scope.utable, record, tab.id);
-				objid = objid ? objid.toLowerCase() : '';
-				var name = tab.valueFiledId ? nlTable.getFieldValue($scope.utable, record, tab.valueFiledId) : objid;
-				if (!objid) continue;
-				fieldValues[key] = {id: objid, name: name};
-			}
-			treeData = nl.utils.dictToList(fieldValues);
-			treeData.sort(function(a, b) {
-				var aName = a.name.toLowerCase();
-				var bName = b.name.toLowerCase();
-				if(aName > bName) return 1;
-				if(aName < bName) return -1;
-				return 0;
-			});
+		var fieldValues = {};
+		for(var key in records) {
+			var record = records[key];
+			var objid = nlTable.getFieldValue($scope.utable, record, tab.id);
+			if (!objid) continue;
+			var name = tab.valueFiledId ? nlTable.getFieldValue($scope.utable, record, tab.valueFiledId) : objid;
+			fieldValues[objid] = {id: '' + objid, name: '' + name};
 		}
+		treeData = nl.utils.dictToList(fieldValues);
+		treeData.sort(function(a, b) {
+			var aName = a.name.toLowerCase();
+			var bName = b.name.toLowerCase();
+			if(aName > bName) return 1;
+			if(aName < bName) return -1;
+			return 0;
+		});
 		tab.tabinfo = {data: treeData || []};
 		_initTreeSelection(tab);
 	}
 
 	function _initTreeSelection(tab) {
-        nlTreeSelect.updateSelectionTree(tab.tabinfo, {});
         tab.tabinfo.treeIsShown = true;
         tab.tabinfo.multiSelect = true;
+        tab.tabinfo.singleLevelTree = true;
+        tab.tabinfo.showSearchFieldAbove = 1;
 		tab.tabinfo.fieldmodelid = tab.id;
-	}
-
-	function _getOuTreeArray(outree) {
-		var outreeArray = [];
-		for(var i=0; i<outree.length; i++) {
-			var ou = outree[i];
-			outreeArray.push(ou.id);
-			if(ou.children) _getChildreOuTreeArray(ou.children, outreeArray);
-		}
-		return outreeArray;
-	}
-
-	function _getChildreOuTreeArray(outree, outreeArray) {
-		for(var i=0; i<outree.length; i++) {
-			var ou = outree[i];
-			outreeArray.push(ou.id);
-			if(ou.children) _getChildreOuTreeArray(ou.children, outreeArray);
-		}
+        nlTreeSelect.updateSelectionTree(tab.tabinfo, {});
 	}
 
 	function _getFilterInfo() {

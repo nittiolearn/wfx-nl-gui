@@ -149,6 +149,7 @@ function NhtCounts(nl, nlGetManyStore, nlGroupInfo) {
         _statusCountTree = {};
         _customScores = {};
         _customScoresArray = [];
+        _getRootItem(); // Create the root item by default
     };
 
     this.updateBatch = function(batchid, report) {

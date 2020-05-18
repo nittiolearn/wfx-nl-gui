@@ -101,7 +101,7 @@ function(nl, nlDlg, $templateCache) {
     };
 
     this.getFieldValue = function(info, record, fieldId) {
-        info._internal.paginator.getFieldValue(record, fieldId);
+        return info._internal.paginator.getFieldValue(record, fieldId);
     };
     
     function _updateTableColumns(info) {
