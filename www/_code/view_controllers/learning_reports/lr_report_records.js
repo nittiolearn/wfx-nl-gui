@@ -34,7 +34,6 @@ function(nl, nlRouter, nlDlg, nlGroupInfo, nlLrHelper, nlLrFilter, nlGetManyStor
     var _canAddReportRecord = null;
     var _batchStatus = {};
     var _qsMaxLen = 0;
-    var _filterAttrs = {};
     this.init = function(userinfo, groupInfo, canAddReportRecord) {
         _userInfo = userinfo;
         _records = {};
@@ -51,7 +50,6 @@ function(nl, nlRouter, nlDlg, nlGroupInfo, nlLrHelper, nlLrFilter, nlGetManyStor
         _canAddReportRecord = canAddReportRecord || function() {return true;};
         _batchStatus = {};
         _qsMaxLen = 0;
-        _filterAttrs = {status: {}, ouparts: {}, ids: {}, batchname: {}, usertype: {}};
     };
     
     this.isReattemptEnabled = function() {
@@ -76,10 +74,6 @@ function(nl, nlRouter, nlDlg, nlGroupInfo, nlLrHelper, nlLrFilter, nlGetManyStor
     
     this.getQsMaxLength = function() {
         return _qsMaxLen;
-    };
-
-    this.getFilterAttrs = function() {
-        return _filterAttrs;
     };
 
     this.addRecord = function(report) {
@@ -343,11 +337,6 @@ function(nl, nlRouter, nlDlg, nlGroupInfo, nlLrHelper, nlLrFilter, nlGetManyStor
         report.typeStr = 'Course';
         _updateHideDeleteButton(report);
         if (_qsMaxLen < stainf.quizScore.length) _qsMaxLen = stainf.quizScore.length;
-        _filterAttrs.status[stats.status.txt] = stats.status.txt;
-        _filterAttrs.batchname[report._batchName] = report._batchName;
-        _filterAttrs.ids[report.lesson_id] = course.name || repcontent.name;
-        _filterAttrs.usertype[user.usertype] = user.getUtStr(user.usertype, _userInfo.groupinfo.id);
-
         var ret = {raw_record: report, repcontent: repcontent, course: course,
             user: user, usermd: user.metadataObj, stats: stats, quizscore: stainf.quizScore,
             created: nl.fmt.fmtDateDelta(report.created, null, 'minute'),
@@ -438,11 +427,6 @@ function(nl, nlRouter, nlDlg, nlGroupInfo, nlLrHelper, nlLrFilter, nlGetManyStor
             : stats.status.id == nlReportHelper.STATUS_STARTED ? 'Started' : '100 %';
         stats.percCompleteDesc = '';
         report.typeStr = 'Module';
-        _filterAttrs.status[stats.status.txt] = stats.status.txt;
-        _filterAttrs.batchname[report._batchName] = report._batchName;
-        _filterAttrs.ids[report.lesson_id] = repcontent.name;
-        _filterAttrs.usertype[user.usertype] = user.getUtStr(user.usertype, _userInfo.groupinfo.grpid);
-
         _updateHideDeleteButton(report);
         var ret = {raw_record: report, repcontent: repcontent,
             user: user, usermd: user.metadataObj, stats: stats,
@@ -474,16 +458,6 @@ function(nl, nlRouter, nlDlg, nlGroupInfo, nlLrHelper, nlLrFilter, nlGetManyStor
         } else {
             report.hideDeleteButton = true;
         }
-    }
-
-    function _updateOrgByParts(user) {
-        var parts = (user.org_unit || '').split('.');
-        var ret = {part1: '', part2: '', part3: '', part4: ''};
-        for(var i=0; i<parts.length && i < 4; i++) {
-            ret['part'+(i+1)] = parts[i];
-            _filterAttrs.ouparts[parts[i]] = parts[i];
-        }
-        return ret;
     }
 
     function _updateCommonParams(report, ctypestr) {

@@ -42,23 +42,21 @@ var TableSrv = ['nl', 'nlDlg', '$templateCache',
 function(nl, nlDlg, $templateCache) {
 
     /* Sample content of table object which is passed to nlTable directive:
-    <nl-table info='tableobject'> (transclude content) </nl-table>
+    <nl-table info='tableobject'></nl-table>
     var info = {
-        columns: [                                            // Mandatory
+        origColumns: [                                        // Mandatory
             {id: xx,                                          // Mandatory, attrid within record
-             name: xx,                                           // Opt, default=id
-             icon: xx,                                           // Opt, default=none
-                                                                 // icon is attrid storing the icon
-             iconType: ionicon|img,                              // Opt, default=ionicon
-             searchKey: undefined|null|xx,                       // Opt, default=name
-             styleTd: ''                                         // Opt, default=''
+             name: xx,                                        // Opt, default=id
+             icon: xx,                                        // Opt, default=none
+                                                              // icon is attrid storing the icon
+             iconType: ionicon|img,                           // Opt, default=ionicon
+             styleTd: ''                                      // Opt, default=''
              }, ...],
         search: {                                             // Opt, default=search
-            disable: false/true                                  // Opt, default=false
-            placeholder: 'Search',                               // Opt, default available
-            filter: '',                                          // Opt, default=''
+            disable: false/true                               // Opt, default=false
+            placeholder: 'Search',                            // Opt, default available
+            filter: '',                                       // Opt, default=''
         },
-        getSummaryRow: undefined|fn                           // Opt, default= no summary
         styleTable: '',                                       // Opt, default=cozy
         styleHeader: '',                                      // Opt, default=header
         styleSummary: '',                                     // Opt, default=summary
@@ -72,49 +70,40 @@ function(nl, nlDlg, $templateCache) {
         updateScope: fn(records),
         
         // Internal stuff maintained by directive
-        _internal: {searcher: {}, recs: [], visibleRecs: []}
+        _internal: {paginator: {}, recs: [], visibleRecs: []}
     }
     */
 
     var self = this;
     this.initTableObject = function(info) {
         if (!info) throw('table info object error');
-        if (!info.search) info.search = {};
-        if (!info.search.disabled) info.search.disabled = false;
-        if (!info.search.placeholder) info.search.placeholder = 'Start typing to search';
-        if (!info.search.filter) info.search.filter = '';
-         
         if (!info.styleTable) info.styleTable = 'nl-table-styled2 cozy';
         if (!info.styleHeader) info.styleHeader = 'header';
         if (!info.styleSummary) info.styleSummary = 'summary';
-
         if (!info.maxVisible) info.maxVisible = 100;
         if (!info.onRowClick) info.onRowClick = null;
         if (!info.clickHandler) info.clickHandler = null;
         
         info._internal = {
-            summaryRow: null,
             recs: [],
             visibleRecs: [],
+            paginator: new Paginator(nl, info)
         };
         info.onItemClick = _onItemClickHandler;
         info.sortRows = _sortRows;
-        
-        info._internal.searcher = new Searcher(nl, nlDlg, info);
     };
 
     this.updateTableObject = function(info, records, startpos, resetSort) {
         if (resetSort) _initSortObject(info);
         _updateTableColumns(info);
         info._internal.recs = records;
-        info._internal.searcher.initStartPos(startpos);
-        info._internal.searcher.onClick(null);
-    };
-    
-    this.getSummaryRow = function(info) {
-        return info._internal.summaryRow;
+        info._internal.paginator.showPage(startpos);
     };
 
+    this.getFieldValue = function(info, record, fieldId) {
+        info._internal.paginator.getFieldValue(record, fieldId);
+    };
+    
     function _updateTableColumns(info) {
         info.columns = [];
         for (var i=0;i<info.origColumns.length; i++) {
@@ -193,49 +182,25 @@ function(nl, nlDlg, $templateCache) {
 }];
 
 //-------------------------------------------------------------------------------------------------
-function Searcher(nl, nlDlg, info) {
+function Paginator(nl, info) {
     var self = this;
     function _init() {
         self.infotxt = '';
         self.startpos = 0;
-        self.searchAttrs = _getSearchAttrs();
     }
 
-    self.initStartPos = function(startpos) {
+    self.showPage = function(startpos) {
         self.startpos = startpos || 0;
-    };
-
-    self.onKeyDown = function(event) {
-        var MAX_KEYSEARCH_DELAY = 200;
-        var timeout = (event.which === 13) ? 0 : MAX_KEYSEARCH_DELAY;
-        self.onClick(timeout);
-    };
-
-    self.clickDebouncer = nl.CreateDeboucer();
-    self.onClick = function(timeout) {
-        self.clickDebouncer.debounce(timeout, _onClick)();
-    };
-
-    function _onClick(startpos) {
-        var filter = _getFilter();
         var records = info._internal.recs;
         var max = records.length > info.maxVisible ? info.maxVisible: records.length;
         var visible = [];
         var startpos = self.startpos;
         for (var i=startpos; i<records.length; i++) {
-             records[i].passesFilter = false;
-            if (!_isFilterPass(records[i], filter)) continue;
-            if (visible.length < max)
-                visible.push(_getDisplayRecord(records[i]));
-             records[i].passesFilter = true;
+            if (visible.length < max) visible.push(_getDisplayRecord(records[i]));
         }
-
         info._internal.visibleRecs = visible;
-        info._internal.summaryRow = null;
-        if (info.getSummaryRow)
-            info._internal.summaryRow = info.getSummaryRow(records);
         _updateInfoTxt();
-    }
+    };
     
     function _getDisplayRecord(record) {
         var ret = {_raw: record};
@@ -281,48 +246,6 @@ function Searcher(nl, nlDlg, info) {
         self.infotxt = nl.t('Found {} {} from {} {} searched.', visible, match, total, item);
     }
 
-    function _getFilter() {
-        if (!info.search.filter) return null;
-        var filter = info.search.filter.toLowerCase();
-        var pos = filter.indexOf(':');
-        if (pos < 0) return {str: filter, attr: null};
-        var filt = filter.substring(pos+1);
-        filt = filt.trim();
-
-        var attr = filter.substring(0, pos);
-        if (attr in self.searchAttrs) return {str: filt, attr: attr};
-        return {str: filter, attr: null};
-    }
-
-    function _isFilterPass(record, filter) {
-        if (!filter || !filter.str) return true;
-        var fields = _getSearchFields(record);
-        if (filter.attr)
-            return (fields[filter.attr] || '').toLowerCase().indexOf(filter.str) >= 0;
-        for (var f in fields) {
-            if (fields[f].toLowerCase().indexOf(filter.str) >= 0) return true;
-        }
-        return false;
-    }
-    
-    function _getSearchAttrs() {
-        var searchAttrs = {};
-        for(var i=0; i<info.columns.length; i++) {
-            var searchAttr = info.columns[i].searchKey;
-            if (!searchAttr) continue;
-            searchAttrs[searchAttr] = info.columns[i].id;
-        }
-        return searchAttrs;
-    }
-
-    function _getSearchFields(record) {
-        var fields = [];
-        for(var attr in self.searchAttrs) {
-            fields[attr] = self.getFieldValue(record, self.searchAttrs[attr]);
-        }
-        return fields;
-    }
-    
     _init();
 }
 

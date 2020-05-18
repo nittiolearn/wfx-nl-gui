@@ -151,10 +151,11 @@
                 $scope.isOpen = false;
                 if (!$scope.config || !$scope.config.onViewChange) return;
                 nlTableViewSelectorSrv.updateAllColumnNames($scope.config.tableType, $scope.config.allColumns);
-                var selectedCustColumns = {};
-                var selectedColumns = _getColumnsSelectedInView($scope.config.tableType, option.columns,
-                    $scope.config.allColumns, selectedCustColumns);
-                $scope.config.onViewChange(selectedColumns, selectedCustColumns);
+                var selectedCustColIdsDict = {};
+                var selectedColIds = _getSelectedColIds($scope.config.tableType,
+                    $scope.config.allColumns, option.columns, selectedCustColIdsDict);
+                $scope.config.onViewChange(selectedColIds, // Array of col ids
+                    selectedCustColIdsDict);    // Dict of cust col ids to true
             };
 
             $scope.onCustomizeViews = function() {
@@ -182,17 +183,13 @@
             }
         }
 
-        function _getColumnsSelectedInView(tableType, selectedColumns, allColumns, selectedCustColumns) {
-            if (!selectedColumns) return allColumns;
-            var allColumnIds = nl.utils.arrayToDictById(allColumns);
+        function _getSelectedColIds(tableType, allColumns, selectedColIds, selectedCustColIdsDict) {
             var custColsDict = nl.utils.arrayToDictById(nlTableViewSelectorSrv.getCustomColumns(tableType));
             var ret = [];
-            for(var i=0; i<selectedColumns.length; i++) {
-                var colid = selectedColumns[i];
-                if (colid in custColsDict) {
-                    ret.push(custColsDict[colid]);
-                    selectedCustColumns[colid] = true;
-                } else if (colid in allColumnIds) ret.push(allColumnIds[colid]);
+            for(var i=0; i<allColumns.length; i++) {
+                var colid = allColumns[i].id;
+                if (selectedColIds && (colid in selectedColIds)) ret.push(colid);
+                if (colid in custColsDict) selectedCustColIdsDict[colid] = true;
             }
             return ret;
         }

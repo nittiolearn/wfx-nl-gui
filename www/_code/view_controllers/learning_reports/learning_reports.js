@@ -106,22 +106,22 @@ function($scope, nlLearningReports) {
 	
 var NlLearningReports = ['nl', 'nlDlg', 'nlRouter', 'nlServerApi', 'nlGroupInfo', 'nlTable', 'nlTableViewSelectorSrv', 'nlSendAssignmentSrv',
 'nlLrHelper', 'nlReportHelper', 'nlLrFilter', 'nlLrFetcher', 'nlLrExporter', 'nlLrReportRecords', 'nlLrSummaryStats', 'nlGetManyStore', 
-'nlTreeListSrv', 'nlMarkup', 'nlLrDrilldown', 'nlCourse', 'nlLrNht', 'nlLrUpdateBatchDlg', 'nlTreeSelect', 'nlOrgMdMoreFilters',
+'nlTreeListSrv', 'nlMarkup', 'nlLrDrilldown', 'nlCourse', 'nlLrNht', 'nlLrUpdateBatchDlg', 'nlTreeSelect',
 function(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlTable, nlTableViewSelectorSrv, nlSendAssignmentSrv,
 	nlLrHelper, nlReportHelper, nlLrFilter, nlLrFetcher, nlLrExporter, nlLrReportRecords, nlLrSummaryStats,
-	nlGetManyStore, nlTreeListSrv, nlMarkup, nlLrDrilldown, nlCourse, nlLrNht, nlLrUpdateBatchDlg, nlTreeSelect, nlOrgMdMoreFilters) {
+	nlGetManyStore, nlTreeListSrv, nlMarkup, nlLrDrilldown, nlCourse, nlLrNht, nlLrUpdateBatchDlg, nlTreeSelect) {
 	this.create = function($scope, settings) {
 		if (!settings) settings = {};
 		return new NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlTable, nlTableViewSelectorSrv, nlSendAssignmentSrv,
 			nlLrHelper, nlReportHelper, nlLrFilter, nlLrFetcher, nlLrExporter, nlLrReportRecords, nlLrSummaryStats,
-			$scope, settings, nlGetManyStore, nlTreeListSrv, nlMarkup, nlLrDrilldown, nlCourse, nlLrNht, nlLrUpdateBatchDlg, nlTreeSelect, nlOrgMdMoreFilters);
+			$scope, settings, nlGetManyStore, nlTreeListSrv, nlMarkup, nlLrDrilldown, nlCourse, nlLrNht, nlLrUpdateBatchDlg, nlTreeSelect);
 	};
 }];
 	
 //-------------------------------------------------------------------------------------------------
 function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlTable, nlTableViewSelectorSrv, nlSendAssignmentSrv,
 			nlLrHelper, nlReportHelper, nlLrFilter, nlLrFetcher, nlLrExporter, nlLrReportRecords, nlLrSummaryStats,
-			$scope, settings, nlGetManyStore, nlTreeListSrv, nlMarkup, nlLrDrilldown, nlCourse, nlLrNht, nlLrUpdateBatchDlg, nlTreeSelect, nlOrgMdMoreFilters) {
+			$scope, settings, nlGetManyStore, nlTreeListSrv, nlMarkup, nlLrDrilldown, nlCourse, nlLrNht, nlLrUpdateBatchDlg, nlTreeSelect) {
 	var _userInfo = null;
 	var _groupInfo = null;
 	var _recordsFilter = null;
@@ -139,7 +139,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 				_groupInfo = nlGroupInfo.get();
 				nlTableViewSelectorSrv.init(userInfo).then(function() {
 					_recordsFilter = new RecordsFilter(nl, nlDlg, nlLrFilter, nlGroupInfo, _groupInfo,
-						$scope, nlLrReportRecords, nlTreeSelect, nlOrgMdMoreFilters, _onApplyFilter);
+						$scope, nlLrReportRecords, nlTreeSelect, nlTable, _onApplyFilter);
 					_init();
 					resolve(true); // Has to be before next line for loading screen
 					_showRangeSelection();
@@ -182,13 +182,10 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		$scope.toolbar = _getToolbar();
 		$scope.learningRecords = nlLrReportRecords.getRecords();
 		$scope.metaHeaders = nlLrHelper.getMetaHeaders(true);
-		_lrColumns = _selectedLrCols || _getLrColumns();
 		_tableNavPos = {currentpos: 0, nextpos: MAX_VISIBLE};
 		$scope.utable = {
-			search: {disabled : true},
 			maxVisible: MAX_VISIBLE,
-			columns: _lrColumns,
-			origColumns: _lrColumns,
+			origColumns: [],
 			styleTable: 'nl-table nl-table-styled3 rowlines',
 			styleHeader: ' ',
 			onRowClick: 'expand',
@@ -198,6 +195,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			detailsInfo: {gradelabel: _userInfo.groupinfo.gradelabel, 
 				subjectlabel: _userInfo.groupinfo.subjectlabel}
 		};
+		_updateSelectedLrColumns();
 		$scope.utable.styleDetail = 'nl-max-1100';
 		nlTable.initTableObject($scope.utable);
 		_initTabData($scope.utable);
@@ -485,7 +483,10 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		ret.processingOnging = true;
 		ret.nothingToDisplay = false;
 		ret.onSearch = _onSearch;
-		ret.onFilter = _recordsFilter.showFilterDialog;
+		ret.onFilter = function() {
+			_updateSelectedLrColumns();
+			_recordsFilter.showFilterDialog();
+		};
 		ret.onTabSelect = _onTabSelect;
 		_tabManager.update();
 	}
@@ -576,39 +577,36 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		}
 	}
 
-	var _defaultLrCol = ["user.user_id", "user.name", "repcontent.name", "user.org_unit", "stats.status.txt"];
-	var _lrColumns = null;
-	var _selectedLrCols = null;
-	var _lastSelectedCols = null;
+	var _defaultLrColIds = ["user.user_id", "user.name", "repcontent.name", "user.org_unit", "stats.status.txt"];
+	var _selectedLrColIds = _defaultLrColIds;
 	function _updateLearningRecordsTab(tabData) {
-		_lrSelectedColumns(_lastSelectedCols || _defaultLrCol);
+		_updateSelectedLrColumns();
 		nlTable.updateTableObject($scope.utable, tabData.records, 0, true);
 		$scope.lrViewSelectorConfig = {
 			canEdit: nlRouter.isPermitted(_userInfo, 'assignment_manage'),
 			tableType: 'lr_views',
 			allColumns: _getLrColumns(),
-			defaultViewColumns: {id: 'default', name: 'Default', columns: _defaultLrCol},
-			onViewChange: function(selectedColumns, selectedCustColumns) {
-				// TODO-NOW: handle selectedCustColumns
-				_lastSelectedCols = selectedColumns;
-				_lrSelectedColumns(selectedColumns);
+			defaultViewColumns: {id: 'default', name: 'Default', columns: _defaultLrColIds},
+			onViewChange: function(selectedColIdList, selectedCustColIdsDict) {
+				// TODO-NOW: handle selectedCustColIdsDict
+				_selectedLrColIds = selectedColIdList;
+				_updateSelectedLrColumns();
 				nlTable.updateTableObject($scope.utable, tabData.records, 0, true);
 			}
 		};
 	}
 
-	function _lrSelectedColumns(selectedColumns) {
+	function _updateSelectedLrColumns() {
 		var lrColumnsDict = nl.utils.arrayToDictById(_getLrColumns());
+		var colIdToCustomNames = nlTableViewSelectorSrv.getColumnNames('lr_views');
 		var ret = [];
-		for(var i=0;i<selectedColumns.length;i++) {
-			var colid = selectedColumns[i].id || selectedColumns[i];
+		for(var i=0;i<_selectedLrColIds.length;i++) {
+			var colid = _selectedLrColIds[i];
 			if ((!(colid in lrColumnsDict)) || lrColumnsDict[colid].hideInMode) continue;
-			lrColumnsDict[colid].name = selectedColumns[i].name ? selectedColumns[i].name : lrColumnsDict[colid].name;
+			if (colid in colIdToCustomNames) lrColumnsDict[colid].name = colIdToCustomNames[colid];
 			ret.push(lrColumnsDict[colid]);
 		}
-		$scope.utable.columns = ret;
 		$scope.utable.origColumns = ret;
-		_selectedLrCols = ret;
 	}
 
 	function _getLrColumns() {
@@ -659,10 +657,12 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		columns.push(_col('user.stateStr', 'User state'));
 		columns.push(_col('user.email', 'Email Id'));
 		columns.push(_col('user.org_unit', 'Org'));
+		columns.push(_col('user.suborg', 'Center'));
 		columns.push(_col('user.ou_part1', 'OU - part 1'));
 		columns.push(_col('user.ou_part2', 'OU - part 2'));
 		columns.push(_col('user.ou_part3', 'OU - part 3'));
 		columns.push(_col('user.ou_part4', 'OU - part 4'));
+		columns.push(_col('user.usertypeStr', 'User Type'));
 
 		columns.push(_col('user.mobile', 'Mobile Number'));
 		columns.push(_col('user.seclogin', 'Secondary login'));
@@ -678,7 +678,6 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		columns.push(_col('raw_record.assignment', 'Assign Id'));
 		columns.push(_col('repcontent.courseid', 'Course/ Module Id'));
 		columns.push(_col('repcontent.targetLang', 'Language'));
-		_lrColumns = columns;
 		nlTableViewSelectorSrv.updateAllColumnNames('lr_views', columns);
 		return columns;
 	}
@@ -687,8 +686,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		var column = { id: id, name: name, allScreens: true, canShow:true, 
 			hideInMode: hideInMode, styleTd: 'minw-number nl-text-center', 
 			insertCols: multipleArray ? true: false, children: multipleArray,
-			iconType: 'ionicon', 
-			searchKey: name.toLowerCase(), // TODO-NOW: refactor the search in table.js (are all items searchable)
+			iconType: 'ionicon'
 		};
 		if(icon) column.icon = icon;
 		return column;
@@ -855,6 +853,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		$scope.noDataFound = (anyRecord == null);
 		_someTabDataChanged();
 		_updateCurrentTab(avoidFlicker, true);
+		_recordsFilter.markDirty();
 	}
 
 	function _initChartData() {
@@ -1210,33 +1209,32 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 	function _initNhtColumns() {
 		var defColumns = ["cntTotal", "batchStatus", "batchName", "suborg", "subject", "trainer", "avgDelay", "batchFirstPass", "batchThroughput"];
 		_nhtColumns = _getNhtColumns();
-		if (!_selectedNhtColumns) {
-			var nhtColumnsDict = nl.utils.arrayToDictById(_nhtColumns);
-			_selectedNhtColumns = [];
-			for(var i=0;i<defColumns.length;i++) {
-				var colid = defColumns[i];
-				if (!(colid in nhtColumnsDict)) continue;
-				_selectedNhtColumns.push(nhtColumnsDict[colid]);
-			}
-		}
+		if (!_selectedNhtColumns) _updateSelectedNhtColumns(defColumns);
 		_updateNhtColumns();
         $scope.nhtViewSelectorConfig = {
             canEdit: nlRouter.isPermitted(_userInfo, 'assignment_manage'),
             tableType: 'nht_views',
 			allColumns: _nhtColumns,
 			defaultViewColumns: {id: 'default', name: 'Default', columns: defColumns},
-            onViewChange: function(selectedColumns, selectedCustColumns) {
-				// TODO-NOW: handle selectedCustColumns
-				_nhtColumnsSelectedInView = {};
-				_selectedNhtColumns = selectedColumns;
-				for(var i=0; i<selectedColumns.length; i++) {
-					var col = selectedColumns[i];
-					_nhtColumnsSelectedInView[col.id] = true;
-				}
+            onViewChange: function(selectedColIdList, selectedCustColIdsDict) {
+				// TODO-NOW: handle selectedCustColIdsDict
+				_updateSelectedNhtColumns(selectedColIdList);
 				_someTabDataChanged();
 				_updateCurrentTab();
 			}
 		};
+	}
+
+	function _updateSelectedNhtColumns(selectedColIdList) {
+		_nhtColumnsSelectedInView = {};
+		var nhtColumnsDict = nl.utils.arrayToDictById(_nhtColumns);
+		_selectedNhtColumns = [];
+		for(var i=0;i<selectedColIdList.length;i++) {
+			var colid = selectedColIdList[i];
+			if (!(colid in nhtColumnsDict)) continue;
+			_selectedNhtColumns.push(nhtColumnsDict[colid]);
+			_nhtColumnsSelectedInView[col.id] = true;
+		}
 	}
 
 	function _updateNhtColumns() {
@@ -1637,18 +1635,17 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			nhtBatchAttendanceStats = {statsCountArray: $scope.iltBatchInfo.rows, columns: $scope.iltBatchInfo.columns};
 		}
 
-		if(!_selectedLrCols) {
-			_lrSelectedColumns(_defaultLrCol);
-		}
+		_updateSelectedLrColumns();
+		var selectedLrColumns = $scope.utable.origColumns;
 		var _defcolumns = [];
-		for(var i=0; i<_selectedLrCols.length; i++) {
-			if (_selectedLrCols[i].insertCols) {
-				var children = _selectedLrCols[i].children || [];
+		for(var i=0; i<selectedLrColumns.length; i++) {
+			if (selectedLrColumns[i].insertCols) {
+				var children = selectedLrColumns[i].children || [];
 				for (var j=0; j<children.length; j++) {
-					_defcolumns.push({id: nl.t('{}{}', _selectedLrCols[i].id, j), name: children[j]});
+					_defcolumns.push({id: nl.t('{}{}', selectedLrColumns[i].id, j), name: children[j]});
 				}
 			} else {
-				_defcolumns.push(_selectedLrCols[i]);
+				_defcolumns.push(selectedLrColumns[i]);
 			}
 		}
 		var lrStats = {columns: _defcolumns};
@@ -2186,27 +2183,6 @@ function LrTabManager(tabData, nlGetManyStore, nlLrFilter, _groupInfo) {
 	};
 
 	var _recordsFound = null;
-
-	function _init(self) {
-		self.clear();
-		tabData.tabs = [];
-		var tabs = tabData.tabs;
-		if (nlLrFilter.getMode() == 'cert_report') {
-			tabs.push(_tabsDict.certificate);
-			tabs.push(_tabsDict.learningrecords);
-		} else {
-			tabs.push(_tabsDict.overview);
-			tabs.push(_tabsDict.nhtoverview);
-			tabs.push(_tabsDict.nhtclosed);
-			tabs.push(_tabsDict.nhtrunning);
-			tabs.push(_tabsDict.nhtbatchattendance);
-			tabs.push(_tabsDict.drilldown);
-			tabs.push(_tabsDict.learningrecords);
-			tabs.push(_tabsDict.timesummary);
-		}
-	}
-	_init(this);
-
 	var _tabsDict = {
 		overview: {
 			title : 'Click here to see learning overview',
@@ -2294,6 +2270,26 @@ function LrTabManager(tabData, nlGetManyStore, nlLrFilter, _groupInfo) {
 			tables: []
 		}
 	};
+	
+	function _init(self) {
+		self.clear();
+		tabData.tabs = [];
+		var tabs = tabData.tabs;
+		if (nlLrFilter.getMode() == 'cert_report') {
+			tabs.push(_tabsDict.certificate);
+			tabs.push(_tabsDict.learningrecords);
+		} else {
+			tabs.push(_tabsDict.overview);
+			tabs.push(_tabsDict.nhtoverview);
+			tabs.push(_tabsDict.nhtclosed);
+			tabs.push(_tabsDict.nhtrunning);
+			tabs.push(_tabsDict.nhtbatchattendance);
+			tabs.push(_tabsDict.drilldown);
+			tabs.push(_tabsDict.learningrecords);
+			tabs.push(_tabsDict.timesummary);
+		}
+	}
+	_init(this);
 
 	function _updateCanShowOfTabs() {
 		var subtype = nlLrFilter.getRepSubtype();
@@ -2320,41 +2316,44 @@ function LrTabManager(tabData, nlGetManyStore, nlLrFilter, _groupInfo) {
 
 //-------------------------------------------------------------------------------------------------
 function RecordsFilter(nl, nlDlg, nlLrFilter, nlGroupInfo, _groupInfo, $scope, nlLrReportRecords, 
-	nlTreeSelect, nlOrgMdMoreFilters, onApplyFilterFn) {
-	var _filterInfo = null;
-	var _orgToSubOrg = {};
-	var _filterManager = null;
+	nlTreeSelect, nlTable, onApplyFilterFn) {
+
 	$scope.canShowFilterDialog = false;
 
 	this.init = function() {
-		_filterManager = new FilterManager(nlLrFilter, nlLrReportRecords, nlGroupInfo, _groupInfo, nlTreeSelect, nlOrgMdMoreFilters);
-		_filterManager.initTabs();
-		_filterInfo = {};
+		_initTabs();
 		$scope.canShowFilterDialog = true;
 	};
 
+	this.markDirty = function() {
+		for(var i=0; i<_tabs.length; i++) {
+			_tabs[i].updated = false;
+		}
+	};
+
 	this.showFilterDialog = function() {
+		_updateTabNames();
 		var dlg = nlDlg.create($scope);
 		dlg.setCssClass('nl-width-max nl-height-max')
 		dlg.scope.data = {};
-		dlg.scope.data.tabs = _filterManager.getTabs();
+		dlg.scope.data.tabs = _tabs;
 		var firstTab = dlg.scope.data.tabs[0];
 		dlg.scope.data.selectedTab = firstTab;
-		_filterManager.updateTabs(firstTab);
+		_updateTabs(firstTab);
+		
 		dlg.scope.data.onTabSelect = function(seletedTab) {
-			_filterManager.updateTabs(seletedTab);
 			dlg.scope.data.selectedTab = seletedTab;
-			_updateSelectedTabAttr(dlg.scope.data);
+			_updateTabs(seletedTab);
+			_getFilterInfo(); // For side effect of computing the filled filters
 		}
 		var clearButton = {text: nl.t('Clear'), onTap: function(e) {
-			_filterManager.clearTabs();
-			_filterManager.initTabs();
+			_clearSelections();
 			_filterInfo = {};
 			onApplyFilterFn();
 		}};
 
 		var okButton = {text: nl.t('Apply'), onTap: function(e) {
-			_updateSelectedTabAttr(dlg.scope.data);
+			_filterInfo = _getFilterInfo();
 			onApplyFilterFn();
 		}};
 		var cancelButton = {text: nl.t('Close')};
@@ -2362,188 +2361,114 @@ function RecordsFilter(nl, nlDlg, nlLrFilter, nlGroupInfo, _groupInfo, $scope, n
 			[okButton, clearButton], cancelButton);
 	};
 
-	function _updateSelectedTabAttr(data) {
-		var tabs = data.tabs;
-		_filterInfo = {};
-		for(var i=0; i<tabs.length; i++) {
-			var selectedTab = tabs[i];
-			if (!selectedTab.updated) continue;
-			if (selectedTab.id == 'usermeta') {
-				_filterInfo[selectedTab.id] = {};
-				for (var j=0; j<selectedTab.tabinfo.mdFilters.length; j++) {
-					var mdInfo = selectedTab.tabinfo.mdFilters[j];
-					var selectedKeys = nlTreeSelect.getSelectedIds(mdInfo.value);
-					if (Object.keys(selectedKeys).length > 0) {
-						_filterInfo[selectedTab.id][mdInfo.mf.id] = selectedKeys;
-						selectedTab.filterApplied = true;
-						break;
-					} else {
-						selectedTab.filterApplied = false;
-					} 
-				}
-			} else {
-				var selectedKeys = nlTreeSelect.getSelectedIds(selectedTab.tabinfo);
-				if (Object.keys(selectedKeys).length > 0) {
-					_filterInfo[selectedTab.id] = selectedKeys;
-					selectedTab.filterApplied = true;
-				} else {
-					selectedTab.filterApplied = false;
-				} 
-			}
-		}
-	};
-
 	this.doesPassFilter = function(record) {
-		if (_filterInfo.subject && _filterFail('subject', record.raw_record.subject)) return false;
-		if (_filterInfo.grade && _filterFail('grade', record.raw_record._grade)) return false;
-		if (_filterInfo.suborg && _filterFail('suborg', _orgToSubOrg[record.user.org_unit] || 'Others')) return false;
-		if (_filterInfo.status && _filterFail('status', record.stats.status.txt)) return false;
-		if (_filterInfo.ids && _filterFail('ids', record.raw_record.lesson_id)) return false;
-		if (_filterInfo.org_unit && _filterFail('org_unit', record.raw_record.org_unit)) return false;
-		// TODO-NOW: orgparts to be handled better
-		if (_filterInfo.ouparts && _filterFailForOuParts('ouparts', record.orgparts)) return false;
-		if (_filterInfo.usertype && _filterFail('usertype', record.user.usertype)) return false;
-		if (_filterInfo.batchname && _filterFail('batchname', record.raw_record._batchName)) return false;
-		if (_filterInfo.usermeta && _filterFailForUserMeta('usermeta', record.usermd)) return false;
+		for (var tabid in _filterInfo) {
+			var filter = _filterInfo[tabid];
+			var fieldVal = nlTable.getFieldValue($scope.utable, record, tabid);
+			if (!(fieldVal in filter)) return false;
+		}
 		return true;
 	};
 
-	function _filterFailForUserMeta(filtAttr, recordVal) {
-		var usermeta = _filterInfo[filtAttr] || {};
-		if (Object.keys(usermeta).length == 0) return false;
-		var ifAttribute = false;
-		for (var md in recordVal) {
-			var mdkey = md;
-			var mdVal = recordVal[md]
-			var filterMdVal = usermeta[mdkey] || {};
-			if (Object.keys(filterMdVal).length == 0) continue;
-			if (mdVal in filterMdVal) return false;
-			return true;
-		}
-		return true;
-	}
-
-	function _filterFail(filtAttr, recordVal) {
-		var filteredDict = _filterInfo[filtAttr] || {};
-		if (Object.keys(filteredDict).length == 0) return false;
-		if (recordVal in filteredDict) return false;
-		return true;
-	}
-
-	function _filterFailForOuParts(filtAttr, recordVal) {
-		var filteredDict = _filterInfo[filtAttr] || {}
-		if (Object.keys(filteredDict).length == 0) return false;
-		for (var key in recordVal) {
-			var val = recordVal[key]
-			if (val in filteredDict) return false;
-		}
-		return true;
-	}
-}
-//-------------------------------------------------------------------------------------------------
-function FilterManager(nlLrFilter, nlLrReportRecords, nlGroupInfo ,_groupInfo, nlTreeSelect, nlOrgMdMoreFilters) {
+	//---------------------------------------------------------------------------------------------
+	// Private methods and data
 	var _tabs = [];
-	this.clearTabs = function() {
+	var _tabsDict = {};
+	var _filterInfo = {};
+	function _initTabs() {
 		_tabs = [];
-	};
-
-	this.initTabs = function() {
+		_tabsDict = {};
+		var _filterInfo = {};
 		var type = nlLrFilter.getType();
 		var isManyCourseOrModules = ((type == 'course' || type == 'module') && !nlLrFilter.getObjectId() || type == 'user');
+		var isManyBatches = (type != 'course_assign' && type != 'module_assign');
 		var isManyUsers = (type != 'user');
-		_addTab('subject', _groupInfo.props.subjectlabel, isManyCourseOrModules);
-		_addTab('grade', _groupInfo.props.gradelabel, xisManyCourseOrModules);
-
-		// TODO-NOW: get custom renamed value from learning reports custom view
-		// define suborglabel in group properties similar to gradelable (default: "Locations"). Use in everywhere in GUI (NHT: "Ceners" column title)
-		// add Suborg as a column in learning_reports tab
-		var subOrgLabel = 'Locations'; // TODO-NOW: get from group config
-		_addTab('suborg', subOrgLabel, isManyUsers && nlGroupInfo.isSubOrgEnabled());
-		_addTab('status', 'Status', true);
-		_addTab('ids', 'Course/Module id', isManyCourseOrModules);
-		_addTab('org_unit', 'Org unit', isManyUsers);
-		_addTab('ou_part1', 'OU Part 1', isManyUsers);
-		_addTab('ou_part2', 'OU Part 2', isManyUsers);
-		_addTab('ou_part3', 'OU Part 3', isManyUsers);
-		_addTab('ou_part4', 'OU Part 4', isManyUsers);
-		_addTab('usertype', 'User type', isManyUsers);
-		_addTab('batchname', 'Batch name', isManyUsers);
-		// TODO-NOW: get custom renamed value from learning reports custom view
-		_addTab('usermeta', 'User metadata', isManyUsers);
-	};
-
-	function _addTab(tabid, name, condition) {
-		if (!condition) return;
-		_tabs.push({name: name, id: tabid, updated: false, tabinfo: {}});	
+		_addTab('raw_record.subject', isManyCourseOrModules);
+		_addTab('raw_record._grade', isManyCourseOrModules);
+		_addTab('user.suborg', isManyUsers && nlGroupInfo.isSubOrgEnabled());
+		_addTab('stats.status.txt', true);
+		_addTab('repcontent.courseid', isManyCourseOrModules, 'repcontent.name');
+		_addTab('raw_record._batchName', isManyBatches, 'raw_record.assignment');
+		_addTab('user.org_unit', isManyUsers);
+		_addTab('user.ou_part1', isManyUsers);
+		_addTab('user.ou_part2', isManyUsers);
+		_addTab('user.ou_part3', isManyUsers);
+		_addTab('user.ou_part4', isManyUsers);
+		_addTab('user.usertypeStr', isManyUsers);
+		var metadataFields = _groupInfo.props.usermetadatafields || [];
+		for (var i=0; i< metadataFields.length; i++) {
+			var tabid = 'usermd.' + metadataFields[i].id;
+			_addTab(tabid, isManyUsers);
+		}
 	}
 
-	this.getTabs = function() {
-		return _tabs;
-	};
+	function _addTab(tabid, condition, valueFiledId) {
+		if (!condition) return;
+		var tab = {name: '', id: tabid, valueFiledId: valueFiledId, updated: false, tabinfo: {}};
+		_tabsDict[tabid] = tab;
+		_tabs.push(tab);
+	}
 
-	this.updateTabs = function(tab) {
+	function _clearSelections() {
+		for(var i=0; i<_tabs.length; i++) {
+			var tab = _tabs[i];
+			if (tab.tabinfo && tab.tabinfo.data) _initTreeSelection(tab);
+		}
+	}
+	
+	function _updateTabNames() {
+		// TODO-NOW: We need all LR Columns - origColumns has only selected columns.
+		var lrColumns = $scope.utable.origColumns;
+		var lrColumnsDict = nl.utils.arrayToDictById(lrColumns);
+		for(var tabid in _tabsDict) {
+			var column = lrColumnsDict[tabid];
+			_tabsDict[tabid].name = column && column.name ? column.name : tabid;
+		}		
+	}
+
+	function _updateTabs(tab) {
 		if (tab.updated) return;
-		if (tab.id == 'usermeta'){
-			_updateMetaDataFilters(tab, tab.id);
-			tab.updated = true;
-		} else {
-			_updateInfo(tab, tab.id);
-			tab.updated = true;
-		} 
-	};
+		_updateInfo(tab);
+		tab.updated = true;
+	}
 
-	function _updateInfo(tab, tabid) {
-		var filterAttrs = nlLrReportRecords.getFilterAttrs();
-		var treeData = dictToArray(filterAttrs[tabid]);
-		if (tabid == 'org_unit') {
+	function _updateInfo(tab) {
+		var records = nlLrReportRecords.getRecords();
+		var treeData = null;
+		if (tab.id == 'user.org_unit') {
 			var outreeArray = _getOuTreeArray(_groupInfo.outree);
 			treeData = nlTreeSelect.strArrayToTreeArray(outreeArray || []);
-		}
-		if (tabid == 'subject') {
+		} else if (tab.id == 'raw_record.subject') {
 			treeData = nlTreeSelect.strArrayToTreeArray(_groupInfo.props.subjects || []);	
-		} 
-
-		if (tabid == 'grade') {
+		} else if (tab.id == 'raw_record._grade') {
 			treeData = nlTreeSelect.strArrayToTreeArray(_groupInfo.props.grades || []);	
-		} 
-
-		if (tabid == 'suborg') {
-			treeData = _initSubOrgs();
+		} else {
+			var fieldValues = {};
+			for(var i=0; i<records.length; i++) {
+				var record = records[i];
+				var objid = nlTable.getFieldValue($scope.utable, record, tab.id);
+				objid = _tolower(objid);
+				var name = tab.valueFiledId ? nlTable.getFieldValue($scope.utable, record, tab.valueFiledId) : objid;
+				fieldValues[key] = {id: objid, name: name};
+			}
+			treeData = nl.utils.dictToList(fieldValues);
+			treeData.sort(function(a, b) {
+				var aName = a.name.toLowerCase();
+				var bName = b.name.toLowerCase();
+				if(aName > bName) return 1;
+				if(aName < bName) return -1;
+				return 0;
+			});
 		}
 		tab.tabinfo = {data: treeData || []};
+		_initTreeSelection(tab);
+	}
+
+	function _initTreeSelection(tab) {
         nlTreeSelect.updateSelectionTree(tab.tabinfo, {});
-        tab.tabinfo.treeIsShown = false;
+        tab.tabinfo.treeIsShown = true;
         tab.tabinfo.multiSelect = true;
-		tab.tabinfo.fieldmodelid = tabid;
-	}
-
-	function _updateMetaDataFilters(tab) {
-		var tree = {data: []};
-		tab.tabinfo = nlOrgMdMoreFilters.getData(tree, 'Meta data');
-	}
-
-	function _initSubOrgs() {
-		var orgToSubOrg = nlGroupInfo.getOrgToSubOrgDict();
-		var subOrgDict = {};
-		for (var key in orgToSubOrg) {
-			subOrgDict[orgToSubOrg[key] || 'Others'] = true;
-		}
-		var arr = [];
-		for(var key in subOrgDict) arr.push({id: key, name: key});
-		return _initOptionsArray2(arr);
-	}
-
-	function _initOptionsArray2(arr) {
-		arr.sort(function(a, b) {
-			var aName = a.name.toLowerCase();
-			var bName = b.name.toLowerCase();
-			if(aName > bName) return 1;
-			if(aName < bName) return -1;
-			return 0;
-		});
-		var allEntry = {id: '', name: 'All'};
-		arr.splice(0, 0, allEntry);
-		return arr;
+		tab.tabinfo.fieldmodelid = tab.id;
 	}
 
 	function _getOuTreeArray(outree) {
@@ -2564,12 +2489,20 @@ function FilterManager(nlLrFilter, nlLrReportRecords, nlGroupInfo ,_groupInfo, n
 		}
 	}
 
-
-	function dictToArray(dictObj) {
-		if (!dictObj) return [];
-		var ret = [];
-		for (var key in dictObj) ret.push({id: key, name: dictObj[key]});
-		return ret;
+	function _getFilterInfo() {
+		var filterInfo = {};
+		for(var i=0; i<_tabs.length; i++) {
+			var tab = _tabs[i];
+			if (!tab.updated) continue;
+			var selectedKeys = nlTreeSelect.getSelectedIds(tab.tabinfo);
+			if (Object.keys(selectedKeys).length > 0) {
+				filterInfo[tab.id] = selectedKeys;
+				tab.filterApplied = true;
+			} else {
+				tab.filterApplied = false;
+			} 
+		}
+		return filterInfo;
 	}
 }
 //-------------------------------------------------------------------------------------------------

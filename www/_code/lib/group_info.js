@@ -134,6 +134,7 @@ function(nl, nlDlg, nlImporter, nlGroupCache) {
         var subOrgMapping = groupInfo.derived.orgToSubOrgMapping;
         if (subOrgMapping) user.suborg = subOrgMapping[user.org_unit];
         _updateOrgByParts(user);
+        user.usertypeStr = user.getUtStr();
         userCache[user] = user;
         return user;
     };
@@ -411,9 +412,9 @@ function(nl, nlDlg, nlImporter, nlGroupCache) {
     function _initOrgToSubOrgMapping(groupInfo) {
         var orgToSubOrgMapping = {};
         groupInfo.derived.orgToSubOrgMapping = orgToSubOrgMapping;
-        for(var i=0; i<groupinfo.outree.length; i++) {
-            var ou = groupinfo.outree[i];
-            _addSubOrgTree(ou, orgToSubOrgMapping, groupinfo);
+        for(var i=0; i<groupInfo.outree.length; i++) {
+            var ou = groupInfo.outree[i];
+            _addSubOrgTree(ou, orgToSubOrgMapping, groupInfo);
         }
     }
 

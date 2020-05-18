@@ -103,6 +103,7 @@
         ******************************************************************* -->
         <div style='padding-right:0px'>
             <div ng-repeat='tb in tabData.tabs'
+                 ng-if='tb.canShow'
                  class='nl-link-text nl-show-tooltip {{(tb.id == tabData.selectedTab.id) ? "nl-left-tab-selected" : "nl-left-tab"}}'>
                 <div class='padding-mid row row-center margin0' 
                      ng-click='tabData.onTabSelect(tb)'>

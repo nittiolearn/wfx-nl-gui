@@ -43,8 +43,11 @@ function(nlReportHelper) {
 
     this.addCount = function(record) {
         var contentid = record.raw_record.lesson_id;
+        var ou = record.user.org_unit;
+        var subOrg = _isSubOrgEnabled ? record.user.suborg : ou;
+        if (!subOrg) subOrg = "Others";
         var statusCntObj = _getStatusCountObj(record);
-        _addCount(contentid, record.user.suborg, _isSubOrgEnabled ? ou : '', statusCntObj, record.repcontent.name);
+        _addCount(contentid, subOrg, _isSubOrgEnabled ? ou : '', statusCntObj, record.repcontent.name);
     }
 
     function _getSortedArrayFromObj(dict) {
