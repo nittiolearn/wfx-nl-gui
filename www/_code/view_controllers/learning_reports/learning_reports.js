@@ -488,7 +488,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			_recordsFilter.showFilterDialog();
 		};
 		ret.onTabSelect = _onTabSelect;
-		_tabManager.update();
+		_tabManager.update(true);
 	}
 
 	function _someTabDataChanged() {
@@ -513,9 +513,9 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 	function _updateCurrentTab(avoidFlicker) {
 		var tabData = $scope.tabData;
 		var tab = tabData.selectedTab;
-		if (tab.id == 'nhtclosed') _updateSelectedColumnsOfNHT(true);
-		if (tab.id == 'nhtrunning') _updateSelectedColumnsOfNHT(false);
-		if (tab.updated) return;
+		if (tab && tab.id == 'nhtclosed') _updateSelectedColumnsOfNHT(true);
+		if (tab && tab.id == 'nhtrunning') _updateSelectedColumnsOfNHT(false);
+		if (tab && tab.updated) return;
 		if (!avoidFlicker) {
 			tabData.nothingToDisplay = false;
 			tabData.processingOnging = true;
@@ -523,7 +523,6 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		}
 		nl.timeout(function() {
 			_actualUpdateCurrentTab(tabData, tab);
-			tab.updated = true;
 			if (tabData.records.length > 0) {
 				tabData.processingOnging = false;
 				tabData.nothingToDisplay = false;
@@ -555,7 +554,8 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			tabData.summaryStatSummaryRow = _getSummaryStatSummaryRow(tabData.summaryStats);
 			_tabManager.update();
 		}
-		
+		if (!tab) tab = $scope.tabData.selectedTab;
+		tab.updated = true;
 		if (tab.id == 'overview') {
 			_updateOverviewTab(tabData.summaryStatSummaryRow);
 		} else if (tab.id == 'learningrecords') {
@@ -1233,7 +1233,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			var colid = selectedColIdList[i];
 			if (!(colid in nhtColumnsDict)) continue;
 			_selectedNhtColumns.push(nhtColumnsDict[colid]);
-			_nhtColumnsSelectedInView[col.id] = true;
+			_nhtColumnsSelectedInView[colid] = true;
 		}
 	}
 
@@ -2177,9 +2177,9 @@ function LrTabManager(tabData, nlGetManyStore, nlLrFilter, _groupInfo) {
 		_recordsFound.lms = true;
 	};
 
-	this.update = function() {
+	this.update = function(dontUpdatedSelectedTab) {
 		_updateCanShowOfTabs();
-		_updateSelectedTab(tabData.tabs);
+		_updateSelectedTab(tabData.tabs, dontUpdatedSelectedTab);
 	};
 
 	var _recordsFound = null;
@@ -2301,8 +2301,8 @@ function LrTabManager(tabData, nlGetManyStore, nlLrFilter, _groupInfo) {
 		_tabsDict.nhtbatchattendance.canShow =  (type != 'user' && batchStatus.closed);
 	}
 
-	function _updateSelectedTab(tabs) {
-		if (tabData.selectedTab && tabData.selectedTab.canShow) return;
+	function _updateSelectedTab(tabs, dontUpdatedSelectedTab) {
+		if (dontUpdatedSelectedTab || (tabData.selectedTab && tabData.selectedTab.canShow)) return;
 		tabData.selectedTab = null;
 
 		var isSelTabFound = false;
@@ -2444,11 +2444,12 @@ function RecordsFilter(nl, nlDlg, nlLrFilter, nlGroupInfo, _groupInfo, $scope, n
 			treeData = nlTreeSelect.strArrayToTreeArray(_groupInfo.props.grades || []);	
 		} else {
 			var fieldValues = {};
-			for(var i=0; i<records.length; i++) {
-				var record = records[i];
+			for(var key in records) {
+				var record = records[key];
 				var objid = nlTable.getFieldValue($scope.utable, record, tab.id);
-				objid = _tolower(objid);
+				objid = objid ? objid.toLowerCase() : '';
 				var name = tab.valueFiledId ? nlTable.getFieldValue($scope.utable, record, tab.valueFiledId) : objid;
+				if (!objid) continue;
 				fieldValues[key] = {id: objid, name: name};
 			}
 			treeData = nl.utils.dictToList(fieldValues);
