@@ -175,7 +175,6 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		return true;
 	}
 
-	var _lrColumns = null;
 	var _tableNavPos = {};
 	var MAX_VISIBLE = 100;
 	function _initScope() {
@@ -476,8 +475,6 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 
 		var ret = $scope.tabData;
 		ret.isFilterApplied = false;
-		_updateTabs();
-
 		ret.search = '';
 		ret.lastSeached = '';
 		ret.filter = {};
@@ -485,18 +482,14 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		ret.records = null; 
 		ret.summaryStats = null;
 		ret.summaryStatSummaryRow = null;
-		ret.selectedTab = ret.tabs[0];
 		ret.processingOnging = true;
 		ret.nothingToDisplay = false;
 		ret.onSearch = _onSearch;
 		ret.onFilter = _recordsFilter.showFilterDialog;
 		ret.onTabSelect = _onTabSelect;
+		_tabManager.update();
 	}
 
-	function _updateTabs(checkSelected) {
-		_tabManager.update(checkSelected);
-	}
-	
 	function _someTabDataChanged() {
 		$scope.drillDownInfo = {};
 		$scope.nhtOverviewInfo = {};
@@ -559,7 +552,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			tabData.records = _getFilteredRecords(summaryStats);
 			tabData.summaryStats = summaryStats.asList();
 			tabData.summaryStatSummaryRow = _getSummaryStatSummaryRow(tabData.summaryStats);
-			_updateTabs(true);
+			_tabManager.update();
 		}
 		
 		if (tab.id == 'overview') {
@@ -583,8 +576,9 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		}
 	}
 
-	var _selectedLrCols = null;
 	var _defaultLrCol = ["user.user_id", "user.name", "repcontent.name", "user.org_unit", "stats.status.txt"];
+	var _lrColumns = null;
+	var _selectedLrCols = null;
 	var _lastSelectedCols = null;
 	function _updateLearningRecordsTab(tabData) {
 		_lrSelectedColumns(_lastSelectedCols || _defaultLrCol);
@@ -685,14 +679,19 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		columns.push(_col('repcontent.courseid', 'Course/ Module Id'));
 		columns.push(_col('repcontent.targetLang', 'Language'));
 		_lrColumns = columns;
-		nlTableViewSelectorSrv.updateAllColumnNames('lr_views', _lrColumns);
-		return _lrColumns;
+		nlTableViewSelectorSrv.updateAllColumnNames('lr_views', columns);
+		return columns;
 	}
 	
 	function _col(id, name, hideInMode, icon, multipleArray) {
-		var __column = { id: id, name: name, allScreens: true, canShow:true, hideInMode: hideInMode, styleTd: 'minw-number nl-text-center', insertCols: multipleArray ? true: false, children: multipleArray};
-		if(icon) __column.icon = icon;
-		return __column;
+		var column = { id: id, name: name, allScreens: true, canShow:true, 
+			hideInMode: hideInMode, styleTd: 'minw-number nl-text-center', 
+			insertCols: multipleArray ? true: false, children: multipleArray,
+			iconType: 'ionicon', 
+			searchKey: name.toLowerCase(), // TODO-NOW: refactor the search in table.js (are all items searchable)
+		};
+		if(icon) column.icon = icon;
+		return column;
 	}
 
 	function _onSearch(event) {
@@ -718,7 +717,12 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		_tableNavPos = {currentpos: 0, nextpos: MAX_VISIBLE};
 		for (var recid in records) {
 			var record = records[recid];
-			if (record.raw_record.isNHT) nlGetManyStore.getBatchMilestoneInfo(record.raw_record, batchStatusObj);	
+			if (record.raw_record.isNHT) {
+				_tabManager.nhtRecordFound();
+				nlGetManyStore.getBatchMilestoneInfo(record.raw_record, batchStatusObj);
+			} else {
+				_tabManager.lmsRecordFound();
+			}
 			if (!_recordsFilter.doesPassFilter(record)) continue;
 			if (!_doesPassSearch(record, searchInfo)) continue;
 			filteredRecords.push(record);
@@ -827,6 +831,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 	
 	function _updateReportRecords() {
 		nlLrReportRecords.updateReportRecords();
+		_tabManager.clear();
 		nlGetManyStore.clearCache();
 		_updateScope();
 	}
@@ -845,13 +850,10 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		$scope.fetchInProgress = nlLrFetcher.fetchInProgress(true);
 		$scope.canFetchMore = nlLrFetcher.canFetchMore();
 		_tableNavPos = {currentpos: 0, nextpos: MAX_VISIBLE};
-		_updateTabs();
 		var anyRecord = nlLrReportRecords.getAnyRecord();
 		_setSubTitle(anyRecord);
 		$scope.noDataFound = (anyRecord == null);
 		_someTabDataChanged();
-		var tab = $scope.tabData.selectedTab;
-		if (tab.id == 'nhtclosed' || tab.id == 'nhtrunning' || tab.id == 'nhtbatchattendance' || tab.id == 'nhtoverview') tab.updated = false;
 		_updateCurrentTab(avoidFlicker, true);
 	}
 
@@ -2166,151 +2168,153 @@ function CertificateHandler(nl, $scope) {
 //-------------------------------------------------------------------------------------------------
 function LrTabManager(tabData, nlGetManyStore, nlLrFilter, _groupInfo) {
 
-	this.update = function(checkSelected) {
+	this.clear = function() {
+		_recordsFound = {lms: false, nht: false};
+	};
+
+	this.nhtRecordFound = function() {
+		_recordsFound.nht = true;
+	};
+
+	this.lmsRecordFound = function() {
+		_recordsFound.lms = true;
+	};
+
+	this.update = function() {
+		_updateCanShowOfTabs();
+		_updateSelectedTab(tabData.tabs);
+	};
+
+	var _recordsFound = null;
+
+	function _init(self) {
+		self.clear();
 		tabData.tabs = [];
 		var tabs = tabData.tabs;
 		if (nlLrFilter.getMode() == 'cert_report') {
-			_addCertificateTab(tabs);
-			_addLrTab(tabs);
+			tabs.push(_tabsDict.certificate);
+			tabs.push(_tabsDict.learningrecords);
 		} else {
-			_addOverviewTabs(tabs);
-			_addNhtOverviewTabs(tabs);
-			_addDrilldownTab(tabs);
-			_addNhtTabs(tabs);
-			_addAttendanceTab(tabs);
-			_addLrTab(tabs);
-			_addTimeSummaryTab(tabs);
+			tabs.push(_tabsDict.overview);
+			tabs.push(_tabsDict.nhtoverview);
+			tabs.push(_tabsDict.nhtclosed);
+			tabs.push(_tabsDict.nhtrunning);
+			tabs.push(_tabsDict.nhtbatchattendance);
+			tabs.push(_tabsDict.drilldown);
+			tabs.push(_tabsDict.learningrecords);
+			tabs.push(_tabsDict.timesummary);
 		}
-		_updateSelectedTab(tabs, checkSelected);
-	};
+	}
+	_init(this);
 
-	function _addOverviewTabs(tabs) {
-		var subtype = nlLrFilter.getRepSubtype();
-		if (subtype == 'nht') return;
-		tabs.push({
-			title : 'Click here to see reports overview',
+	var _tabsDict = {
+		overview: {
+			title : 'Click here to see learning overview',
 			name: 'Learning Overview',
 			icon : 'ion-stats-bars',
 			id: 'overview',
 			iconsuperscript : 'L',
 			updated: false,
+			canShow: false,
 			tables: []
-		});
-	}
-
-	function _addNhtOverviewTabs(tabs) {
-		var subtype = nlLrFilter.getRepSubtype();
-		var batchStatus = nlGetManyStore.getNhtBatchStates();
-		if (subtype == 'lms' && !(batchStatus.running || batchStatus.closed)) return;
-		if(batchStatus.running || batchStatus.closed) {
-			tabs.push({
-				title : 'Click here to see NHT reports overview',
-				name: 'Training Overview',
-				icon : 'ion-stats-bars',
-				id: 'nhtoverview',
-				iconsuperscript : 'T',
-				updated: false,
-				tables: []
-			});
-		}
-	}
-
-	function _addDrilldownTab(tabs) {
-		tabs.push({
+		}, 
+		nhtoverview: {
+			title : 'Click here to see NHT reports overview',
+			name: 'Training Overview',
+			icon : 'ion-stats-bars',
+			id: 'nhtoverview',
+			iconsuperscript : 'T',
+			updated: false,
+			canShow: false,
+			tables: []
+		},
+		drilldown: {
 			title : 'Click here to view course-wise progress',
 			name: 'Drill Down',
 			icon : 'ion-social-buffer',
 			id: 'drilldown',
 			updated: false,
+			canShow: true,
 			tables: []
-		});
-	}
-
-	function _addNhtTabs(tabs) {
-		var type = nlLrFilter.getType();
-		if (type == 'user') return;
-
-		var batchStatus = nlGetManyStore.getNhtBatchStates();
-		if(batchStatus.running) {
-			tabs.push({
-				title : 'Click here to view running batch summary',
-				name: 'Running Training Batches',
-				icon : 'ion-filing',
-				iconsuperscript : 'R',
-				id: 'nhtrunning',
-				updated: false,
-				tables: []
-			});	
-		} 
-		if (batchStatus.closed) {
-			tabs.push({
-				title : 'Click here to view closed batch summary',
-				name: 'Closed Training Batches',
-				icon : 'ion-filing',
-				iconsuperscript : 'C',
-				id: 'nhtclosed',
-				updated: false,
-				tables: []
-			});	
-		}
-	}
-
-	function _addAttendanceTab(tabs) {
-		if (nlLrFilter.getType() != 'course_assign' || 
-			!_groupInfo.props.etmAsd || _groupInfo.props.etmAsd.length == 0) return;
-		tabs.push({
+		},
+		nhtrunning: {
+			title : 'Click here to view running batch summary',
+			name: 'Running Training Batches',
+			icon : 'ion-filing',
+			iconsuperscript : 'R',
+			id: 'nhtrunning',
+			updated: false,
+			canShow: false,
+			tables: []
+		},
+		nhtclosed: {
+			title : 'Click here to view closed batch summary',
+			name: 'Closed Training Batches',
+			icon : 'ion-filing',
+			iconsuperscript : 'C',
+			id: 'nhtclosed',
+			updated: false,
+			canShow: false,
+			tables: []
+		},
+		nhtbatchattendance: {
 			title : 'Click here to view NHT batch attendance summary',
 			name: 'NHT Batch Attendance',
 			icon: 'ion-person-stalker',
 			id: 'nhtbatchattendance',
 			updated: false,
+			canShow: false,
 			tables: []
-		});	
-	}
-
-	function _addLrTab(tabs) {
-		tabs.push({
+		},
+		learningrecords: {
 			title : 'Click here to view learning records',
 			name: 'Learning Records',
 			icon : 'ion-ios-compose',
 			id: 'learningrecords',
 			updated: false,
+			canShow: true,
 			tables: [tabData.utable]
-		});
-	}
-
-	function _addTimeSummaryTab(tabs) {
-		tabs.push({
+		},
+		timesummary: {
 			title : 'Click here to view time summary',
 			name: 'Time Summary',
 			icon : 'ion-clock',
 			id: 'timesummary',
 			updated: false,
+			canShow: true,
 			tables: []
-		});
-	}
-
-	function _addCertificateTab(tabs) {
-		tabs.push({
+		},
+		certificate: {
 			title : 'Click here to view certification status',
 			name: 'Certificates',
 			icon : 'ion-trophy',
 			id: 'certificate',
 			updated: false,
+			canShow: true,
 			tables: []
-		});
+		}
+	};
+
+	function _updateCanShowOfTabs() {
+		var subtype = nlLrFilter.getRepSubtype();
+		var batchStatus = nlGetManyStore.getNhtBatchStates();
+		var type = nlLrFilter.getType();
+		_tabsDict.overview.canShow = _recordsFound.lms && subtype != 'nht' || subtype == 'lms';
+		_tabsDict.nhtoverview.canShow = _recordsFound.nht && subtype != 'lms' || subtype == 'nht';
+		_tabsDict.nhtrunning.canShow =  (type != 'user' && batchStatus.running);
+		_tabsDict.nhtbatchattendance.canShow =  (type != 'user' && batchStatus.closed);
 	}
 
-	function _updateSelectedTab(tabs, checkSelected) {
-		if (!tabData.selectedTab) return;
+	function _updateSelectedTab(tabs) {
+		if (tabData.selectedTab && tabData.selectedTab.canShow) return;
+		tabData.selectedTab = null;
+
 		var isSelTabFound = false;
 		for(var i=0; i<tabs.length; i++) {
-			if (tabData.selectedTab.id != tabs[i].id) continue;
-			isSelTabFound = true;
-			tabData.selectedTab = tabs[i]; // Reset the new object (updated attribute many change)
+			if (!tabs[i].canShow) continue;
+			tabData.selectedTab = tabs[i];
 			break;
 		}
-		if (checkSelected && !isSelTabFound) tabData.selectedTab = tabs[0];
 	}
 }
 
@@ -2451,6 +2455,8 @@ function FilterManager(nlLrFilter, nlLrReportRecords, nlGroupInfo ,_groupInfo, n
 		_addTab('grade', _groupInfo.props.gradelabel, xisManyCourseOrModules);
 
 		// TODO-NOW: get custom renamed value from learning reports custom view
+		// define suborglabel in group properties similar to gradelable (default: "Locations"). Use in everywhere in GUI (NHT: "Ceners" column title)
+		// add Suborg as a column in learning_reports tab
 		var subOrgLabel = 'Locations'; // TODO-NOW: get from group config
 		_addTab('suborg', subOrgLabel, isManyUsers && nlGroupInfo.isSubOrgEnabled());
 		_addTab('status', 'Status', true);
@@ -2462,9 +2468,8 @@ function FilterManager(nlLrFilter, nlLrReportRecords, nlGroupInfo ,_groupInfo, n
 		_addTab('ou_part4', 'OU Part 4', isManyUsers);
 		_addTab('usertype', 'User type', isManyUsers);
 		_addTab('batchname', 'Batch name', isManyUsers);
+		// TODO-NOW: get custom renamed value from learning reports custom view
 		_addTab('usermeta', 'User metadata', isManyUsers);
-		// define suborglabel in group properties similar to gradelable (default: "Locations"). Use in everywhere in GUI (NHT: "Ceners" column title)
-		// add Suborg as a column in learning_reports tab
 	};
 
 	function _addTab(tabid, name, condition) {

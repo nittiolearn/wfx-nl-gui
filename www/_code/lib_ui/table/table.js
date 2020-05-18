@@ -50,12 +50,7 @@ function(nl, nlDlg, $templateCache) {
              icon: xx,                                           // Opt, default=none
                                                                  // icon is attrid storing the icon
              iconType: ionicon|img,                              // Opt, default=ionicon
-             smallScreen:false|true,                             // Opt, default=false
-             mediumScreen: true|false,                           // Opt, default=true
-             largeScreen: true|false,                            // Opt, default=true
-             searchable: true|false,                             // Opt, default=true
              searchKey: undefined|null|xx,                       // Opt, default=name
-             showInDetails: true|false                           // Opt, default=true
              styleTd: ''                                         // Opt, default=''
              }, ...],
         search: {                                             // Opt, default=search
@@ -69,7 +64,7 @@ function(nl, nlDlg, $templateCache) {
         styleSummary: '',                                     // Opt, default=summary
         maxVisible: 100,                                      // Opt, default=100
         onRowClick: undefined=none|"expand"|"xxx"             // Opt, default=none
-        detailsTemplate: undefined|"templateUrl"              // Opt, default=table_details.html
+        detailsTemplate: "templateUrl"                        // Mandatory
         clickHandler: undefined|fn                            // Opt, Called with action-type
         
         // Function registered by directive to be called by controller
@@ -84,24 +79,6 @@ function(nl, nlDlg, $templateCache) {
     var self = this;
     this.initTableObject = function(info) {
         if (!info) throw('table info object error');
-        for (var i=0; i<info.columns.length; i++) {
-            var col = info.columns[i];
-            if (!col.id) throw('table info object error');
-            if (!col.name) col.name = col.id;
-            if (!col.iconType) col.iconType = 'ionicon';
-            
-            if (!col.smallScreen) col.smallScreen = false;
-            if (col.mediumScreen === undefined) col.mediumScreen = true;
-            if (col.largeScreen === undefined) col.largeScreen = true;
-
-            if (col.searchable === undefined) col.searchable = true;
-            if (!col.searchKey) col.searchKey = col.name;
-            col.searchKey = col.searchable ? col.searchKey.toLowerCase() : null;
-            if (col.showInDetails === undefined) col.showInDetails = true;
-
-            if (!col.styleTd) col.styleTd = '';
-        }
-
         if (!info.search) info.search = {};
         if (!info.search.disabled) info.search.disabled = false;
         if (!info.search.placeholder) info.search.placeholder = 'Start typing to search';
@@ -113,7 +90,6 @@ function(nl, nlDlg, $templateCache) {
 
         if (!info.maxVisible) info.maxVisible = 100;
         if (!info.onRowClick) info.onRowClick = null;
-        if (!info.detailsTemplate) info.detailsTemplate = 'lib_ui/table/table_details.html';
         if (!info.clickHandler) info.clickHandler = null;
         
         info._internal = {
@@ -170,21 +146,6 @@ function(nl, nlDlg, $templateCache) {
         _defaultDetails(info, rec);
     }
     
-    function _defaultDetails(info, record) {
-        record.avps = [];
-
-        for(var i=0; i<info.columns.length; i++) {
-            var col = info.columns[i];
-            if (!col.showInDetails) continue;
-            var item = record[col.id] || {txt: ''};
-            var icon = (item.icon && col.iconType == 'ionicon')
-                 ? nl.fmt2("<i class='icon fsh4 {}'></i> ", item.icon)
-                 : '';
-            var txt = icon + item.txt;
-            nl.fmt.addAvp(record.avps, col.name, txt);
-        }
-    }
-
     function _initSortObject(info) {
         info.sort = {colid: null, ascending: true};
     }
@@ -238,11 +199,6 @@ function Searcher(nl, nlDlg, info) {
         self.infotxt = '';
         self.startpos = 0;
         self.searchAttrs = _getSearchAttrs();
-
-        nl.resizeHandler.onResize(function() {
-            _onResize();
-        });
-        _onResize();
     }
 
     self.initStartPos = function(startpos) {
@@ -279,16 +235,6 @@ function Searcher(nl, nlDlg, info) {
         if (info.getSummaryRow)
             info._internal.summaryRow = info.getSummaryRow(records);
         _updateInfoTxt();
-    }
-    
-    function _onResize() {
-        var screenSize = nl.rootScope.screenSize;
-        for(var i=0; i<info.columns.length; i++) {
-            var col = info.columns[i];
-            if ('allScreens' in col) continue;
-            col.canShow = screenSize == 'small' ? col.smallScreen :
-                screenSize == 'medium' ? col.mediumScreen : col.largeScreen;
-        }
     }
     
     function _getDisplayRecord(record) {
