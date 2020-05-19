@@ -39,7 +39,7 @@ function(nl) {
         for(var i=0; i<treeList.length; i++) {
             var item = treeList[i];
             itemDict[item.id] = item;
-            var idParts = item.id.split('.');
+            var idParts = _getIdParts(item.id, treeSelectInfo);
             if (!item.name) item.name = idParts[idParts.length -1];
             if (!('canSelect' in item)) item.canSelect = true;
             item.indentation = idParts.length - 1;
@@ -59,7 +59,7 @@ function(nl) {
                 treeSelectInfo.rootItems[item.id] = item;
             }
         }
-        treeSelectInfo.showSearchField = treeList.length > 6 ? true : false;
+        treeSelectInfo.showSearchField = treeList.length > (treeSelectInfo.showSearchFieldAbove || 6) ? true : false;
         _fillDefaut(treeSelectInfo, 'fieldmodelid', null);
         _fillDefaut(treeSelectInfo, 'onSelectChange', null);
         _fillDefaut(treeSelectInfo, 'onFilterClick', null);
@@ -68,6 +68,7 @@ function(nl) {
         _fillDefaut(treeSelectInfo, 'treeIsShown', true);
         _fillDefaut(treeSelectInfo, 'showCounts', false);
         _fillDefaut(treeSelectInfo, 'multiSelect', true);
+        _fillDefaut(treeSelectInfo, 'singleLevelTree', false);
         _fillDefaut(treeSelectInfo, 'canSelectFolder', canSelectFolder);
         _fillDefaut(treeSelectInfo, 'searchText', '');
         _fillDefaut(treeSelectInfo, 'removeEmptyFolders', false);
@@ -89,7 +90,6 @@ function(nl) {
         _updateSelectionText(treeSelectInfo);
 		var sortedTreeList = [];
 		var childElemList = [];
-		var lastindentation = null;
 		var parentid = '';
 		for(var i=0; i<treeSelectInfo.data.length+1; i++) {
 			var elem = treeSelectInfo.data[i] || {isFolder: true};
@@ -214,7 +214,7 @@ function(nl) {
 				if (item.isOpen) this.toggleFolder(item, treeSelectInfo);
 				return false;
 			}
-			var parentId = _getParentId(item.id);
+			var parentId = _getParentId(item.id, treeSelectInfo);
 			var parent = treeSelectInfo.itemDict[parentId];
 			if (!parent) return false;
 			this.toggleFolder(parent, treeSelectInfo);
@@ -327,7 +327,7 @@ function(nl) {
         	// Will be made true later if child is searchVisible
         	if(item.isFolder) continue;
             var name = item.name.toLowerCase();
-            var username = item.userObj.username.toLowerCase();
+            var username = item.userObj ? item.userObj.username.toLowerCase() : '';
             if(name.indexOf(searchText) == -1 && username.indexOf(searchText) == -1) continue;
         	_makeParentVisible(treeSelectInfo, item);
 			item.isSearchVisible = true;
@@ -336,7 +336,7 @@ function(nl) {
     }
 
     function _makeParentVisible(treeSelectInfo, item) {
-		var parentId = _getParentId(item.id);
+		var parentId = _getParentId(item.id, treeSelectInfo);
 		var parent = treeSelectInfo.itemDict[parentId];
 		if (!parent) return;
 		parent.isSearchVisible = true;
@@ -449,10 +449,15 @@ function(nl) {
         treeArray.push({id: itemId});
     }
     
-    function _getParentId(itemId) {
-        var idParts = itemId.split('.');
+    function _getParentId(itemId, treeSelectInfo) {
+        var idParts = _getIdParts(itemId, treeSelectInfo);
         idParts.pop();
         return idParts.join('.');
+    }
+
+    function _getIdParts(itemId, treeSelectInfo) {
+        if (treeSelectInfo && treeSelectInfo.singleLevelTree) return [itemId];
+        return itemId.split('.');
     }
 }];
 

@@ -29,22 +29,8 @@
                     for (var k in data) {
                         _settings[k] = data[k];
                         if (!_settings[k]) _settings[k] = _defaultSettings();
+                        else _migrateSettings(k);
                     }
-                    /* TODO-NOW: Migrate column ids
-                    LR tab:
-                    'repcontent.assignid': r'aw_record.assignment',
-                    'stats.internalIdentifier': 'raw_record.id',
-                    'not_before': 'repcontent.not_before_str',
-                    'not_after': 'repcontent.not_after_str',
-                    'orgparts.part1': 'user.ou_part1',
-                    'orgparts.part2': 'user.ou_part2',
-                    'orgparts.part3': 'user.ou_part3',
-                    'orgparts.part4': 'user.ou_part4',
-                    
-                    NHT tab:
-                    'lob': 'subject',
-                    'partner': 'suborg',
-                    */
                     resolve(true);
                 }, function(err) {
                     resolve(false);
@@ -54,6 +40,7 @@
 
         /* data = _settings[settingsType] = 
                     {
+                        "version": 1,
                         "views": [
                             {
                                 "id": "id_1588757267240_nr58ivn44",
@@ -77,6 +64,7 @@
         */
        this.update = function(settingsType, info) {
             _cleanupDeletedCustomColumns(info);
+            info.version = SETTINGS_VERSION;
             return nlServerApi.updateGroupSettings({settings_type: settingsType, info: info})
             .then(function(data) {
                 _settings[settingsType] = data || _defaultSettings();
@@ -109,6 +97,40 @@
         var _settings = {};
         function _defaultSettings() {
             return {views: [], columnNames: {}, customColumns: []};
+        }
+
+        var _migrationData = {
+            lr_views: {
+                'repcontent.assignid': 'raw_record.assignment',
+                'stats.internalIdentifier': 'raw_record.id',
+                'not_before': 'repcontent.not_before_str',
+                'not_after': 'repcontent.not_after_str',
+                'orgparts.part1': 'user.ou_part1',
+                'orgparts.part2': 'user.ou_part2',
+                'orgparts.part3': 'user.ou_part3',
+                'orgparts.part4': 'user.ou_part4'
+            },
+            nht_views: {
+                'lob': 'subject',
+                'partner': 'suborg'
+            }
+        };
+
+        var SETTINGS_VERSION = 1;
+        function _migrateSettings(settings_type) {
+            // TODO-LATER: Manually migrte all groups in live and drop this code! (Server side)
+            var setting = _settings[settings_type] || {};
+            if (setting.version == SETTINGS_VERSION || !setting.views) return;
+            setting.version = SETTINGS_VERSION;
+            var migrationData = _migrationData[settings_type] || {};
+            for(var i=0; i<setting.views.length; i++) {
+                var cols = setting.views[i].columns || [];
+                setting.views[i].columns = [];
+                var newCols = setting.views[i].columns;
+                for(var j=0; j<cols.length; j++) {
+                    newCols.push(cols[j] in migrationData ? migrationData[cols[j]] : cols[j]);
+                }
+            }
         }
 
         function _cleanupDeletedCustomColumns(info) {

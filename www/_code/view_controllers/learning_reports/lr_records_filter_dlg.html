@@ -1,17 +1,17 @@
 <nl-dlg dlgtitle='Filter items' show-help='0'>
 	<nl-dlg-content>
-    <div class='row row-top row-stretch padding0 margin0'>
-        <div style='padding-right:0px; min-width:150px'>
+    <div class='row row-top row-stretch padding0 margin0 nl-85vh'>
+        <div class='nl-thin-scroll-mh100 nl-min-200 nl-max-300 nl-border-right'>
             <div ng-repeat='tb in data.tabs'
                  class='nl-link-text nl-show-tooltip {{(tb.id == data.selectedTab.id) ? "nl-left-tab-selected" : "nl-left-tab"}} padding-mid'
 				 style='min-height: 40px'>
-                <div class='padding-mid row row-center margin0 {{tb.filterApplied ? "forange2" : ""}}' 
+                <div class='padding-mid row row-center margin0 {{tb.filterApplied ? "forange2 fsh5" : ""}}' 
                      ng-click='data.onTabSelect(tb)'>
 					 {{tb.name}}
                 </div>
             </div>
         </div>
-        <div class='col nl-left-tabbed-content bt1 sandbox padding-mid' style='overflow: auto; height: {{getContTabHeight($event)}}px'>
+        <div class='col padding-mid nl-thin-scroll-mh100 nl-min-300'>
            	<nl-tree-select ng-if='data.selectedTab.id != "usermeta"' info='data.selectedTab.tabinfo'></nl-tree-select>
 			<div ng-if='data.selectedTab.id == "usermeta"' class='row row-top row-wrap margin0 padding-mid'
 				ng-repeat='mdFilter in data.selectedTab.tabinfo.mdFilters'>
