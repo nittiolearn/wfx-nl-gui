@@ -484,7 +484,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		ret.nothingToDisplay = false;
 		ret.onSearch = _onSearch;
 		ret.onFilter = function() {
-			_recordsFilter.showFilterDialog(_getLrCustomizedNamesDict());
+			_recordsFilter.showFilterDialog(nl.utils.arrayToDictById(_getLrColumns()));
 		};
 		ret.onTabSelect = _onTabSelect;
 		_tabManager.update(false);
@@ -501,6 +501,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		for (var i=0; i<tabs.length; i++) {
 			tabs[i].updated = false;
 		}
+		_allNhtColumns = null;
 		$scope.tabData.records = null;
 	}
 
@@ -512,8 +513,6 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 	function _updateCurrentTab(avoidFlicker) {
 		var tabData = $scope.tabData;
 		var tab = tabData.selectedTab;
-		if (tab && tab.id == 'nhtclosed') _updateSelectedColumnsOfNHT(true);
-		if (tab && tab.id == 'nhtrunning') _updateSelectedColumnsOfNHT(false);
 		if (tab && tab.updated) return;
 		if (!avoidFlicker) {
 			tabData.nothingToDisplay = false;
@@ -531,18 +530,6 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			}
 			nlDlg.hideLoadingScreen();
 		}, 100);
-	}
-
-	var nhtMandatoryCols = {batchFirstPass: true, batchThroughput: true};
-	function _updateSelectedColumnsOfNHT(isClosed) {
-		if (!_selectedNhtColumns) return;
-		for (var i=0; i<_selectedNhtColumns.length; i++) {
-			var col = _selectedNhtColumns[i];
-			if (col.id in nhtMandatoryCols) {
-				if(isClosed) col.canShow = true;
-				else col.canShow = false;
-			}
-		}
 	}
 
 	function _actualUpdateCurrentTab(tabData, tab) {
@@ -597,26 +584,13 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 
 	function _updateSelectedLrColumns() {
 		var lrColumnsDict = nl.utils.arrayToDictById(_getLrColumns());
-		var colIdToCustomNames = nlTableViewSelectorSrv.getColumnNames('lr_views');
 		var ret = [];
 		for(var i=0;i<_selectedLrColIds.length;i++) {
 			var colid = _selectedLrColIds[i];
 			if ((!(colid in lrColumnsDict)) || lrColumnsDict[colid].hideInMode) continue;
-			if (colid in colIdToCustomNames) lrColumnsDict[colid].name = colIdToCustomNames[colid];
 			ret.push(lrColumnsDict[colid]);
 		}
 		$scope.utable.origColumns = ret;
-	}
-
-	function _getLrCustomizedNamesDict() {
-		var ret = {};
-		var allColumns = _getLrColumns();
-		var colIdToCustomNames = nlTableViewSelectorSrv.getColumnNames('lr_views');
-		for(var i=0;i<allColumns.length;i++) {
-			var col = allColumns[i];
-			ret[col.id] = colIdToCustomNames[col.id] || col.name;
-		}
-		return ret;
 	}
 
 	function _getLrColumns() {
@@ -683,14 +657,9 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			var milestones = _groupInfo.props.milestones;
 			for(var i=0; i<milestones.length; i++) {
 				var item = milestones[i];
-				var msid = 'repcontent.'+item.id+'planned'
-				columns.push(_col(msid, nl.t('Planned {} date', item.name)));
+				columns.push(_col('repcontent.'+item.id+'_planned', nl.t('Planned {} date', item.name)));
+				columns.push(_col('repcontent.'+item.id+'_actual', nl.t('Actual {} date', item.name)));
 			}	
-			for(var i=0; i<milestones.length; i++) {
-				var item = milestones[i];
-				var msid = 'repcontent.'+item.id+'actual'
-				columns.push(_col(msid, nl.t('Actual {} date', item.name)));
-			}
 		}
 
 		for(var i=0; i<mh.length; i++) {
@@ -1096,23 +1065,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 	// NHT overview tab
 	//---------------------------------------------------------------------------------------------------------------------------------------------------------
 	function _updateNhtOverviewBatch() {
-		nlLrNht.clearStatusCountTree();
-		var records = $scope.tabData.records;
-		var reportDict = {};
-		for(var i=0; i<records.length; i++) {
-			var record = records[i];
-			if(!record.raw_record.isNHT) continue;
-			if(!(record.user.user_id in reportDict)) {
-				reportDict[record.user.user_id] = record;
-				continue;
-			}	
-			var oldUserRecord = reportDict[record.user.user_id];
-			if(oldUserRecord.raw_record.updated > record.raw_record.updated) continue;
-			reportDict[record.user.user_id] = record;
-		}
-		for(var key in reportDict) nlLrNht.addCount(reportDict[key]);
-		var overviewStats = nlLrNht.getStatsCountDict();
-
+		var overviewStats = nlLrNht.getStatsCountDict('', $scope.tabData.records, null);
 		$scope.nhtOverviewInfo = {firstInfoGraphics: _getfirstInfoGraphicsArray(overviewStats), 
 								  secondInfoGraphics: _getSecondInfoGraphicsArray(overviewStats),
 								  thirdInfoGraphics: _getThirdInfoGraphicsArray(overviewStats),
@@ -1122,9 +1075,9 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 
 	function _getNhtChartData(overviewStats) {
 		var allCount = overviewStats[0].cnt;
-		var chartData = [{type: 'doughnut', labels: ['Training', 'OJT', 'Certification', 'Re-certification', 'Closed'], 
+		var chartData = [{type: 'doughnut', labels: ['Training', 'OJT', 'Certification', 'Re-certification', 'Certified'], 
 						colors:[_nl.colorsCodes.waiting, _nl.colorsCodes.started, _nl.colorsCodes.done, _nl.colorsCodes.done, _nl.colorsCodes.done], series: [], options: []}];
-			chartData[0].data = [allCount.Training || 0, allCount.OJT || 0, allCount.Certification || 0, allCount['Re-certification'] || 0, allCount.completed];
+		chartData[0].data = [allCount.Training || 0, allCount.OJT || 0, allCount.Certification || 0, allCount['Re-certification'] || 0, allCount.completed];
 		return chartData;
 	}
 
@@ -1166,128 +1119,63 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		var allCount = overviewStats[0].cnt;
 		var ret = [];
 		ret.push({title: 'Re-certification', perc: allCount['Re-certification'] || 0, showperc: false});
-		ret.push({title: 'certified', perc: allCount.certified || 0, showperc: false});
-		ret.push({title: 'failed', perc: allCount.failed || 0, showperc: false});
+		ret.push({title: 'Certified', perc: allCount.certified || 0, showperc: false});
+		ret.push({title: 'Failed', perc: allCount.failed || 0, showperc: false});
 		return ret;
     }
 	//---------------------------------------------------------------------------------------------------------------------------------------------------------
 	//Running NHT tab
 	//---------------------------------------------------------------------------------------------------------------------------------------------------------
-	var _nhtColumns = null;
-	var _nhtColumnsSelectedInView = null;
-
 	function _updateRunningNhtTab() {
-		$scope.nhtRunningInfo = _getNhtTab(true);
+		$scope.nhtRunningInfo = _getNhtTab('nhtrunning');
 	}
 
 	function _updateClosedNhtTab() {
-		$scope.nhtClosedInfo = _getNhtTab(false);
+		$scope.nhtClosedInfo = _getNhtTab('nhtclosed');
 	}
 
-	function _getNhtTab(isRunning) {
-		_initNhtColumns();
-		nlLrNht.clearStatusCountTree();
-		var records = angular.copy($scope.tabData.records);
-		var reportDict = {};
-		var transferedOut = {};
-		var batchStatusObj = nlLrReportRecords.getNhtBatchStatus();
-		var nhtRecords = [];
-		for (var i=0; i<records.length; i++) {
-			var record = records[i];
-			if (record.raw_record.isNHT) nhtRecords.push(record);
-		}
-		nhtRecords.sort(function(a, b) {
-			if(b.raw_record.updated < a.raw_record.updated) return 1;
-			if(b.raw_record.updated > a.raw_record.updated) return -1;
-			if(b.raw_record.updated == a.raw_record.updated) return 0;				
-		});
-
-		for(var i=0; i<nhtRecords.length; i++) {
-			var record = nhtRecords[i];
-			if (record.stats.attritionStr == 'Transfer-Out') {
-				transferedOut[record.user.user_id] = record;
-				continue;
-			}
-			var oldUserRecord = reportDict[record.user.user_id] || null;
-			if(oldUserRecord && oldUserRecord.raw_record.updated > record.raw_record.updated) continue;
-			var msInfo = nlGetManyStore.getBatchMilestoneInfo(record.raw_record, batchStatusObj);
-			if(isRunning && msInfo.batchStatus == 'Closed' ||
-				!isRunning && msInfo.batchStatus != 'Closed') {
-				if (record.user.user_id in reportDict) delete reportDict[record.user.user_id];
-				continue;
-			}
-			reportDict[record.user.user_id] = record;
-		}
-		for (var transferid in transferedOut) {
-			if (transferid in reportDict) continue;
-			reportDict[transferid] = transferedOut[transferid];
-		}
-		for(var key in reportDict) {
-			var record = reportDict[key];
-				nlLrNht.addCount(record);
-		}
-		return {columns: _nhtColumns,  selectedColumns: _selectedNhtColumns || _nhtColumns,
-			rows: _generateDrillDownArray(true, nlLrNht.getStatsCountDict(), false, 
-				(nlLrFilter.getType() == "course_assign"), true)};
+	function _getNhtTab(batchType) {
+		var colInfo = _getNhtAllAndSelectedColumns();
+		var statusCounts = nlLrNht.getStatsCountDict(batchType, $scope.tabData.records,
+			nlLrReportRecords.getNhtBatchStatus());
+		return {columns: colInfo.all,  selectedColumns: colInfo.selected,
+			isRunning: batchType == 'nhtrunning', rows: _generateDrillDownArray(true, statusCounts,
+			false, (nlLrFilter.getType() == "course_assign"), true)};
 	}
 
-	var _selectedNhtColumns = null;
-	function _initNhtColumns() {
-		var defColumns = ["cntTotal", "batchStatus", "batchName", "suborg", "subject", "trainer", "avgDelay", "batchFirstPass", "batchThroughput"];
-		_nhtColumns = _getNhtColumns();
-		if (!_selectedNhtColumns) _updateSelectedNhtColumns(defColumns);
-		_updateNhtColumns();
-        $scope.nhtViewSelectorConfig = {
-            canEdit: nlRouter.isPermitted(_userInfo, 'assignment_manage'),
-            tableType: 'nht_views',
-			allColumns: _nhtColumns,
-			defaultViewColumns: {id: 'default', name: 'Default', columns: defColumns},
-            onViewChange: function(selectedColIdList, selectedCustColIdsDict) {
-				// TODO-NOW: handle selectedCustColIdsDict
-				_updateSelectedNhtColumns(selectedColIdList);
-				_someTabDataChanged();
-				_updateCurrentTab();
-			}
-		};
-	}
-
-	function _updateSelectedNhtColumns(selectedColIdList) {
-		_nhtColumnsSelectedInView = {};
-		var nhtColumnsDict = nl.utils.arrayToDictById(_nhtColumns);
-		_selectedNhtColumns = [];
-		for(var i=0;i<selectedColIdList.length;i++) {
-			var colid = selectedColIdList[i];
+	function _getNhtAllAndSelectedColumns() {
+		var allNhtColumns = _initNhtColumns();
+		var ret = {all: allNhtColumns, selected: []};
+		var nhtColumnsDict = nl.utils.arrayToDictById(ret.all);
+		for(var i=0;i<_selectedNhtColIds.length;i++) {
+			var colid = _selectedNhtColIds[i];
 			if (!(colid in nhtColumnsDict)) continue;
-			_selectedNhtColumns.push(nhtColumnsDict[colid]);
-			_nhtColumnsSelectedInView[colid] = true;
+			ret.selected.push(nhtColumnsDict[colid]);
 		}
+		return ret;
 	}
 
-	function _updateNhtColumns() {
-		var isClosedBatches = $scope.tabData.selectedTab.id == 'nhtclosed';
-		for(var i=0; i<_nhtColumns.length; i++) {
-			var col = _nhtColumns[i];
-			var notApplicable = isClosedBatches && col.showIn == 'running' ||
-				!isClosedBatches && col.showIn == 'closed';
-			if (notApplicable) {
-				col.canShow = false;
-				continue;
-			}
-			col.canShow = !_nhtColumnsSelectedInView || _nhtColumnsSelectedInView[col.id];
-		}
-		if(_selectedNhtColumns) {
-			for(var i=0; i<_selectedNhtColumns.length; i++) {
-				var col = _selectedNhtColumns[i];
-				var notApplicable = isClosedBatches && col.showIn == 'running' ||
-					!isClosedBatches && col.showIn == 'closed';
-				if (notApplicable) {
-					col.canShow = false;
-					continue;
+	var _defaultNhtColIds = ["cntTotal", "batchStatus", "batchName", "suborg", "subject", "trainer", "avgDelay", "batchFirstPass", "batchThroughput"];
+	var _selectedNhtColIds = _defaultNhtColIds;
+	var _allNhtColumns = null;
+	function _initNhtColumns() {
+		if (_allNhtColumns) return;
+		_allNhtColumns = _getNhtColumns();
+		if (!$scope.nhtViewSelectorConfig) {
+			$scope.nhtViewSelectorConfig = {
+				canEdit: nlRouter.isPermitted(_userInfo, 'assignment_manage'),
+				tableType: 'nht_views',
+				defaultViewColumns: {id: 'default', name: 'Default', columns: _defaultNhtColIds},
+				onViewChange: function(selectedColIdList, selectedCustColIdsDict) {
+					// TODO-NOW: handle selectedCustColIdsDict
+					_selectedNhtColIds = selectedColIdList;
+					_someTabDataChanged();
+					_updateCurrentTab();
 				}
-				col.canShow = !_nhtColumnsSelectedInView || _nhtColumnsSelectedInView[col.id];
-				col.name = _selectedNhtColumns[i].name ? _selectedNhtColumns[i].name : col.name;
-			}	
+			};
 		}
+		$scope.nhtViewSelectorConfig.allColumns = _allNhtColumns;
+		return _allNhtColumns;
 	}
 
 	//---------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -1324,10 +1212,6 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		for(var i=0; i<milestones.length; i++) {
 			var item = milestones[i];
 			columns.push({id: item.id+'planned', name: nl.t('Planned {} date', item.name), table: true, hidePerc:true, style:'min-width:fit-content'});
-		}
-
-		for(var i=0; i<milestones.length; i++) {
-			var item = milestones[i];
 			columns.push({id: item.id+'actual', name: nl.t('Actual {} date', item.name), table: true, hidePerc:true, style:'min-width:fit-content'});	
 		}
 
@@ -1643,16 +1527,19 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		if (batchStatus.running || batchStatus.closed) {
 			if (batchStatus.running) {
 				_updateRunningNhtTab();
-				nhtStats.running = $scope.nhtRunningInfo.rows;
+				nhtStats.runningRows = $scope.nhtRunningInfo.rows;
 			}
 			if (batchStatus.closed) {
 				_updateClosedNhtTab();
-				nhtStats.closed = $scope.nhtClosedInfo.rows;
+				nhtStats.closedRows = $scope.nhtClosedInfo.rows;
 			}
-			nhtStats.columns = [];
-			for(var i=0; i<_nhtColumns.length; i++) {
-				var col = _nhtColumns[i];
-				if(col.canShow) nhtStats.columns.push(col);
+			nhtStats.runningHeaders = [];
+			nhtStats.closedHeaders = [];
+			var colInfo = _getNhtAllAndSelectedColumns();
+			for(var i=0; i<colInfo.selected.length; i++) {
+				var col = colInfo.selected[i];
+				if(col.showIn != 'closed') nhtStats.runningHeaders.push(col);
+				if(col.showIn != 'running') nhtStats.closedHeaders.push(col);
 			}
 		}
 		var nhtBatchAttendanceStats = null;
@@ -2331,8 +2218,6 @@ function LrTabManager(tabData, nlGetManyStore, nlLrFilter, _groupInfo) {
 	function _updateSelectedTab(tabs) {
 		if (tabData.selectedTab && tabData.selectedTab.canShow) return;
 		tabData.selectedTab = null;
-
-		var isSelTabFound = false;
 		for(var i=0; i<tabs.length; i++) {
 			if (!tabs[i].canShow) continue;
 			tabData.selectedTab = tabs[i];
@@ -2453,7 +2338,7 @@ function RecordsFilter(nl, nlDlg, nlLrFilter, nlGroupInfo, _groupInfo, $scope, n
 		for(var tabid in _tabsDict) {
 			var tab = _tabsDict[tabid];
 			var key = tab.valueFiledId || tabid;
-			tab.name = lrColNamesDict[key] || tabid;
+			tab.name = lrColNamesDict[key] ? lrColNamesDict[key].name : tabid;
 		}		
 	}
 

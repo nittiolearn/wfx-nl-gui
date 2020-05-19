@@ -15,15 +15,43 @@ function(nl, nlReportHelper, nlGetManyStore) {
         nhtCounts = new NhtCounts(nl, nlGetManyStore, nlGroupInfo);
     };
 
-    this.clearStatusCountTree = function() {
-        nhtCounts.clear();
-    };
+    // batchType = nhtrunning or nhtclosed or ''
+	this.getStatsCountDict = function(batchType, records, batchStatusObj) {
+        var reportDict = {};
+		var transferedOut = {};
+		for (var i=0; i<records.length; i++) {
+			var record = records[i];
+            if (!record.raw_record.isNHT) continue;
+			var oldUserRecord = reportDict[record.user.user_id] || null;
+			if (oldUserRecord && oldUserRecord.raw_record.updated > record.raw_record.updated) continue;
 
-    this.getStatsCountDict = function() {
+            if (record.stats.attritionStr == 'Transfer-Out') {
+                var oldUserRecord = transferedOut[record.user.user_id] || null;
+                if (oldUserRecord && oldUserRecord.raw_record.updated > record.raw_record.updated) continue;
+				transferedOut[record.user.user_id] = record;
+				continue;
+			}
+
+            if (batchType) {
+                var msInfo = nlGetManyStore.getBatchMilestoneInfo(record.raw_record, batchStatusObj);
+                if(batchType == 'nhtrunning' && msInfo.batchStatus == 'Closed' ||
+                    batchType == 'nhtclosed' && msInfo.batchStatus != 'Closed') {
+                    continue;
+                }
+            }
+			reportDict[record.user.user_id] = record;
+		}
+		for (var transferid in transferedOut) {
+			if (transferid in reportDict) continue;
+			reportDict[transferid] = transferedOut[transferid];
+		}
+
+        nhtCounts.clear();
+        for(var key in reportDict) _addNhtRecord(reportDict[key]);
         return nhtCounts.statsCountDict();
     };
-
-    this.addCount = function(record) {
+        
+    function _addNhtRecord(record) {
         var assignment = record.raw_record.assignment;
         var batchInfo = _getNhtBatchInfo(record);
         var statusCntObj = _getStatusCountObj(record);
@@ -49,18 +77,16 @@ function(nl, nlReportHelper, nlGetManyStore) {
         statsCountObj['batchid'] = record.raw_record.assignment;
         statsCountObj['delayDays'] = stats.delayDays || 0;
         statsCountObj['customScores'] = stats.customScores || [];
-        if (stats.attritionStr == 'Attrition-Involuntary' || stats.attritionStr == 'Transfer-Out') {
-            statsCountObj['cntTotalAttrition'] = 1;
-            if (stats.attritionStr == 'Attrition-Involuntary') statsCountObj['attritionInvoluntary'] = 1;
-            if (stats.attritionStr == 'Transfer-Out') statsCountObj['transferOut'] = 1;
-            statsCountObj['dontCountAttrition'] = true;
-        }
         if (stats.inductionDropOut) {
             statsCountObj['inductionDropOut'] = 1;
             statsCountObj['dontCountAttrition'] = true;
             return statsCountObj;
         }
-        statsCountObj['cntTotal'] = 1;
+        if (stats.attritionStr == 'Attrition-Involuntary' || stats.attritionStr == 'Transfer-Out') {
+            if (stats.attritionStr == 'Attrition-Involuntary') statsCountObj['attritionInvoluntary'] = 1;
+            if (stats.attritionStr == 'Transfer-Out') statsCountObj['transferOut'] = 1;
+            statsCountObj['dontCountAttrition'] = true;
+        }
         _updateActiveStatusCounts(record, statsCountObj);
         return statsCountObj;
     }
@@ -69,17 +95,17 @@ function(nl, nlReportHelper, nlGetManyStore) {
         var stats = record.stats;
         var status = stats.status;
         var statusStr = status['txt'];
-        statsCountObj['cntActive'] = 1;
+        statsCountObj['cntTotal'] = 1;
 
-        if(status.id == nlReportHelper.STATUS_PENDING) {
-            if(record.user.state != 0) statsCountObj['pending'] = 1;
-            else statsCountObj['attrition'] = 1; 
-            return;
-        }
         if(statusStr.indexOf('attrition') == 0) {
             statsCountObj[statusStr] = 1;
             statsCountObj['attrition'] = 1;
             statsCountObj['cntTotalAttrition'] = 1;
+            return;
+        }
+        if(status.id == nlReportHelper.STATUS_PENDING) {
+            if(record.user.state != 0) statsCountObj['pending'] = 1;
+            else statsCountObj['attrition'] = 1; 
             return;
         }
         if (status.id != nlReportHelper.STATUS_STARTED) {
@@ -98,8 +124,8 @@ function(nl, nlReportHelper, nlGetManyStore) {
             statsCountObj[statusStr] = 1;
             return;
         }
-        statsCountObj[statusStr] = 1;
         if(record.user.state == 0) statsCountObj['attrition'] = 1;
+        else statsCountObj[statusStr] = 1;
     }
 }];
 
@@ -116,6 +142,11 @@ function() {
             nht: '='
         },
         link: function($scope, iElem, iAttrs) {
+            $scope.canShow = function(col) {
+                var nht = $scope.nht;
+                return (nht.isRunning && col.showIn != 'closed' || !nht.isRunning && col.showIn != 'running');
+            };
+
             $scope.generateDrillDownArray = function(item) {
                 $scope.$parent.$parent.generateDrillDownArray(item);
             };

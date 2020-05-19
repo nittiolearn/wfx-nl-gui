@@ -5,7 +5,7 @@
             <td ng-repeat='col in nht.selectedColumns track by $index'
                 class='minw-number'
                 ng-click='sortRows(col.id)'
-                ng-if='col.canShow && ($root.screenSize != "small" && col.table) || ($root.screenSize == "small" && col.smallScreen)'>
+                ng-if='canShow(col) && ($root.screenSize != "small" && col.table) || ($root.screenSize == "small" && col.smallScreen)'>
                 {{col.name}}
                 <i  class="icon ion-arrow-down-b nl-dlg-field-icon fgrey"
                     ng-show="!nht.sort || nht.sort.colid != col.id"></i>
@@ -27,7 +27,7 @@
                 </div>
             </td>
             <td ng-repeat='col in nht.selectedColumns track by $index'
-                class='minw-number'  ng-if='col.canShow && ($root.screenSize != "small" && col.table) || ($root.screenSize == "small" && col.smallScreen)'>
+                class='minw-number'  ng-if='canShow(col) && ($root.screenSize != "small" && col.table) || ($root.screenSize == "small" && col.smallScreen)'>
                 <div class='row row-center margin0 padding0 {{!col.hidePerc ? "text-right" : ""}}'>
                     <div class='col padding0'>{{rec[col.id] || '-'}}</div>
                     <div class='col padding0 nl-perc-class text-left' ng-if='!col.hidePerc'>{{(col.percid && rec[col.percid]) ? rec[col.percid]+'%' : ''}}</div>

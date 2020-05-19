@@ -307,7 +307,9 @@ function(nl, nlRouter, nlDlg, nlGroupInfo, nlLrHelper, nlLrFilter, nlGetManyStor
         
         report.url = nl.fmt2('#/course_view?id={}&mode=report_view', report.id);
         report.urlTitle = nl.t('View report');
-        if (user.state == 0 && !nlReportHelper.isCourseCompleted(stainf)) stainf.status = nl.t('attrition-{}', stainf.status);   
+        if (report.isNHT && user.state == 0 && stainf.status.indexOf('attrition') != 0) {
+            if (!nlReportHelper.isCourseCompleted(stainf)) stainf.status = nl.t('attrition-{}', stainf.status);   
+        }
         stats.status = nlReportHelper.getStatusInfoFromCourseStatsObj(stainf);
         if (report.isNHT) {
             if(!(report.assignment in _batchStatus)) _batchStatus[report.assignment] = {};
@@ -337,8 +339,8 @@ function(nl, nlRouter, nlDlg, nlGroupInfo, nlLrHelper, nlLrFilter, nlGetManyStor
         report.typeStr = 'Course';
         _updateHideDeleteButton(report);
         var modules = course && course.content ? course.content.modules : repcontent.content.modules;
-        var _groupInfo = nlGroupInfo.get();
-        if (_groupInfo.props.etmAsd && _groupInfo.props.etmAsd.length > 0) _updateMsDates(repcontent, modules, courseAssignment.info);
+        var groupInfo = nlGroupInfo.get();
+        if (groupInfo.props.etmAsd && groupInfo.props.etmAsd.length > 0) _updateMsDates(repcontent, modules, courseAssignment.info);
         if (_qsMaxLen < stainf.quizScore.length) _qsMaxLen = stainf.quizScore.length;
         var ret = {raw_record: report, repcontent: repcontent, course: course,
             user: user, usermd: user.metadataObj, stats: stats, quizscore: stainf.quizScore,
@@ -358,8 +360,8 @@ function(nl, nlRouter, nlDlg, nlGroupInfo, nlLrHelper, nlLrFilter, nlGetManyStor
             var mstype = cm.milestone_type;
             var actualMs = statusinfo[cm.id];
             var plannedMs = plannedMsInfo['milestone_'+cm.id] || '';
-            repcontent[mstype+'planned'] = nl.fmt.json2Date(plannedMs || '', 'date');
-            repcontent[mstype+'actual'] = actualMs.reached || '';
+            repcontent[mstype+'_planned'] = nl.fmt.json2Date(plannedMs || '', 'date');
+            repcontent[mstype+'_actual'] = actualMs.reached || '';
         }
     }
 

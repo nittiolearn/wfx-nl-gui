@@ -90,7 +90,7 @@
             var updatedColumnNamesDict = this.getColumnNames(settingsType);
             for(var i=0; i<allColumns.length; i++) {
                 if(allColumns[i].id in updatedColumnNamesDict)
-                    allColumns[i].name = updatedColumnNamesDict[allColumns[i].id] ;
+                    allColumns[i].name = updatedColumnNamesDict[allColumns[i].id];
             }
         };
 
@@ -207,11 +207,16 @@
 
         function _getSelectedColIds(tableType, allColumns, selectedColIds, selectedCustColIdsDict) {
             var custColsDict = nl.utils.arrayToDictById(nlTableViewSelectorSrv.getCustomColumns(tableType));
+            var allColsDict = nl.utils.arrayToDictById(allColumns);
+            var selectedLen = selectedColIds ? selectedColIds.length : allColumns.length;
             var ret = [];
-            for(var i=0; i<allColumns.length; i++) {
-                var colid = allColumns[i].id;
-                if (selectedColIds && (colid in selectedColIds)) ret.push(colid);
-                if (colid in custColsDict) selectedCustColIdsDict[colid] = true;
+            for(var i=0; i<selectedLen; i++) {
+                var colid = selectedColIds ? selectedColIds[i] : allColumns[i].id;
+                if (colid in allColsDict) ret.push(colid);
+                else if (colid in custColsDict) {
+                    ret.push(colid);
+                    selectedCustColIdsDict[colid] = true;
+                }
             }
             return ret;
         }

@@ -174,12 +174,10 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
 		    var expSummaryStats = nlLrSummaryStats.getSummaryStats();
             if(filter.exportTypes.drilldown) _updateDrillDownRow();    
             if(filter.exportTypes.nhtRunning) {
-                var nhtStats = _nhtDict.running;
-                _updateNhtRow(nhtStats, ctx.nhtRunningRow);
+                _updateNhtRow(_nhtDict.runningHeaders, _nhtDict.runningRows, ctx.nhtRunningRow);
             }
             if(filter.exportTypes.nhtClosed) {
-                var nhtStats = _nhtDict.closed;
-                _updateNhtRow(nhtStats, ctx.nhtClosedRow);
+                _updateNhtRow(_nhtDict.closedHeaders, _nhtDict.closedRows, ctx.nhtClosedRow);
             }
             if(filter.exportTypes.iltBatch) _updateIltBatchRow();
             if(filter.exportTypes.lr) _updateLrRow(reportRecords);
@@ -406,14 +404,13 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
 // Update NHT row while exporting
 //-------------------------------------------------------------------------------------------------
 
-    function _updateNhtRow(nhtStatsArray, nhtInfo) {
-        var nhtHeaderRow = _nhtDict.columns;
-        for(var i=0; i<nhtStatsArray.length; i++) {
-            var row = nhtStatsArray[i];
+    function _updateNhtRow(headers, rows, nhtInfo) {
+        for(var i=0; i<rows.length; i++) {
+            var row = rows[i];
             if (_exportFormat == 'csv') 
-                nhtInfo.push(nlExporter.getCsvRow(nhtHeaderRow, row));
+                nhtInfo.push(nlExporter.getCsvRow(headers, row));
             else 
-                nhtInfo.push(nlExporter.getItemRow(nhtHeaderRow, row));
+                nhtInfo.push(nlExporter.getItemRow(headers, row));
         }
     }
 
@@ -671,8 +668,8 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
             ctx.feedbackRows = [nlExporter.getCsvHeader(_hFeedback)];
             ctx.courseDetailsRow = [nlExporter.getCsvHeader(_hCourseDetailsRow)];
             if(filter.exportTypes.drilldown) ctx.drillDownRow = [nlExporter.getCsvHeader(_drillDownDict.columns)];
-            if(filter.exportTypes.nhtRunning) ctx.nhtRunningRow = [nlExporter.getCsvHeader(_nhtDict.columns)];
-            if(filter.exportTypes.nhtClosed) ctx.nhtClosedRow = [nlExporter.getCsvHeader(_nhtDict.columns)];
+            if(filter.exportTypes.nhtRunning) ctx.nhtRunningRow = [nlExporter.getCsvHeader(_nhtDict.runningHeaders)];
+            if(filter.exportTypes.nhtClosed) ctx.nhtClosedRow = [nlExporter.getCsvHeader(_nhtDict.closedHeaders)];
             if(filter.exportTypes.iltBatch) ctx.iltBatchRow = [nlExporter.getCsvHeader(_iltBatchDict.columns)];
             if(filter.exportTypes.certificate) ctx.certificateRow = [nlExporter.getCsvHeader(_certificateDict.columns)];
             if(filter.exportTypes.lr) ctx.lrRow = [nlExporter.getCsvHeader(_lrDict.columns)];
@@ -683,8 +680,8 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
             ctx.feedbackRows = [nlExporter.getHeaderRow(_hFeedback)];
             ctx.courseDetailsRow = [nlExporter.getHeaderRow(_hCourseDetailsRow)];
             if(filter.exportTypes.drilldown) ctx.drillDownRow = [nlExporter.getHeaderRow(_drillDownDict.columns)];
-            if(filter.exportTypes.nhtRunning) ctx.nhtRunningRow = [nlExporter.getHeaderRow(_nhtDict.columns)];    
-            if(filter.exportTypes.nhtClosed) ctx.nhtClosedRow = [nlExporter.getHeaderRow(_nhtDict.columns)];
+            if(filter.exportTypes.nhtRunning) ctx.nhtRunningRow = [nlExporter.getHeaderRow(_nhtDict.runningHeaders)];    
+            if(filter.exportTypes.nhtClosed) ctx.nhtClosedRow = [nlExporter.getHeaderRow(_nhtDict.closedHeaders)];
             if(filter.exportTypes.iltBatch) ctx.iltBatchRow = [nlExporter.getHeaderRow(_iltBatchDict.columns)];
             if(filter.exportTypes.certificate) ctx.certificateRow = [nlExporter.getHeaderRow(_certificateDict.columns)];
             if(filter.exportTypes.lr) ctx.lrRow = [nlExporter.getHeaderRow(_lrDict.columns)];

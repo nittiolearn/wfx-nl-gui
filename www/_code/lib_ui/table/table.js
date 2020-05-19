@@ -132,7 +132,6 @@ function(nl, nlDlg, $templateCache) {
         if (!rec.canShowDetails) return;
         
         rec.details = $templateCache.get(info.detailsTemplate);
-        _defaultDetails(info, rec);
     }
     
     function _initSortObject(info) {
