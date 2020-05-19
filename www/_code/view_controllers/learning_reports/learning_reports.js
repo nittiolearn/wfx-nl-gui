@@ -1159,7 +1159,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 	var _selectedNhtColIds = _defaultNhtColIds;
 	var _allNhtColumns = null;
 	function _initNhtColumns() {
-		if (_allNhtColumns) return;
+		if (_allNhtColumns) return _allNhtColumns;
 		_allNhtColumns = _getNhtColumns();
 		if (!$scope.nhtViewSelectorConfig) {
 			$scope.nhtViewSelectorConfig = {
