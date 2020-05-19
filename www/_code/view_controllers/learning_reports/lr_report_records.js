@@ -336,6 +336,9 @@ function(nl, nlRouter, nlDlg, nlGroupInfo, nlLrHelper, nlLrFilter, nlGetManyStor
         }
         report.typeStr = 'Course';
         _updateHideDeleteButton(report);
+        var modules = course && course.content ? course.content.modules : repcontent.content.modules;
+        var _groupInfo = nlGroupInfo.get();
+        if (_groupInfo.props.etmAsd && _groupInfo.props.etmAsd.length > 0) _updateMsDates(repcontent, modules, courseAssignment.info);
         if (_qsMaxLen < stainf.quizScore.length) _qsMaxLen = stainf.quizScore.length;
         var ret = {raw_record: report, repcontent: repcontent, course: course,
             user: user, usermd: user.metadataObj, stats: stats, quizscore: stainf.quizScore,
@@ -343,6 +346,21 @@ function(nl, nlRouter, nlDlg, nlGroupInfo, nlLrHelper, nlLrFilter, nlGetManyStor
             updated: nl.fmt.fmtDateDelta(report.updated, null, 'minute')
         };
         return ret;
+    }
+
+    function _updateMsDates(repcontent, modules, assignInfo) {
+        var statusinfo = repcontent.statusinfo;
+        var plannedMsInfo = assignInfo ? assignInfo.msDates : null;
+        if (!plannedMsInfo) return;
+        for (var i=0; i<modules.length; i++) {
+            var cm = modules[i];
+            if (cm.type != 'milestone') continue;
+            var mstype = cm.milestone_type;
+            var actualMs = statusinfo[cm.id];
+            var plannedMs = plannedMsInfo['milestone_'+cm.id] || '';
+            repcontent[mstype+'planned'] = nl.fmt.json2Date(plannedMs || '', 'date');
+            repcontent[mstype+'actual'] = actualMs.reached || '';
+        }
     }
 
     function _processModuleReport(report) {

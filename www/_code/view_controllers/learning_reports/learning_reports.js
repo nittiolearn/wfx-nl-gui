@@ -667,6 +667,20 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		columns.push(_col('user.mobile', 'Mobile Number'));
 		columns.push(_col('user.seclogin', 'Secondary login'));
 		columns.push(_col('user.supervisor', 'Supervisor'));
+		
+		if (_groupInfo.props.etmAsd && _groupInfo.props.etmAsd.length > 0) {
+			var milestones = _groupInfo.props.milestones;
+			for(var i=0; i<milestones.length; i++) {
+				var item = milestones[i];
+				var msid = 'repcontent.'+item.id+'planned'
+				columns.push(_col(msid, nl.t('Planned {} date', item.name)));
+			}	
+			for(var i=0; i<milestones.length; i++) {
+				var item = milestones[i];
+				var msid = 'repcontent.'+item.id+'actual'
+				columns.push(_col(msid, nl.t('Actual {} date', item.name)));
+			}
+		}
 
 		for(var i=0; i<mh.length; i++) {
 			var keyName = 'usermd.' + mh[i].id;
