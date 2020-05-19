@@ -146,11 +146,6 @@ function() {
                 var nht = $scope.nht;
                 return (nht.isRunning && col.showIn != 'closed' || !nht.isRunning && col.showIn != 'running');
             };
-
-            $scope.generateDrillDownArray = function(item) {
-                $scope.$parent.$parent.generateDrillDownArray(item);
-            };
-
             $scope.onDetailsClick = function(e, item, columns) {
                 $scope.$parent.$parent.onDetailsClick(e, item, columns);
             };

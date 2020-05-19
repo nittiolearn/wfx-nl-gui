@@ -119,6 +119,7 @@ function(nlReportHelper) {
 		statsCountObj['cntActive'] = 1;
         if(status.id == nlReportHelper.STATUS_PENDING) {
             statsCountObj['pending'] = 1;
+            statsCountObj['notcompleted'] = 1;
             return;
         }
         if(statusStr.indexOf('attrition') == 0) {
@@ -133,6 +134,7 @@ function(nlReportHelper) {
         if(status.id == nlReportHelper.STATUS_STARTED) {
             statsCountObj[statusStr] = 1;
             statsCountObj['started'] = 1;
+            statsCountObj['notcompleted'] = 1;
             if(statusStr !== 'started') {
                 if(!(statusStr in _customStartedStatusObj)) 
                     _customStartedStatusObj[statusStr] = record.stats.progressPerc;
@@ -192,7 +194,8 @@ function StatsCounts(nl) {
     var self = this;
 
     var statsCountItem = {cntTotal: 0, cntActive: 0, cntInactive: 0, doneInactive: 0, pendingInactive: 0, 
-                          completed: 0, certified: 0, certifiedInFirstAttempt: 0, certifiedInReattempt: 0, pending:0, failed: 0, started: 0,
+                          completed: 0, certified: 0, certifiedInFirstAttempt: 0, certifiedInReattempt: 0, 
+                          notcompleted: 0, pending:0, failed: 0, started: 0,
                           percScore: 0, avgScore: 0, delayDays: 0, timeSpent: 0, isOpen: false};
     var defaultStates = angular.copy(statsCountItem);
     var _dynamicStates = {};
@@ -309,6 +312,7 @@ function StatsCounts(nl) {
             updatedStats['percCompleted'] = Math.round(updatedStats.completed*100/updatedStats.cntTotal);
             updatedStats['percCertified'] = Math.round(updatedStats.certified*100/updatedStats.cntTotal);
             updatedStats['percFailed'] = Math.round(updatedStats.failed*100/updatedStats.cntTotal);
+            updatedStats['percNotcompleted'] = Math.round(updatedStats.notcompleted*100/updatedStats.cntTotal);
             updatedStats['percPending'] = Math.round(updatedStats.pending*100/updatedStats.cntTotal);
             updatedStats['percStarted'] = Math.round(updatedStats.started*100/updatedStats.cntTotal);
             updatedStats['avgScore'] = (updatedStats.percScore != 0 && (updatedStats.completed != 0 || updatedStats.doneInactive != 0)) ? Math.round(updatedStats.percScore/(updatedStats.completed + updatedStats.doneInactive))+' %' : 0;

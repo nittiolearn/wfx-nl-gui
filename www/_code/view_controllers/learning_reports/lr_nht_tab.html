@@ -17,8 +17,7 @@
             </td>
         </tr>
         <tr class='{{rec.cls}}'
-            ng-repeat='rec in nht.rows track by $index'
-            ng-click='generateDrillDownArray(rec)'>
+            ng-repeat='rec in nht.rows track by $index'>
             <td style='min-width: 50px;'>
                 <div class='row row-center magin0 padding0'>
                     <span ng-click='onDetailsClick($event, rec, nht.columns)' class='nl-link-text'>
