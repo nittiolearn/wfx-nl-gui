@@ -11,7 +11,7 @@ function module_init() {
 }
 
 //-------------------------------------------------------------------------------------------------
-// TODO-NOW: Get rid of this - lr_exporter should just use the filters from normal GUI
+// TODO-LATER: Get rid of this - lr_exporter should just use the filters from normal GUI
 var OrgMdMoreFiltersSrv = ['nl', 'nlDlg', 'nlGroupInfo', 'nlTreeSelect', 'nlOuUserSelect',
 function(nl, nlDlg, nlGroupInfo, nlTreeSelect, nlOuUserSelect) {
 

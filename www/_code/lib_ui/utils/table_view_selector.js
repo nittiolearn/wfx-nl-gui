@@ -59,7 +59,25 @@
                         "customColumns": [
                             {"id": "custom.1589265801125_en9pyu1km", "name": "custom column 1", "formula": "$date_format{'YYYY-MM-DD' , _id.created}"}, 
                             {"id": "custom.1589265840230_wfanbt209", "name": "custom column 2", "formula": "$date_format{'YY-MM-DD' , _id.created}"}
-                        ]
+                        ],
+                        "lookupTables": [
+                            {
+                                "id": "lookup.1589265801125_en9pzu1km", "name": "Lookup table 1",
+                                "lookup": {
+                                    "a" : "1",
+                                    "b" : "2",
+                                    "a" : "3"
+                                }
+                            },
+                            {
+                                "id": "lookup.1589265801126_en9pyukkm", "name": "Lookup table 2",
+                                "lookup": {
+                                    "a" : "1",
+                                    "b" : "2",
+                                    "a" : "3"
+                                }
+                            }
+                        },
                     }
         */
        this.update = function(settingsType, info) {
@@ -84,6 +102,11 @@
         this.getCustomColumns = function(settingsType) {
             var data = _settings[settingsType] || {};
             return data.customColumns || [];
+        };
+
+        this.getLookupTables = function(settingsType) {
+            var data = _settings[settingsType] || {};
+            return data.lookupTables || [];
         };
 
         this.updateAllColumnNames = function(settingsType, allColumns) {
@@ -240,10 +263,12 @@
             _dlg.setCssClass('nl-height-max nl-width-max');
             _dlg.scope.selectedView = null;
             _dlg.scope.isGrpAdmin = nlTableViewSelectorSrv.isGrpAdmin();
-            _dlg.scope.data = {newViewName: '', selectedColumn: null, newName : '', newFormula : ''};
+            _dlg.scope.data = {newViewName: '', selectedColumn: null, newName : '', newFormula : '',
+                newLookupName: '', newLookupFrom: '', newLookupTo: ''};
             _dlg.scope.views = angular.copy(nlTableViewSelectorSrv.getViews($scope.config.tableType));
             _dlg.scope.columnNames = angular.copy(nlTableViewSelectorSrv.getColumnNames($scope.config.tableType));
             _dlg.scope.customColumns = angular.copy(nlTableViewSelectorSrv.getCustomColumns($scope.config.tableType));
+            _dlg.scope.lookupTables = _lookupTablesDbToGui(nlTableViewSelectorSrv.getLookupTables($scope.config.tableType));
             nlTableViewSelectorSrv.updateAllColumnNames($scope.config.tableType, $scope.config.allColumns);
             _dlg.scope.allColumns = angular.copy($scope.config.allColumns);
             _dlg.scope.selectedColumns = [];
@@ -512,13 +537,109 @@
             return false;
         }
 
+        _dlg.scope.addLookupTable = function() {
+            _dlg.scope.editColumnClose();
+            _dlg.scope.columnType = 'addLookupTable';
+        };
+
+        _dlg.scope.addLookupTableDone = function() {
+            if(!_validateLookupTable(_dlg.scope.data)) return;
+            var newLookupTable = {id: _getUniqueId('lookup.'), name: _dlg.scope.data.newLookupName, 
+                from: _dlg.scope.data.newLookupFrom, to: _dlg.scope.data.newLookupTo};
+            _dlg.scope.lookupTables.push(newLookupTable);
+            _dlg.scope.editColumnClose();
+        };
+
+        _dlg.scope.editLookupDetail = function(index) {
+            _dlg.scope.columnType = 'lookup';
+            var table = _dlg.scope.lookupTables[index] || {};
+            _dlg.scope.data.newLookupName = table.name;
+            _dlg.scope.data.newLookupFrom = table.from;
+            _dlg.scope.data.newLookupTo = table.to;
+            _dlg.scope.renameCol = index;
+        };
+
+        _dlg.scope.editLookupDone = function(index) {
+            var table = _dlg.scope.lookupTables[index] || {};
+
+            if(!_validateLookupTable(_dlg.scope.data)) return;
+            table.name = _dlg.scope.data.newLookupName;
+            table.from = _dlg.scope.data.newLookupFrom;
+            table.to = _dlg.scope.data.newLookupTo;
+            _dlg.scope.editColumnClose();
+        };
+
+        _dlg.scope.removeLookupTable = function(index) {
+            var table = _dlg.scope.lookupTables[index] || {};
+            nlDlg.popupConfirm({title: nl.t('Please confirm'), template: 'Do you want to delete the lookup table : <b>'+ table.name + '</b>'}).then(function(result) {
+	    		if (!result) return;
+                _dlg.scope.lookupTables.splice(index,1);
+                _dlg.scope.editColumnClose();
+	    	});  
+        };
+        
+        function _validateLookupTable(data) {
+            if(!data.newLookupName) return _errorMesg('Name is mandatory');
+            var from = _getLookupColumn(data.newLookupFrom, true);
+            if (!from) return _errorMesg('From should have unique values in each line');
+            var to = _getLookupColumn(data.newLookupTo, false);
+            if (from.length != to.length)
+                return _errorMesg('From and to are mandatory and must have same number of lines');
+            return true;
+        }
+
+        function _getLookupColumn(column, checkUnique) {
+            column = (column || '').split('\n');
+            var uniqueValues = {};
+            for (var i=0; i<column.length; i++) {
+                column[i] = column[i].trim();
+                if (!checkUnique) continue;
+                column[i] = column[i].toLowerCase();
+                if (column[i] in uniqueValues) return null;
+                uniqueValues[column[i]] = true;
+            }
+            return column;
+        }
+
+        function _lookupTablesDbToGui(dbLookupTables) {
+            var ret = [];
+            for(var i=0; i<dbLookupTables.length; i++) {
+                var dbLookupTable = dbLookupTables[i];
+                var table = {id: dbLookupTable.id, name: dbLookupTable.name};
+                var from=[];
+                var to=[];
+                for (var key in dbLookupTable.lookup) {
+                    from.push(key);
+                    to.push(dbLookupTable.lookup[key]);
+                }
+                table.from = from.join('\n');
+                table.to = to.join('\n');
+                ret.push(table);
+            }
+            return ret;
+        }
+
+        function _lookupTablesGuiToDb(guiLookupTables) {
+            var ret = [];
+            for(var i=0; i<guiLookupTables.length; i++) {
+                var guiLookupTable = guiLookupTables[i];
+                var table = {id: guiLookupTable.id, name: guiLookupTable.name, lookup: {}};
+                var from = _getLookupColumn(guiLookupTable.from, true);
+                var to = _getLookupColumn(guiLookupTable.to, false);
+                for(var i=0; i<from.length; i++) table.lookup[from[i]] = to[i];
+                ret.push(table);
+            }
+            return ret;
+        }
+
         function _onUpdate(e) {
             _updateCurrentView();
             var serverViewsOld = nl.utils.arrayToDictById(nlTableViewSelectorSrv.getViews($scope.config.tableType));
             var guiViews = nl.utils.arrayToDictById(_dlg.scope.views);
-            var updatedColumnNames = _dlg.scope.columnNames;
-            var updatedCustomColumns = _dlg.scope.customColumns;
-            var lastSelectedView = angular.copy(_dlg.scope.selectedView);
+            var guiColumnNames = _dlg.scope.columnNames;
+            var guiCustomColumns = _dlg.scope.customColumns;
+            var guiLookupTables = _dlg.scope.lookupTables;
+            var selectedViewId = _dlg.scope.selectedView.id;
             nl.timeout(function() {
                 nlDlg.showLoadingScreen();
                 nlTableViewSelectorSrv.reload([$scope.config.tableType])
@@ -531,17 +652,26 @@
                     for (var viewId in guiViews) {
                         var guiView = guiViews[viewId];
                         var serverViewOld = serverViewsOld[viewId] || null;
-                        if (!(viewId in serverViewsLatest) || _hasViewChanged(serverViewOld, guiView)) {
-                            serverViewsLatest[viewId] = {id: guiView.id, name: guiView.name, columns: guiView.columns || []};
-                            continue;
-                        }
+                        if ((viewId in serverViewsLatest) && !_hasViewChanged(serverViewOld, guiView)) continue;
+                        serverViewsLatest[viewId] = {id: guiView.id, name: guiView.name, columns: guiView.columns || []};
                     }
                     serverViewsLatest = _dictToSortedArray(serverViewsLatest);
-                    var info = {views: serverViewsLatest, columnNames: updatedColumnNames, customColumns: updatedCustomColumns};
+
+                    var serverColumnNamesLatest = nlTableViewSelectorSrv.getColumnNames($scope.config.tableType);
+                    var serverCustomColumnsLatest = nlTableViewSelectorSrv.getCustomColumns($scope.config.tableType);
+                    var serveLookupTablesLatest = nlTableViewSelectorSrv.getLookupTables($scope.config.tableType);
+                    if (nlTableViewSelectorSrv.isGrpAdmin()) {
+                        serverColumnNamesLatest = guiColumnNames;
+                        serverCustomColumnsLatest = guiCustomColumns;
+                        serveLookupTablesLatest = _lookupTablesGuiToDb(guiLookupTables);
+                    }
+
+                    var info = {views: serverViewsLatest, columnNames: serverColumnNamesLatest, 
+                        customColumns: serverCustomColumnsLatest, lookupTables: serveLookupTablesLatest};
                     nlTableViewSelectorSrv.update($scope.config.tableType, info)
                     .then(function() {
                         for(var i=0; i<serverViewsLatest.length; i++) {
-                            if(lastSelectedView.id == serverViewsLatest[i].id) {
+                            if(selectedViewId == serverViewsLatest[i].id) {
                                 $scope.onOptionSelect(serverViewsLatest[i]);
                                 break;
                             }

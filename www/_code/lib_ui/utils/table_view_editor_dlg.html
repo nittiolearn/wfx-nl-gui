@@ -99,11 +99,11 @@
                             <i class='icon ion-plus-round fblue padding-small nl-icons border-circle-fblue nl-link-text'
                                 ng-show="renameCol == undefined || renameCol != $index || columnType != 'custom'"
                                 ng-click="onColumnAdd($index, 'custom')"></i>
-                            <span class="padding-mid-x" ng-show="renameCol == $index && columnType == 'custom' ">Name : </span>
+                            <span class="col col-25 padding-mid-x" ng-show="renameCol == $index && columnType == 'custom' ">Name: </span>
                             <div class='col padding-large-left fblue2' 
                                 ng-show="renameCol == undefined || renameCol != $index || columnType != 'custom'">{{column.name}}
                             </div>
-                            <div class="col nl-display-inline-block padding-large-left" ng-show="renameCol == $index && columnType == 'custom' ">
+                            <div class="col nl-display-inline-block" ng-show="renameCol == $index && columnType == 'custom' ">
                                 <input type="text" ng-model="data.newName" tabindex="0">
                             </div>
                             <div class="nl-text-right">
@@ -112,8 +112,8 @@
                             </div>
                         </div>
                         <div class='row row-center margin0 padding0' ng-if="renameCol == $index && columnType == 'custom' ">
-                            <span class="padding-mid-x">Formula: </span>
-                            <div class='nl-dlg-field-value w100 '>
+                            <span class="col col-25 padding-mid-x">Formula: </span>
+                            <div class='col nl-dlg-field-value'>
                                 <nl-intelli-textarea getoptions='getIntelliTextOptions' 
                                                     getoptionsdata='column'
                                                     model='data.newFormula'>
@@ -145,6 +145,7 @@
                         </div>
                     </div>
 
+                    <!--  Add Custom Columns -->
                     <div class="padding-mid-top" ng-if='isGrpAdmin'>
                         <div class="col padding0-left fbold">
                             <span class='add-new-button-style nl-link-text2 bgblue fbold'
@@ -153,17 +154,17 @@
                             </span>
                         </div>
                         
-                        <div class="" ng-if="columnType == 'addCustomColumn'">
-                            <div class='row row-center'>
-                                <span class="padding-mid-x">Name : </span>
-                                <span class='col nl-dlg-field-value'>
+                        <div class="padding-mid-v" ng-if="columnType == 'addCustomColumn'">
+                            <div class='row row-center margin0 padding0'>
+                                <div class="col col-25 padding-mid-x">Name: </div>
+                                <div class='col nl-dlg-field-value'>
                                     <input type='text' ng-model="data.newName">
-                                </span>
+                                </div>
                             </div>
     
                             <div class='row row-center margin0 padding0'>
-                                <span class="padding-mid-x">Formula: </span>
-                                <div class='nl-dlg-field-value w100'>
+                                <div class="col col-25 padding-mid-x">Formula: </div>
+                                <div class='col nl-dlg-field-value'>
                                     <nl-intelli-textarea getoptions='getIntelliTextOptions' 
                                                         getoptionsdata='data'
                                                         model='data.newFormula'>
@@ -176,6 +177,119 @@
                                 <div class="padding-mid-v">
                                     <span class='add-new-button-style nl-link-text2 bgblue fbold'
                                         ng-click='addCustomColumnDone()'>
+                                        Add
+                                    </span>
+                                </div>
+                                <div class="padding-mid-v">
+                                    <span class='padding-small'></span>
+                                    <span class='add-new-button-style nl-link-text2 bgblue fbold'
+                                            ng-click='editColumnClose()'>
+                                        Cancel
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <hr ng-if='isGrpAdmin'>
+
+                    <!--  Lookup Tables -->
+                    <div class="padding-mid-top fbold nl-display-flex" ng-if="isGrpAdmin && lookupTables.length >= 1">
+                        <div class="col padding0-left">
+                            Lookup table<span ng-show="lookupTables.length > 1">s</span> you can use in custom formulas
+                        </div>
+                    </div>
+                    <div ng-repeat='table in lookupTables track by $index'
+                         class='padding-mid-left padding-small-v'
+                         ng-if="isGrpAdmin">
+                        <div class='row row-center margin0 padding0'>
+                            <span class="col col-25 padding-mid-x" ng-show="renameCol == $index && columnType == 'lookup' ">Name: </span>
+                            <div class='col padding-large-left fblue2' 
+                                ng-show="renameCol == undefined || renameCol != $index || columnType != 'lookup'">{{table.name}}
+                            </div>
+                            <div class="col nl-display-inline-block" ng-show="renameCol == $index && columnType == 'lookup' ">
+                                <input type="text" ng-model="data.newLookupName" tabindex="0">
+                            </div>
+                            <div class="nl-text-right">
+                                <i class='icon ion-edit padding-mid-x nl-link-text' ng-click="editLookupDetail($index)" 
+                                    ng-show="isGrpAdmin && (renameCol == undefined || renameCol != $index || columnType != 'lookup')"></i>
+                            </div>
+                        </div>
+                        <div class='row row-center margin0 padding0' ng-if="renameCol == $index && columnType == 'lookup' ">
+                            <span class="col col-25 padding-mid-x">Convert from: </span>
+                            <div class='col nl-dlg-field-value'>
+                                    <textarea ng-model='data.newLookupFrom'>
+                                    </textarea>
+                            </div>
+                        </div>
+                        <div class='row row-center margin0 padding0' ng-if="renameCol == $index && columnType == 'lookup' ">
+                            <span class="col col-25 padding-mid-x">Convert to: </span>
+                            <div class='col nl-dlg-field-value'>
+                                    <textarea ng-model='data.newLookupTo'>
+                                    </textarea>
+                            </div>
+                        </div>
+                        <div class="row row-center padding0 margin0" ng-if="renameCol == $index && columnType == 'lookup' ">
+                            <div class="col padding-small"></div>
+                            <div class="padding-mid-v">
+                                <span class='add-new-button-style nl-link-text2 bgblue fbold'
+                                    ng-click='editLookupDone($index)'>
+                                    Update
+                                </span>
+                            </div>
+                            <div class="padding-mid-v">
+                                <span class='padding-small'></span>
+                                <span class='add-new-button-style nl-link-text2 bgblue fbold'
+                                        ng-click='editColumnClose()'>
+                                    Cancel
+                                </span>
+                            </div>
+                            <div class="padding-mid-v">
+                                <span class='padding-small'></span>
+                                <span class='add-new-button-style nl-link-text2 bgblue fbold'
+                                    ng-click='removeLookupTable($index)'>
+                                    Remove 
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!--  Add Lookup Tables -->
+                    <div class="padding-mid-top" ng-if='isGrpAdmin'>
+                        <div class="col padding0-left fbold">
+                            <span class='add-new-button-style nl-link-text2 bgblue fbold'
+                                ng-click="addLookupTable()">
+                                Define a new lookup table
+                            </span>
+                        </div>
+                        <div class="padding-mid-v" ng-if="columnType == 'addLookupTable'">
+                            <div class='row row-center margin0 padding0'>
+                                <div class="col col-25 padding-mid-x">Lookup table name: </div>
+                                <div class='col nl-dlg-field-value'>
+                                    <input type='text' ng-model="data.newLookupName">
+                                </div>
+                            </div>
+    
+                            <div class='row row-center margin0 padding0'>
+                                <div class="col col-25 padding-mid-x">Convert from: </div>
+                                <div class='col nl-dlg-field-value w100'>
+                                    <textarea ng-model='data.newLookupFrom'>
+                                    </textarea>
+                                </div>
+                            </div>
+
+                            <div class='row row-center margin0 padding0'>
+                                <div class="col col-25 padding-mid-x">Convert to: </div>
+                                <div class='col nl-dlg-field-value w100'>
+                                    <textarea ng-model='data.newLookupTo'>
+                                    </textarea>
+                                </div>
+                            </div>
+
+                            <div class="row row-center padding0 margin0">
+                                <div class="col padding-small"></div>
+                                <div class="padding-mid-v">
+                                    <span class='add-new-button-style nl-link-text2 bgblue fbold'
+                                        ng-click='addLookupTableDone()'>
                                         Add
                                     </span>
                                 </div>
