@@ -489,14 +489,19 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		}, 100);
 	}
 
+	function _initTabDataFilterdRecords() {
+		var tabData = $scope.tabData;
+		if (tabData.records) return tabData.records;
+		var summaryStats = nlLrSummaryStats.getSummaryStats();
+		tabData.records = _getFilteredRecords(summaryStats);
+		tabData.summaryStats = summaryStats.asList();
+		tabData.summaryStatSummaryRow = _getSummaryStatSummaryRow(tabData.summaryStats);
+		_tabManager.update(true);
+		return tabData.records;
+	}
+
 	function _actualUpdateCurrentTab(tabData, tab) {
-		if (!tabData.records) {
-			var summaryStats = nlLrSummaryStats.getSummaryStats();
-			tabData.records = _getFilteredRecords(summaryStats);
-			tabData.summaryStats = summaryStats.asList();
-			tabData.summaryStatSummaryRow = _getSummaryStatSummaryRow(tabData.summaryStats);
-			_tabManager.update(true);
-		}
+		_initTabDataFilterdRecords();
 		if (!tab) tab = $scope.tabData.selectedTab;
 		tab.updated = true;
 		if (tab.id == 'overview') {
@@ -1474,7 +1479,6 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 	//---------------------------------------------------------------------------------------------------------------------------------------------------------
 	function _onExport() {
 		if (nlLrFetcher.fetchInProgress()) return;
-		var reportRecords = nlLrReportRecords.asList();
 		if(!_customScoresHeader) _customScoresHeader = nlLrReportRecords.getCustomScoresHeader();
 
 		var header = [{id: 'courseName', name: 'Course name'}];
@@ -1532,9 +1536,14 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			certificateStats = _certHandler.getExportData();
 		}
 
-		nlLrExporter.export($scope, reportRecords, _customScoresHeader, drillDownStats, nhtStats, nhtBatchAttendanceStats, lrStats, certificateStats);
+		nlLrExporter.export($scope, _getReportRecordsForExport, _customScoresHeader, 
+			drillDownStats, nhtStats, nhtBatchAttendanceStats, lrStats, certificateStats);
 	}
 	
+	function _getReportRecordsForExport(bFiltered) {
+		return bFiltered ? _initTabDataFilterdRecords() : nlLrReportRecords.asList();
+	}
+
 	function _onExportCustomReport() {
 		if (nlLrFetcher.fetchInProgress()) return;
 		var reportRecordsDict = nlLrReportRecords.getRecords();
