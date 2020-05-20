@@ -402,8 +402,11 @@ function(nl, nlDlg, nlImporter, nlGroupCache) {
 
     function _updateOrgByParts(user) {
         var parts = (user.org_unit || '').split('.');
-        for(var i=0; i < 4; i++)
-            user['ou_part' + (i+1)] = (i < parts.length) ? parts[i] : '';
+        for(var i=0; i < 4; i++) {
+            var p = ('' + parts[i]).trim();
+            if (p && p.toLocaleLowerCase) p = p.toLocaleLowerCase();
+            user['ou_part' + (i+1)] = (i < parts.length) ? p : '';
+        }
     }
 
     //##################################################################################################

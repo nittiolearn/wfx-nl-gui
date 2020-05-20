@@ -133,7 +133,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 	}
 
 	var _tableNavPos = {};
-	var MAX_VISIBLE = 100;
+	var MAX_VISIBLE = 10; // TODO-NOW
 	function _initScope() {
 		$scope.debug = nlLrFilter.isDebugMode();
 		$scope.toolbar = _getToolbar();
@@ -399,7 +399,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		if (_tableNavPos.currentpos < $scope.tabData.records.length) {
 			_tableNavPos.currentpos += MAX_VISIBLE;
 		}
-		nlTable.updateTableObject($scope.utable, $scope.tabData.records, _tableNavPos.currentpos);
+		nlTable.updateTablePage($scope.utable, _tableNavPos.currentpos);
 	};
 
 	$scope.onClickOnPrev = function () {
@@ -407,7 +407,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		if (_tableNavPos.currentpos >= MAX_VISIBLE) {
 			_tableNavPos.currentpos -= MAX_VISIBLE;
 		}
-		nlTable.updateTableObject($scope.utable, $scope.tabData.records, _tableNavPos.currentpos);
+		nlTable.updateTablePage($scope.utable, _tableNavPos.currentpos);
 	}
 
 	function _getContentOfCourseAssignment() {
@@ -529,7 +529,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 	var _selectedLrColIds = _defaultLrColIds;
 	function _updateLearningRecordsTab(tabData) {
 		_updateSelectedLrColumns();
-		nlTable.updateTableObject($scope.utable, tabData.records, 0, true);
+		nlTable.updateTableRecords($scope.utable, tabData.records);
 		$scope.lrViewSelectorConfig = {
 			canEdit: nlRouter.isPermitted(_userInfo, 'assignment_manage'),
 			tableType: 'lr_views',
@@ -539,7 +539,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 				// TODO-NOW: handle selectedCustColIdsDict
 				_selectedLrColIds = selectedColIdList;
 				_updateSelectedLrColumns();
-				nlTable.updateTableObject($scope.utable, tabData.records, 0, true);
+				nlTable.updateTableColumns($scope.utable);
 			}
 		};
 	}
@@ -786,6 +786,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 	
 	function _updateReportRecords() {
 		nlLrReportRecords.updateReportRecords();
+		nlTable.resetCache($scope.utable);
 		_tabManager.clear();
 		nlGetManyStore.clearCache();
 		_updateScope();

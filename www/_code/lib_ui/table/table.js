@@ -93,13 +93,28 @@ function(nl, nlDlg, $templateCache) {
         info.sortRows = _sortRows;
     };
 
-    this.updateTableObject = function(info, records, startpos, resetSort) {
-        if (resetSort) _initSortObject(info);
+    this.resetCache = function(info) {
+        info._internal.paginator.resetCache();
+    };
+
+    this.updateTableRecords = function(info, records) {
+        _initSortObject(info);
         _updateTableColumns(info);
-        info._internal.recs = records;
+        info._internal.displayRecs = info._internal.paginator.getDisplayRecords(records);
+        info._internal.paginator.showPage(0);
+    };
+
+    this.updateTableColumns = function(info) {
+        _initSortObject(info);
+        _updateTableColumns(info);
+        info._internal.paginator.showPage(0);
+    };
+
+    this.updateTablePage = function(info, startpos) {
         info._internal.paginator.showPage(startpos);
     };
 
+    // TODO-NOW: This has to be refactored
     this.getFieldValue = function(info, record, fieldId) {
         return info._internal.paginator.getFieldValue(record, fieldId);
     };
@@ -148,35 +163,21 @@ function(nl, nlDlg, $templateCache) {
             sortObj.colid = colid;
             sortObj.ascending = true;
         }
-        var records = info._internal.recs;
+        var records = info._internal.displayRecs;
         records.sort(function(a, b) {
             var colid= sortObj.colid;
-            var aVal = _getValue(colid, a);
-            var bVal = _getValue(colid, b);
+            var aVal = a[colid].txt;
+            var bVal = b[colid].txt;
             if (sortObj.ascending) return _compare(aVal, bVal);
             else return _compare(bVal, aVal);
         });
-        self.updateTableObject(info, records);
+        info._internal.paginator.showPage(0);
     }   
 
     function _compare(a,b) {
         if (a > b) return 1;
         else if (a < b) return -1;
         return 0;
-    }
-
-    function _getValue(colid, item) {
-        var itemVal = item[colid];
-        if(colid.indexOf('.') != -1) itemVal = _getAttrValue(colid.split('.'), item);
-        itemVal = typeof itemVal === 'string' ? itemVal.toUpperCase() : itemVal;
-        return itemVal;
-    }
-
-    function  _getAttrValue(attrAsArray, item) {
-        if (!item || attrAsArray.length == 0) return '';
-        var attrValue = item[attrAsArray[0]];
-        if(attrAsArray.length == 1) return attrValue;
-        return _getAttrValue(attrAsArray.slice(1), attrValue);
     }
 }];
 
@@ -186,23 +187,37 @@ function Paginator(nl, info) {
     function _init() {
         self.infotxt = '';
         self.startpos = 0;
+        self.displayRecordCache = {};
+    }
+
+    self.resetCache = function() {
+        self.displayRecordCache = {};
     }
 
     self.showPage = function(startpos) {
         self.startpos = startpos || 0;
-        var records = info._internal.recs;
-        var max = records.length > info.maxVisible ? info.maxVisible: records.length;
+        var records = info._internal.displayRecs;
         var visible = [];
         var startpos = self.startpos;
-        for (var i=startpos; i<records.length; i++) {
-            if (visible.length < max) visible.push(_getDisplayRecord(records[i]));
+        for (var i=startpos; i < records.length && visible.length < info.maxVisible; i++) {
+            visible.push(records[i]);
         }
         info._internal.visibleRecs = visible;
         _updateInfoTxt();
     };
     
+    self.getDisplayRecords = function(records) {
+        var ret = [];
+        for(var i=0; i<records.length; i++)
+            ret.push(_getDisplayRecord(records[i]));
+        return ret;
+    };
+
     function _getDisplayRecord(record) {
+        var rid = record.raw_record.id;
+        if (rid in self.displayRecordCache) return self.displayRecordCache[rid];
         var ret = {_raw: record};
+        self.displayRecordCache[rid] = ret;
         for(var i=0; i<info.origColumns.length; i++) {
             var col = info.origColumns[i];
             if (col.insertCols) {
@@ -235,7 +250,7 @@ function Paginator(nl, info) {
 
     function _updateInfoTxt() {
         var visible = info._internal.visibleRecs.length;
-        var total = info._internal.recs.length;
+        var total = info._internal.displayRecs.length;
         if (total == 0) {
             self.infotxt = nl.t('There are no items to display.');
             return;

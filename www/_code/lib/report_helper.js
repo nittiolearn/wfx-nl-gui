@@ -279,7 +279,7 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
     }
 
     function _updateQuizScore(ret, cm, itemInfo) {
-        if (ret.quizScore.length >= 50) return;
+        if (ret.quizScore.length >= 100) return;
         ret.quizScore.push({name: cm.name, score: itemInfo.selfLearningMode ? '' : itemInfo.score});
     }
 
