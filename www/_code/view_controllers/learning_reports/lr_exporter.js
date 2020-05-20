@@ -119,8 +119,9 @@ function(nl, nlDlg, nlRouter, nlExporter, nlLrHelper, nlLrSummaryStats, nlGroupI
                 var promise = nl.q(function(resolve, reject) {
 	                nlDlg.showLoadingScreen();
                     nlDlg.popupStatus('Initiating download. This may take a while ...', false);
-                    var reportRecords = getReportRecordsFn(dlg.scope.data.recordType.id == 'filtered');
+                    var isFiltered = dlg.scope.data.recordType.id == 'filtered';
                     nl.timeout(function() {
+                        var reportRecords = getReportRecordsFn(isFiltered);
 	        	        _initCtx(reportRecords, _userInfo, filter);
 	                    _export(resolve, reject, filter, reportRecords);
                     }); // Seems needed for loadingScreen to appear properly.

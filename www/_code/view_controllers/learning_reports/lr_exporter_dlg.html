@@ -39,7 +39,7 @@
             ng-click='export.lr = !export.lr'>
             <i ng-show='export.lr' class="fsh4 icon ion-android-checkbox-outline"></i>
             <i ng-hide='export.lr' class="fsh4 icon ion-android-checkbox-outline-blank"></i>
-            <span>download course report (columns selected in learning report tab)</span>
+            <span>download learning reports (columns visible in learning report tab)</span>
         </div>
         <div ng-show='reptype == "course_assign" || reptype == "course"'
              ng-click='export.courseDetails = !export.courseDetails'  class='padding-mid nl-link-text'>
@@ -90,13 +90,13 @@
              ng-click='export.nhtRunning = !export.nhtRunning'>
             <i ng-show='export.nhtRunning' class="fsh4 icon ion-android-checkbox-outline"></i>
             <i ng-hide='export.nhtRunning' class="fsh4 icon ion-android-checkbox-outline-blank"></i>
-            <span>download Running training batch data</span>
+            <span>download running training batch data</span>
         </div>
         <div ng-show='showNhtClosedCheckbox' class='padding-mid nl-link-text' 
              ng-click='export.nhtClosed = !export.nhtClosed'>
             <i ng-show='export.nhtClosed' class="fsh4 icon ion-android-checkbox-outline"></i>
             <i ng-hide='export.nhtClosed' class="fsh4 icon ion-android-checkbox-outline-blank"></i>
-            <span>download Closed training batch data</span>
+            <span>download closed training batch data</span>
         </div>
         <div ng-show='showIltBatchCheckbox' class='padding-mid nl-link-text' 
              ng-click='export.iltBatch = !export.iltBatch'>

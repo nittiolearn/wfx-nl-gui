@@ -2203,8 +2203,6 @@ function LrTabManager(tabData, nlGetManyStore, nlLrFilter, _groupInfo) {
 //-------------------------------------------------------------------------------------------------
 function RecordsFilter(nl, nlDlg, nlLrFilter, nlGroupInfo, _groupInfo, $scope, nlLrReportRecords, 
 	nlTreeSelect, nlTable, onApplyFilterFn) {
-	// TODO-NOW: remove filtering code in export (just give a checkbox to use the filters applied in GUI)
-
 	$scope.canShowFilterDialog = false;
 
 	this.init = function() {
