@@ -1045,7 +1045,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		var chartData = [{type: 'doughnut', labels: labels, 
 						colors: colors, series: [], options: []}];
 		chartData[0].data = [allCount.Training || 0, allCount.OJT || 0, allCount.Certification || 0,
-			allCount['Re-certification'] || 0, allCount.certified, allCount.failed, allCount.attrition];
+			allCount['Re-certification'] || 0, allCount.certified || 0, allCount.failed || 0, allCount.attrition || 0];
 		return chartData;
 	}
 

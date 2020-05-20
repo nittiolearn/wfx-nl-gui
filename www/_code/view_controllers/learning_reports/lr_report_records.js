@@ -360,8 +360,8 @@ function(nl, nlRouter, nlDlg, nlGroupInfo, nlLrHelper, nlLrFilter, nlGetManyStor
             var mstype = cm.milestone_type;
             var actualMs = statusinfo[cm.id];
             var plannedMs = plannedMsInfo['milestone_'+cm.id] || '';
-            repcontent[mstype+'_planned'] = nl.fmt.json2Date(plannedMs || '', 'date');
-            repcontent[mstype+'_actual'] = actualMs.reached || '';
+            repcontent[mstype+'_planned'] = nl.fmt.date2StrDDMMYY(nl.fmt.json2Date(plannedMs || '', 'date'));
+            repcontent[mstype+'_actual'] = nl.fmt.date2StrDDMMYY(actualMs.reached || '');
         }
     }
 

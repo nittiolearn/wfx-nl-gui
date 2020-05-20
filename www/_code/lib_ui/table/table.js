@@ -31,7 +31,7 @@ function(nl, nlDlg) {
                 return isOverflowing;
             };
             $scope.sortRows = function(colid) {
-                $scope.info.sortRows($scope,colid);
+                $scope.info.sortRows($scope, colid);
             };
         }
     };
@@ -168,7 +168,7 @@ function(nl, nlDlg, $templateCache) {
     function _getValue(colid, item) {
         var itemVal = item[colid];
         if(colid.indexOf('.') != -1) itemVal = _getAttrValue(colid.split('.'), item);
-        itemVal = itemVal.toUpperCase();
+        itemVal = typeof itemVal === 'string' ? itemVal.toUpperCase() : itemVal;
         return itemVal;
     }
 
