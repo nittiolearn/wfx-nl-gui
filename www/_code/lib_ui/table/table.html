@@ -3,13 +3,20 @@
         <td ng-repeat='col in info.origColumns track by $index'
             ng-show='col.canShow'
             ng-click='sortRows(col.id)'
-            class='nl-link-text {{col.styleTd}}'>{{col.name}}
-            <i  class="icon ion-arrow-down-b nl-dlg-field-icon fgrey"
-                ng-show="!info.sort || info.sort.colid != col.id"></i>
-            <i  class="icon ion-arrow-down-b nl-dlg-field-icon"
-                ng-show="info.sort && info.sort.colid == col.id && info.sort.ascending"></i>
-            <i  class="icon ion-arrow-up-b nl-dlg-field-icon" 
-                ng-show="info.sort && info.sort.colid == col.id && !info.sort.ascending"></i>
+            class='nl-link-text minw-number text-left'>
+            <div class='row margin0 padding0'>
+                <div class='col padding0 margin0'>
+                    {{col.name}}
+                </div>
+                <div>
+                    <i  class="icon ion-arrow-down-b nl-dlg-field-icon fgrey"
+                        ng-show="!info.sort || info.sort.colid != col.id"></i>
+                    <i  class="icon ion-arrow-down-b nl-dlg-field-icon"
+                        ng-show="info.sort && info.sort.colid == col.id && info.sort.ascending"></i>
+                    <i  class="icon ion-arrow-up-b nl-dlg-field-icon" 
+                        ng-show="info.sort && info.sort.colid == col.id && !info.sort.ascending"></i>
+                </div>
+            </div>
         </td>
     </tr>
     <tr ng-repeat-start='rec in info._internal.visibleRecs track by $index'

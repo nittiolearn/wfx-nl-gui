@@ -561,46 +561,46 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		var mh = nlLrHelper.getMetaHeaders(false);
 		var type = nlLrFilter.getType();
 		var columns = [];
-		columns.push(_col('user.user_id', 'User Id', type == 'user'));
-		columns.push(_col('user.name', 'User Name', type == 'user'));
-		columns.push(_col('raw_record.typeStr', 'Report type', type != 'user'));
-		columns.push(_col('repcontent.name', 'Course Name', nlLrFilter.getObjectId() && type != 'user'));
-		columns.push(_col('raw_record._batchName', 'Batch name'));
+		columns.push(_col('user.user_id', 'User Id', 'text-left',  type == 'user'));
+		columns.push(_col('user.name', 'User Name', 'text-left', type == 'user'));
+		columns.push(_col('raw_record.typeStr', 'Report type', 'text-left', type != 'user'));
+		columns.push(_col('repcontent.name', 'Course Name', 'text-left', nlLrFilter.getObjectId() && type != 'user'));
+		columns.push(_col('raw_record._batchName', 'Batch name', 'text-left'));
 		columns.push(_col('raw_record._grade', _userInfo.groupinfo.gradelabel));
 		columns.push(_col('raw_record.subject', _userInfo.groupinfo.subjectlabel));
 		columns.push(_col('created', 'Assigned On'));
 		columns.push(_col('updated', 'Last Updated On'));
 		columns.push(_col('repcontent.not_before_str', 'From'));
 		columns.push(_col('repcontent.not_after_str', 'Till'));
-		columns.push(_col('stats.status.txt', 'Status', false, 'stats.status.icon'));
-		columns.push(_col('stats.percCompleteStr','Progress'));
+		columns.push(_col('stats.status.txt', 'Status', 'text-left', false, 'stats.status.icon'));
+		columns.push(_col('stats.percCompleteStr','Progress', 'text-right'));
 		columns.push(_col('stats.percCompleteDesc', 'Progress Details'));
-		columns.push(_col('stats.avgAttempts', 'Quiz Attempts'));
-		columns.push(_col('stats.percScoreStr', 'Achieved %'));
-		columns.push(_col('stats.nMaxScore', 'Maximum Score'));
-		columns.push(_col('stats.nScore', 'Achieved Score'));
+		columns.push(_col('stats.avgAttempts', 'Quiz Attempts', 'text-right'));
+		columns.push(_col('stats.percScoreStr', 'Achieved %', 'text-right'));
+		columns.push(_col('stats.nMaxScore', 'Maximum Score', 'text-right'));
+		columns.push(_col('stats.nScore', 'Achieved Score', 'text-right'));
 		
 		for(var i=0; i< _customScoresHeader.length; i++)
-			columns.push(_col('stats.customScoreDict.' + _customScoresHeader[i], _customScoresHeader[i]));
+			columns.push(_col('stats.customScoreDict.' + _customScoresHeader[i], _customScoresHeader[i], 'text-right'));
 
 		var qsMaxLength = nlLrReportRecords.getQsMaxLength();
 		for(var i=1; i <= qsMaxLength; i++) {
 			columns.push(_col('quizscore.name' + i, nl.fmt2('Quiz {} name', i)));
-			columns.push(_col('quizscore.score' + i, nl.fmt2('Quiz {} score', i)));
+			columns.push(_col('quizscore.score' + i, nl.fmt2('Quiz {} score', i), 'text-right'));
 		}
 		columns.push(_col('stats.feedbackScore', 'Feedback score'));
-		columns.push(_col('stats.timeSpentMinutes', 'Online Time Spent (minutes)'));
-		columns.push(_col('stats.iltTimeSpent', 'ILT time spent(minutes)'));
-		columns.push(_col('stats.iltTotalTime', 'ILT total time(minutes)'));
-		columns.push(_col('stats.delayDays', 'Delay days'));
+		columns.push(_col('stats.timeSpentMinutes', 'Online Time Spent (minutes)', 'text-right'));
+		columns.push(_col('stats.iltTimeSpent', 'ILT time spent(minutes)', 'text-right'));
+		columns.push(_col('stats.iltTotalTime', 'ILT total time(minutes)', 'text-right'));
+		columns.push(_col('stats.delayDays', 'Delay days', 'text-right'));
 		columns.push(_col('repcontent.iltVenue', 'Venue'));
 		columns.push(_col('repcontent.iltTrainerName','Trainer name'));
-		columns.push(_col('repcontent.iltCostInfra', 'Infra Cost'));
-		columns.push(_col('repcontent.iltCostTrainer', 'Trainer Cost'));
-		columns.push(_col('repcontent.iltCostFoodSta', 'Food Cost'));
-		columns.push(_col('repcontent.iltCostTravelAco', 'Travel Cost'));
-		columns.push(_col('repcontent.iltCostMisc', 'Misc Cost'));
-		columns.push(_col('user.stateStr', 'User state'));
+		columns.push(_col('repcontent.iltCostInfra', 'Infra Cost', 'text-right'));
+		columns.push(_col('repcontent.iltCostTrainer', 'Trainer Cost', 'text-right'));
+		columns.push(_col('repcontent.iltCostFoodSta', 'Food Cost', 'text-right'));
+		columns.push(_col('repcontent.iltCostTravelAco', 'Travel Cost', 'text-right'));
+		columns.push(_col('repcontent.iltCostMisc', 'Misc Cost', 'text-right'));
+		columns.push(_col('user.stateStr', 'User state', 'text-right'));
 		columns.push(_col('user.email', 'Email Id'));
 		columns.push(_col('user.org_unit', 'Org'));
 		if (nlGroupInfo.isSubOrgEnabled())
@@ -630,17 +630,23 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		}
 
 		// Id's are always exported, So the below 3 fields.
-		columns.push(_col('raw_record.id', 'Report Id'));
-		columns.push(_col('raw_record.assignment', 'Assign Id'));
-		columns.push(_col('repcontent.courseid', 'Course/ Module Id'));
+		columns.push(_col('raw_record.id', 'Report Id', 'text-right'));
+		columns.push(_col('raw_record.assignment', 'Assign Id', 'text-right'));
+		columns.push(_col('repcontent.courseid', 'Course/ Module Id', 'text-right'));
 		columns.push(_col('repcontent.targetLang', 'Language'));
 		nlTableViewSelectorSrv.updateAllColumnNames('lr_views', columns);
 		return columns;
 	}
 	
-	function _col(id, name, hideInMode, icon) {
+	function _col(id, name, textalign, hideInMode, icon) {
+		var style = 'minw-number ';
+		if (textalign) {
+			style += textalign;
+		} else {
+			style += 'text-left';
+		}
 		var column = { id: id, name: name, allScreens: true, canShow:true, 
-			hideInMode: hideInMode, styleTd: 'minw-number nl-text-center', iconType: 'ionicon'};
+			hideInMode: hideInMode, styleTd: style, iconType: 'ionicon'};
 		if(icon) column.icon = icon;
 		return column;
 	}

@@ -222,7 +222,7 @@
             if ($scope.config.defaultViewColumns) $scope.options = [$scope.config.defaultViewColumns];
             else $scope.options = [_defaultOption];
             if (true || _dlg.scope.isGrpAdmin) { // TODO-NOW: make only for Admin before the release
-                $scope.options.push(_allOptions);
+                $scope.options.push(_allOption);
             }
             for (var i=0; i<options.length; i++) {
                 $scope.options.push(options[i]);
