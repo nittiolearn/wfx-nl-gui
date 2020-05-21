@@ -119,7 +119,14 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		nlLrReportRecords.init(_userInfo, _groupInfo, _canAddReportRecord);
 		nlLrFetcher.init();
 		nlLrExporter.init(_userInfo, _groupInfo);
-		nlLrDrilldown.init(nlGroupInfo, $scope);
+		if (nlGroupInfo.isSubOrgEnabled()) {
+			$scope.pivotLevel1 = 'user.suborg';
+			$scope.pivotLevel2 = 'user.org_unit';
+		} else {
+			$scope.pivotLevel1 = 'user.org_unit'
+			$scope.pivotLevel2 = null;
+		}
+		nlLrDrilldown.init($scope);
 		nlLrNht.init(nlGroupInfo);
 		_certHandler.init(_groupInfo);
 		_recordsFilter.init();
@@ -1220,6 +1227,56 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 	//---------------------------------------------------------------------------------------------------------------------------------------------------------
 	var _drilldownStatsCountDict = {};
 	var _drillDownColumns = [];
+
+	$scope.updatePivotTable = function() {
+		var dlg = nlDlg.create($scope);
+		dlg.setCssClass('nl-width-max nl-height-max');
+		dlg.scope.help = _getHelp();
+		dlg.scope.data = {};
+		dlg.scope.options = {firstPivot: _getPivotOptions(),
+							 secondPivot: _getPivotOptions()};
+        dlg.scope.data.firstPivot = {id: $scope.pivotLevel1};
+		dlg.scope.data.secondPivot = {id : $scope.pivotLevel2};
+		var okButton = {text: nl.t('Apply Filters'), onTap: function(e) {
+			$scope.pivotLevel1 = dlg.scope.data.firstPivot.id;
+			$scope.pivotLevel2 = dlg.scope.data.secondPivot.id;
+			nlLrDrilldown.init($scope);
+			_updateDrillDownTab();
+		}};
+		var cancelButton = {text: nl.t('Cancel'), onTap: function(e) {
+		}};
+		dlg.show('view_controllers/learning_reports/update_drilldown_pivot_dlg.html',
+			[okButton], cancelButton);
+	};
+
+	function _getHelp() {
+        return {
+            firstPivot: {name: nl.t('Drill down level 1'), help: nl.t('Select the item to create first level drilldown.')},
+            secondPivot: {name: nl.t('Drill down level 2'), help: nl.t('Select the item to create second level drilldown.')}
+        }
+    }
+
+	function _getPivotOptions() {
+		var ret = [];
+		var lrColNamesDict = nl.utils.arrayToDictById(_getLrColumns());		
+		if (nlGroupInfo.isSubOrgEnabled()) ret.push({id: 'user.suborg', name: 'Sub org'});
+		ret.push({id: 'user.org_unit', name: 'Organisation'});
+		ret.push({id: 'raw_record.subject', name: _groupInfo.props.subjectlabel || 'Subject'});
+		ret.push({id: 'raw_record._grade', name: _groupInfo.props.gradelabel || 'Grade'});
+		ret.push({id: 'raw_record._batchName', name: 'Batch name'});
+		ret.push({id: 'user.ou_part1', name: 'OU part1'});
+		ret.push({id: 'user.ou_part2', name: 'OU part2'});
+		ret.push({id: 'user.ou_part3', name: 'OU part3'});
+		ret.push({id: 'user.ou_part4', name: 'OU part4'});
+		ret.push({id: 'user.usertypeStr', name: 'User type'});
+
+		for(var i=0; i<ret.length; i++) {
+			var key = ret[i].id;
+			ret[i].name = lrColNamesDict[key] ? lrColNamesDict[key].name : ret[i].name;
+		}
+		return ret;
+	}
+
 	function _updateDrillDownTab(useCache) {
 		if (useCache && _drillDownColumns.length > 0) return _drillDownColumns;
 		nlLrDrilldown.clearStatusCountTree();

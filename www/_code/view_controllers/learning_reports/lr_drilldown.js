@@ -19,14 +19,10 @@ function(nlReportHelper, nlTable) {
     var _scope = null;
     var StatsCount = new StatsCounts();
 
-    this.init = function(nlGroupInfo, $scope) {
+    this.init = function($scope) {
         _scope = $scope;
-        if (nlGroupInfo.isSubOrgEnabled()) {
-            _pivotLevel1FieldId = 'user.suborg';
-            _pivotLevel2FieldId = 'user.org_unit';
-        } else {
-            _pivotLevel1FieldId = 'user.org_unit';
-        }
+        _pivotLevel1FieldId = $scope.pivotLevel1;
+        _pivotLevel2FieldId = $scope.pivotLevel2;
     };
 
     this.clearStatusCountTree = function() {
@@ -179,6 +175,10 @@ function() {
         link: function($scope, iElem, iAttrs) {
             $scope.generateDrillDownArray = function(item) {
                 $scope.$parent.$parent.generateDrillDownArray(item);
+            };
+
+            $scope.updatePivotTable = function(item) {
+                $scope.$parent.$parent.updatePivotTable(item);
             };
 
             $scope.onDetailsClick = function(e, item, columns) {
