@@ -119,7 +119,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		nlLrReportRecords.init(_userInfo, _groupInfo, _canAddReportRecord);
 		nlLrFetcher.init();
 		nlLrExporter.init(_userInfo, _groupInfo);
-		nlLrDrilldown.init(nlGroupInfo);
+		nlLrDrilldown.init(nlGroupInfo, $scope);
 		nlLrNht.init(nlGroupInfo);
 		_certHandler.init(_groupInfo);
 		_recordsFilter.init();
@@ -1241,7 +1241,6 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		var statusDict = _getStatusDictFromArray();
 		_customScoresHeader = nlLrReportRecords.getCustomScoresHeader();
 		var customScoresHeaderWithType = nlLrReportRecords.getCustomScoresHeaderWithType();
-		var isReattemptEnabled = nlLrReportRecords.isReattemptEnabled() || false;
 		columns.push({id: 'cntTotal', name: 'Total', table: true, percid:'percTotal', smallScreen: true, background: 'bggrey', showAlways: true});
 		columns.push({id: 'cntInactive', name: 'Inactive', table: true, percid:'percInactive', background: 'nl-bg-blue', showAlways: true});
 		if(attrition.length > 0) {
@@ -1257,10 +1256,6 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		columns.push({id: 'cntActive', name: 'Total (excl. inactive)', percid: 'percActive', table: true, background: 'nl-bg-blue', showAlways: true});
 		columns.push({id: 'completed', name: 'Completed', percid: 'percCompleted', table: true, indentation: 'padding-left-22', showAlways: true});
 		columns.push({id: 'certified', name: 'Certified', percid: 'percCertified', table: true, indentation: 'padding-left-44'});
-		if(isReattemptEnabled) {
-			columns.push({id: 'certifiedInFirstAttempt', name: 'Certified in first attempt', percid: 'percCertifiedInFirstAttempt', indentation: 'padding-left-66'});
-			columns.push({id: 'certifiedInReattempt', name: 'Certified in Reattempt', percid: 'percCertifiedInReattempt', indentation: 'padding-left-66'});
-		}
 		columns.push({id: 'failed', name: 'Failed', percid: 'percFailed', table: true, indentation: 'padding-left-44'});
 		columns.push({id: 'notcompleted', name: 'Not completed', percid: 'percNotcompleted', table: true, indentation: 'padding-left-22', showAlways: true});
 		columns.push({id: 'started', name: 'Active ongoing', percid: 'percStarted', table: true, indentation: 'padding-left-44', showAlways: true});

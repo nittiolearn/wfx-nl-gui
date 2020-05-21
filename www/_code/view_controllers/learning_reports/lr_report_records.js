@@ -26,7 +26,6 @@ function(nl, nlRouter, nlDlg, nlGroupInfo, nlLrHelper, nlLrFilter, nlGetManyStor
     var _userInfo = null;
     var _nominatedUsers = null;
     var _attendanceObj = {};
-    var _isReattemptEnabled = false;
     var _customScoresHeaderArray = [];
     var _customScoresHeaderObj = {};
     var _canManage = false;
@@ -39,7 +38,6 @@ function(nl, nlRouter, nlDlg, nlGroupInfo, nlLrHelper, nlLrFilter, nlGetManyStor
         _records = {};
         _reminderDict = {};
         _nominatedUsers = {};
-        _isReattemptEnabled = false;
         _customScoresHeaderArray = [];
         _customScoresHeaderObj = {};
         _dates = {minUpdated: null, maxUpdated: null};
@@ -52,10 +50,6 @@ function(nl, nlRouter, nlDlg, nlGroupInfo, nlLrHelper, nlLrFilter, nlGetManyStor
         _qsMaxLen = 0;
     };
     
-    this.isReattemptEnabled = function() {
-        return _isReattemptEnabled;
-    };
-
     this.getCustomScoresHeader = function() {
         return _customScoresHeaderArray;
     };
@@ -289,7 +283,6 @@ function(nl, nlRouter, nlDlg, nlGroupInfo, nlLrHelper, nlLrFilter, nlGetManyStor
             }
         }
         if('reattempt' in stainf) {
-            _isReattemptEnabled = true;
             stats['reattempt'] = stainf['reattempt'];
         }
         stats.avgAttempts = stats.nLessonsAttempted ? Math.round(stainf.nQuizAttempts/stats.nLessonsAttempted*10)/10 : 0;
