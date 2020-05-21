@@ -341,11 +341,12 @@ function(nl, nlRouter, nlDlg, nlGroupInfo, nlLrHelper, nlLrFilter, nlGetManyStor
         var modules = course && course.content ? course.content.modules : repcontent.content.modules;
         var groupInfo = nlGroupInfo.get();
         if (groupInfo.props.etmAsd && groupInfo.props.etmAsd.length > 0) _updateMsDates(repcontent, modules, courseAssignment.info);
-        if (_qsMaxLen < stainf.quizScore.length) _qsMaxLen = stainf.quizScore.length;
+        if (_qsMaxLen < stainf.quizScoreLen) _qsMaxLen = stainf.quizScoreLen;
         var ret = {raw_record: report, repcontent: repcontent, course: course,
             user: user, usermd: user.metadataObj, stats: stats, quizscore: stainf.quizScore,
             created: nl.fmt.fmtDateDelta(report.created, null, 'minute'),
-            updated: nl.fmt.fmtDateDelta(report.updated, null, 'minute')
+            updated: nl.fmt.fmtDateDelta(report.updated, null, 'minute'),
+            custom: {} // TODO-NOW: either fill this or do alternate approach in lr_export
         };
         return ret;
     }
@@ -451,7 +452,8 @@ function(nl, nlRouter, nlDlg, nlGroupInfo, nlLrHelper, nlLrFilter, nlGetManyStor
         var ret = {raw_record: report, repcontent: repcontent,
             user: user, usermd: user.metadataObj, stats: stats,
             created: nl.fmt.fmtDateDelta(report.created, null, 'minute'), 
-            updated: nl.fmt.fmtDateDelta(report.updated, null, 'minute')
+            updated: nl.fmt.fmtDateDelta(report.updated, null, 'minute'),
+            custom: {}
         };
         return ret;
     }

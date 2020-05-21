@@ -38,8 +38,8 @@ function(nl, nlDlg) {
 }];
 
 //-------------------------------------------------------------------------------------------------
-var TableSrv = ['nl', 'nlDlg', '$templateCache',
-function(nl, nlDlg, $templateCache) {
+var TableSrv = ['nl', 'nlExpressionProcessor', '$templateCache',
+function(nl, nlExpressionProcessor, $templateCache) {
 
     /* Sample content of table object which is passed to nlTable directive:
     <nl-table info='tableobject'></nl-table>
@@ -70,12 +70,12 @@ function(nl, nlDlg, $templateCache) {
         updateScope: fn(records),
         
         // Internal stuff maintained by directive
-        _internal: {paginator: {}, recs: [], visibleRecs: []}
+        _internal: {paginator: {}, displayRecs: [], visibleRecs: []}
     }
     */
 
     var self = this;
-    this.initTableObject = function(info) {
+    this.initTableObject = function(info, custColsDict) {
         if (!info) throw('table info object error');
         if (!info.styleTable) info.styleTable = 'nl-table-styled2 cozy';
         if (!info.styleHeader) info.styleHeader = 'header';
@@ -85,9 +85,10 @@ function(nl, nlDlg, $templateCache) {
         if (!info.clickHandler) info.clickHandler = null;
         
         info._internal = {
-            recs: [],
+            displayRecs: [],
             visibleRecs: [],
-            paginator: new Paginator(nl, info)
+            custColsDict: custColsDict,
+            paginator: new Paginator(nl, info, nlExpressionProcessor)
         };
         info.onItemClick = _onItemClickHandler;
         info.sortRows = _sortRows;
@@ -99,14 +100,14 @@ function(nl, nlDlg, $templateCache) {
 
     this.updateTableRecords = function(info, records) {
         _initSortObject(info);
-        _updateTableColumns(info);
         info._internal.displayRecs = info._internal.paginator.getDisplayRecords(records);
         info._internal.paginator.showPage(0);
     };
 
-    this.updateTableColumns = function(info) {
+    this.updateTableColumns = function(info, records, custColsDict) {
         _initSortObject(info);
-        _updateTableColumns(info);
+        info._internal.custColsDict = custColsDict;
+        info._internal.displayRecs = info._internal.paginator.getDisplayRecords(records);
         info._internal.paginator.showPage(0);
     };
 
@@ -114,29 +115,10 @@ function(nl, nlDlg, $templateCache) {
         info._internal.paginator.showPage(startpos);
     };
 
-    // TODO-NOW: This has to be refactored
-    this.getFieldValue = function(info, record, fieldId) {
-        return info._internal.paginator.getFieldValue(record, fieldId);
+    this.getFieldValue = function(info, record, fieldid) {
+        return info._internal.paginator.getFieldValue(record, fieldid);
     };
     
-    function _updateTableColumns(info) {
-        info.columns = [];
-        for (var i=0;i<info.origColumns.length; i++) {
-            var column = info.origColumns[i];
-            if (column.insertCols) {
-                for (var j=0; j<column.children.length; j++) {
-                    var key = nl.t('{}{}', column.id, j);
-                    var defCols = angular.copy(column);
-                    defCols.id = key;
-                    defCols.name = column.children[j];
-                    info.columns.push(defCols);
-                }
-            } else {
-                info.columns.push(column);
-            }
-        }
-    }
-
     function _onItemClickHandler($scope, rec, action) {
         if (!action) return;
         var info = $scope.info;
@@ -165,9 +147,9 @@ function(nl, nlDlg, $templateCache) {
         }
         var records = info._internal.displayRecs;
         records.sort(function(a, b) {
-            var colid= sortObj.colid;
-            var aVal = a[colid].txt;
-            var bVal = b[colid].txt;
+            var colid= '_id.' + sortObj.colid;
+            var aVal = a._avps[colid];
+            var bVal = b._avps[colid];
             if (sortObj.ascending) return _compare(aVal, bVal);
             else return _compare(bVal, aVal);
         });
@@ -182,16 +164,16 @@ function(nl, nlDlg, $templateCache) {
 }];
 
 //-------------------------------------------------------------------------------------------------
-function Paginator(nl, info) {
+function Paginator(nl, info, nlExpressionProcessor) {
     var self = this;
     function _init() {
         self.infotxt = '';
         self.startpos = 0;
-        self.displayRecordCache = {};
+        self.recordAvpCache = {};
     }
 
     self.resetCache = function() {
-        self.displayRecordCache = {};
+        self.recordAvpCache = {};
     }
 
     self.showPage = function(startpos) {
@@ -209,44 +191,69 @@ function Paginator(nl, info) {
     self.getDisplayRecords = function(records) {
         var ret = [];
         for(var i=0; i<records.length; i++)
-            ret.push(_getDisplayRecord(records[i]));
+            ret.push(self.getDisplayRecord(records[i]));
         return ret;
     };
 
-    function _getDisplayRecord(record) {
-        var rid = record.raw_record.id;
-        if (rid in self.displayRecordCache) return self.displayRecordCache[rid];
-        var ret = {_raw: record};
-        self.displayRecordCache[rid] = ret;
+    self.getDisplayRecord = function(record) {
+        var ret = {_raw: record, _avps: _getAvps(record)};
+
         for(var i=0; i<info.origColumns.length; i++) {
             var col = info.origColumns[i];
-            if (col.insertCols) {
-                var array = record[col.id] || [];
-                var count = 0;
-                for (var j=0; j<array.length; j++) {
-                    var key1 = nl.t('{}{}', col.id, count);
-                    ret[key1] = {txt: array[j].name};
-                    count++;
-                    var key2 = nl.t('{}{}', col.id, count);
-                    ret[key2] = {txt: array[j].score};
-                    count++;
-                }
-                continue;
-            }
-            ret[col.id] = {txt: self.getFieldValue(record, col.id), 
-                icon: col.icon ? self.getFieldValue(record, col.icon) : ''};
+            self.getFieldValue(record, col.id, ret._avps);
+            if (col.icon) self.getFieldValue(record, col.icon, ret._avps);
         }
         return ret;
     }
 
-    self.getFieldValue = function(record, fieldId) {
-        if(!record) return '';
-        var pos = fieldId.indexOf('.');
-        if (pos < 0) return record[fieldId] ? record[fieldId] : record[fieldId] === 0 ? '0' : '';
-        var left = fieldId.substring(0, pos);
-        var right = fieldId.substring(pos+1);
-        return self.getFieldValue(record[left], right);
+    self.getFieldValue = function(record, fieldId, avps) {
+        if (!avps) avps = _getAvps(record);
+        var key = '_id.' + fieldId;
+        if (key in avps) return avps[key];
+        avps[key] = _getFieldValue(record, fieldId, avps);
+        return avps[key];
     };
+
+    function _getAvps(record) {
+        var rid = record.raw_record.id;
+        if (!(rid in self.recordAvpCache)) self.recordAvpCache[rid] = {};
+        return self.recordAvpCache[rid];
+    }
+
+    function _getFieldValue(record, fieldId, avps) {
+        if(!record) return '';
+        var ret = '';
+        if (fieldId.indexOf('custom.') != 0) ret = _getFixedFieldValue(record, fieldId);
+        else ret = _getCustomFieldValue(record, fieldId, avps);
+        if (!ret && ret !== 0) ret = '';
+        return ret;
+    }
+
+    function _getFixedFieldValue(record, fieldId) {
+        if(!record) return '';
+        var parts = fieldId.split('.');
+        var obj = record;
+        for(var i=0; i<parts.length; i++) obj = obj[parts[i]];
+        return obj;
+    }
+
+    function _getCustomFieldValue(record, fieldId, avps) {
+        var key = 'id.' + fieldId;
+        var col = info._internal.custColsDict[fieldId];
+        if (!col) return '';
+
+        // Preload variables used in the formula
+        var usedVars = nlExpressionProcessor.getUsedVars(col.formula);
+        for (var key in usedVars) {
+            var usedFieldId = key.substring(4); // omit "_id."
+            _getFieldValue(record, usedFieldId, avps);
+        }
+
+        // Now compute the formula
+        var payload = {strExpression: col.formula, dictAvps: avps};
+        nlExpressionProcessor.process(payload);
+        return payload.error ? '' : payload.result;
+    }
 
     function _updateInfoTxt() {
         var visible = info._internal.visibleRecs.length;

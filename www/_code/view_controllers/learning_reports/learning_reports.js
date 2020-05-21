@@ -133,7 +133,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 	}
 
 	var _tableNavPos = {};
-	var MAX_VISIBLE = 10; // TODO-NOW
+	var MAX_VISIBLE = 100;
 	function _initScope() {
 		$scope.debug = nlLrFilter.isDebugMode();
 		$scope.toolbar = _getToolbar();
@@ -154,7 +154,8 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		};
 		_updateSelectedLrColumns();
 		$scope.utable.styleDetail = 'nl-max-1100';
-		nlTable.initTableObject($scope.utable);
+		var custColsDict = nl.utils.arrayToDictById(nlTableViewSelectorSrv.getCustomColumns('lr_views'));
+		nlTable.initTableObject($scope.utable, custColsDict);
 		_initTabData($scope.utable);
 		_initChartData();
 	}
@@ -535,11 +536,11 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			tableType: 'lr_views',
 			allColumns: _getLrColumns(),
 			defaultViewColumns: {id: 'default', name: 'Default', columns: _defaultLrColIds},
-			onViewChange: function(selectedColIdList, selectedCustColIdsDict) {
-				// TODO-NOW: handle selectedCustColIdsDict
+			onViewChange: function(selectedColIdList) {
 				_selectedLrColIds = selectedColIdList;
 				_updateSelectedLrColumns();
-				nlTable.updateTableColumns($scope.utable);
+				var custColsDict = nl.utils.arrayToDictById(nlTableViewSelectorSrv.getCustomColumns('lr_views'));
+				nlTable.updateTableColumns($scope.utable, tabData.records, custColsDict);
 			}
 		};
 	}
@@ -559,12 +560,6 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		_customScoresHeader = nlLrReportRecords.getCustomScoresHeader();
 		var mh = nlLrHelper.getMetaHeaders(false);
 		var type = nlLrFilter.getType();
-		var qsMaxLength = nlLrReportRecords.getQsMaxLength();
-		var quizArray = [];
-		for (var i=0; i<qsMaxLength; i++) {
-			quizArray.push(nl.t('Quiz {} name', i+1));
-			quizArray.push(nl.t('Quiz {} score', i+1));
-		}
 		var columns = [];
 		columns.push(_col('user.user_id', 'User Id', type == 'user'));
 		columns.push(_col('user.name', 'User Name', type == 'user'));
@@ -587,7 +582,12 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		
 		for(var i=0; i< _customScoresHeader.length; i++)
 			columns.push(_col('stats.customScoreDict.' + _customScoresHeader[i], _customScoresHeader[i]));
-		columns.push(_col('quizscore', 'Individual quiz scores (names and scores)', false, null, quizArray));
+
+		var qsMaxLength = nlLrReportRecords.getQsMaxLength();
+		for(var i=1; i <= qsMaxLength; i++) {
+			columns.push(_col('quizscore.name' + i, nl.fmt2('Quiz {} name', i)));
+			columns.push(_col('quizscore.score' + i, nl.fmt2('Quiz {} score', i)));
+		}
 		columns.push(_col('stats.feedbackScore', 'Feedback score'));
 		columns.push(_col('stats.timeSpentMinutes', 'Online Time Spent (minutes)'));
 		columns.push(_col('stats.iltTimeSpent', 'ILT time spent(minutes)'));
@@ -638,12 +638,9 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		return columns;
 	}
 	
-	function _col(id, name, hideInMode, icon, multipleArray) {
+	function _col(id, name, hideInMode, icon) {
 		var column = { id: id, name: name, allScreens: true, canShow:true, 
-			hideInMode: hideInMode, styleTd: 'minw-number nl-text-center', 
-			insertCols: multipleArray ? true: false, children: multipleArray,
-			iconType: 'ionicon'
-		};
+			hideInMode: hideInMode, styleTd: 'minw-number nl-text-center', iconType: 'ionicon'};
 		if(icon) column.icon = icon;
 		return column;
 	}
@@ -710,11 +707,9 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		for (var md in usermeta) mdKeys.push(md);
 		for (var i=0; i<searchInfo.length; i++) {
 			var searchElem = searchInfo[i];
-			if (_isFoundInAnyOfAttrs(searchElem, repcontent, ['name', 'batchname'])) continue;
-			if (_isFoundInAnyOfAttrs(searchElem, repcontent, ['name', 'batchtype'])) continue;
-			if (_isFoundInAnyOfAttrs(searchElem, raw_record, ['subject', '_grade'])) continue;
+			if (_isFoundInAnyOfAttrs(searchElem, repcontent, ['name', ])) continue;
+			if (_isFoundInAnyOfAttrs(searchElem, raw_record, ['_batchName', 'subject', '_grade'])) continue;
 			if (_isFoundInAnyOfAttrs(searchElem, user, ['username', 'name', 'email', 'org_unit'])) continue;
-			if (_isFoundInAnyOfAttrs(searchElem, usermeta, mdKeys)) continue;
 			return false;
 		}
 		return true;
@@ -1132,8 +1127,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 				canEdit: nlRouter.isPermitted(_userInfo, 'assignment_manage'),
 				tableType: 'nht_views',
 				defaultViewColumns: {id: 'default', name: 'Default', columns: _defaultNhtColIds},
-				onViewChange: function(selectedColIdList, selectedCustColIdsDict) {
-					// TODO-NOW: handle selectedCustColIdsDict
+				onViewChange: function(selectedColIdList) {
 					_selectedNhtColIds = selectedColIdList;
 					_someTabDataChanged();
 					_updateCurrentTab();
@@ -1519,19 +1513,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		}
 
 		_updateSelectedLrColumns();
-		var selectedLrColumns = $scope.utable.origColumns;
-		var _defcolumns = [];
-		for(var i=0; i<selectedLrColumns.length; i++) {
-			if (selectedLrColumns[i].insertCols) {
-				var children = selectedLrColumns[i].children || [];
-				for (var j=0; j<children.length; j++) {
-					_defcolumns.push({id: nl.t('{}{}', selectedLrColumns[i].id, j), name: children[j]});
-				}
-			} else {
-				_defcolumns.push(selectedLrColumns[i]);
-			}
-		}
-		var lrStats = {columns: _defcolumns};
+		var lrStats = {columns: $scope.utable.origColumns};
 		var certificateStats = null;
 		if (nlLrFilter.getType() == 'course' && nlLrFilter.getMode() == 'cert_report') {
 			certificateStats = _certHandler.getExportData();
@@ -2250,7 +2232,7 @@ function RecordsFilter(nl, nlDlg, nlLrFilter, nlGroupInfo, _groupInfo, $scope, n
 	this.doesPassFilter = function(record) {
 		for (var tabid in _filterInfo) {
 			var filter = _filterInfo[tabid];
-			var fieldVal = '' + nlTable.getFieldValue($scope.utable, record, tabid);
+			var fieldVal = nlTable.getFieldValue(info, record, tabid);
 			if (!(fieldVal in filter)) return false;
 		}
 		return true;
@@ -2327,9 +2309,9 @@ function RecordsFilter(nl, nlDlg, nlLrFilter, nlGroupInfo, _groupInfo, $scope, n
 		var fieldValues = {};
 		for(var key in records) {
 			var record = records[key];
-			var objid = nlTable.getFieldValue($scope.utable, record, tab.id);
+			var objid = nlTable.getFieldValue(info, record, tab.id);
 			if (!objid) continue;
-			var name = tab.valueFiledId ? nlTable.getFieldValue($scope.utable, record, tab.valueFiledId) : objid;
+			var name = tab.valueFiledId ? nlTable.getFieldValue(info, record, tab.valueFiledId) : objid;
 			fieldValues[objid] = {id: '' + objid, name: '' + name};
 		}
 		treeData = nl.utils.dictToList(fieldValues);

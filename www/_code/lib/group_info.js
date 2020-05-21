@@ -404,7 +404,7 @@ function(nl, nlDlg, nlImporter, nlGroupCache) {
         var parts = (user.org_unit || '').split('.');
         for(var i=0; i < 4; i++) {
             var p = ('' + parts[i]).trim();
-            if (p && p.toLocaleLowerCase) p = p.toLocaleLowerCase();
+            if (p && p.toUpperCase) p = p.toUpperCase();
             user['ou_part' + (i+1)] = (i < parts.length) ? p : '';
         }
     }
@@ -429,7 +429,7 @@ function(nl, nlDlg, nlImporter, nlGroupCache) {
             _addSubTreeToSubOrg(ou, suborgId, orgToSubOrgMapping);
             return;
         }
-        orgToSubOrgMapping[ou.id] = 'Others';
+        orgToSubOrgMapping[ou.id] = 'OTHERS';
         if (!ou.children) return;
         if (suborg != 2) {
             for(var i=0; i<ou.children.length; i++)
@@ -451,6 +451,8 @@ function(nl, nlDlg, nlImporter, nlGroupCache) {
     }
 
     function _addSubTreeToSubOrg(ou, suborgId, orgToSubOrgMapping) {
+        suborgId = ('' + suborgId).trim();
+        if (suborgId && suborgId.toUpperCase) suborgId = suborgId.toUpperCase();
         orgToSubOrgMapping[ou.id] = suborgId;
         if (!ou.children) return;
         for(var i=0; i<ou.children.length; i++)

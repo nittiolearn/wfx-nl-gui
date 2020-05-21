@@ -31,7 +31,15 @@ function(nl, nlReportHelper, nlGetManyStore) {
 				transferedOut[record.user.user_id] = record;
 				continue;
 			}
+			reportDict[record.user.user_id] = record;
+		}
+		for (var transferid in transferedOut) {
+			if (transferid in reportDict) continue;
+			reportDict[transferid] = transferedOut[transferid];
+        }
 
+        nhtCounts.clear();
+        for(var key in reportDict) {
             if (batchType) {
                 var msInfo = nlGetManyStore.getBatchMilestoneInfo(record.raw_record, batchStatusObj);
                 if(batchType == 'nhtrunning' && msInfo.batchStatus == 'Closed' ||
@@ -39,15 +47,8 @@ function(nl, nlReportHelper, nlGetManyStore) {
                     continue;
                 }
             }
-			reportDict[record.user.user_id] = record;
-		}
-		for (var transferid in transferedOut) {
-			if (transferid in reportDict) continue;
-			reportDict[transferid] = transferedOut[transferid];
-		}
-
-        nhtCounts.clear();
-        for(var key in reportDict) _addNhtRecord(reportDict[key]);
+            _addNhtRecord(reportDict[key]);
+        }
         return nhtCounts.statsCountDict();
     };
         

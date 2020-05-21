@@ -45,7 +45,7 @@ function(nlReportHelper) {
         var contentid = record.raw_record.lesson_id;
         var ou = record.user.org_unit;
         var subOrg = _isSubOrgEnabled ? record.user.suborg : ou;
-        if (!subOrg) subOrg = "Others";
+        if (!subOrg) subOrg = "OTHERS";
         var statusCntObj = _getStatusCountObj(record);
         _addCount(contentid, subOrg, _isSubOrgEnabled ? ou : '', statusCntObj, record.repcontent.name);
     }

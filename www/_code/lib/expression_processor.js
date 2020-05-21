@@ -27,6 +27,10 @@ function(nl) {
         return _process(payload);
     };
 
+    this.getUsedVars = function(inputStr) {
+        return _getUsedVars(inputStr);
+    };
+
     //-------------------------------------------------------------------------------------------------
     // Test code: Uncomment the call this method in the end of this module for testing
     this.test = function() {
@@ -125,6 +129,14 @@ function(nl) {
             payload['error'] = nl.fmt2('Error evaluating expression: {}', e);
         }
         return true;
+    }
+
+    function _getUsedVars(inputStr) {
+        var usedVars = {};
+        inputStr.replace(/_id[\.\_a-zA-Z0-9]+/g, function(varName) {
+            userVars[varName] = true;
+        });
+        return usedVars;
     }
 
     function _replaceVars(inputStr, payload) {

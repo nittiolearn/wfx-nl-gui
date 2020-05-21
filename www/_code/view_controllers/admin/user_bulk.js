@@ -500,7 +500,7 @@ function(nl, nlDlg, nlGroupInfo, nlImporter, nlProgressLog, nlRouter, nlServerAp
             _throwException('Duplicate instances of Key/loginid found', row);
         self.foundKeys[row.username] = true;
 
-        var user = userDict[row.username];
+        var user = usersDict[row.username];
 
         if(user && row.user_id != user.user_id) {
             var newUserId = row.user_id;

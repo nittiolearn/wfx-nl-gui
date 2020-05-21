@@ -183,7 +183,8 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
             isCertified: false, certid: null,
             customScoreDict: {},
             inductionDropOut: null,
-            quizScore: []
+            quizScoreLen: 0,
+            quizScore: {}
             // Also may have has following:
             // reattempt: true/false
         };
@@ -279,8 +280,10 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
     }
 
     function _updateQuizScore(ret, cm, itemInfo) {
-        if (ret.quizScore.length >= 100) return;
-        ret.quizScore.push({name: cm.name, score: itemInfo.selfLearningMode ? '' : itemInfo.score});
+        if (ret.quizScoreLen >= 100) return;
+        ret.quizScoreLen++;
+        ret.quizScore[nl.fmt2('name{}', ret.quizScoreLen)] = cm.name;
+        ret.quizScore[nl.fmt2('score{}', ret.quizScoreLen)] = itemInfo.selfLearningMode ? '' : itemInfo.score;
     }
 
     function _updateCourseDelayForNHT(ret) {

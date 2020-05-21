@@ -196,11 +196,9 @@
                 $scope.isOpen = false;
                 if (!$scope.config || !$scope.config.onViewChange) return;
                 nlTableViewSelectorSrv.updateAllColumnNames($scope.config.tableType, $scope.config.allColumns);
-                var selectedCustColIdsDict = {};
                 var selectedColIds = _getSelectedColIds($scope.config.tableType,
-                    $scope.config.allColumns, option.columns, selectedCustColIdsDict);
-                $scope.config.onViewChange(selectedColIds, // Array of col ids
-                    selectedCustColIdsDict);    // Dict of cust col ids to true
+                    $scope.config.allColumns, option.columns);
+                $scope.config.onViewChange(selectedColIds); // Array of col ids
             };
 
             $scope.onCustomizeViews = function() {
@@ -221,25 +219,24 @@
             if (!$scope.config) return;
             var options =  nlTableViewSelectorSrv.getViews($scope.config.tableType);
             if (!options) return _initScope($scope);
-            if ($scope.config.defaultViewColumns) $scope.options = [$scope.config.defaultViewColumns, _allOption];
-            else $scope.options = [_defaultOption, _allOption];
+            if ($scope.config.defaultViewColumns) $scope.options = [$scope.config.defaultViewColumns];
+            else $scope.options = [_defaultOption];
+            if (true || _dlg.scope.isGrpAdmin) { // TODO-NOW: make only for Admin before the release
+                $scope.options.push(_allOptions);
+            }
             for (var i=0; i<options.length; i++) {
                 $scope.options.push(options[i]);
             }
         }
 
-        function _getSelectedColIds(tableType, allColumns, selectedColIds, selectedCustColIdsDict) {
+        function _getSelectedColIds(tableType, allColumns, selectedColIds) {
             var custColsDict = nl.utils.arrayToDictById(nlTableViewSelectorSrv.getCustomColumns(tableType));
             var allColsDict = nl.utils.arrayToDictById(allColumns);
             var selectedLen = selectedColIds ? selectedColIds.length : allColumns.length;
             var ret = [];
             for(var i=0; i<selectedLen; i++) {
                 var colid = selectedColIds ? selectedColIds[i] : allColumns[i].id;
-                if (colid in allColsDict) ret.push(colid);
-                else if (colid in custColsDict) {
-                    ret.push(colid);
-                    selectedCustColIdsDict[colid] = true;
-                }
+                if (colid in allColsDict || colid in custColsDict) ret.push(colid);
             }
             return ret;
         }
