@@ -317,9 +317,14 @@
         function _getIntelliTextOptions(column) {
             var ret = {
                 '$':[
-                        { "name": "$date_format - (MM-YY)", "val": "$date_format{'MM-YY', }", "cursor": -1},
-                        { "name": "$date_format - (MMM-YY)", "val": "$date_format{'MMM-YY', }", "cursor": -1},
-                        { "name": "$date_format - (MMMM-YY)", "val": "$date_format{'MMMM-YY', }", "cursor": -1}
+                        { "name": "$date_format - (YYYY-MM)", "val": "$date_format{'YYYY-MM', }", "cursor": -1},
+                        { "name": "$max - maximum of given items", "val": "$max{}", "cursor": -1 }, 
+                        { "name": "$min - minimum of given items", "val": "$min{}", "cursor": -1 },
+                        { "name": "$sum - sum of given items", "val": "$sum{}", "cursor": -1 },
+                        { "name": "$avg - average of given items", "val": "$avg{}", "cursor": -1 },
+                        { "name": "$avg_top - average of top 'n' items", "val": "$avg_top{}", "cursor": -1 },
+                        { "name": "$nth_min - nth loweest of the given items", "val": "$nth_min{}", "cursor": -1 },
+                        { "name": "$if - condition with values for true and false", "val": "$if{}", "cursor": -1 },
                     ],
                 '_':[]
             };
@@ -507,16 +512,6 @@
 
         function _validateColumnName(value) {
             if(!value) return _errorMesg('Name is mandatory');
-            if(!(__validateColumnName(value, _dlg.scope.customColumns) && __validateColumnName(value, _dlg.scope.allColumns)))
-                return _errorMesg('Column Name alredy exist')
-            return true;
-        }
-
-        function __validateColumnName(value, columns) {
-            for(var i=0; i< columns.length; i++ ) {
-                var column = columns[i];
-                if(column.name.toLowerCase() == value.toLowerCase()) return false;
-            }
             return true;
         }
 

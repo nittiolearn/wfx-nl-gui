@@ -494,6 +494,11 @@ $animation-duration: 200ms !default;
       border-bottom: 1px solid $nlBorderGrey2;
     }
   }
+  &.cellborder {
+    td {
+      border: 1px solid $nlBorderGrey2;
+    }
+  }
 }
 
 

@@ -12,6 +12,8 @@
             </div>
         </div>
         <div class='col padding-mid nl-thin-scroll-mh100 nl-min-300'>
+			<div ng-if='data.selectedTab.tabinfo.tooMany'
+				class='padding-mid forange fsh6'>There are too many possible options for this attribute. Not all values are shown.</div>
            	<nl-tree-select ng-if='data.selectedTab.id != "usermeta"' info='data.selectedTab.tabinfo'></nl-tree-select>
 			<div ng-if='data.selectedTab.id == "usermeta"' class='row row-top row-wrap margin0 padding-mid'
 				ng-repeat='mdFilter in data.selectedTab.tabinfo.mdFilters'>

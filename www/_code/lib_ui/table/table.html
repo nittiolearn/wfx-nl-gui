@@ -1,7 +1,6 @@
 <table class='{{info.styleTable}}'>
     <tr class='header {{info.styleHeader}}'>
         <td ng-repeat='col in info.origColumns track by $index'
-            ng-show='col.canShow'
             ng-click='sortRows(col.id)'
             class='nl-link-text minw-number text-left'>
             <div class='row margin0 padding0'>
@@ -23,7 +22,6 @@
         class='{{info.onRowClick ? "nl-link-text2" : ""}}'
         ng-click='onItemClick(rec, info.onRowClick)'>
         <td ng-repeat='col in info.origColumns track by $index'
-            ng-show='col.canShow'
             class='{{col.styleTd}}'>
              <i ng-if='rec._avps["_id." + col.icon]' class='icon fsh4 {{rec._avps["_id." + col.icon]}}'></i>
              <span>{{rec._avps['_id.' + col.id] || ''}}</span>

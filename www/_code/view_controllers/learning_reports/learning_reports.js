@@ -143,7 +143,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		$scope.utable = {
 			maxVisible: MAX_VISIBLE,
 			origColumns: [],
-			styleTable: 'nl-table nl-table-styled3 rowlines',
+			styleTable: 'nl-table nl-table-styled3 cellborder',
 			styleHeader: ' ',
 			onRowClick: 'expand',
 			detailsTemplate: 'view_controllers/learning_reports/learning_report_details.html',
@@ -547,11 +547,15 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 
 	function _updateSelectedLrColumns() {
 		var lrColumnsDict = nl.utils.arrayToDictById(_getLrColumns());
+		var custColsDict = nl.utils.arrayToDictById(nlTableViewSelectorSrv.getCustomColumns('lr_views'));
 		var ret = [];
 		for(var i=0;i<_selectedLrColIds.length;i++) {
 			var colid = _selectedLrColIds[i];
-			if ((!(colid in lrColumnsDict)) || lrColumnsDict[colid].hideInMode) continue;
-			ret.push(lrColumnsDict[colid]);
+			var colInfo = lrColumnsDict[colid];
+			if (colInfo && !colInfo.hideInMode)
+				ret.push(lrColumnsDict[colid]);
+			else if (custColsDict[colid])
+				ret.push(custColsDict[colid]);
 		}
 		$scope.utable.origColumns = ret;
 	}
@@ -565,7 +569,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		columns.push(_col('user.name', 'User Name', 'text-left', type == 'user'));
 		columns.push(_col('raw_record.typeStr', 'Report type', 'text-left', type != 'user'));
 		columns.push(_col('repcontent.name', 'Course Name', 'text-left', nlLrFilter.getObjectId() && type != 'user'));
-		columns.push(_col('raw_record._batchName', 'Batch name', 'text-left'));
+		columns.push(_col('raw_record._batchName', 'Batch name'));
 		columns.push(_col('raw_record._grade', _userInfo.groupinfo.gradelabel));
 		columns.push(_col('raw_record.subject', _userInfo.groupinfo.subjectlabel));
 		columns.push(_col('created', 'Assigned On'));
@@ -645,7 +649,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		} else {
 			style += 'text-left';
 		}
-		var column = { id: id, name: name, allScreens: true, canShow:true, 
+		var column = { id: id, name: name, allScreens: true,
 			hideInMode: hideInMode, styleTd: style, iconType: 'ionicon'};
 		if(icon) column.icon = icon;
 		return column;
@@ -1134,6 +1138,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 				tableType: 'nht_views',
 				defaultViewColumns: {id: 'default', name: 'Default', columns: _defaultNhtColIds},
 				onViewChange: function(selectedColIdList) {
+					// Custom columns are not supported for NHT View
 					_selectedNhtColIds = selectedColIdList;
 					_someTabDataChanged();
 					_updateCurrentTab();
@@ -2238,7 +2243,7 @@ function RecordsFilter(nl, nlDlg, nlLrFilter, nlGroupInfo, _groupInfo, $scope, n
 	this.doesPassFilter = function(record) {
 		for (var tabid in _filterInfo) {
 			var filter = _filterInfo[tabid];
-			var fieldVal = nlTable.getFieldValue(info, record, tabid);
+			var fieldVal = nlTable.getFieldValue($scope.utable, record, tabid);
 			if (!(fieldVal in filter)) return false;
 		}
 		return true;
@@ -2313,12 +2318,17 @@ function RecordsFilter(nl, nlDlg, nlLrFilter, nlGroupInfo, _groupInfo, $scope, n
 		var records = nlLrReportRecords.getRecords();
 		var treeData = null;
 		var fieldValues = {};
+		var tooMany = false;
 		for(var key in records) {
 			var record = records[key];
-			var objid = nlTable.getFieldValue(info, record, tab.id);
+			var objid = nlTable.getFieldValue($scope.utable, record, tab.id);
 			if (!objid) continue;
-			var name = tab.valueFiledId ? nlTable.getFieldValue(info, record, tab.valueFiledId) : objid;
+			var name = tab.valueFiledId ? nlTable.getFieldValue($scope.utable, record, tab.valueFiledId) : objid;
 			fieldValues[objid] = {id: '' + objid, name: '' + name};
+			if (Object.keys(fieldValues).length >= 1000) {
+				tooMany = true;
+				break;
+			}
 		}
 		treeData = nl.utils.dictToList(fieldValues);
 		treeData.sort(function(a, b) {
@@ -2328,7 +2338,7 @@ function RecordsFilter(nl, nlDlg, nlLrFilter, nlGroupInfo, _groupInfo, $scope, n
 			if(aName < bName) return -1;
 			return 0;
 		});
-		tab.tabinfo = {data: treeData || []};
+		tab.tabinfo = {data: treeData || [], tooMany: tooMany};
 		_initTreeSelection(tab);
 	}
 

@@ -246,7 +246,7 @@ function Paginator(nl, info, nlExpressionProcessor) {
         var usedVars = nlExpressionProcessor.getUsedVars(col.formula);
         for (var key in usedVars) {
             var usedFieldId = key.substring(4); // omit "_id."
-            _getFieldValue(record, usedFieldId, avps);
+            self.getFieldValue(record, usedFieldId, avps);
         }
 
         // Now compute the formula

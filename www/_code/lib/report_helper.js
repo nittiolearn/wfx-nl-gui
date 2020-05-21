@@ -660,7 +660,7 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
         itemInfo.rawStatus = itemInfo.score >= cm.gatePassscore ? 'success' : 'failed';
         if (itemInfo.rawStatus == 'failed' && payload.inputNotDefined) itemInfo.rawStatus = 'pending';
         if (itemInfo.rawStatus != 'pending') {
-            var saDict = payload.gate_start_after;
+            var saDict = payload.formula_used_vars;
             var start_after =[];
             for(var cmid in saDict) start_after.push({module: cmid});
             var isAndCondition = true;

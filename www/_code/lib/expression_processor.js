@@ -104,7 +104,7 @@ function(nl) {
         payload['error'] = '';
         payload['result'] = null;
         payload['inputNotDefined'] = false;
-        payload['gate_start_after'] = {};
+        payload['formula_used_vars'] = {};
         
         payload['bracesReplaced1'] = _replaceAll(payload['strExpression'], '{', '([');
         payload['bracesReplaced2'] = _replaceAll(payload['bracesReplaced1'], '}', '])');
@@ -134,7 +134,7 @@ function(nl) {
     function _getUsedVars(inputStr) {
         var usedVars = {};
         inputStr.replace(/_id[\.\_a-zA-Z0-9]+/g, function(varName) {
-            userVars[varName] = true;
+            usedVars[varName] = true;
         });
         return usedVars;
     }
@@ -144,7 +144,8 @@ function(nl) {
             if (varName in payload['dictAvps']) {
                 var varVal = payload['dictAvps'][varName];
                 if (varVal === null) payload['inputNotDefined'] = true;
-                payload['gate_start_after'][varName] = true;
+                payload['formula_used_vars'][varName] = true;
+                if (typeof varVal == 'string') varVal = '"' + varVal + '"';
                 return varVal;
             }
             if (payload['error'] == '') payload['error'] = nl.fmt2('{} is not found. Please use unique ids of items above the current item.', varName);

@@ -95,9 +95,10 @@ function SlideChangeChecker(lesson) {
     this.updatePageTimeInLearningData = function(page) {
     	if (!_isTimerNeeded) return;
         var pld = _getPld(page);
-        if (!pld.timeSpent) pld.timeSpent = 0;
+        if (!pld.timeSpent || pld.timeSpent < 0) pld.timeSpent = 0;
         var currentTime = new Date();
-        var delta = currentTime.getTime() - _lastTime.getTime();
+		var delta = currentTime.getTime() - _lastTime.getTime();
+		if (delta < 0) delta = 0;
         _lastTime = currentTime;
         pld.timeSpent += delta;
     };
