@@ -318,6 +318,8 @@
             var ret = {
                 '$':[
                         { "name": "$date_format - (YYYY-MM)", "val": "$date_format{'YYYY-MM', }", "cursor": -1},
+                        { "name": "$lookup - map from one value to another based on lookup table similar to excel", 
+                            "val": "$lookup{, }", "cursor": -3},
                         { "name": "$max - maximum of given items", "val": "$max{}", "cursor": -1 }, 
                         { "name": "$min - minimum of given items", "val": "$min{}", "cursor": -1 },
                         { "name": "$sum - sum of given items", "val": "$sum{}", "cursor": -1 },
@@ -328,19 +330,11 @@
                     ],
                 '_':[]
             };
-            _modifyIntelliTextOptions(_dlg.scope.allColumns, ret);
+            _modifyIntelliTextOptions($scope.config.formulaColumns, ret);
+            _modifyIntelliTextOptions(_dlg.scope.lookupTables, ret, null, true);
             _modifyIntelliTextOptions(_dlg.scope.customColumns, ret, column);
+            _modifyIntelliTextOptions(_dlg.scope.allColumns, ret);
             return ret;
-        }
-
-        function _modifyIntelliTextOptions(columns, ret, column) {
-            for(var i=0; i < columns.length; i++) {
-                var m = columns[i];
-                if(column && column.id == m.id) break;
-                var mid = '_id.' + m.id;
-                var n = nl.fmt2('{} ({})', m.name, mid);
-                ret['_'].push({name: n, val: mid, cursor: 0});
-            }
         }
 
         _dlg.scope.onSelectView = function(view) {
@@ -496,8 +490,10 @@
         
         function _getAvpsForCustomFormula(currentCustomColumnId) {
             var ret = {};
-            _getAvps(ret, _dlg.scope.allColumns);
+            _getAvps(ret, $scope.config.formulaColumns);
+            // _getAvps(ret, _dlg.scope.lookupTables); ==> This not needed in this table
             _getAvps(ret, _dlg.scope.customColumns, currentCustomColumnId);
+            _getAvps(ret, _dlg.scope.allColumns);
             return ret;
         }
 
@@ -510,6 +506,16 @@
             }
         }
 
+        function _modifyIntelliTextOptions(columns, ret, column, addQuote) {
+            for(var i=0; i < columns.length; i++) {
+                var m = columns[i];
+                if(column && column.id == m.id) break;
+                var mid = addQuote ? '"' + m.id + '"' : '_id.' + m.id;
+                var n = nl.fmt2('{} ({})', m.name, mid);
+                ret['_'].push({name: n, val: mid, cursor: 0});
+            }
+        }
+
         function _validateColumnName(value) {
             if(!value) return _errorMesg('Name is mandatory');
             return true;
@@ -518,7 +524,7 @@
         function _validateCustomColumnFormula(value, currentCustomColumnId) {
             if(!value) return _errorMesg('Formula is mandatory');
             var _idsAboveCustomField = _getAvpsForCustomFormula(currentCustomColumnId);
-            var payload = {strExpression: value, dictAvps: _idsAboveCustomField};
+            var payload = {strExpression: value, dictAvps: _idsAboveCustomField, sendAsVariableNames: true};
             nlExpressionProcessor.process(payload);
             if(payload.error) return _errorMesg(payload.error);
             return true;

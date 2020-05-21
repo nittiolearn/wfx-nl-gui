@@ -162,7 +162,8 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		_updateSelectedLrColumns();
 		$scope.utable.styleDetail = 'nl-max-1100';
 		var custColsDict = nl.utils.arrayToDictById(nlTableViewSelectorSrv.getCustomColumns('lr_views'));
-		nlTable.initTableObject($scope.utable, custColsDict);
+		var lookupTablesDict = nl.utils.arrayToDictById(nlTableViewSelectorSrv.getLookupTables('lr_views'));
+		nlTable.initTableObject($scope.utable, custColsDict, lookupTablesDict);
 		_initTabData($scope.utable);
 		_initChartData();
 	}
@@ -542,12 +543,14 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			canEdit: nlRouter.isPermitted(_userInfo, 'assignment_manage'),
 			tableType: 'lr_views',
 			allColumns: _getLrColumns(),
+			formulaColumns: _getLrFormulaColumns(),
 			defaultViewColumns: {id: 'default', name: 'Default', columns: _defaultLrColIds},
 			onViewChange: function(selectedColIdList) {
 				_selectedLrColIds = selectedColIdList;
 				_updateSelectedLrColumns();
 				var custColsDict = nl.utils.arrayToDictById(nlTableViewSelectorSrv.getCustomColumns('lr_views'));
-				nlTable.updateTableColumns($scope.utable, tabData.records, custColsDict);
+				var lookupTablesDict = nl.utils.arrayToDictById(nlTableViewSelectorSrv.getLookupTables('lr_views'));
+				nlTable.updateTableColumns($scope.utable, tabData.records, custColsDict, lookupTablesDict);
 			}
 		};
 	}
@@ -565,6 +568,13 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 				ret.push(custColsDict[colid]);
 		}
 		$scope.utable.origColumns = ret;
+	}
+
+	function _getLrFormulaColumns() {
+		var columns = [];
+		columns.push(_col('raw_record.created', 'Created Timestamp'));
+		columns.push(_col('raw_record.updated', 'Updated Timestamp'));
+		return columns;
 	}
 
 	function _getLrColumns() {

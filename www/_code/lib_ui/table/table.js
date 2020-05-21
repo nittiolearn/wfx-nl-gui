@@ -75,7 +75,7 @@ function(nl, nlExpressionProcessor, $templateCache) {
     */
 
     var self = this;
-    this.initTableObject = function(info, custColsDict) {
+    this.initTableObject = function(info, custColsDict, lookupTablesDict) {
         if (!info) throw('table info object error');
         if (!info.styleTable) info.styleTable = 'nl-table-styled2 cozy';
         if (!info.styleHeader) info.styleHeader = 'header';
@@ -88,6 +88,7 @@ function(nl, nlExpressionProcessor, $templateCache) {
             displayRecs: [],
             visibleRecs: [],
             custColsDict: custColsDict,
+            lookupTablesDict: lookupTablesDict,
             paginator: new Paginator(nl, info, nlExpressionProcessor)
         };
         info.onItemClick = _onItemClickHandler;
@@ -104,9 +105,10 @@ function(nl, nlExpressionProcessor, $templateCache) {
         info._internal.paginator.showPage(0);
     };
 
-    this.updateTableColumns = function(info, records, custColsDict) {
+    this.updateTableColumns = function(info, records, custColsDict, lookupTablesDict) {
         _initSortObject(info);
         info._internal.custColsDict = custColsDict;
+        info._internal.lookupTablesDict = lookupTablesDict;
         info._internal.displayRecs = info._internal.paginator.getDisplayRecords(records);
         info._internal.paginator.showPage(0);
     };
@@ -250,7 +252,9 @@ function Paginator(nl, info, nlExpressionProcessor) {
         }
 
         // Now compute the formula
-        var payload = {strExpression: col.formula, dictAvps: avps};
+        var payload = {strExpression: col.formula, dictAvps: avps, 
+            lookupTablesDict: info._internal.lookupTablesDict,
+            sendAsVariableNames: true};
         nlExpressionProcessor.process(payload);
         return payload.error ? '' : payload.result;
     }
