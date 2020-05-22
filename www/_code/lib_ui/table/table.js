@@ -70,7 +70,7 @@ function(nl, nlExpressionProcessor, $templateCache) {
         updateScope: fn(records),
         
         // Internal stuff maintained by directive
-        _internal: {paginator: {}, displayRecs: [], visibleRecs: []}
+        _internal: {paginator: {}, recs: [], visibleRecs: []}
     }
     */
 
@@ -85,7 +85,7 @@ function(nl, nlExpressionProcessor, $templateCache) {
         if (!info.clickHandler) info.clickHandler = null;
         
         info._internal = {
-            displayRecs: [],
+            recs: [],
             visibleRecs: [],
             custColsDict: custColsDict,
             lookupTablesDict: lookupTablesDict,
@@ -101,9 +101,7 @@ function(nl, nlExpressionProcessor, $templateCache) {
 
     this.updateTableRecords = function(info, records) {
         _initSortObject(info);
-        // TODO-NOW: Should not do this for all records unnecessarily
-        // Also refactor allColumns
-        info._internal.displayRecs = info._internal.paginator.getDisplayRecords(records);
+        info._internal.recs = records;
         info._internal.paginator.showPage(0);
     };
 
@@ -111,7 +109,8 @@ function(nl, nlExpressionProcessor, $templateCache) {
         _initSortObject(info);
         info._internal.custColsDict = custColsDict;
         info._internal.lookupTablesDict = lookupTablesDict;
-        info._internal.displayRecs = info._internal.paginator.getDisplayRecords(records);
+        info._internal.recs = records;
+        info._internal.paginator.resetDisplayRecordCache();
         info._internal.paginator.showPage(0);
     };
 
@@ -149,11 +148,11 @@ function(nl, nlExpressionProcessor, $templateCache) {
             sortObj.colid = colid;
             sortObj.ascending = true;
         }
-        var records = info._internal.displayRecs;
+        var records = info._internal.recs;
+        var paginator = info._internal.paginator;
         records.sort(function(a, b) {
-            var colid= '_id.' + sortObj.colid;
-            var aVal = a._avps[colid];
-            var bVal = b._avps[colid];
+            var aVal = paginator.getFieldValue(a, colid, paginator.getAvps(a));;
+            var bVal = paginator.getFieldValue(b, colid, paginator.getAvps(b));;
             if (sortObj.ascending) return _compare(aVal, bVal);
             else return _compare(bVal, aVal);
         });
@@ -173,34 +172,37 @@ function Paginator(nl, info, nlExpressionProcessor) {
     function _init() {
         self.infotxt = '';
         self.startpos = 0;
+        self.displayRecordCache = {};
         self.recordAvpCache = {};
     }
 
+    self.resetDisplayRecordCache = function() {
+        self.displayRecordCache = {};
+    }
+
     self.resetCache = function() {
+        self.displayRecordCache = {};
         self.recordAvpCache = {};
     }
 
     self.showPage = function(startpos) {
         self.startpos = startpos || 0;
-        var records = info._internal.displayRecs;
+        var records = info._internal.recs;
         var visible = [];
         var startpos = self.startpos;
         for (var i=startpos; i < records.length && visible.length < info.maxVisible; i++) {
-            visible.push(records[i]);
+            visible.push(_getDisplayRecord(records[i]));
         }
         info._internal.visibleRecs = visible;
         _updateInfoTxt();
     };
     
-    self.getDisplayRecords = function(records) {
-        var ret = [];
-        for(var i=0; i<records.length; i++)
-            ret.push(self.getDisplayRecord(records[i]));
-        return ret;
-    };
+    function _getDisplayRecord(record) {
+        var rid = record.raw_record.id;
+        if (rid in self.displayRecordCache) return self.displayRecordCache[rid];
 
-    self.getDisplayRecord = function(record) {
-        var ret = {_raw: record, _avps: _getAvps(record)};
+        var ret = {_raw: record, _avps: self.getAvps(record)};
+        self.displayRecordCache[rid] = ret;
 
         for(var i=0; i<info.origColumns.length; i++) {
             var col = info.origColumns[i];
@@ -211,14 +213,14 @@ function Paginator(nl, info, nlExpressionProcessor) {
     }
 
     self.getFieldValue = function(record, fieldId, avps) {
-        if (!avps) avps = _getAvps(record);
+        if (!avps) avps = self.getAvps(record);
         var key = '_id.' + fieldId;
         if (key in avps) return avps[key];
         avps[key] = _getFieldValue(record, fieldId, avps);
         return avps[key];
     };
 
-    function _getAvps(record) {
+    self.getAvps = function(record) {
         var rid = record.raw_record.id;
         if (!(rid in self.recordAvpCache)) self.recordAvpCache[rid] = {};
         return self.recordAvpCache[rid];
@@ -263,7 +265,7 @@ function Paginator(nl, info, nlExpressionProcessor) {
 
     function _updateInfoTxt() {
         var visible = info._internal.visibleRecs.length;
-        var total = info._internal.displayRecs.length;
+        var total = info._internal.recs.length;
         if (total == 0) {
             self.infotxt = nl.t('There are no items to display.');
             return;

@@ -121,11 +121,11 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		nlLrExporter.init(_userInfo, _groupInfo);
 		$scope.pivotConfig = {};
 		if (nlGroupInfo.isSubOrgEnabled()) {
-			$scope.pivotConfig.level1Field = 'user.suborg';
-			$scope.pivotConfig.level2Field = 'user.org_unit';
+			$scope.pivotConfig.level1Field = {id: 'user.suborg'};
+			$scope.pivotConfig.level2Field = {id: 'user.org_unit'};
 		} else {
-			$scope.pivotConfig.level1Field = 'user.org_unit'
-			$scope.pivotConfig.level2Field = null;
+			$scope.pivotConfig.level1Field = {id: 'user.org_unit'};
+			$scope.pivotConfig.level2Field = {id: null};
 		}
 		$scope.pivotConfig.pivotIndividualCourses = true;
 		$scope.fetchInProgress = true;
@@ -591,6 +591,9 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		columns.push(_col('raw_record.typeStr', 'Report type', 'text-left', type != 'user'));
 		columns.push(_col('repcontent.name', 'Course Name', 'text-left', nlLrFilter.getObjectId() && type != 'user'));
 		columns.push(_col('raw_record._batchName', 'Batch name'));
+		if ((_groupInfo.props || {}).batchtype) {
+			columns.push(_col('repcontent.batchtype', 'Batch Type'));
+		}
 		columns.push(_col('raw_record._grade', _userInfo.groupinfo.gradelabel));
 		columns.push(_col('raw_record.subject', _userInfo.groupinfo.subjectlabel));
 		columns.push(_col('created', 'Assigned On'));
@@ -619,7 +622,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		columns.push(_col('stats.iltTotalTime', 'ILT total time(minutes)', 'text-right'));
 		columns.push(_col('stats.delayDays', 'Delay days', 'text-right'));
 		columns.push(_col('repcontent.iltVenue', 'Venue'));
-		columns.push(_col('repcontent.iltTrainerName','Trainer name'));
+		columns.push(_col('repcontent.iltTrainerName','Trainer'));
 		columns.push(_col('repcontent.iltCostInfra', 'Infra Cost', 'text-right'));
 		columns.push(_col('repcontent.iltCostTrainer', 'Trainer Cost', 'text-right'));
 		columns.push(_col('repcontent.iltCostFoodSta', 'Food Cost', 'text-right'));
@@ -1251,12 +1254,12 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		dlg.scope.options.secondPivot = angular.copy(dlg.scope.options.firstPivot);
 		dlg.scope.options.secondPivot.splice(0, 0, {id: null, name: ''});
 
-        dlg.scope.data.firstPivot = {id: $scope.pivotConfig.level1Field};
-		dlg.scope.data.secondPivot = {id : $scope.pivotConfig.level2Field};
+        dlg.scope.data.firstPivot = $scope.pivotConfig.level1Field;
+		dlg.scope.data.secondPivot = $scope.pivotConfig.level2Field;
 		dlg.scope.data.pivotIndividualCourses = $scope.pivotConfig.pivotIndividualCourses;
 		var okButton = {text: nl.t('Apply Filters'), onTap: function(e) {
-			$scope.pivotConfig = {level1Field: dlg.scope.data.firstPivot.id,
-				level2Field: dlg.scope.data.secondPivot.id,
+			$scope.pivotConfig = {level1Field: dlg.scope.data.firstPivot,
+				level2Field: dlg.scope.data.secondPivot,
 				pivotIndividualCourses: dlg.scope.data.pivotIndividualCourses};
 			nlLrDrilldown.init($scope);
 			_updateDrillDownTab();
@@ -1277,29 +1280,14 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 
 	function _getPivotOptions() {
 		var ret = [];
-		if (nlGroupInfo.isSubOrgEnabled()) ret.push({id: 'user.suborg', name: 'Sub org'});
-		ret.push({id: 'user.org_unit', name: 'Organisation'});
-		ret.push({id: 'raw_record.subject', name: _groupInfo.props.subjectlabel || 'Subject'});
-		ret.push({id: 'raw_record._grade', name: _groupInfo.props.gradelabel || 'Grade'});
-		ret.push({id: 'raw_record._batchName', name: 'Batch name'});
-		ret.push({id: 'user.ou_part1', name: 'OU part1'});
-		ret.push({id: 'user.ou_part2', name: 'OU part2'});
-		ret.push({id: 'user.ou_part3', name: 'OU part3'});
-		ret.push({id: 'user.ou_part4', name: 'OU part4'});
-		ret.push({id: 'user.usertypeStr', name: 'User type'});
-		var metadataFields = _groupInfo.props.usermetadatafields || [];
-		for (var i=0; i< metadataFields.length; i++) {
-            if (!metadataFields[i].filterable) continue;
-			var fieldid = 'usermd.' + metadataFields[i].id;
-			ret.push({id: fieldid, name: metadataFields[i].name});
-		}
-		ret.push({id: 'repcontent.targetLang', name: 'Language'});
-		// TODO-NOW: Take the name from lrColumns similar to filters
-
+		var tabs = _recordsFilter.getTabs();
+		var dontInclude = {'stats.status.txt': true};
 		var lrColNamesDict = nl.utils.arrayToDictById(_getLrColumns());		
-		for(var i=0; i<ret.length; i++) {
-			var key = ret[i].id;
-			ret[i].name = lrColNamesDict[key] ? lrColNamesDict[key].name : ret[i].name;
+		for(var i=0; i<tabs.length; i++) {
+			var tab = tabs[i];
+			if (tab.id in dontInclude) continue;
+			ret.push({id: tab.id, name: lrColNamesDict[tab.valueFiledId||tab.id].name || tab.id,
+				valueFieldId: tab.valueFiledId});
 		}
 		return ret;
 	}
@@ -2240,8 +2228,8 @@ function LrTabManager(tabData, nlGetManyStore, nlLrFilter, _groupInfo) {
 		} else {
 			tabs.push(_tabsDict.overview);
 			tabs.push(_tabsDict.nhtoverview);
-			tabs.push(_tabsDict.nhtclosed);
 			tabs.push(_tabsDict.nhtrunning);
+			tabs.push(_tabsDict.nhtclosed);
 			tabs.push(_tabsDict.nhtbatchattendance);
 			tabs.push(_tabsDict.drilldown);
 			tabs.push(_tabsDict.learningrecords);
@@ -2281,6 +2269,10 @@ function RecordsFilter(nl, nlDlg, nlLrFilter, nlGroupInfo, _groupInfo, $scope, n
 		_initTabs();
 		$scope.canShowFilterDialog = true;
 	};
+
+	this.getTabs = function() {
+		return _tabs;
+	}
 
 	this.markDirty = function() {
 		for(var i=0; i<_tabs.length; i++) {
@@ -2357,6 +2349,8 @@ function RecordsFilter(nl, nlDlg, nlLrFilter, nlGroupInfo, _groupInfo, $scope, n
 		_addTab('stats.status.txt', true);
 		_addTab('raw_record.lesson_id', isManyCourseOrModules, 'repcontent.name');
 		_addTab('raw_record.assignment', isManyBatches, 'raw_record._batchName');
+		_addTab('repcontent.batchtype', isManyBatches);
+		_addTab('repcontent.iltTrainerName', isManyBatches);
 		_addTab('user.org_unit', isManyUsers);
 		_addTab('user.ou_part1', isManyUsers);
 		_addTab('user.ou_part2', isManyUsers);

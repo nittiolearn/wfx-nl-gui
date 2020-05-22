@@ -259,7 +259,7 @@ function NhtCounts(nl, nlGetManyStore, nlGroupInfo) {
             var diffTime = last - first;
             updatedStats['actualCycle'] = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
         }
-        updatedStats['trainer'] = report.repcontent.iltTrainerName || report.repcontent.assigned_by; 
+        updatedStats['trainer'] = report.repcontent.iltTrainerName; 
         return;
     }
 

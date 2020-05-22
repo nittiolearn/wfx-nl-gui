@@ -485,6 +485,8 @@ function(nl, nlRouter, nlDlg, nlGroupInfo, nlLrHelper, nlLrFilter, nlGetManyStor
         repcontent.assigned_by = repcontent.assigned_by || repcontent.sendername || '';
         repcontent.not_before_str = repcontent.not_before ? nl.fmt.fmtDateDelta(repcontent.not_before, null, 'minute') : '';
         repcontent.not_after_str = repcontent.not_after ? nl.fmt.fmtDateDelta(repcontent.not_after, null, 'minute') : '';
+        repcontent.iltTrainerName = repcontent.iltTrainerName || repcontent.assigned_by;
+        if (!repcontent.batchtype) repcontent.batchtype = '';
         return repcontent;
     }
     

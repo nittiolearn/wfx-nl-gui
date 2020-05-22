@@ -14,16 +14,16 @@ var NlLrDrilldownSrv = ['nlReportHelper', 'nlTable',
 function(nlReportHelper, nlTable) {
     var _attritionObj = {};
     var _customStartedStatusObj = {};
-    var _pivotLevel1FieldId = null;
-    var _pivotLevel2FieldId = null;
+    var _pivotLevel1Field = null;
+    var _pivotLevel2Field = null;
     var _pivotIndividualCourses = true;
     var _scope = null;
     var StatsCount = new StatsCounts();
 
     this.init = function($scope) {
         _scope = $scope;
-        _pivotLevel1FieldId = $scope.pivotConfig.level1Field;
-        _pivotLevel2FieldId = $scope.pivotConfig.level2Field;
+        _pivotLevel1Field = $scope.pivotConfig.level1Field;
+        _pivotLevel2Field = $scope.pivotConfig.level2Field;
         _pivotIndividualCourses = $scope.pivotConfig.pivotIndividualCourses;
     };
 
@@ -48,11 +48,17 @@ function(nlReportHelper, nlTable) {
     }
 
     this.addCount = function(record) {
-        var level1FieldValue = nlTable.getFieldValue(_scope.utable, record, _pivotLevel1FieldId);
-        var level2FieldValue = _pivotLevel2FieldId ? nlTable.getFieldValue(_scope.utable, record, _pivotLevel2FieldId) : null;
+        var level1FieldInfo = _getFieldValue(record, _pivotLevel1Field);
+        var level2FieldInfo = _pivotLevel2Field.id ? _getFieldValue(record, _pivotLevel2Field) : null;
         var statusCntObj = _getStatusCountObj(record);
         _addCount(record.raw_record.lesson_id, record.repcontent.name, 
-            level1FieldValue, level2FieldValue, statusCntObj);
+            level1FieldInfo, level2FieldInfo, statusCntObj);
+    }
+
+    function _getFieldValue(record, field) {
+        var ret = {id: nlTable.getFieldValue(_scope.utable, record, field.id)};
+        ret.name = (field.valueFieldId) ? nlTable.getFieldValue(_scope.utable, record, field.valueFieldId) : ret.id;
+        return ret;
     }
 
     function _getSortedArrayFromObj(dict) {
@@ -73,14 +79,14 @@ function(nlReportHelper, nlTable) {
         return ret;
     }
 
-    function _addCount(cid, coureName, level1Id, level2Id, statusObj) {
+    function _addCount(cid, coureName, level1FieldInfo, level2FieldInfo, statusObj) {
         StatsCount.updateRootCount(0, "All", statusObj);
         if (_pivotIndividualCourses) StatsCount.updateRootCount(cid, coureName, statusObj);
-        StatsCount.updateLevel1Count(0, level1Id, level2Id != null, statusObj);
-        if (_pivotIndividualCourses) StatsCount.updateLevel1Count(cid, level1Id, level2Id != null, statusObj);
-        if (!level2Id) return;
-        StatsCount.updateLevel2Count(0, level1Id, level2Id, statusObj);
-        if (_pivotIndividualCourses) StatsCount.updateLevel2Count(cid, level1Id, level2Id, statusObj);
+        StatsCount.updateLevel1Count(0, level1FieldInfo, level2FieldInfo != null, statusObj);
+        if (_pivotIndividualCourses) StatsCount.updateLevel1Count(cid, level1FieldInfo, level2FieldInfo != null, statusObj);
+        if (!level2FieldInfo) return;
+        StatsCount.updateLevel2Count(0, level1FieldInfo, level2FieldInfo, statusObj);
+        if (_pivotIndividualCourses) StatsCount.updateLevel2Count(cid, level1FieldInfo, level2FieldInfo, statusObj);
     }
 
     function _getStatusCountObj(record) {
@@ -226,24 +232,26 @@ function StatsCounts(nl) {
         return _statusCountTree[rootId].cnt;
     };
 
-    this.getLevel1Node = function(rootId, itemId, isFolder) {
+    this.getLevel1Node = function(rootId, itemInfo, isFolder) {
         var siblings = _statusCountTree[rootId].children;
+        var itemId = itemInfo.id;
         if (itemId in siblings) return siblings[itemId].cnt;
         var stats = angular.copy(statsCountItem);
         stats['isFolder'] = isFolder;
         stats['indentation'] = 24;
-        stats['name'] = itemId;
+        stats['name'] = itemInfo.name;
         siblings[itemId] = {cnt: stats};
         if(isFolder) siblings[itemId]['children'] = {}
         return siblings[itemId].cnt;
     };
 
-    this.getLevel2Node = function(rootId, parentId, itemId) {
-        var siblings = _statusCountTree[rootId].children[parentId].children;
+    this.getLevel2Node = function(rootId, parentInfo, itemInfo) {
+        var siblings = _statusCountTree[rootId].children[parentInfo.id].children;
+        var itemId = itemInfo.id;
         if (itemId in siblings) return siblings[itemId].cnt;
         var stats = angular.copy(statsCountItem);
         stats['indentation'] = 44;
-        stats['name'] = itemId;
+        stats['name'] = itemInfo.name;
         siblings[itemId] = {cnt: stats};
         return siblings[itemId].cnt;
     };
@@ -255,13 +263,13 @@ function StatsCounts(nl) {
         _updateStatsCount(updatedStats, statusCnt);
     }
 
-    this.updateLevel1Count = function(rootId, level1Id, isFolder, statusCnt) {
-        var updatedStats = self.getLevel1Node(rootId, level1Id, isFolder);
+    this.updateLevel1Count = function(rootId, level1Info, isFolder, statusCnt) {
+        var updatedStats = self.getLevel1Node(rootId, level1Info, isFolder);
         _updateStatsCount(updatedStats, statusCnt);
     }
 
-    this.updateLevel2Count = function(rootId, level1Id, level2Id, statusCnt) {
-        var updatedStats = self.getLevel2Node(rootId, level1Id, level2Id);
+    this.updateLevel2Count = function(rootId, level1Info, level2Info, statusCnt) {
+        var updatedStats = self.getLevel2Node(rootId, level1Info, level2Info);
         _updateStatsCount(updatedStats, statusCnt);
     } 
 

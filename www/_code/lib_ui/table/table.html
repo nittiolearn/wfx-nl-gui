@@ -27,7 +27,7 @@
              <span>{{rec._avps['_id.' + col.id] || ''}}</span>
         </td>
     </tr>
-    <tr ng-repeat-end ng-show='rec.canShowDetails'>
+    <tr ng-repeat-end ng-if='rec.canShowDetails'>
         <td colspan='{{info.origColumns.length}}'>
             <div class='padding-mid'>
                 <div ng-show='rec.details' nl-compile='rec.details' class="{{info.styleDetail}}"></div>
