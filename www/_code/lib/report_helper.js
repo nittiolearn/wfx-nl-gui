@@ -847,6 +847,10 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
             ret.status = defaultCourseStatus;
         }
         if (!_isNHT) return; 
+        if (defaultCourseStatus == 'started') {
+            _checkAndUpdateRecordStatus(ret, defaultCourseStatus);
+            return;
+        }
         if (cm.type != 'certificate' && itemInfo.status == 'waiting') 
             ret.status = defaultCourseStatus;
         return;

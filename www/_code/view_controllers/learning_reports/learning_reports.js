@@ -1303,8 +1303,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		return ret;
 	}
 
-	function _updateDrillDownTab(useCache) {
-		if (useCache && _drillDownColumns.length > 0) return _drillDownColumns;
+	function _updateDrillDownTab() {
 		nlLrDrilldown.clearStatusCountTree();
 		var records = $scope.tabData.records;
 		for(var i=0; i<records.length; i++) {
@@ -1568,7 +1567,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		var header = [{id: 'courseName', name: 'Course name'}];
 		if(nlGroupInfo.isSubOrgEnabled()) header.push({id: 'subOrgId', name: 'Suborg Id'});
 		header.push({id: 'organisationId', name: 'Organisation Id'});
-		var drillDownCols = _updateDrillDownTab(true);
+		var drillDownCols = _updateDrillDownTab();
 		for(var i=0; i<drillDownCols.length; i++) {
 			var col = drillDownCols[i];
 			if(col.table) header.push(col);
