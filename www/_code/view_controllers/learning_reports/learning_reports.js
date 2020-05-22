@@ -128,6 +128,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			$scope.pivotConfig.level2Field = null;
 		}
 		$scope.pivotConfig.pivotIndividualCourses = true;
+		$scope.fetchInProgress = true;
 
 		nlLrDrilldown.init($scope);
 		nlLrNht.init(nlGroupInfo);
