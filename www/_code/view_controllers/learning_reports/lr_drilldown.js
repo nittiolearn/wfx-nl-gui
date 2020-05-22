@@ -16,13 +16,15 @@ function(nlReportHelper, nlTable) {
     var _customStartedStatusObj = {};
     var _pivotLevel1FieldId = null;
     var _pivotLevel2FieldId = null;
+    var _pivotIndividualCourses = true;
     var _scope = null;
     var StatsCount = new StatsCounts();
 
     this.init = function($scope) {
         _scope = $scope;
-        _pivotLevel1FieldId = $scope.pivotLevel1;
-        _pivotLevel2FieldId = $scope.pivotLevel2;
+        _pivotLevel1FieldId = $scope.pivotConfig.level1Field;
+        _pivotLevel2FieldId = $scope.pivotConfig.level2Field;
+        _pivotIndividualCourses = $scope.pivotConfig.pivotIndividualCourses;
     };
 
     this.clearStatusCountTree = function() {
@@ -73,12 +75,12 @@ function(nlReportHelper, nlTable) {
 
     function _addCount(cid, coureName, level1Id, level2Id, statusObj) {
         StatsCount.updateRootCount(0, "All", statusObj);
-        StatsCount.updateRootCount(cid, coureName, statusObj);
+        if (_pivotIndividualCourses) StatsCount.updateRootCount(cid, coureName, statusObj);
         StatsCount.updateLevel1Count(0, level1Id, level2Id != null, statusObj);
-        StatsCount.updateLevel1Count(cid, level1Id, level2Id != null, statusObj);
+        if (_pivotIndividualCourses) StatsCount.updateLevel1Count(cid, level1Id, level2Id != null, statusObj);
         if (!level2Id) return;
         StatsCount.updateLevel2Count(0, level1Id, level2Id, statusObj);
-        StatsCount.updateLevel2Count(cid, level1Id, level2Id, statusObj);
+        if (_pivotIndividualCourses) StatsCount.updateLevel2Count(cid, level1Id, level2Id, statusObj);
     }
 
     function _getStatusCountObj(record) {

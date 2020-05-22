@@ -10,16 +10,23 @@
             </select>
         </div>
     </nl-dlg-row>
-        <nl-dlg-row attr='secondPivot' data='data' help='help'>
-            <div class='nl-dlg-field-value padding0'>
-                <select ng-model='data.secondPivot' 
-                    ng-options='elem as elem.name group by elem.group for elem in options.secondPivot track by elem.id'
-                    style='height: 40px; width: 100%;'
-                    autofocus=''
-                    tabindex="{{fieldindex}}">
-                </select>
-            </div>
-        </nl-dlg-row>
+    <nl-dlg-row attr='secondPivot' data='data' help='help'>
+        <div class='nl-dlg-field-value padding0'>
+            <select ng-model='data.secondPivot' 
+                ng-options='elem as elem.name group by elem.group for elem in options.secondPivot track by elem.id'
+                style='height: 40px; width: 100%;'
+                autofocus=''
+                tabindex="{{fieldindex}}">
+            </select>
+        </div>
+    </nl-dlg-row>
+    <nl-dlg-row attr='pivotIndividualCourses' data='data' help='help'>
+        <nl-checkbox fieldmodel='pivotIndividualCourses'
+                     fieldname='show individual course level drill downs'
+                     fieldcls= 'padding-mid'
+                     fieldindex="0">
+        </nl-checkbox>
+	</nl-dlg-row>
 
 </nl-dlg-content>
 </nl-dlg>

@@ -91,7 +91,7 @@ function(nl, nlDlg, nlRouter, nlExporter, nlLrHelper, nlLrSummaryStats, nlGroupI
         }
         dlg.scope.data = {};
         dlg.scope.help = _getHelp();
-        dlg.scope.options = {exportFormat: [{id: 'xlsx', name: 'XLSX'}, {id: 'csv', name: 'CSV'}],
+        dlg.scope.options = {exportFormat: [{id: 'csv', name: 'CSV'}, {id: 'xlsx', name: 'XLSX'}],
                              recordType: [{id: 'filtered', name: 'Export filtered records'}, {id: 'all', name: 'Export all records'}]};
         dlg.scope.data.exportFormat = dlg.scope.options.exportFormat[0];
         dlg.scope.data.recordType = dlg.scope.options.recordType[0];
@@ -145,7 +145,6 @@ function(nl, nlDlg, nlRouter, nlExporter, nlLrHelper, nlLrSummaryStats, nlGroupI
         }
     }
 
-    var _CSV_DELIM = '\n';
     function _export(resolve, reject, filter, reportRecords) {
         try {
             var zip = new JSZip();
@@ -356,7 +355,7 @@ function(nl, nlDlg, nlRouter, nlExporter, nlLrHelper, nlLrSummaryStats, nlGroupI
     function _createCsv(filter, records, zip, fileName, start, end) {
         var rows = [];
         for (var i=start; i<end; i++) rows.push(records[i]);
-        var content = rows.join(_CSV_DELIM);
+        var content = nlExporter.getUtfCsv(rows);
         zip.file(fileName, content);
     }
 
@@ -481,12 +480,12 @@ function(nl, nlDlg, nlRouter, nlExporter, nlLrHelper, nlLrSummaryStats, nlGroupI
 
         if(_exportFormat == 'csv') {
             if (filter.exportTypes.course && (filter.reptype == 'course' || filter.reptype == 'course_assign')) {
-                var content = rows.join(_CSV_DELIM);
+                var content = nlExporter.getUtfCsv(rows);
                 zip.file(fileName, content);
             }
     
             if (filter.exportTypes.indUser && (filter.reptype == 'user')) {
-                var content = rows.join(_CSV_DELIM);
+                var content = nlExporter.getUtfCsv(rows);
                 zip.file(fileName, content);
             }
         }
@@ -505,7 +504,7 @@ function(nl, nlDlg, nlRouter, nlExporter, nlLrHelper, nlLrSummaryStats, nlGroupI
             row = row.concat([record.perc ? record.perc+ '%' : '', record.assigned, record.done, record.failed, record.started, record.pending]);
             rows.push(nlExporter.getCsvString(row));
         }
-        var content = rows.join(_CSV_DELIM);
+        var content = nlExporter.getUtfCsv(rows);
         zip.file(fileName, content);
     }
     

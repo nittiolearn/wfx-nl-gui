@@ -119,13 +119,16 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		nlLrReportRecords.init(_userInfo, _groupInfo, _canAddReportRecord);
 		nlLrFetcher.init();
 		nlLrExporter.init(_userInfo, _groupInfo);
+		$scope.pivotConfig = {};
 		if (nlGroupInfo.isSubOrgEnabled()) {
-			$scope.pivotLevel1 = 'user.suborg';
-			$scope.pivotLevel2 = 'user.org_unit';
+			$scope.pivotConfig.level1Field = 'user.suborg';
+			$scope.pivotConfig.level2Field = 'user.org_unit';
 		} else {
-			$scope.pivotLevel1 = 'user.org_unit'
-			$scope.pivotLevel2 = null;
+			$scope.pivotConfig.level1Field = 'user.org_unit'
+			$scope.pivotConfig.level2Field = null;
 		}
+		$scope.pivotConfig.pivotIndividualCourses = true;
+
 		nlLrDrilldown.init($scope);
 		nlLrNht.init(nlGroupInfo);
 		_certHandler.init(_groupInfo);
@@ -653,7 +656,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		// Id's are always exported, So the below 3 fields.
 		columns.push(_col('raw_record.id', 'Report Id', 'text-right'));
 		columns.push(_col('raw_record.assignment', 'Assign Id', 'text-right'));
-		columns.push(_col('repcontent.courseid', 'Course/ Module Id', 'text-right'));
+		columns.push(_col('raw_record.lesson_id', 'Course/ Module Id', 'text-right'));
 		columns.push(_col('repcontent.targetLang', 'Language'));
 		nlTableViewSelectorSrv.updateAllColumnNames('lr_views', columns);
 		return columns;
@@ -1243,13 +1246,17 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		dlg.setCssClass('nl-width-max nl-height-max');
 		dlg.scope.help = _getHelp();
 		dlg.scope.data = {};
-		dlg.scope.options = {firstPivot: _getPivotOptions(),
-							 secondPivot: _getPivotOptions()};
-        dlg.scope.data.firstPivot = {id: $scope.pivotLevel1};
-		dlg.scope.data.secondPivot = {id : $scope.pivotLevel2};
+		dlg.scope.options = {firstPivot: _getPivotOptions()};
+		dlg.scope.options.secondPivot = angular.copy(dlg.scope.options.firstPivot);
+		dlg.scope.options.secondPivot.splice(0, 0, {id: null, name: ''});
+
+        dlg.scope.data.firstPivot = {id: $scope.pivotConfig.level1Field};
+		dlg.scope.data.secondPivot = {id : $scope.pivotConfig.level2Field};
+		dlg.scope.data.pivotIndividualCourses = $scope.pivotConfig.pivotIndividualCourses;
 		var okButton = {text: nl.t('Apply Filters'), onTap: function(e) {
-			$scope.pivotLevel1 = dlg.scope.data.firstPivot.id;
-			$scope.pivotLevel2 = dlg.scope.data.secondPivot.id;
+			$scope.pivotConfig = {level1Field: dlg.scope.data.firstPivot.id,
+				level2Field: dlg.scope.data.secondPivot.id,
+				pivotIndividualCourses: dlg.scope.data.pivotIndividualCourses};
 			nlLrDrilldown.init($scope);
 			_updateDrillDownTab();
 		}};
@@ -1262,13 +1269,13 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 	function _getHelp() {
         return {
             firstPivot: {name: nl.t('Drill down level 1'), help: nl.t('Select the item to create first level drilldown.')},
-            secondPivot: {name: nl.t('Drill down level 2'), help: nl.t('Select the item to create second level drilldown.')}
+			secondPivot: {name: nl.t('Drill down level 2'), help: nl.t('Select the item to create second level drilldown.')},
+			pivotIndividualCourses: {name: nl.t('Course drilldowns'), help: nl.t('Enable this to show individual course level drill downs.')}
         }
     }
 
 	function _getPivotOptions() {
 		var ret = [];
-		var lrColNamesDict = nl.utils.arrayToDictById(_getLrColumns());		
 		if (nlGroupInfo.isSubOrgEnabled()) ret.push({id: 'user.suborg', name: 'Sub org'});
 		ret.push({id: 'user.org_unit', name: 'Organisation'});
 		ret.push({id: 'raw_record.subject', name: _groupInfo.props.subjectlabel || 'Subject'});
@@ -1279,7 +1286,16 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		ret.push({id: 'user.ou_part3', name: 'OU part3'});
 		ret.push({id: 'user.ou_part4', name: 'OU part4'});
 		ret.push({id: 'user.usertypeStr', name: 'User type'});
+		var metadataFields = _groupInfo.props.usermetadatafields || [];
+		for (var i=0; i< metadataFields.length; i++) {
+            if (!metadataFields[i].filterable) continue;
+			var fieldid = 'usermd.' + metadataFields[i].id;
+			ret.push({id: fieldid, name: metadataFields[i].name});
+		}
+		ret.push({id: 'repcontent.targetLang', name: 'Language'});
+		// TODO-NOW: Take the name from lrColumns similar to filters
 
+		var lrColNamesDict = nl.utils.arrayToDictById(_getLrColumns());		
 		for(var i=0; i<ret.length; i++) {
 			var key = ret[i].id;
 			ret[i].name = lrColNamesDict[key] ? lrColNamesDict[key].name : ret[i].name;
@@ -1368,7 +1384,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 	//---------------------------------------------------------------------------------------------------------------------------------------------------------
 	function _generateDrillDownArray(firstTimeGenerated, statusDict, singleRepCheck, showLeafOnly, isNHT) {
 		var drillDownArray = [];
-		var isSingleReport = (singleRepCheck && Object.keys(statusDict).length <= 2) ? true : false;
+		var isSingleReport = (singleRepCheck && Object.keys(statusDict).length == 2) ? true : false;
 		for(var key in statusDict) {
 			var root = statusDict[key];
 			if(key == 0) {
@@ -1572,9 +1588,9 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			}
 			nhtStats.runningHeaders = [];
 			nhtStats.closedHeaders = [];
-			var colInfo = _getNhtAllAndSelectedColumns();
-			for(var i=0; i<colInfo.selected.length; i++) {
-				var col = colInfo.selected[i];
+			var allNhtColumns = _initNhtColumns();
+			for(var i=0; i<allNhtColumns.length; i++) {
+				var col = allNhtColumns[i];
 				if(col.showIn != 'closed') nhtStats.runningHeaders.push(col);
 				if(col.showIn != 'running') nhtStats.closedHeaders.push(col);
 			}
@@ -2278,9 +2294,13 @@ function RecordsFilter(nl, nlDlg, nlLrFilter, nlGroupInfo, _groupInfo, $scope, n
 		dlg.setCssClass('nl-width-max nl-height-max')
 		dlg.scope.data = {};
 		dlg.scope.data.tabs = _tabs;
-		var firstTab = dlg.scope.data.tabs[0];
-		dlg.scope.data.selectedTab = firstTab;
-		_updateTabs(firstTab);
+		dlg.scope.data.selectedTab = dlg.scope.data.tabs[0];
+		for (var i=0; i<_tabs.length; i++) {
+			if (_lastSelectedTabId != _tabs[i].id) continue;
+			dlg.scope.data.selectedTab = _tabs[i];
+			break;
+		}
+		_updateTabs(dlg.scope.data.selectedTab);
 		
 		dlg.scope.data.onTabSelect = function(seletedTab) {
 			dlg.scope.data.selectedTab = seletedTab;
@@ -2288,12 +2308,14 @@ function RecordsFilter(nl, nlDlg, nlLrFilter, nlGroupInfo, _groupInfo, $scope, n
 			_getFilterInfo(); // For side effect of computing the filled filters
 		}
 		var clearButton = {text: nl.t('Clear Filters'), onTap: function(e) {
+			_lastSelectedTabId = null;
 			_clearSelections();
 			_filterInfo = _getFilterInfo();
 			onApplyFilterFn();
 		}};
 
 		var okButton = {text: nl.t('Apply Filters'), onTap: function(e) {
+			_lastSelectedTabId = dlg.scope.data.selectedTab.id;
 			_filterInfo = _getFilterInfo();
 			onApplyFilterFn();
 		}};
@@ -2320,6 +2342,7 @@ function RecordsFilter(nl, nlDlg, nlLrFilter, nlGroupInfo, _groupInfo, $scope, n
 	var _tabs = [];
 	var _tabsDict = {};
 	var _filterInfo = {};
+	var _lastSelectedTabId = null;
 	function _initTabs() {
 		_tabs = [];
 		_tabsDict = {};
@@ -2332,7 +2355,7 @@ function RecordsFilter(nl, nlDlg, nlLrFilter, nlGroupInfo, _groupInfo, $scope, n
 		_addTab('raw_record._grade', isManyCourseOrModules);
 		_addTab('user.suborg', isManyUsers && nlGroupInfo.isSubOrgEnabled());
 		_addTab('stats.status.txt', true);
-		_addTab('repcontent.courseid', isManyCourseOrModules, 'repcontent.name');
+		_addTab('raw_record.lesson_id', isManyCourseOrModules, 'repcontent.name');
 		_addTab('raw_record.assignment', isManyBatches, 'raw_record._batchName');
 		_addTab('user.org_unit', isManyUsers);
 		_addTab('user.ou_part1', isManyUsers);
@@ -2346,6 +2369,7 @@ function RecordsFilter(nl, nlDlg, nlLrFilter, nlGroupInfo, _groupInfo, $scope, n
 			var tabid = 'usermd.' + metadataFields[i].id;
 			_addTab(tabid, isManyUsers);
 		}
+		_addTab('repcontent.targetLang', isManyCourseOrModules);
 	}
 
 	function _addTab(tabid, condition, valueFiledId) {

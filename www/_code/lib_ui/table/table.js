@@ -101,6 +101,8 @@ function(nl, nlExpressionProcessor, $templateCache) {
 
     this.updateTableRecords = function(info, records) {
         _initSortObject(info);
+        // TODO-NOW: Should not do this for all records unnecessarily
+        // Also refactor allColumns
         info._internal.displayRecs = info._internal.paginator.getDisplayRecords(records);
         info._internal.paginator.showPage(0);
     };

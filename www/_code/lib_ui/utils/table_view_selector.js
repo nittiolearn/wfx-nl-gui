@@ -125,6 +125,7 @@
         var _migrationData = {
             lr_views: {
                 'repcontent.assignid': 'raw_record.assignment',
+                'repcontent.courseid': 'raw_record.lesson_id',
                 'stats.internalIdentifier': 'raw_record.id',
                 'not_before': 'repcontent.not_before_str',
                 'not_after': 'repcontent.not_after_str',
