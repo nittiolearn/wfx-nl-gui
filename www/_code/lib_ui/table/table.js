@@ -221,6 +221,7 @@ function Paginator(nl, info, nlExpressionProcessor) {
     };
 
     self.getAvps = function(record) {
+        // TODO-NOW: Performance of table.js with all columns still sucks!
         var rid = record.raw_record.id;
         if (!(rid in self.recordAvpCache)) self.recordAvpCache[rid] = {};
         return self.recordAvpCache[rid];
