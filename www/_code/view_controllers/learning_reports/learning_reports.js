@@ -369,13 +369,15 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
             sortObj.colid = colid;
             sortObj.ascending = true;
 		}
-
+		var summaryRow = nht.rows[0];
+		if (summaryRow.isSummaryRow) nht.rows.splice(0, 1);
 		nht.rows.sort(function(a, b) {
 			var aVal = a[colid] || "";
 			var bVal = b[colid] || "";
 			if (sortObj.ascending) return _compare(aVal, bVal);
 			else return _compare(bVal, aVal);
-        });
+		});
+		nht.rows.splice(0, 0, summaryRow);
 	}
 
     function _compare(a,b) {
@@ -1379,6 +1381,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			if(key == 0) {
 				root.cnt.style = 'nl-bg-dark-blue';
 				root.cnt['sortkey'] = 0+root.cnt.name;
+				root.cnt.isSummaryRow = true;
 				if(isSingleReport) continue;
 			} else {
 				root.cnt.style = 'nl-bg-blue';

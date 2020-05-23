@@ -151,13 +151,21 @@ function(nl, nlExpressionProcessor, $templateCache) {
         var records = info._internal.recs;
         var paginator = info._internal.paginator;
         records.sort(function(a, b) {
-            var aVal = paginator.getFieldValue(a, colid, paginator.getAvps(a));;
-            var bVal = paginator.getFieldValue(b, colid, paginator.getAvps(b));;
+            var aVal = paginator.getFieldValue(a, colid, paginator.getAvps(a));
+            if (aVal.indexOf('%') > 0) {
+                aVal = aVal.substring(0, aVal.length-2);
+                aVal = parseInt(aVal);
+            }
+            var bVal = paginator.getFieldValue(b, colid, paginator.getAvps(b));
+            if (bVal.indexOf('%') > 0) {
+                bVal = bVal.substring(0, bVal.length-2);
+                bVal = parseInt(bVal);
+            }
             if (sortObj.ascending) return _compare(aVal, bVal);
             else return _compare(bVal, aVal);
         });
-        info._internal.paginator.showPage(0);
-    }   
+        info._internal.paginator.showPage();
+    } 
 
     function _compare(a,b) {
         if (a > b) return 1;
@@ -186,7 +194,7 @@ function Paginator(nl, info, nlExpressionProcessor) {
     }
 
     self.showPage = function(startpos) {
-        self.startpos = startpos || 0;
+        self.startpos = (startpos === 0 || startpos > 0)  ? startpos : self.startpos || 0;
         var records = info._internal.recs;
         var visible = [];
         var startpos = self.startpos;
