@@ -128,7 +128,6 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			$scope.pivotConfig.level2Field = {id: null};
 		}
 		$scope.pivotConfig.pivotIndividualCourses = true;
-		$scope.fetchInProgress = true;
 
 		nlLrDrilldown.init($scope);
 		nlLrNht.init(nlGroupInfo);
@@ -408,8 +407,9 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 	};
 
 	$scope.onClickOnNext = function () {
-		if (_tableNavPos.currentpos + MAX_VISIBLE > $scope.tabData.records.length) return;
-		if (_tableNavPos.currentpos < $scope.tabData.records.length) {
+		var records = $scope.tabData.records || [];
+		if (_tableNavPos.currentpos + MAX_VISIBLE > records.length) return;
+		if (_tableNavPos.currentpos < records.length) {
 			_tableNavPos.currentpos += MAX_VISIBLE;
 		}
 		nlTable.updateTablePage($scope.utable, _tableNavPos.currentpos);
@@ -542,7 +542,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 	var _selectedLrColIds = _defaultLrColIds;
 	function _updateLearningRecordsTab(tabData) {
 		_updateSelectedLrColumns();
-		nlTable.updateTableRecords($scope.utable, tabData.records);
+		nlTable.updateTableRecords($scope.utable, tabData.records || []);
 		$scope.lrViewSelectorConfig = {
 			canEdit: nlRouter.isPermitted(_userInfo, 'assignment_manage'),
 			tableType: 'lr_views',
@@ -554,7 +554,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 				_updateSelectedLrColumns();
 				var custColsDict = nl.utils.arrayToDictById(nlTableViewSelectorSrv.getCustomColumns('lr_views'));
 				var lookupTablesDict = nl.utils.arrayToDictById(nlTableViewSelectorSrv.getLookupTables('lr_views'));
-				nlTable.updateTableColumns($scope.utable, tabData.records, custColsDict, lookupTablesDict);
+				nlTable.updateTableColumns($scope.utable, tabData.records || [], custColsDict, lookupTablesDict);
 			}
 		};
 	}
@@ -572,6 +572,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 				ret.push(custColsDict[colid]);
 		}
 		$scope.utable.origColumns = ret;
+		return lrColumnsDict;
 	}
 
 	function _getLrFormulaColumns() {
@@ -919,7 +920,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 	
 	function _updateOverviewInfoGraphicsCards(summaryRecord) {
 		var userStatusDict = {};
-		var records = $scope.tabData.records;
+		var records = $scope.tabData.records || [];
 		for (var i=0; i<records.length; i++) {
 			var rec = records[i];
 			if (!rec) continue;
@@ -970,7 +971,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 	function _updateOverviewTimeChart() {
 		var c = $scope.charts[1];
 		var ranges = nlLrReportRecords.getTimeRanges();
-		var records = $scope.tabData.records;
+		var records = $scope.tabData.records || [];
 		var type = nlLrFilter.getType();
 			var isModuleRep = type == 'module' || type == 'module_assign' || type == 'module_self_assign';
 		for (var j=0; j<records.length; j++) {
@@ -1018,7 +1019,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 	}
 
 	function _updateTimeSummaryTab() {
-		var records = $scope.tabData.records;
+		var records = $scope.tabData.records || [];
 		var type = nlLrFilter.getType();
 		var loadcomplete = false;
 		for(var chartindex=0; chartindex<$scope.timeSummaryCharts.length; chartindex++) {
@@ -1057,7 +1058,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 	// NHT overview tab
 	//---------------------------------------------------------------------------------------------------------------------------------------------------------
 	function _updateNhtOverviewBatch() {
-		var overviewStats = nlLrNht.getStatsCountDict('', $scope.tabData.records, null);
+		var overviewStats = nlLrNht.getStatsCountDict('', $scope.tabData.records || [], null);
 		var allCount = overviewStats[0].cnt;
 		$scope.nhtOverviewInfo = {
 			firstInfoGraphics: _getfirstInfoGraphicsArray(allCount), 
@@ -1131,7 +1132,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 
 	function _getNhtTab(batchType) {
 		var colInfo = _getNhtAllAndSelectedColumns();
-		var statusCounts = nlLrNht.getStatsCountDict(batchType, $scope.tabData.records,
+		var statusCounts = nlLrNht.getStatsCountDict(batchType, $scope.tabData.records || [],
 			nlLrReportRecords.getNhtBatchStatus());
 		return {columns: colInfo.all,  selectedColumns: colInfo.selected,
 			isRunning: batchType == 'nhtrunning', rows: _generateDrillDownArray(true, statusCounts,
@@ -1282,7 +1283,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		var ret = [];
 		var tabs = _recordsFilter.getTabs();
 		var dontInclude = {'stats.status.txt': true};
-		var lrColNamesDict = nl.utils.arrayToDictById(_getLrColumns());		
+		var lrColNamesDict = nl.utils.arrayToDictById(_getLrColumns());
 		for(var i=0; i<tabs.length; i++) {
 			var tab = tabs[i];
 			if (tab.id in dontInclude) continue;
@@ -1294,7 +1295,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 
 	function _updateDrillDownTab() {
 		nlLrDrilldown.clearStatusCountTree();
-		var records = $scope.tabData.records;
+		var records = $scope.tabData.records || [];
 		for(var i=0; i<records.length; i++) {
 			nlLrDrilldown.addCount(records[i]);
 		}
@@ -1457,7 +1458,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 	}
 
 	function _updateNhtBatchAttendanceTab() {
-		var records = $scope.tabData.records;
+		var records = $scope.tabData.records || [];
 		var content = _getContentOfCourseAssignment();
 		var courseAssignment = _getCourseAssignmnt();
 		var attendance = courseAssignment.attendance ? angular.fromJson(courseAssignment.attendance) : {};
@@ -1554,8 +1555,10 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		if(!_customScoresHeader) _customScoresHeader = nlLrReportRecords.getCustomScoresHeader();
 
 		var header = [{id: 'courseName', name: 'Course name'}];
-		if(nlGroupInfo.isSubOrgEnabled()) header.push({id: 'subOrgId', name: 'Suborg Id'});
-		header.push({id: 'organisationId', name: 'Organisation Id'});
+		var lrColNamesDict = _updateSelectedLrColumns();
+		header.push({id: 'level1Field', name: lrColNamesDict[$scope.pivotConfig.level1Field.id].name});
+		if ($scope.pivotConfig.level2Field.id) header.push({id: 'level2Field',
+			name: lrColNamesDict[$scope.pivotConfig.level2Field.id].name});
 		var drillDownCols = _updateDrillDownTab();
 		for(var i=0; i<drillDownCols.length; i++) {
 			var col = drillDownCols[i];
@@ -1589,7 +1592,6 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			nhtBatchAttendanceStats = {statsCountArray: $scope.iltBatchInfo.rows, columns: $scope.iltBatchInfo.columns};
 		}
 
-		_updateSelectedLrColumns();
 		var lrStats = {columns: $scope.utable.origColumns};
 		var certificateStats = null;
 		if (nlLrFilter.getType() == 'course' && nlLrFilter.getMode() == 'cert_report') {
@@ -2034,7 +2036,7 @@ function CertificateHandler(nl, $scope) {
 	};
 
 	function _updateCertificateTab(userDict) {
-		var records = $scope.tabData.records;
+		var records = $scope.tabData.records || [];
 		var userObj = {};
 		var courseId = null;
 		var certDict = {};
@@ -2292,12 +2294,11 @@ function RecordsFilter(nl, nlDlg, nlLrFilter, nlGroupInfo, _groupInfo, $scope, n
 			dlg.scope.data.selectedTab = _tabs[i];
 			break;
 		}
-		_updateTabs(dlg.scope.data.selectedTab);
+		_updateTab(dlg.scope.data.selectedTab);
 		
 		dlg.scope.data.onTabSelect = function(seletedTab) {
 			dlg.scope.data.selectedTab = seletedTab;
-			_updateTabs(seletedTab);
-			_getFilterInfo(); // For side effect of computing the filled filters
+			_updateTab(seletedTab);
 		}
 		var clearButton = {text: nl.t('Clear Filters'), onTap: function(e) {
 			_lastSelectedTabId = null;
@@ -2376,7 +2377,7 @@ function RecordsFilter(nl, nlDlg, nlLrFilter, nlGroupInfo, _groupInfo, $scope, n
 	function _clearSelections() {
 		for(var i=0; i<_tabs.length; i++) {
 			var tab = _tabs[i];
-			if (tab.tabinfo && tab.tabinfo.data) _initTreeSelection(tab);
+			if (tab.tabinfo && tab.tabinfo.data) _initTreeSelection(tab, {});
 		}
 	}
 	
@@ -2388,13 +2389,14 @@ function RecordsFilter(nl, nlDlg, nlLrFilter, nlGroupInfo, _groupInfo, $scope, n
 		}		
 	}
 
-	function _updateTabs(tab) {
+	function _updateTab(tab) {
+		var filterInfo = _getFilterInfo(); // Needed for side effect when you move out of Tab + reset with old data;
 		if (tab.updated) return;
-		_updateInfo(tab);
+		_updateInfo(tab, filterInfo);
 		tab.updated = true;
 	}
 
-	function _updateInfo(tab) {
+	function _updateInfo(tab, filterInfo) {
 		var records = nlLrReportRecords.getRecords();
 		var treeData = null;
 		var fieldValues = {};
@@ -2419,23 +2421,23 @@ function RecordsFilter(nl, nlDlg, nlLrFilter, nlGroupInfo, _groupInfo, $scope, n
 			return 0;
 		});
 		tab.tabinfo = {data: treeData || [], tooMany: tooMany};
-		_initTreeSelection(tab);
+		_initTreeSelection(tab, filterInfo);
 	}
 
-	function _initTreeSelection(tab) {
+	function _initTreeSelection(tab, filterInfo) {
         tab.tabinfo.treeIsShown = true;
         tab.tabinfo.multiSelect = true;
         tab.tabinfo.singleLevelTree = true;
         tab.tabinfo.showSearchFieldAbove = 1;
 		tab.tabinfo.fieldmodelid = tab.id;
-        nlTreeSelect.updateSelectionTree(tab.tabinfo, {});
+        nlTreeSelect.updateSelectionTree(tab.tabinfo, filterInfo[tab.id] || {});
 	}
 
 	function _getFilterInfo() {
 		var filterInfo = {};
 		for(var i=0; i<_tabs.length; i++) {
 			var tab = _tabs[i];
-			if (!tab.updated) continue;
+			if (!tab.tabinfo.data) continue;
 			var selectedKeys = nlTreeSelect.getSelectedIds(tab.tabinfo);
 			if (Object.keys(selectedKeys).length > 0) {
 				filterInfo[tab.id] = selectedKeys;

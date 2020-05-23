@@ -89,8 +89,8 @@
                 <i class='nl-link-text icon fsh4 fblue padding-mid ion-ios-search'
                     ng-click='tabData.onSearch(null)'>
                 </i>
-                <div ng-if='!fetchInProgress && canShowFilterDialog' class='padding-small'></div>
-                <div ng-if='!fetchInProgress && canShowFilterDialog' ng-click='tabData.onFilter(null)'
+                <div ng-if='canShowFilterDialog' class='padding-small'></div>
+                <div ng-if='canShowFilterDialog' ng-click='tabData.onFilter(null)'
                      class='{{filterCount > 0 ? "forange" : "fblue"}} nl-link-text padding-mid'>
                      <div class='row row-top padding0 margin0'>
                         <i class='icon fsh4 ion-funnel'></i>

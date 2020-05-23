@@ -193,6 +193,8 @@
             };
 
             $scope.onOptionSelect = function(option) {
+                if (!option && (!$scope.options || $scope.options.length == 0)) return;
+                if (!option) option = $scope.options[0];
                 $scope.selected = option;
                 $scope.isOpen = false;
                 if (!$scope.config || !$scope.config.onViewChange) return;
@@ -638,7 +640,7 @@
             var guiColumnNames = _dlg.scope.columnNames;
             var guiCustomColumns = _dlg.scope.customColumns;
             var guiLookupTables = _dlg.scope.lookupTables;
-            var selectedViewId = _dlg.scope.selectedView.id;
+            var selectedViewId = (_dlg.scope.selectedView || {}).id || null;
             nl.timeout(function() {
                 nlDlg.showLoadingScreen();
                 nlTableViewSelectorSrv.reload([$scope.config.tableType])
@@ -669,12 +671,15 @@
                         customColumns: serverCustomColumnsLatest, lookupTables: serveLookupTablesLatest};
                     nlTableViewSelectorSrv.update($scope.config.tableType, info)
                     .then(function() {
+                        var optionSelected = false;
                         for(var i=0; i<serverViewsLatest.length; i++) {
                             if(selectedViewId == serverViewsLatest[i].id) {
                                 $scope.onOptionSelect(serverViewsLatest[i]);
+                                optionSelected = true;
                                 break;
                             }
                         }
+                        if (!optionSelected) $scope.onOptionSelect(null);
                         nlDlg.hideLoadingScreen();
                     });
                 });

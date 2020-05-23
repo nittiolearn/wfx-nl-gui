@@ -395,33 +395,30 @@ function(nl, nlDlg, nlRouter, nlExporter, nlLrHelper, nlLrSummaryStats, nlGroupI
                 ctx.drillDownRow.push(nlExporter.getCsvRow(_drillDownDict.columns, row.cnt));
             else 
                 ctx.drillDownRow.push(nlExporter.getItemRow(_drillDownDict.columns, row.cnt));
-            if(row.children) _updateSuborgRow(row.cnt.name, row.children);   
+            if(row.children) _updateLevel1Rows(row.cnt.name, row.children);   
         }
     }
 
-    function _updateSuborgRow(courseName, suborgRow) {
-        for(var key in suborgRow) {
-            var row = suborgRow[key];
+    function _updateLevel1Rows(courseName, level1Rows) {
+        for(var key in level1Rows) {
+            var row = level1Rows[key];
             row.cnt['courseName'] = courseName;
-            if(!row.children) 
-                row.cnt['organisationId'] = row.cnt.name;
-            else 
-                row.cnt['subOrgId'] = row.cnt.name;
+            row.cnt['level1Field'] = row.cnt.name;
+            row.cnt['level2Field'] = '';
             if(_exportFormat == 'csv')
                 ctx.drillDownRow.push(nlExporter.getCsvRow(_drillDownDict.columns, row.cnt));
             else
                 ctx.drillDownRow.push(nlExporter.getItemRow(_drillDownDict.columns, row.cnt));
-
-            if(row.children) _updateOrgRow(courseName, row.cnt.name, row.children);
+            if(row.children) _updateLevel2Rows(courseName, row.cnt.name, row.children);
         }
     }
 
-    function _updateOrgRow(courseName, subOrgId, orgRow) {
-        for(var key in orgRow) {
-            var row = orgRow[key];
+    function _updateLevel2Rows(courseName, level1FieldValue, level2Rows) {
+        for(var key in level2Rows) {
+            var row = level2Rows[key];
             row.cnt['courseName'] = courseName;
-            row.cnt['subOrgId'] = subOrgId;
-            row.cnt['organisationId'] = row.cnt.name;
+            row.cnt['level1Field'] = level1FieldValue;
+            row.cnt['level2Field'] = row.cnt.name;
             if (_exportFormat == 'csv') 
                 ctx.drillDownRow.push(nlExporter.getCsvRow(_drillDownDict.columns, row.cnt));
             else
