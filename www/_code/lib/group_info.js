@@ -134,7 +134,7 @@ function(nl, nlDlg, nlImporter, nlGroupCache) {
         var subOrgMapping = groupInfo.derived.orgToSubOrgMapping;
         if (subOrgMapping) user.suborg = subOrgMapping[user.org_unit];
         _updateOrgByParts(user);
-        user.usertypeStr = user.getUtStr();
+        user.usertypeStr = user.getUtStr ? user.getUtStr() : '';
         userCache[user] = user;
         return user;
     };

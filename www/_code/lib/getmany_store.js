@@ -125,6 +125,8 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo) {
         return _nhtBatchStatus;
     }
     this.getBatchMilestoneInfo = function(reportRecord, nhtBatchStatus) {
+        // TODO-NOW: Only the first guy's batch status is considerd. Everyone has to be considered?
+        // TODO-NOW: Duplicate NHT records have to be filtered out at a initial stage (not after filtering)
         var courseAssignment = this.getAssignmentRecordFromReport(reportRecord) || {};
         var _batchStatus = nhtBatchStatus[reportRecord.assignment] || {};
         if (!courseAssignment.id) return {};
