@@ -988,15 +988,21 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
 		var ratingAdded = false;
 		for(var i=0; i<_allModules.length; i++){
     	    var newModule = _getSavableModuleAttrs(_allModules[i]);
-			_pruneStartAfter(angular.copy(newModule), cmidToCm);
+			_pruneStartAfter(newModule, cmidToCm);
 			if (newModule.type == 'milestone') milestoneAdded = true;
 			if (newModule.type == 'rating') ratingAdded = true;
 			if (newModule.type == 'iltsession' && !modeHandler.course.content.blended) modeHandler.course.content.blended = true;
 			if (newModule.type == 'lesson-assesment') newModule.isQuiz = true;
 			if (newModule.type == 'lesson-self') newModule.isQuiz = false;			
-			if (newModule.type == 'lesson-assesment' || newModule.type == 'lesson-self') newModule.type = 'lesson';
 		    modeHandler.course.content.modules.push(newModule);
 		}
+
+		// After everything is over, change the the type to lesson
+		for(var i=0; i<modeHandler.course.content.modules.length; i++){
+    	    var m = modeHandler.course.content.modules[i];
+			if (m.type == 'lesson-assesment' || m.type == 'lesson-self') m.type = 'lesson';
+		}
+
 		if (bPublish && _etm) {
 			var msg = null;
 			if (modeHandler.course.content.nht) {

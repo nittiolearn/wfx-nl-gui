@@ -195,14 +195,26 @@
             $scope.onOptionSelect = function(option) {
                 if (!option && (!$scope.options || $scope.options.length == 0)) return;
                 if (!option) option = $scope.options[0];
-                $scope.selected = option;
                 $scope.isOpen = false;
-                if (!$scope.config || !$scope.config.onViewChange) return;
-                nlTableViewSelectorSrv.updateAllColumnNames($scope.config.tableType, $scope.config.allColumns);
-                var selectedColIds = _getSelectedColIds($scope.config.tableType,
-                    $scope.config.allColumns, option.columns);
-                $scope.config.onViewChange(selectedColIds); // Array of col ids
+                var config = $scope.config;
+                if (!config || !config.onViewChange) return;
+                if (option.columns && option.columns.length <= 10) {
+                    _onOptionSelect(config, option);
+                    return;
+                }
+                nlDlg.popupConfirm({title: 'Please confirm', template: 'The selected view has more than 10 columns. It will take some time to show the view. Are you sure you want to continue?'})
+                .then(function(result) {
+                    if (!result) return;
+                    _onOptionSelect(config, option);
+                });
             };
+
+            function _onOptionSelect(config, option) {
+                $scope.selected = option;
+                nlTableViewSelectorSrv.updateAllColumnNames(config.tableType, config.allColumns);
+                var selectedColIds = _getSelectedColIds(config.tableType, config.allColumns, option.columns);
+                $scope.config.onViewChange(selectedColIds); // Array of col ids
+            }
 
             $scope.onCustomizeViews = function() {
                 if (!$scope.config || !$scope.config.canEdit) return;

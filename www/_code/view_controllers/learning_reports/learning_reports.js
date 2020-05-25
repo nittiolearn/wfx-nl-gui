@@ -388,7 +388,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 
 	$scope.getMaxVisibleString = function() {
 		var posStr = '';
-		var records = $scope.tabData.records || [];
+		var records = $scope.tabData && $scope.tabData.records || [];
 		if (records.length > MAX_VISIBLE) {
 			var startpos = _tableNavPos.currentpos + 1;
 			var endpos = _tableNavPos.currentpos + $scope.utable._internal.visibleRecs.length;
@@ -403,7 +403,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 	};
 
 	$scope.canShowNext = function() {
-		var records = $scope.tabData.records || [];
+		var records = $scope.tabData && $scope.tabData.records || [];
 		if (_tableNavPos.currentpos + MAX_VISIBLE < records.length) return true;
 		return false;
 	};
@@ -552,13 +552,21 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			formulaColumns: _getLrFormulaColumns(),
 			defaultViewColumns: {id: 'default', name: 'Default', columns: _defaultLrColIds},
 			onViewChange: function(selectedColIdList) {
-				_selectedLrColIds = selectedColIdList;
-				_updateSelectedLrColumns();
-				var custColsDict = nl.utils.arrayToDictById(nlTableViewSelectorSrv.getCustomColumns('lr_views'));
-				var lookupTablesDict = nl.utils.arrayToDictById(nlTableViewSelectorSrv.getLookupTables('lr_views'));
-				nlTable.updateTableColumns($scope.utable, tabData.records || [], custColsDict, lookupTablesDict);
+				nlDlg.showLoadingScreen();
+				nl.timeout(function() {
+					_onLrViewChange(selectedColIdList);
+					nlDlg.hideLoadingScreen();
+				}, 100);
 			}
 		};
+	}
+
+	function _onLrViewChange(selectedColIdList) {
+		_selectedLrColIds = selectedColIdList;
+		_updateSelectedLrColumns();
+		var custColsDict = nl.utils.arrayToDictById(nlTableViewSelectorSrv.getCustomColumns('lr_views'));
+		var lookupTablesDict = nl.utils.arrayToDictById(nlTableViewSelectorSrv.getLookupTables('lr_views'));
+		nlTable.updateTableColumns($scope.utable, $scope.tabData.records || [], custColsDict, lookupTablesDict);
 	}
 
 	function _updateSelectedLrColumns() {
@@ -1166,14 +1174,22 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 				defaultViewColumns: {id: 'default', name: 'Default', columns: _defaultNhtColIds},
 				onViewChange: function(selectedColIdList) {
 					// Custom columns are not supported for NHT View
-					_selectedNhtColIds = selectedColIdList;
-					_someTabDataChanged();
-					_updateCurrentTab();
+					nlDlg.showLoadingScreen();
+					nl.timeout(function() {
+						_onNhtViewChange(selectedColIdList);
+						nlDlg.hideLoadingScreen();
+					}, 100);
 				}
 			};
 		}
 		$scope.nhtViewSelectorConfig.allColumns = _allNhtColumns;
 		return _allNhtColumns;
+	}
+
+	function _onNhtViewChange(selectedColIdList) {
+		_selectedNhtColIds = selectedColIdList;
+		_someTabDataChanged();
+		_updateCurrentTab();
 	}
 
 	function _getNhtColumns() {
@@ -2268,11 +2284,8 @@ function LrTabManager(tabData, nlGetManyStore, nlLrFilter, _groupInfo) {
 //-------------------------------------------------------------------------------------------------
 function RecordsFilter(nl, nlDlg, nlLrFilter, nlGroupInfo, _groupInfo, $scope, nlLrReportRecords, 
 	nlTreeSelect, nlTable, onApplyFilterFn) {
-	$scope.canShowFilterDialog = false;
-
 	this.init = function() {
 		_initTabs();
-		$scope.canShowFilterDialog = true;
 	};
 
 	this.getTabs = function() {
@@ -2407,7 +2420,7 @@ function RecordsFilter(nl, nlDlg, nlLrFilter, nlGroupInfo, _groupInfo, $scope, n
 		for(var key in records) {
 			var record = records[key];
 			var objid = nlTable.getFieldValue($scope.utable, record, tab.id);
-			if (!objid) continue;
+			if (fieldValues[objid]) continue;
 			var name = tab.valueFiledId ? nlTable.getFieldValue($scope.utable, record, tab.valueFiledId) : objid;
 			fieldValues[objid] = {id: '' + objid, name: '' + name};
 			if (Object.keys(fieldValues).length >= 1000) {
@@ -2423,7 +2436,8 @@ function RecordsFilter(nl, nlDlg, nlLrFilter, nlGroupInfo, _groupInfo, $scope, n
 			if(aName < bName) return -1;
 			return 0;
 		});
-		tab.tabinfo = {data: treeData || [], tooMany: tooMany};
+		if (treeData.length > 0 && treeData[0].name === '') treeData[0].name = '(blank values)';
+		tab.tabinfo = {data: treeData, tooMany: tooMany};
 		_initTreeSelection(tab, filterInfo);
 	}
 

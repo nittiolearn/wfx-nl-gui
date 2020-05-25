@@ -41,7 +41,7 @@ function(nl) {
         }
         if (course.content.certificate) delete course.content.certificate;
         course.content.contentVersion = CURRENT_CONTENT_VERSION;
-        if(!course.content.languages || course.content.languages.length == 0) course.content.languages = [{lang:'en', name: "English"}]
+        if(!course.content.languages || course.content.languages.length == 0) course.content.languages = [{lang:'en', name: "English"}];
         return course;
     };
 

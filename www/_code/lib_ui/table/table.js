@@ -152,12 +152,12 @@ function(nl, nlExpressionProcessor, $templateCache) {
         var paginator = info._internal.paginator;
         records.sort(function(a, b) {
             var aVal = paginator.getFieldValue(a, colid, paginator.getAvps(a));
-            if (aVal.indexOf('%') > 0) {
+            if (typeof(aVal) == 'string' && aVal.indexOf('%') > 0) {
                 aVal = aVal.substring(0, aVal.length-2);
                 aVal = parseInt(aVal);
             }
             var bVal = paginator.getFieldValue(b, colid, paginator.getAvps(b));
-            if (bVal.indexOf('%') > 0) {
+            if (typeof(bVal) == 'string' && bVal.indexOf('%') > 0) {
                 bVal = bVal.substring(0, bVal.length-2);
                 bVal = parseInt(bVal);
             }

@@ -23,7 +23,7 @@
         ng-click='onItemClick(rec, info.onRowClick)'>
         <td ng-repeat='col in info.origColumns track by $index'
             class='{{col.styleTd}}'>
-             <i ng-if='rec._avps["_id." + col.icon]' class='icon fsh4 {{rec._avps["_id." + col.icon]}}'></i>
+             <i ng-show='rec._avps["_id." + col.icon]' class='icon fsh4 {{rec._avps["_id." + col.icon]}}'></i>
              <span>{{rec._avps['_id.' + col.id] || ''}}</span>
         </td>
     </tr>
