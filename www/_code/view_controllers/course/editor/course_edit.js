@@ -988,7 +988,7 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
 		var ratingAdded = false;
 		for(var i=0; i<_allModules.length; i++){
     	    var newModule = _getSavableModuleAttrs(_allModules[i]);
-			_pruneStartAfter(newModule, cmidToCm);
+			_pruneStartAfter(angular.copy(newModule), cmidToCm);
 			if (newModule.type == 'milestone') milestoneAdded = true;
 			if (newModule.type == 'rating') ratingAdded = true;
 			if (newModule.type == 'iltsession' && !modeHandler.course.content.blended) modeHandler.course.content.blended = true;

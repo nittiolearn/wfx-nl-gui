@@ -193,7 +193,7 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo) {
         }
         ret.lastPlanned = lastPlanned;
         ret.lastActual = lastActual;
-        if (allMilestonesReached) {
+        if (allMilestonesReached || ret.batchStatus == 'Closed') {
             ret.batchStatus = 'Closed';
             _nhtBatchStatus.closed = true;
         } else {
