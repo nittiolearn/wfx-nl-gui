@@ -133,8 +133,8 @@ function(nl, nlReportHelper, nlGetManyStore) {
 //-------------------------------------------------------------------------------------------------
 // NlLrNht directive to display Nht tab
 //-------------------------------------------------------------------------------------------------
-var NlLrNhtDirective = [
-function() {
+var NlLrNhtDirective = ['nl',
+function(nl) {
     return {
         restrict: 'E',
         transclude: true,
@@ -148,10 +148,10 @@ function() {
                 return (nht.isRunning && col.showIn != 'closed' || !nht.isRunning && col.showIn != 'running');
             };
             $scope.onDetailsClick = function(e, item, columns) {
-                $scope.$parent.$parent.onDetailsClick(e, item, columns);
+                nl.utils.getFnFromParentOrGrandParent($scope, 'onDetailsClick')(e, item, columns);
             };
             $scope.sortRows = function(colid) {
-                $scope.$parent.$parent.sortNhtRows(colid);
+                nl.utils.getFnFromParentOrGrandParent($scope, 'sortNhtRows')(colid);
             };
         }
     }

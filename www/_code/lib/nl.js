@@ -380,6 +380,14 @@ function Utils() {
     this.isTouchDevice = function() {
         return ( 'ontouchstart' in window ) || ( navigator.maxTouchPoints > 0 ) || ( navigator.msMaxTouchPoints > 0 ); 
     }
+
+    this.getFnFromParentOrGrandParent = function($scope, fnName) {
+        if (!$scope.$parent) return null;
+        if ($scope.$parent[fnName]) return $scope.$parent[fnName];
+        if (!$scope.$parent.$parent) return null;
+        if ($scope.$parent.$parent[fnName]) return $scope.$parent[fnName];
+        return null;
+    }
 }
 
 //-------------------------------------------------------------------------------------------------

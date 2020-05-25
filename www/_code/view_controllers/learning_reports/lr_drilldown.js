@@ -171,8 +171,8 @@ function(nlReportHelper, nlTable) {
 // NlLrDrilldown directive to display drill down tab
 //-------------------------------------------------------------------------------------------------
 
-var NlLrDrilldownDirective = [
-function() {
+var NlLrDrilldownDirective = ['nl',
+function(nl) {
     return {
         restrict: 'E',
         transclude: true,
@@ -182,15 +182,15 @@ function() {
         },
         link: function($scope, iElem, iAttrs) {
             $scope.generateDrillDownArray = function(item) {
-                $scope.$parent.$parent.generateDrillDownArray(item);
+                nl.utils.getFnFromParentOrGrandParent($scope, 'generateDrillDownArray')(item);
             };
 
             $scope.updatePivotTable = function(item) {
-                $scope.$parent.$parent.updatePivotTable(item);
+                nl.utils.getFnFromParentOrGrandParent($scope, 'updatePivotTable')(item);
             };
 
             $scope.onDetailsClick = function(e, item, columns) {
-                $scope.$parent.$parent.onDetailsClick(e, item, columns);
+                nl.utils.getFnFromParentOrGrandParent($scope, 'onDetailsClick')(e, item, columns);
             };
         }
     }
