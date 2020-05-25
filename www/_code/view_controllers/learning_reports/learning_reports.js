@@ -594,7 +594,6 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 
 	function _getLrColumns() {
 		_customScoresHeader = nlLrReportRecords.getCustomScoresHeader();
-		var mh = nlLrHelper.getMetaHeaders(false);
 		var type = nlLrFilter.getType();
 		var columns = [];
 		columns.push(_col('user.user_id', 'User Id', 'text-left',  type == 'user'));
@@ -663,6 +662,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			}	
 		}
 
+		var mh = _groupInfo.props.usermetadatafields || [];
 		for(var i=0; i<mh.length; i++) {
 			var keyName = 'usermd.' + mh[i].id;
 			columns.push(_col(keyName, mh[i].name));
@@ -716,6 +716,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			var record = records[recid];
 			if (record.raw_record.isNHT) {
 				_tabManager.nhtRecordFound();
+				// TODO-NOW-1 call nlGetManyStore.updateBatchStatusInReport(record);
 				nlGetManyStore.getBatchMilestoneInfo(record.raw_record, batchStatusObj);
 			} else {
 				_tabManager.lmsRecordFound();
@@ -1305,8 +1306,9 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		for(var i=0; i<tabs.length; i++) {
 			var tab = tabs[i];
 			if (tab.id in dontInclude) continue;
-			ret.push({id: tab.id, name: lrColNamesDict[tab.valueFiledId||tab.id].name || tab.id,
-				valueFieldId: tab.valueFiledId});
+			var columnInfo = lrColNamesDict[tab.valueFieldId||tab.id] || {};
+			ret.push({id: tab.id, name: columnInfo.name || tab.id,
+				valueFieldId: tab.valueFieldId});
 		}
 		return ret;
 	}
@@ -2383,9 +2385,9 @@ function RecordsFilter(nl, nlDlg, nlLrFilter, nlGroupInfo, _groupInfo, $scope, n
 		_addTab('repcontent.targetLang', isManyCourseOrModules);
 	}
 
-	function _addTab(tabid, condition, valueFiledId) {
+	function _addTab(tabid, condition, valueFieldId) {
 		if (!condition) return;
-		var tab = {name: '', id: tabid, valueFiledId: valueFiledId, updated: false, tabinfo: {}};
+		var tab = {name: '', id: tabid, valueFieldId: valueFieldId, updated: false, tabinfo: {}};
 		_tabsDict[tabid] = tab;
 		_tabs.push(tab);
 	}
@@ -2400,7 +2402,7 @@ function RecordsFilter(nl, nlDlg, nlLrFilter, nlGroupInfo, _groupInfo, $scope, n
 	function _updateTabNames(lrColNamesDict) {
 		for(var tabid in _tabsDict) {
 			var tab = _tabsDict[tabid];
-			var key = tab.valueFiledId || tabid;
+			var key = tab.valueFieldId || tabid;
 			tab.name = lrColNamesDict[key] ? lrColNamesDict[key].name : tabid;
 		}		
 	}
@@ -2421,7 +2423,7 @@ function RecordsFilter(nl, nlDlg, nlLrFilter, nlGroupInfo, _groupInfo, $scope, n
 			var record = records[key];
 			var objid = nlTable.getFieldValue($scope.utable, record, tab.id);
 			if (fieldValues[objid]) continue;
-			var name = tab.valueFiledId ? nlTable.getFieldValue($scope.utable, record, tab.valueFiledId) : objid;
+			var name = tab.valueFieldId ? nlTable.getFieldValue($scope.utable, record, tab.valueFieldId) : objid;
 			fieldValues[objid] = {id: '' + objid, name: '' + name};
 			if (Object.keys(fieldValues).length >= 1000) {
 				tooMany = true;
