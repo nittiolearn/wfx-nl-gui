@@ -404,7 +404,7 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
 	}
 
 	function _onBooleanClick(e, attr, item) {
-        item[attr.name] = !item[attr.name];
+		item[attr.name] = !item[attr.name];
         _onAttrChange(e, attr, item);
     }
 
@@ -431,7 +431,7 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
 			item.name = attr.valueNames[item.milestone_type];
 			return;
 		}
-    }
+	}
 
 	var _startAfterTypeToSuported = {
 		'lesson-assesment': {'min_score': true, 'max_score': true},
@@ -701,8 +701,9 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
         {name: 'reopen_on_fail', stored_at: 'module', fields: ['lesson-assesment', 'lesson-self'], type: 'object', text: 'Reopen on fail', contentType: 'object',group: 'grp_additionalAttrs'},
         {name: 'showInReport', stored_at: 'module', fields: ['gate', 'rating'], text: 'Show in the report', desc: 'Show score in the report', type: 'boolean', group: 'grp_additionalAttrs'},
         {name: 'hide_remarks', stored_at: 'module', fields: ['info', 'link'], type: 'boolean', text: 'Disable remarks', group: 'grp_additionalAttrs'},
-        {name: 'autocomplete', stored_at: 'module', fields: ['link'], type: 'boolean', text: 'Auto complete',  desc: 'Mark as completed when viewed the first time', group: 'grp_additionalAttrs'},
-        {name: 'icon', stored_at: 'module', fields: ['module', 'lesson-assesment', 'lesson-self', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating', 'gate'], type: 'string', text: 'Icon', group: 'grp_additionalAttrs'},
+		{name: 'autocomplete', stored_at: 'module', fields: ['link'], type: 'boolean', text: 'Auto complete',  desc: 'Mark as completed when viewed the first time', group: 'grp_additionalAttrs'},
+		{name: 'hide_answers', stored_at: 'module', fields: ['lesson-assesment'], type: 'boolean', text: 'Hide answers',  desc: 'Disallow learners to view completed modules', group: 'grp_additionalAttrs'},
+		{name: 'icon', stored_at: 'module', fields: ['module', 'lesson-assesment', 'lesson-self', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating', 'gate'], type: 'string', text: 'Icon', group: 'grp_additionalAttrs'},
         {name: 'text', stored_at: 'module', fields: ['module', 'lesson-assesment', 'lesson-self', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating', 'gate'], type: 'wikitext', valueName: 'textHtml', text: 'Description', group: 'grp_additionalAttrs', debug: true},
 		{name: 'completionPerc', stored_at: 'module', fields: ['lesson-assesment', 'lesson-self', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating', 'gate'], text: 'Completion percentage',type: 'number', group: 'grp_additionalAttrs', debug: true},
 		{name: 'customStatus', stored_at: 'module', fields: ['lesson-assesment', 'lesson-self', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating', 'gate'], text: 'New status',type: 'list', group: 'grp_additionalAttrs', 
@@ -764,7 +765,8 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
 		gateFormula: _getGateFormulaHelp(),
 		gatePassscore: 'Provide the pass score to mark status of item for learner.',
 		showInReport: 'Enable this to show the score of this gate item in the overall learning report.',
-		isReattempt: 'You could control if the learning report is marked as certified in first attempt or not with this attribute. If this attribute is enabled and the learner reached upto to this item, it means that the learner did not complete the course in first attempt. This is useful to set for the re-certification items within the course.'
+		isReattempt: 'You could control if the learning report is marked as certified in first attempt or not with this attribute. If this attribute is enabled and the learner reached upto to this item, it means that the learner did not complete the course in first attempt. This is useful to set for the re-certification items within the course.',
+		hide_answers: 'Enable this attribute to disallow the learners to see the correct answers.'
     };
     
     function _getDescriptionHelp() {
