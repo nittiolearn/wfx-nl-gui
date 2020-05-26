@@ -103,25 +103,17 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo) {
         repcontent.submissionAfterEndtime = assignInfo.submissionAfterEndtime;
         	
 		if (report.ctype == _nl.ctypes.CTYPE_COURSE) {
-			_copyAttrsIf(assignInfo, repcontent, ['remarks'], ['']);
-	        if (assignInfo.blended) _copyAttrsIf(assignInfo, repcontent, ['iltTrainerName', 'iltVenue', 'iltCostInfra', 'iltCostTrainer',
+			nl.utils.copyAttrs(assignInfo, repcontent, ['remarks'], ['']);
+	        if (assignInfo.blended) nl.utils.copyAttrs(assignInfo, repcontent, ['iltTrainerName', 'iltVenue', 'iltCostInfra', 'iltCostTrainer',
 	        	'iltCostFoodSta', 'iltCostTravelAco', 'iltCostMisc'], ['', '', '', '', '', '', '']);
 		} else if (report.assigntype == _nl.atypes.ATYPE_COURSE) {
-	        _copyAttrsIf(assignInfo, repcontent, ['remarks'], [''], ['assign_remarks']);
+	        nl.utils.copyAttrs(assignInfo, repcontent, ['remarks'], [''], ['assign_remarks']);
         } else {
-	        _copyAttrsIf(assignInfo, repcontent, ['assign_remarks', 'max_duration', 'learnmode'], ['', undefined, undefined]);
+	        nl.utils.copyAttrs(assignInfo, repcontent, ['assign_remarks', 'max_duration', 'learnmode'], ['', undefined, undefined]);
 		}
         return repcontent;
     };
     
-    function _copyAttrsIf(src, dest, attrs, defVals, destAttrs) {
-        if (!destAttrs) destAttrs = attrs;
-		for (var i=0; i<attrs.length; i++) {
-			var attr = attrs[i];
-			if (attr in src) dest[destAttrs[i]] = src[attr];
-			else if (defVals[i] !== undefined) dest[attr] = defVals[i];
-		}
-    }
     var _msInfoCache = {};
     var _nhtBatchStatus = {};
     this.clearCache = function() {
@@ -133,6 +125,8 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo) {
         return _nhtBatchStatus;
     }
     this.getBatchMilestoneInfo = function(reportRecord, nhtBatchStatus) {
+        // TODO-NOW: Only the first guy's batch status is considerd. Everyone has to be considered?
+        // TODO-NOW: Duplicate NHT records have to be filtered out at a initial stage (not after filtering)
         var courseAssignment = this.getAssignmentRecordFromReport(reportRecord) || {};
         var _batchStatus = nhtBatchStatus[reportRecord.assignment] || {};
         if (!courseAssignment.id) return {};
@@ -199,7 +193,7 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo) {
         }
         ret.lastPlanned = lastPlanned;
         ret.lastActual = lastActual;
-        if (allMilestonesReached) {
+        if (allMilestonesReached || ret.batchStatus == 'Closed') {
             ret.batchStatus = 'Closed';
             _nhtBatchStatus.closed = true;
         } else {

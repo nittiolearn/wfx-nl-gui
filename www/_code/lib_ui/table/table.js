@@ -31,45 +31,38 @@ function(nl, nlDlg) {
                 return isOverflowing;
             };
             $scope.sortRows = function(colid) {
-                $scope.info.sortRows($scope,colid);
+                $scope.info.sortRows($scope, colid);
             };
         }
     };
 }];
 
 //-------------------------------------------------------------------------------------------------
-var TableSrv = ['nl', 'nlDlg', '$templateCache',
-function(nl, nlDlg, $templateCache) {
+var TableSrv = ['nl', 'nlExpressionProcessor', '$templateCache',
+function(nl, nlExpressionProcessor, $templateCache) {
 
     /* Sample content of table object which is passed to nlTable directive:
-    <nl-table info='tableobject'> (transclude content) </nl-table>
+    <nl-table info='tableobject'></nl-table>
     var info = {
-        columns: [                                            // Mandatory
+        origColumns: [                                        // Mandatory
             {id: xx,                                          // Mandatory, attrid within record
-             name: xx,                                           // Opt, default=id
-             icon: xx,                                           // Opt, default=none
-                                                                 // icon is attrid storing the icon
-             iconType: ionicon|img,                              // Opt, default=ionicon
-             smallScreen:false|true,                             // Opt, default=false
-             mediumScreen: true|false,                           // Opt, default=true
-             largeScreen: true|false,                            // Opt, default=true
-             searchable: true|false,                             // Opt, default=true
-             searchKey: undefined|null|xx,                       // Opt, default=name
-             showInDetails: true|false                           // Opt, default=true
-             styleTd: ''                                         // Opt, default=''
+             name: xx,                                        // Opt, default=id
+             icon: xx,                                        // Opt, default=none
+                                                              // icon is attrid storing the icon
+             iconType: ionicon|img,                           // Opt, default=ionicon
+             styleTd: ''                                      // Opt, default=''
              }, ...],
         search: {                                             // Opt, default=search
-            disable: false/true                                  // Opt, default=false
-            placeholder: 'Search',                               // Opt, default available
-            filter: '',                                          // Opt, default=''
+            disable: false/true                               // Opt, default=false
+            placeholder: 'Search',                            // Opt, default available
+            filter: '',                                       // Opt, default=''
         },
-        getSummaryRow: undefined|fn                           // Opt, default= no summary
         styleTable: '',                                       // Opt, default=cozy
         styleHeader: '',                                      // Opt, default=header
         styleSummary: '',                                     // Opt, default=summary
         maxVisible: 100,                                      // Opt, default=100
         onRowClick: undefined=none|"expand"|"xxx"             // Opt, default=none
-        detailsTemplate: undefined|"templateUrl"              // Opt, default=table_details.html
+        detailsTemplate: "templateUrl"                        // Mandatory
         clickHandler: undefined|fn                            // Opt, Called with action-type
         
         // Function registered by directive to be called by controller
@@ -77,86 +70,58 @@ function(nl, nlDlg, $templateCache) {
         updateScope: fn(records),
         
         // Internal stuff maintained by directive
-        _internal: {searcher: {}, recs: [], visibleRecs: []}
+        _internal: {paginator: {}, recs: [], visibleRecs: []}
     }
     */
 
     var self = this;
-    this.initTableObject = function(info) {
+    this.initTableObject = function(info, custColsDict, lookupTablesDict) {
         if (!info) throw('table info object error');
-        for (var i=0; i<info.columns.length; i++) {
-            var col = info.columns[i];
-            if (!col.id) throw('table info object error');
-            if (!col.name) col.name = col.id;
-            if (!col.iconType) col.iconType = 'ionicon';
-            
-            if (!col.smallScreen) col.smallScreen = false;
-            if (col.mediumScreen === undefined) col.mediumScreen = true;
-            if (col.largeScreen === undefined) col.largeScreen = true;
-
-            if (col.searchable === undefined) col.searchable = true;
-            if (!col.searchKey) col.searchKey = col.name;
-            col.searchKey = col.searchable ? col.searchKey.toLowerCase() : null;
-            if (col.showInDetails === undefined) col.showInDetails = true;
-
-            if (!col.styleTd) col.styleTd = '';
-        }
-
-        if (!info.search) info.search = {};
-        if (!info.search.disabled) info.search.disabled = false;
-        if (!info.search.placeholder) info.search.placeholder = 'Start typing to search';
-        if (!info.search.filter) info.search.filter = '';
-         
         if (!info.styleTable) info.styleTable = 'nl-table-styled2 cozy';
         if (!info.styleHeader) info.styleHeader = 'header';
         if (!info.styleSummary) info.styleSummary = 'summary';
-
         if (!info.maxVisible) info.maxVisible = 100;
         if (!info.onRowClick) info.onRowClick = null;
-        if (!info.detailsTemplate) info.detailsTemplate = 'lib_ui/table/table_details.html';
         if (!info.clickHandler) info.clickHandler = null;
         
         info._internal = {
-            summaryRow: null,
             recs: [],
             visibleRecs: [],
+            custColsDict: custColsDict,
+            lookupTablesDict: lookupTablesDict,
+            paginator: new Paginator(nl, info, nlExpressionProcessor)
         };
         info.onItemClick = _onItemClickHandler;
         info.sortRows = _sortRows;
-        
-        info._internal.searcher = new Searcher(nl, nlDlg, info);
     };
 
-    this.updateTableObject = function(info, records, startpos, resetSort) {
-        if (resetSort) _initSortObject(info);
-        _updateTableColumns(info);
+    this.resetCache = function(info) {
+        info._internal.paginator.resetCache();
+    };
+
+    this.updateTableRecords = function(info, records) {
+        _initSortObject(info);
         info._internal.recs = records;
-        info._internal.searcher.initStartPos(startpos);
-        info._internal.searcher.onClick(null);
+        info._internal.paginator.showPage(0);
+    };
+
+    this.updateTableColumns = function(info, records, custColsDict, lookupTablesDict) {
+        _initSortObject(info);
+        info._internal.custColsDict = custColsDict;
+        info._internal.lookupTablesDict = lookupTablesDict;
+        info._internal.recs = records;
+        info._internal.paginator.resetDisplayRecordCache();
+        info._internal.paginator.showPage(0);
+    };
+
+    this.updateTablePage = function(info, startpos) {
+        info._internal.paginator.showPage(startpos);
+    };
+
+    this.getFieldValue = function(info, record, fieldid) {
+        return info._internal.paginator.getFieldValue(record, fieldid);
     };
     
-    this.getSummaryRow = function(info) {
-        return info._internal.summaryRow;
-    };
-
-    function _updateTableColumns(info) {
-        info.columns = [];
-        for (var i=0;i<info.origColumns.length; i++) {
-            var column = info.origColumns[i];
-            if (column.insertCols) {
-                for (var j=0; j<column.children.length; j++) {
-                    var key = nl.t('{}{}', column.id, j);
-                    var defCols = angular.copy(column);
-                    defCols.id = key;
-                    defCols.name = column.children[j];
-                    info.columns.push(defCols);
-                }
-            } else {
-                info.columns.push(column);
-            }
-        }
-    }
-
     function _onItemClickHandler($scope, rec, action) {
         if (!action) return;
         var info = $scope.info;
@@ -167,24 +132,8 @@ function(nl, nlDlg, $templateCache) {
         if (!rec.canShowDetails) return;
         
         rec.details = $templateCache.get(info.detailsTemplate);
-        _defaultDetails(info, rec);
     }
     
-    function _defaultDetails(info, record) {
-        record.avps = [];
-
-        for(var i=0; i<info.columns.length; i++) {
-            var col = info.columns[i];
-            if (!col.showInDetails) continue;
-            var item = record[col.id] || {txt: ''};
-            var icon = (item.icon && col.iconType == 'ionicon')
-                 ? nl.fmt2("<i class='icon fsh4 {}'></i> ", item.icon)
-                 : '';
-            var txt = icon + item.txt;
-            nl.fmt.addAvp(record.avps, col.name, txt);
-        }
-    }
-
     function _initSortObject(info) {
         info.sort = {colid: null, ascending: true};
     }
@@ -200,128 +149,133 @@ function(nl, nlDlg, $templateCache) {
             sortObj.ascending = true;
         }
         var records = info._internal.recs;
+        var paginator = info._internal.paginator;
         records.sort(function(a, b) {
-            var colid= sortObj.colid;
-            var aVal = _getValue(colid, a);
-            var bVal = _getValue(colid, b);
+            var aVal = paginator.getFieldValue(a, colid, paginator.getAvps(a));
+            if (typeof(aVal) == 'string' && aVal.indexOf('%') > 0) {
+                aVal = aVal.substring(0, aVal.length-2);
+                aVal = parseInt(aVal);
+            }
+            var bVal = paginator.getFieldValue(b, colid, paginator.getAvps(b));
+            if (typeof(bVal) == 'string' && bVal.indexOf('%') > 0) {
+                bVal = bVal.substring(0, bVal.length-2);
+                bVal = parseInt(bVal);
+            }
             if (sortObj.ascending) return _compare(aVal, bVal);
             else return _compare(bVal, aVal);
         });
-        self.updateTableObject(info, records);
-    }   
+        info._internal.paginator.showPage();
+    } 
 
     function _compare(a,b) {
         if (a > b) return 1;
         else if (a < b) return -1;
         return 0;
     }
-
-    function _getValue(colid, item) {
-        var itemVal = item[colid];
-        if(colid.indexOf('.') != -1) itemVal = _getAttrValue(colid.split('.'), item);
-        itemVal = itemVal.toUpperCase();
-        return itemVal;
-    }
-
-    function  _getAttrValue(attrAsArray, item) {
-        if (!item || attrAsArray.length == 0) return '';
-        var attrValue = item[attrAsArray[0]];
-        if(attrAsArray.length == 1) return attrValue;
-        return _getAttrValue(attrAsArray.slice(1), attrValue);
-    }
 }];
 
 //-------------------------------------------------------------------------------------------------
-function Searcher(nl, nlDlg, info) {
+function Paginator(nl, info, nlExpressionProcessor) {
     var self = this;
     function _init() {
         self.infotxt = '';
         self.startpos = 0;
-        self.searchAttrs = _getSearchAttrs();
-
-        nl.resizeHandler.onResize(function() {
-            _onResize();
-        });
-        _onResize();
+        self.displayRecordCache = {};
+        self.recordAvpCache = {};
     }
 
-    self.initStartPos = function(startpos) {
-        self.startpos = startpos || 0;
-    };
+    self.resetDisplayRecordCache = function() {
+        self.displayRecordCache = {};
+    }
 
-    self.onKeyDown = function(event) {
-        var MAX_KEYSEARCH_DELAY = 200;
-        var timeout = (event.which === 13) ? 0 : MAX_KEYSEARCH_DELAY;
-        self.onClick(timeout);
-    };
+    self.resetCache = function() {
+        self.displayRecordCache = {};
+        self.recordAvpCache = {};
+    }
 
-    self.clickDebouncer = nl.CreateDeboucer();
-    self.onClick = function(timeout) {
-        self.clickDebouncer.debounce(timeout, _onClick)();
-    };
-
-    function _onClick(startpos) {
-        var filter = _getFilter();
+    self.showPage = function(startpos) {
+        self.startpos = (startpos === 0 || startpos > 0)  ? startpos : self.startpos || 0;
         var records = info._internal.recs;
-        var max = records.length > info.maxVisible ? info.maxVisible: records.length;
         var visible = [];
         var startpos = self.startpos;
-        for (var i=startpos; i<records.length; i++) {
-             records[i].passesFilter = false;
-            if (!_isFilterPass(records[i], filter)) continue;
-            if (visible.length < max)
-                visible.push(_getDisplayRecord(records[i]));
-             records[i].passesFilter = true;
+        for (var i=startpos; i < records.length && visible.length < info.maxVisible; i++) {
+            visible.push(_getDisplayRecord(records[i]));
         }
-
         info._internal.visibleRecs = visible;
-        info._internal.summaryRow = null;
-        if (info.getSummaryRow)
-            info._internal.summaryRow = info.getSummaryRow(records);
         _updateInfoTxt();
-    }
-    
-    function _onResize() {
-        var screenSize = nl.rootScope.screenSize;
-        for(var i=0; i<info.columns.length; i++) {
-            var col = info.columns[i];
-            if ('allScreens' in col) continue;
-            col.canShow = screenSize == 'small' ? col.smallScreen :
-                screenSize == 'medium' ? col.mediumScreen : col.largeScreen;
-        }
-    }
+    };
     
     function _getDisplayRecord(record) {
-        var ret = {_raw: record};
+        var rid = record.raw_record.id;
+        if (rid in self.displayRecordCache) return self.displayRecordCache[rid];
+
+        var ret = {_raw: record, _avps: self.getAvps(record)};
+        self.displayRecordCache[rid] = ret;
+
         for(var i=0; i<info.origColumns.length; i++) {
             var col = info.origColumns[i];
-            if (col.insertCols) {
-                var array = record[col.id] || [];
-                var count = 0;
-                for (var j=0; j<array.length; j++) {
-                    var key1 = nl.t('{}{}', col.id, count);
-                    ret[key1] = {txt: array[j].name};
-                    count++;
-                    var key2 = nl.t('{}{}', col.id, count);
-                    ret[key2] = {txt: array[j].score};
-                    count++;
-                }
-                continue;
-            }
-            ret[col.id] = {txt: self.getFieldValue(record, col.id), 
-                icon: col.icon ? self.getFieldValue(record, col.icon) : ''};
+            self.getFieldValue(record, col.id, ret._avps);
+            if (col.icon) self.getFieldValue(record, col.icon, ret._avps);
         }
         return ret;
     }
 
-    self.getFieldValue = function(record, fieldId) {
-        if(!record) return '';
-        var pos = fieldId.indexOf('.');
-        if (pos < 0) return record[fieldId] ? record[fieldId] : record[fieldId] === 0 ? '0' : '';
-        var left = fieldId.substring(0, pos);
-        var right = fieldId.substring(pos+1);
-        return self.getFieldValue(record[left], right);
+    self.getFieldValue = function(record, fieldId, avps) {
+        if (!avps) avps = self.getAvps(record);
+        var key = '_id.' + fieldId;
+        if (key in avps) return avps[key];
+        avps[key] = _getFieldValue(record, fieldId, avps);
+        return avps[key];
     };
+
+    self.getAvps = function(record) {
+        var rid = record.raw_record.id;
+        if (!(rid in self.recordAvpCache)) self.recordAvpCache[rid] = {};
+        return self.recordAvpCache[rid];
+    }
+
+    function _getFieldValue(record, fieldId, avps) {
+        if(!record) return '';
+        var ret = '';
+        if (fieldId.indexOf('custom.') != 0) {
+            ret = _getFixedFieldValue(record, fieldId);
+            if (!ret && ret !== 0) ret = '';
+        } else {
+            ret = _getCustomFieldValue(record, fieldId, avps);
+            if (!ret && ret !== 0) ret = '';
+            if (fieldId.indexOf('custom.') == 0) fieldId = fieldId.substring(7, fieldId.length);
+            record.custom[fieldId] = ret;            
+        }
+        return ret;
+    }
+
+    function _getFixedFieldValue(record, fieldId) {
+        if(!record) return '';
+        var parts = fieldId.split('.');
+        var obj = record;
+        for(var i=0; i<parts.length; i++) obj = obj[parts[i]];
+        return obj;
+    }
+
+    function _getCustomFieldValue(record, fieldId, avps) {
+        var key = 'id.' + fieldId;
+        var col = info._internal.custColsDict[fieldId];
+        if (!col) return '';
+
+        // Preload variables used in the formula
+        var usedVars = nlExpressionProcessor.getUsedVars(col.formula);
+        for (var key in usedVars) {
+            var usedFieldId = key.substring(4); // omit "_id."
+            self.getFieldValue(record, usedFieldId, avps);
+        }
+
+        // Now compute the formula
+        var payload = {strExpression: col.formula, dictAvps: avps, 
+            lookupTablesDict: info._internal.lookupTablesDict,
+            sendAsVariableNames: true};
+        nlExpressionProcessor.process(payload);
+        return payload.error ? '' : payload.result;
+    }
 
     function _updateInfoTxt() {
         var visible = info._internal.visibleRecs.length;
@@ -335,48 +289,6 @@ function Searcher(nl, nlDlg, info) {
         self.infotxt = nl.t('Found {} {} from {} {} searched.', visible, match, total, item);
     }
 
-    function _getFilter() {
-        if (!info.search.filter) return null;
-        var filter = info.search.filter.toLowerCase();
-        var pos = filter.indexOf(':');
-        if (pos < 0) return {str: filter, attr: null};
-        var filt = filter.substring(pos+1);
-        filt = filt.trim();
-
-        var attr = filter.substring(0, pos);
-        if (attr in self.searchAttrs) return {str: filt, attr: attr};
-        return {str: filter, attr: null};
-    }
-
-    function _isFilterPass(record, filter) {
-        if (!filter || !filter.str) return true;
-        var fields = _getSearchFields(record);
-        if (filter.attr)
-            return (fields[filter.attr] || '').toLowerCase().indexOf(filter.str) >= 0;
-        for (var f in fields) {
-            if (fields[f].toLowerCase().indexOf(filter.str) >= 0) return true;
-        }
-        return false;
-    }
-    
-    function _getSearchAttrs() {
-        var searchAttrs = {};
-        for(var i=0; i<info.columns.length; i++) {
-            var searchAttr = info.columns[i].searchKey;
-            if (!searchAttr) continue;
-            searchAttrs[searchAttr] = info.columns[i].id;
-        }
-        return searchAttrs;
-    }
-
-    function _getSearchFields(record) {
-        var fields = [];
-        for(var attr in self.searchAttrs) {
-            fields[attr] = self.getFieldValue(record, self.searchAttrs[attr]);
-        }
-        return fields;
-    }
-    
     _init();
 }
 

@@ -1,7 +1,7 @@
 (function() {
 //-------------------------------------------------------------------------------------------------
 // lr_drilldown.js; nlLrDrillDownSrv; nl-lr-drilldown (all content of the tab)
-// move status counts directive to drilldown.js
+// Provides a 2 level drilldown of summarized counts. By default level1 = suborg; level2 = ou
 //-------------------------------------------------------------------------------------------------
 function module_init() {
 	angular.module('nl.learning_reports.lr_drilldown', [])
@@ -10,17 +10,21 @@ function module_init() {
 }
 //-------------------------------------------------------------------------------------------------
 
-var NlLrDrilldownSrv = ['nlReportHelper',
-function(nlReportHelper) {
-    var _orgToSubOrgDict = {};
+var NlLrDrilldownSrv = ['nlReportHelper', 'nlTable',
+function(nlReportHelper, nlTable) {
     var _attritionObj = {};
     var _customStartedStatusObj = {};
-    var _isSubOrgEnabled = false;
+    var _pivotLevel1Field = null;
+    var _pivotLevel2Field = null;
+    var _pivotIndividualCourses = true;
+    var _scope = null;
     var StatsCount = new StatsCounts();
 
-    this.init = function(nlGroupInfo) {
-		_orgToSubOrgDict = nlGroupInfo.getOrgToSubOrgDict();
-        _isSubOrgEnabled = nlGroupInfo.isSubOrgEnabled();
+    this.init = function($scope) {
+        _scope = $scope;
+        _pivotLevel1Field = $scope.pivotConfig.level1Field;
+        _pivotLevel2Field = $scope.pivotConfig.level2Field;
+        _pivotIndividualCourses = $scope.pivotConfig.pivotIndividualCourses;
     };
 
     this.clearStatusCountTree = function() {
@@ -44,12 +48,17 @@ function(nlReportHelper) {
     }
 
     this.addCount = function(record) {
-        var contentid = record.raw_record.lesson_id;
-        var ou = record.user.org_unit;
-        var subOrg = _isSubOrgEnabled ? _orgToSubOrgDict[ou] : ou;
-        if(!subOrg) subOrg = "Others";
+        var level1FieldInfo = _getFieldValue(record, _pivotLevel1Field);
+        var level2FieldInfo = _pivotLevel2Field.id ? _getFieldValue(record, _pivotLevel2Field) : null;
         var statusCntObj = _getStatusCountObj(record);
-        _addCount(contentid, subOrg, _isSubOrgEnabled ? ou : '', statusCntObj, record.repcontent.name);
+        _addCount(record.raw_record.lesson_id, record.repcontent.name, 
+            level1FieldInfo, level2FieldInfo, statusCntObj);
+    }
+
+    function _getFieldValue(record, field) {
+        var ret = {id: nlTable.getFieldValue(_scope.utable, record, field.id)};
+        ret.name = (field.valueFieldId) ? nlTable.getFieldValue(_scope.utable, record, field.valueFieldId) : ret.id;
+        return ret;
     }
 
     function _getSortedArrayFromObj(dict) {
@@ -70,15 +79,14 @@ function(nlReportHelper) {
         return ret;
     }
 
-    function _addCount(cid, subOrg, ou, statusObj, name) {
-        StatsCount.updateRootCount(0, statusObj);
-        StatsCount.updateRootCount(cid, statusObj, name);
-        StatsCount.updateSuborgCount(0, subOrg, statusObj, _isSubOrgEnabled);
-        StatsCount.updateSuborgCount(cid, subOrg, statusObj, _isSubOrgEnabled);
-        if(_isSubOrgEnabled) {
-            StatsCount.updateOuCount(0, subOrg, ou, statusObj)
-            StatsCount.updateOuCount(cid, subOrg, ou, statusObj)
-        }
+    function _addCount(cid, coureName, level1FieldInfo, level2FieldInfo, statusObj) {
+        StatsCount.updateRootCount(0, "All", statusObj);
+        if (_pivotIndividualCourses) StatsCount.updateRootCount(cid, coureName, statusObj);
+        StatsCount.updateLevel1Count(0, level1FieldInfo, level2FieldInfo != null, statusObj);
+        if (_pivotIndividualCourses) StatsCount.updateLevel1Count(cid, level1FieldInfo, level2FieldInfo != null, statusObj);
+        if (!level2FieldInfo) return;
+        StatsCount.updateLevel2Count(0, level1FieldInfo, level2FieldInfo, statusObj);
+        if (_pivotIndividualCourses) StatsCount.updateLevel2Count(cid, level1FieldInfo, level2FieldInfo, statusObj);
     }
 
     function _getStatusCountObj(record) {
@@ -121,6 +129,7 @@ function(nlReportHelper) {
 		statsCountObj['cntActive'] = 1;
         if(status.id == nlReportHelper.STATUS_PENDING) {
             statsCountObj['pending'] = 1;
+            statsCountObj['notcompleted'] = 1;
             return;
         }
         if(statusStr.indexOf('attrition') == 0) {
@@ -135,6 +144,7 @@ function(nlReportHelper) {
         if(status.id == nlReportHelper.STATUS_STARTED) {
             statsCountObj[statusStr] = 1;
             statsCountObj['started'] = 1;
+            statsCountObj['notcompleted'] = 1;
             if(statusStr !== 'started') {
                 if(!(statusStr in _customStartedStatusObj)) 
                     _customStartedStatusObj[statusStr] = record.stats.progressPerc;
@@ -148,10 +158,6 @@ function(nlReportHelper) {
             return;
         }
         statsCountObj['certified'] = 1;
-        if (('reattempt' in stats) && stats.reattempt) 
-            statsCountObj['certifiedInReattempt'] = 1;
-        else 
-            statsCountObj['certifiedInFirstAttempt'] = 1;
 	}
 
     function _updateCommonCountsData(record, statsCountObj) {
@@ -165,8 +171,8 @@ function(nlReportHelper) {
 // NlLrDrilldown directive to display drill down tab
 //-------------------------------------------------------------------------------------------------
 
-var NlLrDrilldownDirective = [
-function() {
+var NlLrDrilldownDirective = ['nl',
+function(nl) {
     return {
         restrict: 'E',
         transclude: true,
@@ -176,11 +182,15 @@ function() {
         },
         link: function($scope, iElem, iAttrs) {
             $scope.generateDrillDownArray = function(item) {
-                $scope.$parent.$parent.generateDrillDownArray(item);
+                nl.utils.getFnFromParentOrGrandParent($scope, 'generateDrillDownArray')(item);
+            };
+
+            $scope.updatePivotTable = function(item) {
+                nl.utils.getFnFromParentOrGrandParent($scope, 'updatePivotTable')(item);
             };
 
             $scope.onDetailsClick = function(e, item, columns) {
-                $scope.$parent.$parent.onDetailsClick(e, item, columns);
+                nl.utils.getFnFromParentOrGrandParent($scope, 'onDetailsClick')(e, item, columns);
             };
         }
     }
@@ -194,7 +204,7 @@ function StatsCounts(nl) {
     var self = this;
 
     var statsCountItem = {cntTotal: 0, cntActive: 0, cntInactive: 0, doneInactive: 0, pendingInactive: 0, 
-                          completed: 0, certified: 0, certifiedInFirstAttempt: 0, certifiedInReattempt: 0, pending:0, failed: 0, started: 0,
+                          completed: 0, certified: 0, failed: 0, notcompleted: 0, pending:0, started: 0,
                           percScore: 0, avgScore: 0, delayDays: 0, timeSpent: 0, isOpen: false};
     var defaultStates = angular.copy(statsCountItem);
     var _dynamicStates = {};
@@ -215,50 +225,51 @@ function StatsCounts(nl) {
 
     this.getRoot = function(rootId, name) {
         if (rootId in _statusCountTree) return _statusCountTree[rootId].cnt;
-        var stats = angular.copy(statsCountItem)
-            stats['isFolder'] = true;
-            stats['name'] = rootId == 0 ? 'All' : name;
+        var stats = angular.copy(statsCountItem);
+        stats['isFolder'] = true;
+        stats['name'] = rootId == 0 ? 'All' : name;
         _statusCountTree[rootId] = {cnt: stats, children: {}};
         return _statusCountTree[rootId].cnt;
     };
 
-    this.getSuborg = function(rootId, subOrgId, isFolder) {
-        var  suborgs = _statusCountTree[rootId].children;
-        if (subOrgId in suborgs) return suborgs[subOrgId].cnt;
-        var stats = angular.copy(statsCountItem)
+    this.getLevel1Node = function(rootId, itemInfo, isFolder) {
+        var siblings = _statusCountTree[rootId].children;
+        var itemId = itemInfo.id;
+        if (itemId in siblings) return siblings[itemId].cnt;
+        var stats = angular.copy(statsCountItem);
         stats['isFolder'] = isFolder;
         stats['indentation'] = 24;
-        stats['name'] = subOrgId;
-        suborgs[subOrgId] = {cnt: stats};
-        if(isFolder) suborgs[subOrgId]['children'] = {}
-        return suborgs[subOrgId].cnt;
-    }
+        stats['name'] = itemInfo.name;
+        siblings[itemId] = {cnt: stats};
+        if(isFolder) siblings[itemId]['children'] = {}
+        return siblings[itemId].cnt;
+    };
 
-    this.getOu = function(rootId, subOrgId, ouid) {
-        var  ous = _statusCountTree[rootId].children[subOrgId].children;
-        if (ouid in ous) return ous[ouid].cnt;
-        var stats = angular.copy(statsCountItem)
+    this.getLevel2Node = function(rootId, parentInfo, itemInfo) {
+        var siblings = _statusCountTree[rootId].children[parentInfo.id].children;
+        var itemId = itemInfo.id;
+        if (itemId in siblings) return siblings[itemId].cnt;
+        var stats = angular.copy(statsCountItem);
         stats['indentation'] = 44;
-        stats['name'] = ouid;
-        ous[ouid] = {cnt: angular.copy(stats)};
-        return ous[ouid].cnt;  
-    }
+        stats['name'] = itemInfo.name;
+        siblings[itemId] = {cnt: stats};
+        return siblings[itemId].cnt;
+    };
 
-    this.updateRootCount = function(contentid, statusCnt, name) {
-        //contentid = 0 for updating all item in the _statusCountTree. contentid = courseid/lesson_id for all other records.
-        var updatedStats = self.getRoot(contentid, name);
+    this.updateRootCount = function(rootId, name, statusCnt) {
+        // contentid = 0 for updating all item in the _statusCountTree. 
+        // contentid = courseid/lesson_id for all other records.
+        var updatedStats = self.getRoot(rootId, name);
         _updateStatsCount(updatedStats, statusCnt);
     }
 
-    this.updateSuborgCount = function(contentid, subOrgId, statusCnt, isFolder) {
-        //isFolder is false, then there is no suborg enabled for group. This object is considered as ou.
-        var updatedStats = self.getSuborg(contentid, subOrgId, isFolder);
+    this.updateLevel1Count = function(rootId, level1Info, isFolder, statusCnt) {
+        var updatedStats = self.getLevel1Node(rootId, level1Info, isFolder);
         _updateStatsCount(updatedStats, statusCnt);
     }
 
-    this.updateOuCount = function(contentid, subOrgId, ouid, statusCnt) {
-        //This happens only if the suborg is enabled for group.
-        var updatedStats = self.getOu(contentid, subOrgId, ouid);
+    this.updateLevel2Count = function(rootId, level1Info, level2Info, statusCnt) {
+        var updatedStats = self.getLevel2Node(rootId, level1Info, level2Info);
         _updateStatsCount(updatedStats, statusCnt);
     } 
 
@@ -311,13 +322,12 @@ function StatsCounts(nl) {
             updatedStats['percCompleted'] = Math.round(updatedStats.completed*100/updatedStats.cntTotal);
             updatedStats['percCertified'] = Math.round(updatedStats.certified*100/updatedStats.cntTotal);
             updatedStats['percFailed'] = Math.round(updatedStats.failed*100/updatedStats.cntTotal);
+            updatedStats['percNotcompleted'] = Math.round(updatedStats.notcompleted*100/updatedStats.cntTotal);
             updatedStats['percPending'] = Math.round(updatedStats.pending*100/updatedStats.cntTotal);
             updatedStats['percStarted'] = Math.round(updatedStats.started*100/updatedStats.cntTotal);
             updatedStats['avgScore'] = (updatedStats.percScore != 0 && (updatedStats.completed != 0 || updatedStats.doneInactive != 0)) ? Math.round(updatedStats.percScore/(updatedStats.completed + updatedStats.doneInactive))+' %' : 0;
             updatedStats['avgDelay'] = Math.round(updatedStats.delayDays/updatedStats.cntTotal);
             updatedStats['timeSpentInMins'] = Math.round(updatedStats.timeSpent/60);
-            updatedStats['percCertifiedInFirstAttempt'] = Math.round(updatedStats.certifiedInFirstAttempt*100/updatedStats.cntTotal)
-            updatedStats['percCertifiedInReattempt'] = Math.round(updatedStats.certifiedInReattempt*100/updatedStats.cntTotal)
             if(updatedStats.attrition) updatedStats['percAttrition'] = Math.round(updatedStats.attrition*100/updatedStats.cntTotal)
         }
 

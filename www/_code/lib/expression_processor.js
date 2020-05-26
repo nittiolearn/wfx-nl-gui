@@ -27,6 +27,10 @@ function(nl) {
         return _process(payload);
     };
 
+    this.getUsedVars = function(inputStr) {
+        return _getUsedVars(inputStr);
+    };
+
     //-------------------------------------------------------------------------------------------------
     // Test code: Uncomment the call this method in the end of this module for testing
     this.test = function() {
@@ -100,7 +104,7 @@ function(nl) {
         payload['error'] = '';
         payload['result'] = null;
         payload['inputNotDefined'] = false;
-        payload['gate_start_after'] = {};
+        payload['formula_used_vars'] = {};
         
         payload['bracesReplaced1'] = _replaceAll(payload['strExpression'], '{', '([');
         payload['bracesReplaced2'] = _replaceAll(payload['bracesReplaced1'], '}', '])');
@@ -120,11 +124,21 @@ function(nl) {
     
         if (!_processJS(payload)) return false;
         try {
+            self.payloadForEval = payload;
             payload['result'] = eval(payload['funcsReplaced']);
         } catch (e) {
             payload['error'] = nl.fmt2('Error evaluating expression: {}', e);
         }
+        self.payloadForEval = null;
         return true;
+    }
+
+    function _getUsedVars(inputStr) {
+        var usedVars = {};
+        inputStr.replace(/_id[\.\_a-zA-Z0-9]+/g, function(varName) {
+            usedVars[varName] = true;
+        });
+        return usedVars;
     }
 
     function _replaceVars(inputStr, payload) {
@@ -132,7 +146,8 @@ function(nl) {
             if (varName in payload['dictAvps']) {
                 var varVal = payload['dictAvps'][varName];
                 if (varVal === null) payload['inputNotDefined'] = true;
-                payload['gate_start_after'][varName] = true;
+                payload['formula_used_vars'][varName] = true;
+                if (payload['sendAsVariableNames']) return '"' + varName + '"';
                 return varVal;
             }
             if (payload['error'] == '') payload['error'] = nl.fmt2('{} is not found. Please use unique ids of items above the current item.', varName);
@@ -163,6 +178,7 @@ function(nl) {
         '$nth_min(': '_ExpressionProcessor_nth_min(',
         '$if(': '_ExpressionProcessor_if(',
         '$date_format(': '_ExpressionProcessor_date_format(',
+        '$lookup(': '_ExpressionProcessor_lookup(',
     };
 
     function _ExpressionProcessor_min(inputArgs) {
@@ -242,15 +258,39 @@ function(nl) {
         return inputArgs[0] ? inputArgs[1] : inputArgs[2];
     }
 
-    // TODO-NOW: Implement custom formula functions for reports
     function _ExpressionProcessor_date_format(inputArgs) {
         _ExpressionProcessor_check(inputArgs, 'date_format');
-        var ret = inputArgs[0] || 0;
-        return ret;
+        if (inputArgs.length != 2) throw(nl.fmt2('$date_format(...) function takes 2 arguments, {} given.', inputArgs.length));
+        var fmt = inputArgs[0] || "YYYY-MM"; 
+        var dateInput = inputArgs[1];
+        if (!dateInput) return;
+        if (fmt == 'YYYY-MM') return nl.fmt.date2UtcStr(dateInput, 'month');
+        else return nl.fmt.date2UtcStr(dateInput, 'date');
+    }
+
+    function _ExpressionProcessor_lookup(inputArgs) {
+        _ExpressionProcessor_check(inputArgs, 'lookup');
+        if (inputArgs.length != 2) throw(nl.fmt2('$lookup(...) function takes 2 arguments, {} given.', inputArgs.length));
+        var lookupVal = inputArgs[0]; 
+        var lookupTableName = inputArgs[1];
+        if (!self.payloadForEval || !self.payloadForEval.lookupTablesDict) return '';
+        var table = self.payloadForEval.lookupTablesDict[lookupTableName];
+        if (!table || !table.lookup) return '';
+        lookupVal = ('' + lookupVal).trim().toLowerCase();
+        return lookupVal in table.lookup ? table.lookup[lookupVal] : '';
     }
 
     function _ExpressionProcessor_check(inputArgs, fn) {
+        _ExpressionProcessor_replace(inputArgs);
         if (inputArgs.length < 2) throw(nl.fmt2('{} function takes atleast 2 argument, {} given.', fn, inputArgs.length));
+    }
+
+    function _ExpressionProcessor_replace(inputArgs) {
+        if (!self.payloadForEval['sendAsVariableNames']) return;
+        for(var i=0; i<inputArgs.length; i++) {
+            var val = self.payloadForEval['dictAvps']['' + inputArgs[i]];
+            if (val !== undefined) inputArgs[i] = val;
+        }
     }
 
     // console.log('Test details: ', this.test());

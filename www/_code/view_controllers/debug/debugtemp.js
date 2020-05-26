@@ -83,14 +83,6 @@ function(nl, nlRouter, $scope) {
         $scope.data.chartData = [{type: 'doughnut', data: [12, 34, 35, 20, 10], labels: ['Training', 'OJT', 'Certification', 'Re-certification', 'Closed'], 
                                   colors:[_nl.colorsCodes.started, _nl.colorsCodes.pending, _nl.colorsCodes.done, _nl.colorsCodes.pending, _nl.colorsCodes.pending], series: [], options: []}];
         $scope.hideColsGui = true;
-        $scope.tableViewConfig = {
-            canEdit: nlRouter.isPermitted(userInfo, 'assignment_manage'),
-            tableType: 'nht_views',
-            allColumns: _getOptionalColumns(),
-            onViewChange: function(selectedColumns) {
-                $scope.columns = _mergeColumns(selectedColumns);
-            }
-        };
     }
 
     function _mergeColumns(columns) {

@@ -63,7 +63,7 @@ function MetadataFilterTrees(nl, nlDlg, nlTreeSelect, nlGroupInfo, selectedIds, 
 
     function _init() {
         var groupInfo = nlGroupInfo.get();
-        var users = groupInfo.derived.keyToUsers || {};
+        var users = nlGroupInfo.getKeyToUsers(groupInfo);
         for(var username in users) {
             var user = users[username];
             if (!userListFilter && !user.isActive()) continue;
@@ -320,7 +320,7 @@ function OuUserSelector(nl, nlDlg, nlGroupInfo, nlTreeSelect, nlOuUserSelect,
     
     function _getOuToUserDict() {
         var ouToUsers = {};
-        var users = groupInfo.derived.keyToUsers || {};
+        var users = nlGroupInfo.getKeyToUsers(groupInfo);
         for(var username in users) {
             var user = users[username];
             if (!userListFilter && !user.isActive()) continue;

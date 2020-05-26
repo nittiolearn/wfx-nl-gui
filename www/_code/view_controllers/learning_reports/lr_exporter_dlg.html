@@ -13,6 +13,16 @@
                 </select>
             </div>
         </nl-dlg-row>
+        <nl-dlg-row attr='recordType' data='data' help='help'>
+            <div class='nl-dlg-field-value padding0'>
+                <select ng-model='data.recordType' 
+                    ng-options='elem as elem.name group by elem.group for elem in options.recordType track by elem.id'
+                    style='height: 40px; width: 100%;'
+                    autofocus=''
+                    tabindex="{{fieldindex}}">
+                </select>
+            </div>
+        </nl-dlg-row>
         <div ng-show='showCertificateCheckbox' class='padding-mid nl-link-text'
             ng-click='export.certificate = !export.certificate'>
             <i ng-show='export.certificate' class="fsh4 icon ion-android-checkbox-outline"></i>
@@ -29,7 +39,7 @@
             ng-click='export.lr = !export.lr'>
             <i ng-show='export.lr' class="fsh4 icon ion-android-checkbox-outline"></i>
             <i ng-hide='export.lr' class="fsh4 icon ion-android-checkbox-outline-blank"></i>
-            <span>download course report (columns selected in learning report tab)</span>
+            <span>download learning reports (columns visible in learning report tab)</span>
         </div>
         <div ng-show='reptype == "course_assign" || reptype == "course"'
              ng-click='export.courseDetails = !export.courseDetails'  class='padding-mid nl-link-text'>
@@ -80,13 +90,13 @@
              ng-click='export.nhtRunning = !export.nhtRunning'>
             <i ng-show='export.nhtRunning' class="fsh4 icon ion-android-checkbox-outline"></i>
             <i ng-hide='export.nhtRunning' class="fsh4 icon ion-android-checkbox-outline-blank"></i>
-            <span>download Running training batch data</span>
+            <span>download running training batch data</span>
         </div>
         <div ng-show='showNhtClosedCheckbox' class='padding-mid nl-link-text' 
              ng-click='export.nhtClosed = !export.nhtClosed'>
             <i ng-show='export.nhtClosed' class="fsh4 icon ion-android-checkbox-outline"></i>
             <i ng-hide='export.nhtClosed' class="fsh4 icon ion-android-checkbox-outline-blank"></i>
-            <span>download Closed training batch data</span>
+            <span>download closed training batch data</span>
         </div>
         <div ng-show='showIltBatchCheckbox' class='padding-mid nl-link-text' 
              ng-click='export.iltBatch = !export.iltBatch'>
@@ -94,11 +104,5 @@
             <i ng-hide='export.iltBatch' class="fsh4 icon ion-android-checkbox-outline-blank"></i>
             <span>download training batch attendance data</span>
         </div>
-        <div class='row row-top row-wrap margin0 padding-mid'>
-        	<span class='fsh4'>Filter data and download subset of records</span>
-        </div>
-        
-        <nl-org-metadata-more-filters data='filtersData'>
-        </nl-org-metadata-more-filters>
     </nl-dlg-content>
 </nl-dlg>

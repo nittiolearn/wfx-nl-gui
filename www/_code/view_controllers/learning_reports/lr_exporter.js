@@ -13,8 +13,8 @@ var configFn = ['$stateProvider', '$urlRouterProvider',
 function($stateProvider, $urlRouterProvider) {
 }];
 
-var NlLrExporter = ['nl', 'nlDlg', 'nlRouter', 'nlExporter', 'nlOrgMdMoreFilters', 'nlLrHelper', 'nlLrSummaryStats', 'nlGroupInfo', 'nlLrFilter', 'nlReportHelper', 'nlGetManyStore', 'nlCourse',
-function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSummaryStats, nlGroupInfo, nlLrFilter, nlReportHelper, nlGetManyStore, nlCourse) {
+var NlLrExporter = ['nl', 'nlDlg', 'nlRouter', 'nlExporter', 'nlLrHelper', 'nlLrSummaryStats', 'nlGroupInfo', 'nlLrFilter', 'nlReportHelper', 'nlGetManyStore', 'nlCourse',
+function(nl, nlDlg, nlRouter, nlExporter, nlLrHelper, nlLrSummaryStats, nlGroupInfo, nlLrFilter, nlReportHelper, nlGetManyStore, nlCourse) {
     var _gradelabel = '';
     var _subjectlabel = '';
 
@@ -49,7 +49,7 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
     	_subjectlabel = userInfo.groupinfo.subjectlabel;
 	};
 	
-    this.export = function($scope, reportRecords, customScoresHeader, drillDownDict, nhtDict, iltBatchStats, lrDict, certificateDict) {
+    this.export = function($scope, getReportRecordsFn, customScoresHeader, drillDownDict, nhtDict, iltBatchStats, lrDict, certificateDict) {
         var dlg = nlDlg.create($scope);
         _canzip = nlLrFilter.canZip();
         _customScoresHeader = customScoresHeader || [];
@@ -66,11 +66,11 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
             dlg.scope.export['drilldown'] = false;
         }
         _nhtDict = nhtDict || {};
-        if (nhtDict.running) {
+        if (_nhtDict.runningRows) {
             dlg.scope.showNhtRunningCheckbox = !dlg.scope.certmode ? (dlg.scope.reptype != "user") : false;
             dlg.scope.export['nhtRunning'] = false;
         }
-        if (nhtDict.closed) {
+        if (_nhtDict.closedRows) {
             dlg.scope.showNhtClosedCheckbox = !dlg.scope.certmode ? (dlg.scope.reptype != "user") : false;
             dlg.scope.export['nhtClosed'] = false;
         }
@@ -91,10 +91,10 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
         }
         dlg.scope.data = {};
         dlg.scope.help = _getHelp();
-        dlg.scope.options = {exportFormat: [{id: 'xlsx', name: 'XLSX'}, {id: 'csv', name: 'CSV'}]};
+        dlg.scope.options = {exportFormat: [{id: 'csv', name: 'CSV'}, {id: 'xlsx', name: 'XLSX'}],
+                             recordType: [{id: 'filtered', name: 'Export filtered records'}, {id: 'all', name: 'Export all records'}]};
         dlg.scope.data.exportFormat = dlg.scope.options.exportFormat[0];
-		_setExportFilters(dlg, reportRecords);
-        var filterData = dlg.scope.filtersData;
+        dlg.scope.data.recordType = dlg.scope.options.recordType[0];
         var exportButton = {
             text : nl.t('Download'),
             onTap : function(e) {
@@ -116,13 +116,12 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
                 filter.reptype = dlg.scope.reptype;
                 filter.exportTypes = exp;
                 _exportFormat = dlg.scope.data.exportFormat.id;
-				filter.selectedOus = nlOrgMdMoreFilters.getSelectedOus(filterData);
-				filter.selectedMds = nlOrgMdMoreFilters.getSelectedMds(filterData);
-				filter.selectedCourses = nlOrgMdMoreFilters.getSelectedMores(filterData);
                 var promise = nl.q(function(resolve, reject) {
 	                nlDlg.showLoadingScreen();
-			        nlDlg.popupStatus('Initiating download. This may take a while ...', false);
+                    nlDlg.popupStatus('Initiating download. This may take a while ...', false);
+                    var isFiltered = dlg.scope.data.recordType.id == 'filtered';
                     nl.timeout(function() {
+                        var reportRecords = getReportRecordsFn(isFiltered);
 	        	        _initCtx(reportRecords, _userInfo, filter);
 	                    _export(resolve, reject, filter, reportRecords);
                     }); // Seems needed for loadingScreen to appear properly.
@@ -141,32 +140,11 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
     
     function _getHelp() {
         return {
-			exportFormat: {name: nl.t('Export format'), help: nl.t('You may either export reports as csv or xlsx format.')}}
-    }
-
-    function _setExportFilters(dlg, reportRecords) {
-        var type = nlLrFilter.getType();
-        var title = (type == 'module' || type == 'module_assign' || type == 'module_self_assign')
-            ? 'Modules' : 'Courses';
-        var tree = {data: _getModuleOrCourseTree(reportRecords) || []};
-        dlg.scope.filtersData = nlOrgMdMoreFilters.getData(tree, title);
-	}
-
-	function _getModuleOrCourseTree(reportRecords) {
-        var insertedKeys = {};
-        var treeArray = [];
-        for(var i=0; i<reportRecords.length; i++) {
-            var item = reportRecords[i];
-            var key = 'key:'+item.raw_record.lesson_id;
-            if (!insertedKeys[key]) {
-                insertedKeys[key] = true;
-                treeArray.push({id: key, name: item.repcontent.name});
-            }
+            exportFormat: {name: nl.t('Export format'), help: nl.t('You may either export reports as csv or xlsx format.')},
+            recordType: {name: nl.t('Filter Data'), help: nl.t('You could choose to filter the data and download subset of records or all records')}
         }
-        return treeArray;
     }
 
-    var _CSV_DELIM = '\n';
     function _export(resolve, reject, filter, reportRecords) {
         try {
             var zip = new JSZip();
@@ -174,12 +152,10 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
 		    var expSummaryStats = nlLrSummaryStats.getSummaryStats();
             if(filter.exportTypes.drilldown) _updateDrillDownRow();    
             if(filter.exportTypes.nhtRunning) {
-                var nhtStats = _nhtDict.running;
-                _updateNhtRow(nhtStats, ctx.nhtRunningRow);
+                _updateNhtRow(_nhtDict.runningHeaders, _nhtDict.runningRows, ctx.nhtRunningRow);
             }
             if(filter.exportTypes.nhtClosed) {
-                var nhtStats = _nhtDict.closed;
-                _updateNhtRow(nhtStats, ctx.nhtClosedRow);
+                _updateNhtRow(_nhtDict.closedHeaders, _nhtDict.closedRows, ctx.nhtClosedRow);
             }
             if(filter.exportTypes.iltBatch) _updateIltBatchRow();
             if(filter.exportTypes.lr) _updateLrRow(reportRecords);
@@ -379,23 +355,14 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
     function _createCsv(filter, records, zip, fileName, start, end) {
         var rows = [];
         for (var i=start; i<end; i++) rows.push(records[i]);
-        var content = rows.join(_CSV_DELIM);
+        var content = nlExporter.getUtfCsv(rows);
         zip.file(fileName, content);
     }
 
     function _updateLrRow(reports) {
         var lrHeaderRow = _lrDict.columns;
         for(var i=0; i<reports.length; i++) {
-            var quizscore = reports[i].quizscore;
-            var count = 0;
-            for (var j=0;j<quizscore.length; j++) {
-                var key = nl.t('quizscore{}', count);
-                reports[i][key] = quizscore[j].name;
-                count++;
-                var key2 = nl.t('quizscore{}', count);
-                reports[i][key2] = quizscore[j].score;
-                count++;
-            }
+            // TODO-NOW: Custom columns are not updated in the object?
             if (_exportFormat == 'csv') 
                 ctx.lrRow.push(nlExporter.getCsvRow(lrHeaderRow, reports[i]));
             else
@@ -406,14 +373,13 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
 // Update NHT row while exporting
 //-------------------------------------------------------------------------------------------------
 
-    function _updateNhtRow(nhtStatsArray, nhtInfo) {
-        var nhtHeaderRow = _nhtDict.columns;
-        for(var i=0; i<nhtStatsArray.length; i++) {
-            var row = nhtStatsArray[i];
+    function _updateNhtRow(headers, rows, nhtInfo) {
+        for(var i=0; i<rows.length; i++) {
+            var row = rows[i];
             if (_exportFormat == 'csv') 
-                nhtInfo.push(nlExporter.getCsvRow(nhtHeaderRow, row));
+                nhtInfo.push(nlExporter.getCsvRow(headers, row));
             else 
-                nhtInfo.push(nlExporter.getItemRow(nhtHeaderRow, row));
+                nhtInfo.push(nlExporter.getItemRow(headers, row));
         }
     }
 
@@ -429,33 +395,30 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
                 ctx.drillDownRow.push(nlExporter.getCsvRow(_drillDownDict.columns, row.cnt));
             else 
                 ctx.drillDownRow.push(nlExporter.getItemRow(_drillDownDict.columns, row.cnt));
-            if(row.children) _updateSuborgRow(row.cnt.name, row.children);   
+            if(row.children) _updateLevel1Rows(row.cnt.name, row.children);   
         }
     }
 
-    function _updateSuborgRow(courseName, suborgRow) {
-        for(var key in suborgRow) {
-            var row = suborgRow[key];
+    function _updateLevel1Rows(courseName, level1Rows) {
+        for(var key in level1Rows) {
+            var row = level1Rows[key];
             row.cnt['courseName'] = courseName;
-            if(!row.children) 
-                row.cnt['organisationId'] = row.cnt.name;
-            else 
-                row.cnt['subOrgId'] = row.cnt.name;
+            row.cnt['level1Field'] = row.cnt.name;
+            row.cnt['level2Field'] = '';
             if(_exportFormat == 'csv')
                 ctx.drillDownRow.push(nlExporter.getCsvRow(_drillDownDict.columns, row.cnt));
             else
                 ctx.drillDownRow.push(nlExporter.getItemRow(_drillDownDict.columns, row.cnt));
-
-            if(row.children) _updateOrgRow(courseName, row.cnt.name, row.children);
+            if(row.children) _updateLevel2Rows(courseName, row.cnt.name, row.children);
         }
     }
 
-    function _updateOrgRow(courseName, subOrgId, orgRow) {
-        for(var key in orgRow) {
-            var row = orgRow[key];
+    function _updateLevel2Rows(courseName, level1FieldValue, level2Rows) {
+        for(var key in level2Rows) {
+            var row = level2Rows[key];
             row.cnt['courseName'] = courseName;
-            row.cnt['subOrgId'] = subOrgId;
-            row.cnt['organisationId'] = row.cnt.name;
+            row.cnt['level1Field'] = level1FieldValue;
+            row.cnt['level2Field'] = row.cnt.name;
             if (_exportFormat == 'csv') 
                 ctx.drillDownRow.push(nlExporter.getCsvRow(_drillDownDict.columns, row.cnt));
             else
@@ -489,51 +452,37 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
         var header = null;
         var rows = null;
         if(_exportFormat == 'csv') {
-            header = _getCsvHeader(filter);
+            header = _getCsvHeader();
             rows = [nlExporter.getCsvString(header)];    
         }
-        var type = nlLrFilter.getType();
         for (var i=start; i<end; i++) {
             var row = null;
             if(records[i].raw_record.ctype == _nl.ctypes.CTYPE_MODULE) {
-	            row = _getModuleCsvRow(filter, records[i]);
+	            row = _getModuleCsvRow(records[i]);
+                _updateModuleAndPageRows(filter, records[i]); // Updates modules, page score, feedback rows.
             } else {
-                row = _getCsvRow(filter, records[i]);
+                row = _getCsvRow(records[i]);
             }
+            
+            if(_exportFormat == 'csv')
+                rows.push(nlExporter.getCsvString(row));
+            else
+                ctx.courseReportRows.push(row);
 
-			var selectedCourseId = _checkFilter(filter.selectedCourses, 'key:'+records[i].raw_record['lesson_id']);
-			var selectedOus = _checkFilter(filter.selectedOus, records[i].user.org_unit);
- 			
-			var selectedMetaFields = true;
-            for(var meta in filter.selectedMds) {
-            	var selectedMetas = filter.selectedMds[meta];
-            	if (_checkFilter(filter.selectedMds[meta], records[i].usermd[meta])) continue;
-            	selectedMetaFields = false;
-            	break;
+            if(records[i].raw_record.ctype == _nl.ctypes.CTYPE_COURSE) {
+                if(filter.exportTypes.courseDetails) _updateCsvCourseDetailsRows(filter, records[i]);
             }
-
-            if(selectedCourseId && selectedOus && selectedMetaFields) {
-                if(_exportFormat == 'csv')
-                    rows.push(nlExporter.getCsvString(row));
-                else
-                    ctx.courseReportRows.push(row);
-	            if (records[i].raw_record.ctype == _nl.ctypes.CTYPE_MODULE) {
-	            	_updateModuleAndPageRows(filter, records[i]); // Updates modules, page score, feedback rows.
-	            } else if(records[i].raw_record.ctype == _nl.ctypes.CTYPE_COURSE){
-                    if(filter.exportTypes.courseDetails) _updateCsvCourseDetailsRows(filter, records[i]);
-	            }
-                expSummaryStats.addToStats(records[i]);
-            }
+            expSummaryStats.addToStats(records[i]);
         }
 
         if(_exportFormat == 'csv') {
             if (filter.exportTypes.course && (filter.reptype == 'course' || filter.reptype == 'course_assign')) {
-                var content = rows.join(_CSV_DELIM);
+                var content = nlExporter.getUtfCsv(rows);
                 zip.file(fileName, content);
             }
     
             if (filter.exportTypes.indUser && (filter.reptype == 'user')) {
-                var content = rows.join(_CSV_DELIM);
+                var content = nlExporter.getUtfCsv(rows);
                 zip.file(fileName, content);
             }
         }
@@ -552,7 +501,7 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
             row = row.concat([record.perc ? record.perc+ '%' : '', record.assigned, record.done, record.failed, record.started, record.pending]);
             rows.push(nlExporter.getCsvString(row));
         }
-        var content = rows.join(_CSV_DELIM);
+        var content = nlExporter.getUtfCsv(rows);
         zip.file(fileName, content);
     }
     
@@ -574,7 +523,7 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
 
     var _idFields = ['Report Id', 'Assign Id', 'Course/ Module Id'];
 
-    function _getCsvHeader(filter) {
+    function _getCsvHeader() {
         var type = nlLrFilter.getType();
         var mh = nlLrHelper.getMetaHeaders(false);
         var headers = ['User Id', 'User Name'];
@@ -585,22 +534,22 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
         headers = headers.concat(['Feedback score', 'Online Time Spent (minutes)', 'ILT time spent(minutes)', 'ILT total time(minutes)', 'Venue', 'Trainer name']);
     	headers = headers.concat([ 'Infra Cost', 'Trainer Cost', 'Food Cost', 'Travel Cost', 'Misc Cost']);
         headers = headers.concat(['User state', 'Email Id', 'Org']);
-        if (!filter.hideMetadata) for(var i=0; i<mh.length; i++) headers.push(mh[i].name);
-        if (filter.exportTypes.ids)
-            headers = headers.concat(_idFields);
+        for(var i=0; i<mh.length; i++) headers.push(mh[i].name);
+        headers = headers.concat(_idFields);
         if (type == 'user') headers.push('Type');
         headers.push('Language');
         return headers;
     };
     
-    function _getCsvRow(filter, report) {
+    function _getCsvRow(report) {
         var type = nlLrFilter.getType();
         var feedbackScore = report.stats.feedbackScore || '';
         var mh = nlLrHelper.getMetaHeaders(false);
         var ret = [report.user.user_id, report.user.name];
         ret = ret.concat([report.repcontent.name, report.raw_record._batchName || '', report.raw_record._grade || '',
         	report.raw_record.subject || '', nl.fmt.date2Str(report.raw_record.created), nl.fmt.date2Str(report.raw_record.updated),
-        	report.raw_record.not_before ? nl.fmt.date2Str(nl.fmt.json2Date(report.raw_record.not_before)) : '', report.raw_record.not_after ? nl.fmt.date2Str(nl.fmt.json2Date(report.raw_record.not_after)) : '', 
+            report.repcontent.not_before ? nl.fmt.date2Str(nl.fmt.json2Date(report.repcontent.not_before)) : '',
+            report.repcontent.not_after ? nl.fmt.date2Str(nl.fmt.json2Date(report.repcontent.not_after)) : '', 
             report.stats.status.txt, report.stats.percCompleteStr,
             report.stats.percCompleteDesc, report.stats.avgAttempts || '',
             report.stats.percScoreStr, report.stats.nMaxScore, report.stats.nScore]) 
@@ -625,23 +574,23 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
         ret.push(report.user.state ? 'active' : 'inactive');        
         ret.push(report.user.email);
         ret.push(report.user.org_unit);
-        if (!filter.hideMetadata) for(var i=0; i<mh.length; i++) ret.push(report.usermd[mh[i].id] || '');
-        if (filter.exportTypes.ids)
-            ret = ret.concat(['id=' + report.raw_record.id, 'id=' + report.raw_record.assignment, 
-                'id=' + report.raw_record.lesson_id]);
+        for(var i=0; i<mh.length; i++) ret.push(report.usermd[mh[i].id] || '');
+        ret = ret.concat(['id=' + report.raw_record.id, 'id=' + report.raw_record.assignment, 
+            'id=' + report.raw_record.lesson_id]);
         if (type == 'user') ret.push(report.raw_record.typeStr);
         if ('targetLang' in report.repcontent) ret.push(report.repcontent.targetLang);
         return ret;
     }
     
-    function  _getModuleCsvRow(filter, report) {
+    function  _getModuleCsvRow(report) {
         var type = nlLrFilter.getType();
         var mh = nlLrHelper.getMetaHeaders(false);
         var ret = [report.user.user_id, report.user.name];
         ret = ret.concat([report.repcontent.name, report.raw_record._batchName, report.raw_record._grade || '',
         	report.raw_record.subject || '', nl.fmt.date2Str(report.raw_record.created), nl.fmt.date2Str(report.raw_record.updated)]);
 
-        ret = ret.concat([report.raw_record.not_before ? nl.fmt.date2Str(nl.fmt.json2Date(report.raw_record.not_before)) : '', report.raw_record.not_after ? nl.fmt.date2Str(nl.fmt.json2Date(report.raw_record.not_after)) : '', 
+        ret = ret.concat([report.repcontent.not_before ? nl.fmt.date2Str(nl.fmt.json2Date(report.repcontent.not_before)) : '',
+                        report.repcontent.not_after ? nl.fmt.date2Str(nl.fmt.json2Date(report.repcontent.not_after)) : '', 
                         report.stats.status.txt, report.raw_record.completed ? '' + 100 + '%' : 0+'%',
                         report.stats.percCompleteDesc, report.raw_record.completed ? 1 : '',
                         report.stats.percScoreStr || '', report.stats.nMaxScore || '', report.stats.nScore || '']);
@@ -651,11 +600,9 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
         ret.push(report.user.state ? 'active' : 'inactive');
         ret.push(report.user.email);
         ret.push(report.user.org_unit);
-        if (!filter.hideMetadata) 
-            for(var i=0; i<mh.length; i++) ret.push(report.usermd[mh[i].id] || '');
-        if (filter.exportTypes.ids)
-            ret = ret.concat(['id=' + report.raw_record.id, 'id=' + report.raw_record.assignment, 
-                'id=' + report.raw_record.lesson_id]);
+        for(var i=0; i<mh.length; i++) ret.push(report.usermd[mh[i].id] || '');
+        ret = ret.concat(['id=' + report.raw_record.id, 'id=' + report.raw_record.assignment, 
+            'id=' + report.raw_record.lesson_id]);
         if (type == 'user') ret.push(report.raw_record.typeStr);
         return ret;
     }
@@ -663,26 +610,26 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
     function _initCtx(reports, _userInfo, filter) {
         _initExportHeaders(_userInfo, filter.exportTypes.ids);
         if(_exportFormat == 'csv') {
-            ctx.courseReportRows = [nlExporter.getCsvString(_getCsvHeader(filter))];
+            ctx.courseReportRows = [nlExporter.getCsvString(_getCsvHeader())];
             ctx.moduleRows = [nlExporter.getCsvHeader(_hModuleRow)];
             ctx.pScoreRows = [nlExporter.getCsvHeader(_hPageScores)];
             ctx.feedbackRows = [nlExporter.getCsvHeader(_hFeedback)];
             ctx.courseDetailsRow = [nlExporter.getCsvHeader(_hCourseDetailsRow)];
             if(filter.exportTypes.drilldown) ctx.drillDownRow = [nlExporter.getCsvHeader(_drillDownDict.columns)];
-            if(filter.exportTypes.nhtRunning) ctx.nhtRunningRow = [nlExporter.getCsvHeader(_nhtDict.columns)];
-            if(filter.exportTypes.nhtClosed) ctx.nhtClosedRow = [nlExporter.getCsvHeader(_nhtDict.columns)];
+            if(filter.exportTypes.nhtRunning) ctx.nhtRunningRow = [nlExporter.getCsvHeader(_nhtDict.runningHeaders)];
+            if(filter.exportTypes.nhtClosed) ctx.nhtClosedRow = [nlExporter.getCsvHeader(_nhtDict.closedHeaders)];
             if(filter.exportTypes.iltBatch) ctx.iltBatchRow = [nlExporter.getCsvHeader(_iltBatchDict.columns)];
             if(filter.exportTypes.certificate) ctx.certificateRow = [nlExporter.getCsvHeader(_certificateDict.columns)];
             if(filter.exportTypes.lr) ctx.lrRow = [nlExporter.getCsvHeader(_lrDict.columns)];
         } else {
-            ctx.courseReportRows = [_getCsvHeader(filter)];
+            ctx.courseReportRows = [_getCsvHeader()];
             ctx.moduleRows = [nlExporter.getHeaderRow(_hModuleRow)];
             ctx.pScoreRows = [nlExporter.getHeaderRow(_hPageScores)];
             ctx.feedbackRows = [nlExporter.getHeaderRow(_hFeedback)];
             ctx.courseDetailsRow = [nlExporter.getHeaderRow(_hCourseDetailsRow)];
             if(filter.exportTypes.drilldown) ctx.drillDownRow = [nlExporter.getHeaderRow(_drillDownDict.columns)];
-            if(filter.exportTypes.nhtRunning) ctx.nhtRunningRow = [nlExporter.getHeaderRow(_nhtDict.columns)];    
-            if(filter.exportTypes.nhtClosed) ctx.nhtClosedRow = [nlExporter.getHeaderRow(_nhtDict.columns)];
+            if(filter.exportTypes.nhtRunning) ctx.nhtRunningRow = [nlExporter.getHeaderRow(_nhtDict.runningHeaders)];    
+            if(filter.exportTypes.nhtClosed) ctx.nhtClosedRow = [nlExporter.getHeaderRow(_nhtDict.closedHeaders)];
             if(filter.exportTypes.iltBatch) ctx.iltBatchRow = [nlExporter.getHeaderRow(_iltBatchDict.columns)];
             if(filter.exportTypes.certificate) ctx.certificateRow = [nlExporter.getHeaderRow(_certificateDict.columns)];
             if(filter.exportTypes.lr) ctx.lrRow = [nlExporter.getHeaderRow(_lrDict.columns)];
@@ -812,8 +759,8 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
         var content = angular.fromJson(report.raw_record.content);
         rep.feedbackScore = _getFeedbackScores(content.feedbackScore || []);
         rep.feedbackScore = rep.feedbackScore ? '' + Math.round(rep.feedbackScore*10)/10 + '%' : '';
-        rep.not_before = report.repcontent.not_before ? nl.fmt.json2Date(report.repcontent.not_before) : '';
-        rep.not_after = report.repcontent.not_after ? nl.fmt.json2Date(report.repcontent.not_after) : '';
+        rep.not_before = report.repcontent.not_before;
+        rep.not_after = report.repcontent.not_after;
         if(_exportFormat == 'csv') 
             ctx.moduleRows.push(nlExporter.getCsvRow(_hModuleRow, rep));
         else
@@ -822,22 +769,19 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
         if (!content.learningData && !content.pages) return;
         var user = report.user;
         var currentPageRecord = {pos: 0, _user_id: rep._user_id, 
-            studentname: nlGroupInfo.formatUserNameFromRecord(rep), name: rep.name,
+            studentname: user.name, name: rep.name,
             page: null, title: '', score: 0, maxScore: 0, 
             org_unit: rep.org_unit, _stateStr: rep._stateStr, 
             subject: rep.subject, _grade: rep._grade,
             id: rep.id, student: rep.student, lesson_id: rep.lesson_id, 
             _email: rep._email, _assignTypeStr: rep._assignTypeStr, 
             _courseName: rep._courseName, _batchName: rep._batchName,
-            assign_remarks: rep.assign_remarks, assignment: rep.assignment,
+            assign_remarks: report.repcontent.assign_remarks, assignment: rep.assignment,
             _courseId: rep._courseId, containerid: rep.containerid, _attempts : rep._attempts};
             
         for(var i=0; i<mh.length; i++)
             currentPageRecord[mh[i].id] = rep[mh[i].id];
-
-        if (report.raw_record._transformVersion) {
-            _processPageScoreAndFeedbackFromTransformedObj(currentPageRecord, content, filter);
-        } else if (content.learningData) {
+        if (content.learningData) {
             _processReportRecordPageData(currentPageRecord, content, filter);
         } else {
             _processReportRecordPageDataOld(currentPageRecord, content);
@@ -851,61 +795,6 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
     		score += feedback[i];
     	}
     	return (score/feedback.length);
-    }
-
-    function _processPageScoreAndFeedbackFromTransformedObj(currentPageRecord, content, filter) {
-        if (filter.exportTypes.pageScore) {
-            _processPageScoresFromTransformedObj(currentPageRecord, content['_pageQuizScores']);
-        }
-        if (filter.exportTypes.feedback) {
-            _processFeedbacksFromTransformedObj(currentPageRecord, content['_pageFeedbacks']);
-        }
-    }
-
-    function _processPageScoresFromTransformedObj(currentPageRecord, items) {
-        for(var i=0; i<items.length; i++) {
-            var item = items[i];
-            if(item.maxScore == 0) continue;
-            currentPageRecord.page = item.pgNo;
-            currentPageRecord.title = item.title;
-            currentPageRecord.score = item.score;
-            currentPageRecord.maxScore = item.maxScore;
-            currentPageRecord.answer = '';
-            if(item.answersArray) {
-                var answersArray = item.answersArray;
-                if(answersArray.length == 1) {
-                    currentPageRecord.answer = answersArray[0];
-                } else {
-                    for(var j=0; j<answersArray.length; j++) {
-                        var str = answersArray[j];
-                        currentPageRecord.answer += nl.t('answer-{}:"{}"', j+1, str || " ");
-                        currentPageRecord.answer += ',';
-                    }
-                }
-            }
-            ctx.pageCnt++;
-            currentPageRecord.pos = ctx.pageCnt;
-            if(_exportFormat == 'csv')
-                ctx.pScoreRows.push(nlExporter.getCsvRow(_hPageScores, currentPageRecord));
-            else
-                ctx.pScoreRows.push(nlExporter.getItemRow(_hPageScores, currentPageRecord));
-        }
-    }
-
-    function _processFeedbacksFromTransformedObj(currentPageRecord, items) {
-        for(var i=0; i<items.length; i++) {
-            var item = items[i];
-            currentPageRecord.page = item.pgNo;
-            currentPageRecord.title = item.title;
-            currentPageRecord.question = item.question;
-            currentPageRecord.response = item.response;
-            ctx.feedbackCnt++;
-            currentPageRecord.pos = ctx.feedbackCnt;
-            if(_exportFormat == 'csv')
-                ctx.feedbackRows.push(nlExporter.getCsvRow(_hFeedback, currentPageRecord));
-            else 
-                ctx.feedbackRows.push(nlExporter.getItemRow(_hFeedback, currentPageRecord));
-        }
     }
 
     function _processReportRecordPageData(currentPageRecord, content, filter) {
@@ -1011,8 +900,8 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
     }
 
     function _updateCsvCourseDetailsRows(filter, report) {
-        var defaultRowObj = {_user_id: report.user.user_id, studentname: report.repcontent.studentname, 
-            _assignTypeStr: '', _courseName: report.repcontent.name, _batchName: report.repcontent.batchname, _itemname: '',
+        var defaultRowObj = {_user_id: report.user.user_id, studentname: report.user.name, 
+            _assignTypeStr: '', _courseName: report.repcontent.name, _batchName: report.raw_record._batchName, _itemname: '',
             subject: report.raw_record.subject,  _grade: report.raw_record._grade, 
             created: report.raw_record.created, started: '', ended: '', updated: '', 
             not_before: report.repcontent.not_before, not_after: report.repcontent.not_after, 
@@ -1024,9 +913,9 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
         var modules = report.course.content.modules;
         if (_groupInfo.props.etmAsd && _groupInfo.props.etmAsd.length > 0) {
             var courseAssign = nlGetManyStore.getRecord(nlGetManyStore.key('course_assignment', report.raw_record.assignment));
-            var g_attendance = courseAssign.attendance ? angular.fromJson(courseAssign.attendance) : {};
-                g_attendance = nlCourse.migrateCourseAttendance(g_attendance);
-                modules = nlReportHelper.getAsdUpdatedModules(modules || [], g_attendance);    
+            var attendance = courseAssign.attendance ? angular.fromJson(courseAssign.attendance) : {};
+            attendance = nlCourse.migrateCourseAttendance(attendance);
+            modules = nlReportHelper.getAsdUpdatedModules(modules || [], attendance);    
         }
         for(var i=0; i<modules.length; i++) {
             var item = modules[i]
@@ -1334,7 +1223,7 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
     }
 
     function _generateRawDataSheetContent(rawsheet, shallAppend, filter, reportRecordsDict, resolve) {
-        var header = _getCsvHeader(filter);
+        var header = _getCsvHeader();
         var rows = [header];
 
         if (shallAppend) {
@@ -1364,7 +1253,7 @@ function(nl, nlDlg, nlRouter, nlExporter, nlOrgMdMoreFilters, nlLrHelper, nlLrSu
         }
 
         for (var repid in reportRecordsDict) {
-            var row = _getCsvRow(filter, reportRecordsDict[repid]);
+            var row = _getCsvRow(reportRecordsDict[repid]);
             rows.push(row);
         }
         return rows;

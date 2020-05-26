@@ -29,6 +29,7 @@
                     for (var k in data) {
                         _settings[k] = data[k];
                         if (!_settings[k]) _settings[k] = _defaultSettings();
+                        else _migrateSettings(k);
                     }
                     resolve(true);
                 }, function(err) {
@@ -39,6 +40,7 @@
 
         /* data = _settings[settingsType] = 
                     {
+                        "version": 1,
                         "views": [
                             {
                                 "id": "id_1588757267240_nr58ivn44",
@@ -57,11 +59,30 @@
                         "customColumns": [
                             {"id": "custom.1589265801125_en9pyu1km", "name": "custom column 1", "formula": "$date_format{'YYYY-MM-DD' , _id.created}"}, 
                             {"id": "custom.1589265840230_wfanbt209", "name": "custom column 2", "formula": "$date_format{'YY-MM-DD' , _id.created}"}
-                        ]
+                        ],
+                        "lookupTables": [
+                            {
+                                "id": "lookup.1589265801125_en9pzu1km", "name": "Lookup table 1",
+                                "lookup": {
+                                    "a" : "1",
+                                    "b" : "2",
+                                    "a" : "3"
+                                }
+                            },
+                            {
+                                "id": "lookup.1589265801126_en9pyukkm", "name": "Lookup table 2",
+                                "lookup": {
+                                    "a" : "1",
+                                    "b" : "2",
+                                    "a" : "3"
+                                }
+                            }
+                        },
                     }
         */
        this.update = function(settingsType, info) {
             _cleanupDeletedCustomColumns(info);
+            info.version = SETTINGS_VERSION;
             return nlServerApi.updateGroupSettings({settings_type: settingsType, info: info})
             .then(function(data) {
                 _settings[settingsType] = data || _defaultSettings();
@@ -83,17 +104,57 @@
             return data.customColumns || [];
         };
 
+        this.getLookupTables = function(settingsType) {
+            var data = _settings[settingsType] || {};
+            return data.lookupTables || [];
+        };
+
         this.updateAllColumnNames = function(settingsType, allColumns) {
             var updatedColumnNamesDict = this.getColumnNames(settingsType);
             for(var i=0; i<allColumns.length; i++) {
                 if(allColumns[i].id in updatedColumnNamesDict)
-                    allColumns[i].name = updatedColumnNamesDict[allColumns[i].id] ;
+                    allColumns[i].name = updatedColumnNamesDict[allColumns[i].id];
             }
         };
 
         var _settings = {};
         function _defaultSettings() {
             return {views: [], columnNames: {}, customColumns: []};
+        }
+
+        var _migrationData = {
+            lr_views: {
+                'repcontent.assignid': 'raw_record.assignment',
+                'repcontent.courseid': 'raw_record.lesson_id',
+                'stats.internalIdentifier': 'raw_record.id',
+                'not_before': 'repcontent.not_before_str',
+                'not_after': 'repcontent.not_after_str',
+                'orgparts.part1': 'user.ou_part1',
+                'orgparts.part2': 'user.ou_part2',
+                'orgparts.part3': 'user.ou_part3',
+                'orgparts.part4': 'user.ou_part4'
+            },
+            nht_views: {
+                'lob': 'subject',
+                'partner': 'suborg'
+            }
+        };
+
+        var SETTINGS_VERSION = 1;
+        function _migrateSettings(settings_type) {
+            // TODO-LATER: Manually migrte all groups in live and drop this code! (Server side)
+            var setting = _settings[settings_type] || {};
+            if (setting.version == SETTINGS_VERSION || !setting.views) return;
+            setting.version = SETTINGS_VERSION;
+            var migrationData = _migrationData[settings_type] || {};
+            for(var i=0; i<setting.views.length; i++) {
+                var cols = setting.views[i].columns || [];
+                setting.views[i].columns = [];
+                var newCols = setting.views[i].columns;
+                for(var j=0; j<cols.length; j++) {
+                    newCols.push(cols[j] in migrationData ? migrationData[cols[j]] : cols[j]);
+                }
+            }
         }
 
         function _cleanupDeletedCustomColumns(info) {
@@ -132,15 +193,28 @@
             };
 
             $scope.onOptionSelect = function(option) {
-                $scope.selected = option;
+                if (!option && (!$scope.options || $scope.options.length == 0)) return;
+                if (!option) option = $scope.options[0];
                 $scope.isOpen = false;
-                if (!$scope.config || !$scope.config.onViewChange) return;
-                nlTableViewSelectorSrv.updateAllColumnNames($scope.config.tableType, $scope.config.allColumns);
-                var selectedCustColumns = {};
-                var selectedColumns = _getColumnsSelectedInView($scope.config.tableType, option.columns,
-                    $scope.config.allColumns, selectedCustColumns);
-                $scope.config.onViewChange(selectedColumns, selectedCustColumns);
+                var config = $scope.config;
+                if (!config || !config.onViewChange) return;
+                if (option.columns && option.columns.length <= 10) {
+                    _onOptionSelect(config, option);
+                    return;
+                }
+                nlDlg.popupConfirm({title: 'Please confirm', template: 'The selected view has more than 10 columns. It will take some time to show the view. Are you sure you want to continue?'})
+                .then(function(result) {
+                    if (!result) return;
+                    _onOptionSelect(config, option);
+                });
             };
+
+            function _onOptionSelect(config, option) {
+                $scope.selected = option;
+                nlTableViewSelectorSrv.updateAllColumnNames(config.tableType, config.allColumns);
+                var selectedColIds = _getSelectedColIds(config.tableType, config.allColumns, option.columns);
+                $scope.config.onViewChange(selectedColIds); // Array of col ids
+            }
 
             $scope.onCustomizeViews = function() {
                 if (!$scope.config || !$scope.config.canEdit) return;
@@ -160,24 +234,22 @@
             if (!$scope.config) return;
             var options =  nlTableViewSelectorSrv.getViews($scope.config.tableType);
             if (!options) return _initScope($scope);
-            if ($scope.config.defaultViewColumns) $scope.options = [$scope.config.defaultViewColumns, _allOption];
-            else $scope.options = [_defaultOption, _allOption];
+            if ($scope.config.defaultViewColumns) $scope.options = [$scope.config.defaultViewColumns];
+            else $scope.options = [_defaultOption];
+            $scope.options.push(_allOption);
             for (var i=0; i<options.length; i++) {
                 $scope.options.push(options[i]);
             }
         }
 
-        function _getColumnsSelectedInView(tableType, selectedColumns, allColumns, selectedCustColumns) {
-            if (!selectedColumns) return allColumns;
-            var allColumnIds = nl.utils.arrayToDictById(allColumns);
+        function _getSelectedColIds(tableType, allColumns, selectedColIds) {
             var custColsDict = nl.utils.arrayToDictById(nlTableViewSelectorSrv.getCustomColumns(tableType));
+            var allColsDict = nl.utils.arrayToDictById(allColumns);
+            var selectedLen = selectedColIds ? selectedColIds.length : allColumns.length;
             var ret = [];
-            for(var i=0; i<selectedColumns.length; i++) {
-                var colid = selectedColumns[i];
-                if (colid in custColsDict) {
-                    ret.push(custColsDict[colid]);
-                    selectedCustColumns[colid] = true;
-                } else if (colid in allColumnIds) ret.push(allColumnIds[colid]);
+            for(var i=0; i<selectedLen; i++) {
+                var colid = selectedColIds ? selectedColIds[i] : allColumns[i].id;
+                if (colid in allColsDict || colid in custColsDict) ret.push(colid);
             }
             return ret;
         }
@@ -201,10 +273,12 @@
             _dlg.setCssClass('nl-height-max nl-width-max');
             _dlg.scope.selectedView = null;
             _dlg.scope.isGrpAdmin = nlTableViewSelectorSrv.isGrpAdmin();
-            _dlg.scope.data = {newViewName: '', selectedColumn: null, newName : '', newFormula : ''};
+            _dlg.scope.data = {newViewName: '', selectedColumn: null, newName : '', newFormula : '',
+                newLookupName: '', newLookupFrom: '', newLookupTo: ''};
             _dlg.scope.views = angular.copy(nlTableViewSelectorSrv.getViews($scope.config.tableType));
             _dlg.scope.columnNames = angular.copy(nlTableViewSelectorSrv.getColumnNames($scope.config.tableType));
             _dlg.scope.customColumns = angular.copy(nlTableViewSelectorSrv.getCustomColumns($scope.config.tableType));
+            _dlg.scope.lookupTables = _lookupTablesDbToGui(nlTableViewSelectorSrv.getLookupTables($scope.config.tableType));
             nlTableViewSelectorSrv.updateAllColumnNames($scope.config.tableType, $scope.config.allColumns);
             _dlg.scope.allColumns = angular.copy($scope.config.allColumns);
             _dlg.scope.selectedColumns = [];
@@ -256,25 +330,24 @@
         function _getIntelliTextOptions(column) {
             var ret = {
                 '$':[
-                        { "name": "$date_format - (MM-YY)", "val": "$date_format{'MM-YY', }", "cursor": -1},
-                        { "name": "$date_format - (MMM-YY)", "val": "$date_format{'MMM-YY', }", "cursor": -1},
-                        { "name": "$date_format - (MMMM-YY)", "val": "$date_format{'MMMM-YY', }", "cursor": -1}
+                        { "name": "$date_format - (YYYY-MM)", "val": "$date_format{'YYYY-MM', }", "cursor": -1},
+                        { "name": "$lookup - map from one value to another based on lookup table similar to excel", 
+                            "val": "$lookup{, }", "cursor": -3},
+                        { "name": "$max - maximum of given items", "val": "$max{}", "cursor": -1 }, 
+                        { "name": "$min - minimum of given items", "val": "$min{}", "cursor": -1 },
+                        { "name": "$sum - sum of given items", "val": "$sum{}", "cursor": -1 },
+                        { "name": "$avg - average of given items", "val": "$avg{}", "cursor": -1 },
+                        { "name": "$avg_top - average of top 'n' items", "val": "$avg_top{}", "cursor": -1 },
+                        { "name": "$nth_min - nth loweest of the given items", "val": "$nth_min{}", "cursor": -1 },
+                        { "name": "$if - condition with values for true and false", "val": "$if{}", "cursor": -1 },
                     ],
                 '_':[]
             };
-            _modifyIntelliTextOptions(_dlg.scope.allColumns, ret);
+            _modifyIntelliTextOptions($scope.config.formulaColumns, ret);
+            _modifyIntelliTextOptions(_dlg.scope.lookupTables, ret, null, true);
             _modifyIntelliTextOptions(_dlg.scope.customColumns, ret, column);
+            _modifyIntelliTextOptions(_dlg.scope.allColumns, ret);
             return ret;
-        }
-
-        function _modifyIntelliTextOptions(columns, ret, column) {
-            for(var i=0; i < columns.length; i++) {
-                var m = columns[i];
-                if(column && column.id == m.id) break;
-                var mid = '_id.' + m.id;
-                var n = nl.fmt2('{} ({})', m.name, mid);
-                ret['_'].push({name: n, val: mid, cursor: 0});
-            }
         }
 
         _dlg.scope.onSelectView = function(view) {
@@ -430,8 +503,10 @@
         
         function _getAvpsForCustomFormula(currentCustomColumnId) {
             var ret = {};
-            _getAvps(ret, _dlg.scope.allColumns);
+            _getAvps(ret, $scope.config.formulaColumns);
+            // _getAvps(ret, _dlg.scope.lookupTables); ==> This not needed in this table
             _getAvps(ret, _dlg.scope.customColumns, currentCustomColumnId);
+            _getAvps(ret, _dlg.scope.allColumns);
             return ret;
         }
 
@@ -444,25 +519,25 @@
             }
         }
 
-        function _validateColumnName(value) {
-            if(!value) return _errorMesg('Name is mandatory');
-            if(!(__validateColumnName(value, _dlg.scope.customColumns) && __validateColumnName(value, _dlg.scope.allColumns)))
-                return _errorMesg('Column Name alredy exist')
-            return true;
+        function _modifyIntelliTextOptions(columns, ret, column, addQuote) {
+            for(var i=0; i < columns.length; i++) {
+                var m = columns[i];
+                if(column && column.id == m.id) break;
+                var mid = addQuote ? '"' + m.id + '"' : '_id.' + m.id;
+                var n = nl.fmt2('{} ({})', m.name, mid);
+                ret['_'].push({name: n, val: mid, cursor: 0});
+            }
         }
 
-        function __validateColumnName(value, columns) {
-            for(var i=0; i< columns.length; i++ ) {
-                var column = columns[i];
-                if(column.name.toLowerCase() == value.toLowerCase()) return false;
-            }
+        function _validateColumnName(value) {
+            if(!value) return _errorMesg('Name is mandatory');
             return true;
         }
 
         function _validateCustomColumnFormula(value, currentCustomColumnId) {
             if(!value) return _errorMesg('Formula is mandatory');
             var _idsAboveCustomField = _getAvpsForCustomFormula(currentCustomColumnId);
-            var payload = {strExpression: value, dictAvps: _idsAboveCustomField};
+            var payload = {strExpression: value, dictAvps: _idsAboveCustomField, sendAsVariableNames: true};
             nlExpressionProcessor.process(payload);
             if(payload.error) return _errorMesg(payload.error);
             return true;
@@ -473,13 +548,109 @@
             return false;
         }
 
+        _dlg.scope.addLookupTable = function() {
+            _dlg.scope.editColumnClose();
+            _dlg.scope.columnType = 'addLookupTable';
+        };
+
+        _dlg.scope.addLookupTableDone = function() {
+            if(!_validateLookupTable(_dlg.scope.data)) return;
+            var newLookupTable = {id: _getUniqueId('lookup.'), name: _dlg.scope.data.newLookupName, 
+                from: _dlg.scope.data.newLookupFrom, to: _dlg.scope.data.newLookupTo};
+            _dlg.scope.lookupTables.push(newLookupTable);
+            _dlg.scope.editColumnClose();
+        };
+
+        _dlg.scope.editLookupDetail = function(index) {
+            _dlg.scope.columnType = 'lookup';
+            var table = _dlg.scope.lookupTables[index] || {};
+            _dlg.scope.data.newLookupName = table.name;
+            _dlg.scope.data.newLookupFrom = table.from;
+            _dlg.scope.data.newLookupTo = table.to;
+            _dlg.scope.renameCol = index;
+        };
+
+        _dlg.scope.editLookupDone = function(index) {
+            var table = _dlg.scope.lookupTables[index] || {};
+
+            if(!_validateLookupTable(_dlg.scope.data)) return;
+            table.name = _dlg.scope.data.newLookupName;
+            table.from = _dlg.scope.data.newLookupFrom;
+            table.to = _dlg.scope.data.newLookupTo;
+            _dlg.scope.editColumnClose();
+        };
+
+        _dlg.scope.removeLookupTable = function(index) {
+            var table = _dlg.scope.lookupTables[index] || {};
+            nlDlg.popupConfirm({title: nl.t('Please confirm'), template: 'Do you want to delete the lookup table : <b>'+ table.name + '</b>'}).then(function(result) {
+	    		if (!result) return;
+                _dlg.scope.lookupTables.splice(index,1);
+                _dlg.scope.editColumnClose();
+	    	});  
+        };
+        
+        function _validateLookupTable(data) {
+            if(!data.newLookupName) return _errorMesg('Name is mandatory');
+            var from = _getLookupColumn(data.newLookupFrom, true);
+            if (!from) return _errorMesg('From should have unique values in each line');
+            var to = _getLookupColumn(data.newLookupTo, false);
+            if (from.length != to.length)
+                return _errorMesg('From and to are mandatory and must have same number of lines');
+            return true;
+        }
+
+        function _getLookupColumn(column, checkUnique) {
+            column = (column || '').split('\n');
+            var uniqueValues = {};
+            for (var i=0; i<column.length; i++) {
+                column[i] = column[i].trim();
+                if (!checkUnique) continue;
+                column[i] = column[i].toLowerCase();
+                if (column[i] in uniqueValues) return null;
+                uniqueValues[column[i]] = true;
+            }
+            return column;
+        }
+
+        function _lookupTablesDbToGui(dbLookupTables) {
+            var ret = [];
+            for(var i=0; i<dbLookupTables.length; i++) {
+                var dbLookupTable = dbLookupTables[i];
+                var table = {id: dbLookupTable.id, name: dbLookupTable.name};
+                var from=[];
+                var to=[];
+                for (var key in dbLookupTable.lookup) {
+                    from.push(key);
+                    to.push(dbLookupTable.lookup[key]);
+                }
+                table.from = from.join('\n');
+                table.to = to.join('\n');
+                ret.push(table);
+            }
+            return ret;
+        }
+
+        function _lookupTablesGuiToDb(guiLookupTables) {
+            var ret = [];
+            for(var i=0; i<guiLookupTables.length; i++) {
+                var guiLookupTable = guiLookupTables[i];
+                var table = {id: guiLookupTable.id, name: guiLookupTable.name, lookup: {}};
+                var from = _getLookupColumn(guiLookupTable.from, true);
+                var to = _getLookupColumn(guiLookupTable.to, false);
+                for(var i=0; i<from.length; i++) table.lookup[from[i]] = to[i];
+                ret.push(table);
+            }
+            return ret;
+        }
+
         function _onUpdate(e) {
             _updateCurrentView();
             var serverViewsOld = nl.utils.arrayToDictById(nlTableViewSelectorSrv.getViews($scope.config.tableType));
             var guiViews = nl.utils.arrayToDictById(_dlg.scope.views);
-            var updatedColumnNames = _dlg.scope.columnNames;
-            var updatedCustomColumns = _dlg.scope.customColumns;
-            var lastSelectedView = angular.copy(_dlg.scope.selectedView);
+            var guiColumnNames = _dlg.scope.columnNames;
+            var guiCustomColumns = _dlg.scope.customColumns;
+            var guiLookupTables = _dlg.scope.lookupTables;
+            var selectedViewId = (_dlg.scope.selectedView || {}).id || null;
             nl.timeout(function() {
                 nlDlg.showLoadingScreen();
                 nlTableViewSelectorSrv.reload([$scope.config.tableType])
@@ -492,21 +663,33 @@
                     for (var viewId in guiViews) {
                         var guiView = guiViews[viewId];
                         var serverViewOld = serverViewsOld[viewId] || null;
-                        if (!(viewId in serverViewsLatest) || _hasViewChanged(serverViewOld, guiView)) {
-                            serverViewsLatest[viewId] = {id: guiView.id, name: guiView.name, columns: guiView.columns || []};
-                            continue;
-                        }
+                        if ((viewId in serverViewsLatest) && !_hasViewChanged(serverViewOld, guiView)) continue;
+                        serverViewsLatest[viewId] = {id: guiView.id, name: guiView.name, columns: guiView.columns || []};
                     }
                     serverViewsLatest = _dictToSortedArray(serverViewsLatest);
-                    var info = {views: serverViewsLatest, columnNames: updatedColumnNames, customColumns: updatedCustomColumns};
+
+                    var serverColumnNamesLatest = nlTableViewSelectorSrv.getColumnNames($scope.config.tableType);
+                    var serverCustomColumnsLatest = nlTableViewSelectorSrv.getCustomColumns($scope.config.tableType);
+                    var serveLookupTablesLatest = nlTableViewSelectorSrv.getLookupTables($scope.config.tableType);
+                    if (nlTableViewSelectorSrv.isGrpAdmin()) {
+                        serverColumnNamesLatest = guiColumnNames;
+                        serverCustomColumnsLatest = guiCustomColumns;
+                        serveLookupTablesLatest = _lookupTablesGuiToDb(guiLookupTables);
+                    }
+
+                    var info = {views: serverViewsLatest, columnNames: serverColumnNamesLatest, 
+                        customColumns: serverCustomColumnsLatest, lookupTables: serveLookupTablesLatest};
                     nlTableViewSelectorSrv.update($scope.config.tableType, info)
                     .then(function() {
+                        var optionSelected = false;
                         for(var i=0; i<serverViewsLatest.length; i++) {
-                            if(lastSelectedView.id == serverViewsLatest[i].id) {
+                            if(selectedViewId == serverViewsLatest[i].id) {
                                 $scope.onOptionSelect(serverViewsLatest[i]);
+                                optionSelected = true;
                                 break;
                             }
                         }
+                        if (!optionSelected) $scope.onOptionSelect(null);
                         nlDlg.hideLoadingScreen();
                     });
                 });

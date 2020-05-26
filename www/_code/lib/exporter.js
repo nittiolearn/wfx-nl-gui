@@ -174,6 +174,12 @@ function(nl, nlDlg) {
         this.exportTextFile(fileName, data, uri);
     };
 
+    var _CSV_DELIM = '\n';
+    this.getUtfCsv = function(rows) {
+        var universalBOM = "\uFEFF";
+        return universalBOM + rows.join(_CSV_DELIM);
+    };
+
     function _quote(data) {
         if (typeof(data) != 'string') return data;
         data = data.replace(/\n/g, ' ');

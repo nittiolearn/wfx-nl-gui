@@ -4,13 +4,25 @@
             <td></td>
             <td ng-repeat='col in nht.selectedColumns track by $index'
                 class='minw-number'
-                ng-if='col.canShow && ($root.screenSize != "small" && col.table) || ($root.screenSize == "small" && col.smallScreen)'>
-                {{col.name}}
+                ng-click='sortRows(col.id)'
+                ng-if='canShow(col) && ($root.screenSize != "small" && col.table) || ($root.screenSize == "small" && col.smallScreen)'>
+                <div class='row padding0 margin0'>
+                    <div class='col'>{{col.name}}</div>
+                    <span>
+                        <i  class="icon ion-arrow-down-b nl-dlg-field-icon fgrey"
+                            ng-show="!nht.sort || nht.sort.colid != col.id"></i>
+                        <i  class="icon ion-arrow-down-b nl-dlg-field-icon"
+                            ng-show="nht.sort && nht.sort.colid == col.id && nht.sort.ascending"></i>
+                        <i  class="icon ion-arrow-up-b nl-dlg-field-icon" 
+                            ng-show="nht.sort && nht.sort.colid == col.id && !nht.sort.ascending"></i> 
+                    </span>
+                </div>
+                
+
             </td>
         </tr>
         <tr class='{{rec.cls}}'
-            ng-repeat='rec in nht.rows track by $index'
-            ng-click='generateDrillDownArray(rec)'>
+            ng-repeat='rec in nht.rows track by $index'>
             <td style='min-width: 50px;'>
                 <div class='row row-center magin0 padding0'>
                     <span ng-click='onDetailsClick($event, rec, nht.columns)' class='nl-link-text'>
@@ -19,7 +31,7 @@
                 </div>
             </td>
             <td ng-repeat='col in nht.selectedColumns track by $index'
-                class='minw-number'  ng-if='col.canShow && ($root.screenSize != "small" && col.table) || ($root.screenSize == "small" && col.smallScreen)'>
+                class='minw-number'  ng-if='canShow(col) && ($root.screenSize != "small" && col.table) || ($root.screenSize == "small" && col.smallScreen)'>
                 <div class='row row-center margin0 padding0 {{!col.hidePerc ? "text-right" : ""}}'>
                     <div class='col padding0'>{{rec[col.id] || '-'}}</div>
                     <div class='col padding0 nl-perc-class text-left' ng-if='!col.hidePerc'>{{(col.percid && rec[col.percid]) ? rec[col.percid]+'%' : ''}}</div>

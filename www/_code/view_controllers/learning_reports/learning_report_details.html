@@ -33,7 +33,7 @@
 </div>
 
 <div class='fsh5 padding-mid'>
-    {{rec._raw.course.name || rec._raw.raw_record.name}}
+    {{rec._raw.repcontent.name}}
 </div>
 
 <div class='row row-top row-wrap margin0 padding0 fsh5'>
@@ -41,9 +41,9 @@
     <div class='padding-mid' ng-class='$root.respCol422'>{{rec._raw.raw_record._batchName}}</div>
 </div>
 
-<div ng-show='rec._raw.raw_record._batchtype' class='row row-top row-wrap margin0 padding0 fsh5'>
+<div ng-show='rec._raw.repcontent.batchtype' class='row row-top row-wrap margin0 padding0 fsh5'>
     <div class='padding-mid' ng-class='$root.respCol422'><b>Batch type:</b></div>
-    <div class='padding-mid' ng-class='$root.respCol422'>{{rec._raw.raw_record._batchtype}}</div>
+    <div class='padding-mid' ng-class='$root.respCol422'>{{rec._raw.repcontent.batchtype}}</div>
 </div>
 
 <div class='row row-top row-wrap margin0 padding0'>
@@ -53,9 +53,9 @@
     <div class='padding-mid' ng-class='$root.respCol422'>{{rec._raw.updated}}</div>
 
 	<div class='padding-mid' ng-class='$root.respCol422'><b>From :</b></div>
-    <div class='padding-mid' ng-class='$root.respCol422'>{{rec._raw.not_before || '-'}}</div>
+    <div class='padding-mid' ng-class='$root.respCol422'>{{rec._raw.repcontent.not_before_str || '-'}}</div>
     <div class='padding-mid' ng-class='$root.respCol422'><b>Till :</b></div>
-    <div class='padding-mid' ng-class='$root.respCol422'>{{rec._raw.not_after || '-'}}</div>
+    <div class='padding-mid' ng-class='$root.respCol422'>{{rec._raw.repcontent.not_after_str || '-'}}</div>
 
 	<div ng-if='rec._raw.stats.certifiedOn' class='padding-mid' ng-class='$root.respCol422'><b>Cerified on :</b></div>
     <div ng-if='rec._raw.stats.certifiedOn' class='padding-mid' ng-class='$root.respCol422'>{{rec._raw.stats.certifiedOn || '-'}}</div>
@@ -85,12 +85,12 @@
          class='padding-mid' ng-class='$root.respCol422'><b>{{meta.name}}:</b></div>
     <div ng-repeat-end class='padding-mid' ng-class='$root.respCol422'>{{rec._raw.usermd[meta.id] || ''}}</div>
 
-    <div class='padding-mid' ng-class='$root.respCol422'><b>{{rec._raw.raw_record.gradeLabel}}:</b></div>
+    <div class='padding-mid' ng-class='$root.respCol422'><b>{{info.detailsInfo.gradelabel}}:</b></div>
     <div class='padding-mid' ng-class='$root.respCol422'>
         <span>{{rec._raw.raw_record._grade}}</span>
     </div>
 
-    <div class='padding-mid' ng-class='$root.respCol422'><b>{{rec._raw.raw_record.subjectLabel}}:</b></div>
+    <div class='padding-mid' ng-class='$root.respCol422'><b>{{info.detailsInfo.subjectlabel}}:</b></div>
     <div class='padding-mid' ng-class='$root.respCol422'>
         <span>{{rec._raw.raw_record.subject}}</span>
     </div>
@@ -107,6 +107,6 @@
 
     <div class='padding-mid' ng-class='$root.respCol422'><b>Internal identifier:</b></div>
     <div class='padding-mid' ng-class='$root.respCol422'>
-        <span>{{rec._raw.stats.internalIdentifier}}</span>
+        <span>{{rec._raw.raw_record.id}}</span>
     </div>
 </div>

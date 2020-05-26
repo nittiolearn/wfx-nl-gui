@@ -1,54 +1,34 @@
-<div ng-hide='info.search.disabled'>
-    <div class='padding-small'></div>
-    <div class='row row-center margin0 padding0'>
-        <input class='col padding-mid' ng-model='info.search.filter'
-               placeholder='{{info.search.placeholder}}'
-               ng-keydown='info._internal.searcher.onKeyDown($event)'>
-        <div class='padding-small'></div>
-        <i class='nl-link-text icon fsh4 fblue padding-mid ion-ios-search'
-           ng-click='info._internal.searcher.onClick(0)'></i>
-    </div>
-    <div class='padding-small'></div>
-    <div class='fgrey'>{{info._internal.searcher.infotxt}}</div>
-    <div class='padding-small'></div>
-</div>
-<div ng-transclude></div>
 <table class='{{info.styleTable}}'>
     <tr class='header {{info.styleHeader}}'>
-        <td ng-repeat='col in info.columns track by $index'
-            ng-show='col.canShow'
+        <td ng-repeat='col in info.origColumns track by $index'
             ng-click='sortRows(col.id)'
-            class='nl-link-text {{col.styleTd}}'>{{col.name}}
-            <i  class="icon ion-arrow-down-b nl-dlg-field-icon fgrey"
-                ng-show="!info.sort || info.sort.colid != col.id"></i>
-            <i  class="icon ion-arrow-down-b nl-dlg-field-icon"
-                ng-show="info.sort && info.sort.colid == col.id && info.sort.ascending"></i>
-            <i  class="icon ion-arrow-up-b nl-dlg-field-icon" 
-                ng-show="info.sort && info.sort.colid == col.id && !info.sort.ascending"></i>
-        </td>
-    </tr>
-    <tr ng-show='info._internal.summaryRow'
-         class='{{info.styleSummary}}'>
-        <td ng-repeat='col in info.columns track by $index'
-            ng-show='col.canShow'
-            class='{{col.styleTd}}'>
-             <i ng-if='info._internal.summaryRow[col.id].icon && col.iconType == "ionicon"'
-                class='icon fsh4 {{info._internal.summaryRow[col.id].icon}}'></i>
-            <span>{{info._internal.summaryRow[col.id].txt || ''}}</span>
+            class='nl-link-text minw-number text-left'>
+            <div class='row margin0 padding0'>
+                <div class='col padding0 margin0'>
+                    {{col.name}}
+                </div>
+                <div>
+                    <i  class="icon ion-arrow-down-b nl-dlg-field-icon fgrey"
+                        ng-show="!info.sort || info.sort.colid != col.id"></i>
+                    <i  class="icon ion-arrow-down-b nl-dlg-field-icon"
+                        ng-show="info.sort && info.sort.colid == col.id && info.sort.ascending"></i>
+                    <i  class="icon ion-arrow-up-b nl-dlg-field-icon" 
+                        ng-show="info.sort && info.sort.colid == col.id && !info.sort.ascending"></i>
+                </div>
+            </div>
         </td>
     </tr>
     <tr ng-repeat-start='rec in info._internal.visibleRecs track by $index'
         class='{{info.onRowClick ? "nl-link-text2" : ""}}'
         ng-click='onItemClick(rec, info.onRowClick)'>
-        <td ng-repeat='col in info.columns track by $index'
-            ng-show='col.canShow'
+        <td ng-repeat='col in info.origColumns track by $index'
             class='{{col.styleTd}}'>
-             <i ng-if='rec[col.id].icon' class='icon fsh4 {{rec[col.id].icon}}'></i>
-             <span>{{rec[col.id].txt || ''}}</span>
+             <i ng-show='rec._avps["_id." + col.icon]' class='icon fsh4 {{rec._avps["_id." + col.icon]}}'></i>
+             <span>{{rec._avps['_id.' + col.id] || ''}}</span>
         </td>
     </tr>
-    <tr ng-repeat-end ng-show='rec.canShowDetails'>
-        <td colspan='{{info.columns.length}}'>
+    <tr ng-repeat-end ng-if='rec.canShowDetails'>
+        <td colspan='{{info.origColumns.length}}'>
             <div class='padding-mid'>
                 <div ng-show='rec.details' nl-compile='rec.details' class="{{info.styleDetail}}"></div>
             </div>

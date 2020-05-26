@@ -494,6 +494,11 @@ $animation-duration: 200ms !default;
       border-bottom: 1px solid $nlBorderGrey2;
     }
   }
+  &.cellborder {
+    td {
+      border: 1px solid $nlBorderGrey2;
+    }
+  }
 }
 
 
@@ -617,6 +622,11 @@ tr.summary {
   text-align: center;
 }
 
+.nl-superscript {
+  padding: 0 0 8px 2px;
+  border-radius: 50%;
+  font-size: 80%;
+}
 
 .nl-menuitems {
   text-align: right;
@@ -2506,6 +2516,7 @@ img.nl-full-width {
 
 .bggrey {background-color: $nlGrey1;}
 .bgdefault {background-color: $nlGrey4;}
+.bgorange {background-color: $nlOrange1;}
 .bgyellow {background-color: $nlOrange3;}
 
 .bgclear {background-color: none !important;}

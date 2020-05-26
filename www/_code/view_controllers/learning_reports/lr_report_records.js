@@ -26,7 +26,6 @@ function(nl, nlRouter, nlDlg, nlGroupInfo, nlLrHelper, nlLrFilter, nlGetManyStor
     var _userInfo = null;
     var _nominatedUsers = null;
     var _attendanceObj = {};
-    var _isReattemptEnabled = false;
     var _customScoresHeaderArray = [];
     var _customScoresHeaderObj = {};
     var _canManage = false;
@@ -39,7 +38,6 @@ function(nl, nlRouter, nlDlg, nlGroupInfo, nlLrHelper, nlLrFilter, nlGetManyStor
         _records = {};
         _reminderDict = {};
         _nominatedUsers = {};
-        _isReattemptEnabled = false;
         _customScoresHeaderArray = [];
         _customScoresHeaderObj = {};
         _dates = {minUpdated: null, maxUpdated: null};
@@ -52,10 +50,6 @@ function(nl, nlRouter, nlDlg, nlGroupInfo, nlLrHelper, nlLrFilter, nlGetManyStor
         _qsMaxLen = 0;
     };
     
-    this.isReattemptEnabled = function() {
-        return _isReattemptEnabled;
-    };
-
     this.getCustomScoresHeader = function() {
         return _customScoresHeaderArray;
     };
@@ -225,13 +219,15 @@ function(nl, nlRouter, nlDlg, nlGroupInfo, nlLrHelper, nlLrFilter, nlGetManyStor
     }
     
     function _getStudentFromReport(report, repcontent) {
-        var user = nlGroupInfo.getUserObj(''+report.student);
-        if (!user && _pastUserInfosFetcher.canFetchMore()) {
+        var user = nlGroupInfo.getCachedUserObjWithMeta(report.student,repcontent.studentname,
+             _pastUserInfosFetcher);
+        if (!user) {
             _postProcessRecords.push(report);
             return null;
         }
-        if (!user) user = _pastUserInfosFetcher.getUserObj(report.student, repcontent.studentname);
-        if (!user) user = nlGroupInfo.getDefaultUser(repcontent.studentname || '');
+        if (!user.mobile && user.metadataObj.meta_mobile)
+            user.mobile = user.metadataObj.meta_mobile;
+        if (user.mobile && user.mobile.indexOf('m:') == 0) user.mobile = user.mobile.substring(2);
         return user;
     }
     
@@ -257,7 +253,6 @@ function(nl, nlRouter, nlDlg, nlGroupInfo, nlLrHelper, nlLrFilter, nlGetManyStor
         report.subject = contentmetadata.subject || ''; 
         
         var stats = {nLessonsAttempted: stainf.nPassedQuizes+stainf.nFailedQuizes,
-            internalIdentifier:report.id,
             timeSpentSeconds: stainf.onlineTimeSpentSeconds, 
             timeSpentMinutes: Math.ceil(stainf.onlineTimeSpentSeconds/60),
             iltTimeSpent: stainf.iltTimeSpent, 
@@ -288,7 +283,6 @@ function(nl, nlRouter, nlDlg, nlGroupInfo, nlLrHelper, nlLrFilter, nlGetManyStor
             }
         }
         if('reattempt' in stainf) {
-            _isReattemptEnabled = true;
             stats['reattempt'] = stainf['reattempt'];
         }
         stats.avgAttempts = stats.nLessonsAttempted ? Math.round(stainf.nQuizAttempts/stats.nLessonsAttempted*10)/10 : 0;
@@ -301,26 +295,14 @@ function(nl, nlRouter, nlDlg, nlGroupInfo, nlLrHelper, nlLrFilter, nlGetManyStor
         if(course.name) repcontent.name = course.name;
  
         if(!nlReportHelper.isEndStatusId(statusObj.id) && (nlLrFilter.getType() == 'course_assign')) {
-            if(Object.keys(_reminderDict).length == 0) {
-                _reminderDict['name'] = repcontent.name;
-                _reminderDict['assigned_by'] = repcontent.sendername;
-                _reminderDict['ctype'] = report.ctype;
-                _reminderDict['users'] = [];
-            }
-            var currentDate = new Date();
-            var endtime = repcontent.not_after && !repcontent.submissionAfterEndtime ? nl.fmt.json2Date(repcontent.not_after) : '';
-            if(!endtime || currentDate <= endtime) {
-                var minimalUser = nlGroupInfo.getMinimalUserObj(user);
-                if (minimalUser) {
-                    minimalUser.repid = report.id;
-                    _reminderDict.users.push(minimalUser);
-                }
-            }
+            _updateReminderDict(report, repcontent, user);
         }
         
         report.url = nl.fmt2('#/course_view?id={}&mode=report_view', report.id);
         report.urlTitle = nl.t('View report');
-        if (user.state == 0 && !nlReportHelper.isCourseCompleted(stainf)) stainf.status = nl.t('attrition-{}', stainf.status);   
+        if (report.isNHT && user.state == 0 && stainf.status.indexOf('attrition') != 0) {
+            if (!nlReportHelper.isCourseCompleted(stainf)) stainf.status = nl.t('attrition-{}', stainf.status);   
+        }
         stats.status = nlReportHelper.getStatusInfoFromCourseStatsObj(stainf);
         if (report.isNHT) {
             if(!(report.assignment in _batchStatus)) _batchStatus[report.assignment] = {};
@@ -348,29 +330,33 @@ function(nl, nlRouter, nlDlg, nlGroupInfo, nlLrHelper, nlLrFilter, nlGetManyStor
             }
         }
         report.typeStr = 'Course';
-        if (_canManage) {
-            report.hideDeleteButton = false;
-        } else if (_canSend && _userInfo.userid == repcontent.sender) {
-            report.hideDeleteButton = false;
-        } else {
-            report.hideDeleteButton = true;
-        }
-        var usermd = nlLrHelper.getMetadataDict(user);
-        if (user.mobile) {
-            if (user.mobile.indexOf('m:') == 0) user.mobile = user.mobile.substring(2);
-        } else if (usermd.meta_mobile) {
-            user.mobile = usermd.meta_mobile;
-        }
-        if (_qsMaxLen < stainf.quizScore.length) _qsMaxLen = stainf.quizScore.length;
-        var ret = {raw_record: report, repcontent: repcontent, course: course, user: user, orgparts: _updateOrgByParts(user),
-            quizscore: stainf.quizScore,
-            usermd: nlLrHelper.getMetadataDict(user), stats: stats,
+        _updateHideDeleteButton(report);
+        var modules = course && course.content ? course.content.modules : repcontent.content.modules;
+        var groupInfo = nlGroupInfo.get();
+        if (groupInfo.props.etmAsd && groupInfo.props.etmAsd.length > 0) _updateMsDates(repcontent, modules, courseAssignment.info);
+        if (_qsMaxLen < stainf.quizScoreLen) _qsMaxLen = stainf.quizScoreLen;
+        var ret = {raw_record: report, repcontent: repcontent, course: course,
+            user: user, usermd: user.metadataObj, stats: stats, quizscore: stainf.quizScore,
             created: nl.fmt.fmtDateDelta(report.created, null, 'minute'),
             updated: nl.fmt.fmtDateDelta(report.updated, null, 'minute'),
-            not_before: report.not_before ? nl.fmt.fmtDateDelta(report.not_before, null, 'minute') : '',
-            not_after: report.not_after ? nl.fmt.fmtDateDelta(report.not_after, null, 'minute') : ''
+            custom: {} // TODO-NOW: either fill this or do alternate approach in lr_export
         };
         return ret;
+    }
+
+    function _updateMsDates(repcontent, modules, assignInfo) {
+        var statusinfo = repcontent.statusinfo;
+        var plannedMsInfo = assignInfo ? assignInfo.msDates : null;
+        if (!plannedMsInfo) return;
+        for (var i=0; i<modules.length; i++) {
+            var cm = modules[i];
+            if (cm.type != 'milestone') continue;
+            var mstype = cm.milestone_type;
+            var actualMs = statusinfo[cm.id];
+            var plannedMs = plannedMsInfo['milestone_'+cm.id] || '';
+            repcontent[mstype+'_planned'] = nl.fmt.date2StrDDMMYY(nl.fmt.json2Date(plannedMs || '', 'date'));
+            repcontent[mstype+'_actual'] = nl.fmt.date2StrDDMMYY(actualMs.reached || '');
+        }
     }
 
     function _processModuleReport(report) {
@@ -391,24 +377,10 @@ function(nl, nlRouter, nlDlg, nlGroupInfo, nlLrHelper, nlLrFilter, nlGetManyStor
 
         var stats = { nQuiz: 0,
             timeSpentSeconds: 0, nLessonsAttempted: 0, nScore: 0, nMaxScore: 0,
-            internalIdentifier:report.id, done: 0, nQuiz: 0, avgAttempts: 0};
+            done: 0, nQuiz: 0, avgAttempts: 0};
     
         if(!report.completed && (nlLrFilter.getType() == 'module_assign')) {
-            if(Object.keys(_reminderDict).length == 0) {
-                _reminderDict['name'] = repcontent.name;
-                _reminderDict['assigned_by'] = repcontent.assigned_by;
-                _reminderDict['ctype'] = report.ctype;
-                _reminderDict['users'] = [];
-            }
-            var currentDate = new Date();
-            var endtime = repcontent.not_after && !repcontent.submissionAfterEndtime ? nl.fmt.json2Date(repcontent.not_after) : '';
-            if(!endtime || currentDate <= endtime) {
-                var minimalUser = nlGroupInfo.getMinimalUserObj(user);
-                if (minimalUser) {
-                    minimalUser.repid = report.id;
-                    _reminderDict.users.push(minimalUser);
-                }
-            }
+            _updateReminderDict(report, repcontent, user);
         }
         
         if(repcontent.started) {
@@ -430,7 +402,6 @@ function(nl, nlRouter, nlDlg, nlGroupInfo, nlLrHelper, nlLrFilter, nlGetManyStor
         report.containerid = report.containerid || '';
         report._grade = repcontent.grade || '';
         report.subject = repcontent.subject || '';
-        report.assign_remarks = repcontent.assign_remarks || '';
         var maxScore = repcontent.selfLearningMode ? 0 : parseInt(repcontent.maxScore || 0);
         stats.nQuiz = maxScore ? 1 : 0;
 
@@ -470,6 +441,31 @@ function(nl, nlRouter, nlDlg, nlGroupInfo, nlLrHelper, nlLrFilter, nlGetManyStor
             : stats.status.id == nlReportHelper.STATUS_STARTED ? 'Started' : '100 %';
         stats.percCompleteDesc = '';
         report.typeStr = 'Module';
+        _updateHideDeleteButton(report);
+        var ret = {raw_record: report, repcontent: repcontent,
+            user: user, usermd: user.metadataObj, stats: stats,
+            created: nl.fmt.fmtDateDelta(report.created, null, 'minute'), 
+            updated: nl.fmt.fmtDateDelta(report.updated, null, 'minute'),
+            custom: {}
+        };
+        return ret;
+    }
+
+    function _updateReminderDict(report, repcontent, user) {
+        if(Object.keys(_reminderDict).length == 0) {
+            _reminderDict['name'] = repcontent.name;
+            _reminderDict['assigned_by'] = repcontent.assigned_by;
+            _reminderDict['ctype'] = report.ctype;
+            _reminderDict['users'] = [];
+        }
+        var currentDate = new Date();
+        var endtime = repcontent.not_after && !repcontent.submissionAfterEndtime ? repcontent.not_after : '';
+        if(!endtime || currentDate <= endtime) {
+            _reminderDict.users.push({repid: report.id, user: user});
+        }
+    }
+
+    function _updateHideDeleteButton(report) {
         if (_canManage) {
             report.hideDeleteButton = false;
         } else if (_canSend && _userInfo.userid == report.assignor) {
@@ -477,43 +473,20 @@ function(nl, nlRouter, nlDlg, nlGroupInfo, nlLrHelper, nlLrFilter, nlGetManyStor
         } else {
             report.hideDeleteButton = true;
         }
-        var usermd = nlLrHelper.getMetadataDict(user);
-        if (user.mobile) {
-            if (user.mobile.indexOf('m:') == 0) user.mobile = user.mobile.substring(2);
-        } else if (usermd.meta_mobile) {
-            user.mobile = usermd.meta_mobile;
-        }
-        var ret = {raw_record: report, repcontent: repcontent, user: user, orgparts: _updateOrgByParts(user),
-            usermd: nlLrHelper.getMetadataDict(user), stats: stats,
-            user_state: user.state ? 'active' : 'inactive',
-            created: nl.fmt.fmtDateDelta(report.created, null, 'minute'), 
-            updated: nl.fmt.fmtDateDelta(report.updated, null, 'minute'),
-            not_before: report.not_before ? nl.fmt.fmtDateDelta(report.not_before, null, 'minute') : '',
-            not_after: report.not_after ? nl.fmt.fmtDateDelta(report.not_after, null, 'minute') : ''
-        };
-        return ret;
-    }
-
-    function _updateOrgByParts(user) {
-        var parts = (user.org_unit || '').split('.');
-        var ret = {part1: '', part2: '', part3: '', part4: ''};
-        for(var i=0; i<parts.length && i < 4; i++) 
-            ret['part'+(i+1)] = parts[i];
-        return ret;
     }
 
     function _updateCommonParams(report, ctypestr) {
-        var repcontent = report._transformVersion ? report.repcontent : angular.fromJson(report.content);
+        var repcontent = angular.fromJson(report.content);
         nlGetManyStore.overrideAssignmentParametersInRepContent(report, repcontent);
-        report.gradeLabel = _userInfo.groupinfo.gradelabel;
-        report.subjectLabel = _userInfo.groupinfo.subjectlabel;
         report.updated = nl.fmt.json2Date(report.updated);
         report.created = nl.fmt.json2Date(report.created);
         report._batchName = repcontent.batchname || '';
-        if (repcontent.batchtype) report._batchtype = repcontent.batchtype;
-        report.assign_remarks = (report.ctype == _nl.ctypes.CTYPE_COURSE ? repcontent.remarks : repcontent.assign_remarks) || '';
-        report.not_before = repcontent.not_before || '';
-        report.not_after = repcontent.not_after || '';
+        repcontent.assign_remarks = repcontent.assign_remarks || repcontent.remarks || '';
+        repcontent.assigned_by = repcontent.assigned_by || repcontent.sendername || '';
+        repcontent.not_before_str = repcontent.not_before ? nl.fmt.fmtDateDelta(repcontent.not_before, null, 'minute') : '';
+        repcontent.not_after_str = repcontent.not_after ? nl.fmt.fmtDateDelta(repcontent.not_after, null, 'minute') : '';
+        repcontent.iltTrainerName = repcontent.iltTrainerName || repcontent.assigned_by;
+        if (!repcontent.batchtype) repcontent.batchtype = '';
         return repcontent;
     }
     

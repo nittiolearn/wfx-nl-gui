@@ -1,11 +1,11 @@
 <div class='padding-mid'>
     <table class='nl-table nl-table-styled3 rowlines'>
         <tr class='header'>
-            <td class='minw-name'>
-                <div class='row row-center magin0 padding0'>
-                    <span class='padding-small' ng-show='item.isFolder'>
-                        <i ng-hide='item.isOpen' class="icon ion-arrow-right-b bold fsh5"></i>
-                        <i ng-show='item.isOpen' class="icon ion-arrow-down-b bold fsh5"></i>
+            <td class='minw-name nl-link-text'>
+                <div class='row row-center magin0 padding0' 
+                    ng-click='updatePivotTable()'>
+                    <span class='padding-small' title='Customize Drilldown'>
+                        <i class="icon ion-gear-b bold fsh3"></i>
                     </span>
                     <div class='col'></div>
                     <span class='nl-link-img'>

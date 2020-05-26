@@ -15,10 +15,6 @@ function($stateProvider, $urlRouterProvider) {
 
 //-------------------------------------------------------------------------------------------------
 var NlLrHelper = ['nlGroupInfo', function NlLrHelper(nlGroupInfo) {
-    this.getMetadataDict = function(user) {
-    	return _getMetadataDict(user);
-    };
-
 	var _majorMetaHeaders = null;
 	var _allMetaHeaders = null;
     this.getMetaHeaders = function(bOnlyMajor) {
@@ -42,10 +38,6 @@ var NlLrHelper = ['nlGroupInfo', function NlLrHelper(nlGroupInfo) {
         }
         return headers;
     };
-
-    function _getMetadataDict(user) {
-    	return nlGroupInfo.getUserMetadataDict(user);
-    }
 }];
 
 //-------------------------------------------------------------------------------------------------

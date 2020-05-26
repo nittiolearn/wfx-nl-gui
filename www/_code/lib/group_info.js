@@ -52,6 +52,11 @@ function(nl, nlDlg, nlImporter, nlGroupCache) {
         _updateBasedonPermAndGroupfeature(_userInfo, grpid);
     };
 
+    this.getKeyToUsers = function(groupInfo, grpid) {
+        _initUsernameDict(groupInfo, grpid);
+        return groupInfo.derived.keyToUsers;
+    };
+
     this.formatUserName = function(uInfo) {
         return uInfo[this.FIRST_NAME] + ' ' + uInfo[this.LAST_NAME];
     };
@@ -81,7 +86,7 @@ function(nl, nlDlg, nlImporter, nlGroupCache) {
     	var ret = {};
         var groupInfo = self.get();
         var permissions = groupInfo.props.permissions;
-        var users = groupInfo.derived.keyToUsers;
+        var users = self.getKeyToUsers(groupInfo);
         for(var key in users) {
         	var user = users[key];
         	if (!user.isActive()) continue;
@@ -114,10 +119,30 @@ function(nl, nlDlg, nlImporter, nlGroupCache) {
 		}
 		return userObj;
     };
-    
+
+    this.getCachedUserObjWithMeta = function(uid, username, pastUserInfosFetcher) {
+        var strUid = '' + uid;
+        var groupInfo = self.get();
+        if (!groupInfo.derived.uidToUsers) groupInfo.derived.uidToUsers = {};
+        var userCache = groupInfo.derived.uidToUsers;
+        if (strUid in userCache) return userCache[strUid];
+        var user = self.getUserObj(strUid);
+        if (!user) user = pastUserInfosFetcher.getUserObj(uid, username);
+        if (!user && pastUserInfosFetcher.canFetchMore()) return null;
+        if (!user) user = self.getDefaultUser(username || '');
+        user.metadataObj = self.getUserMetadataDict(user);
+        var subOrgMapping = groupInfo.derived.orgToSubOrgMapping;
+        if (subOrgMapping) user.suborg = subOrgMapping[user.org_unit];
+        _updateOrgByParts(user);
+        user.usertypeStr = user.getUtStr ? user.getUtStr() : '';
+        userCache[user] = user;
+        return user;
+    };
+
     this.getUserObj = function(uid, grpid) {
-        if (!(uid in self.get(grpid).users)) return null;
-        var uInfo = self.get(grpid).users[uid];
+        var groupInfo = self.get(grpid);
+        if (!(uid in groupInfo.users)) return null;
+        var uInfo = groupInfo.users[uid];
         var ret = {
             username: uInfo[this.USERNAME] || '',
             state: uInfo[this.STATE] || 0,
@@ -153,9 +178,8 @@ function(nl, nlDlg, nlImporter, nlGroupCache) {
         return ret;
     };
 
-    this.getOrgToSubOrgDict = function(grpid) {
-        var orgToSubOrgMapping = _getOrgToSubOrgMapping(grpid);
-        return orgToSubOrgMapping;
+    this.getOrgToSubOrgDict = function(groupInfo) {
+        return groupInfo.derived.orgToSubOrgMapping;
     };
 
     this.isSubOrgEnabled = function(grpid) {
@@ -314,6 +338,8 @@ function(nl, nlDlg, nlImporter, nlGroupCache) {
             var loggedInUser = self.getUserObj(''+_userInfo.userid);
             myOuList = _getMyOuList(loggedInUser);
         }
+        groupInfo.derived.myOuList = myOuList;
+        
         // Update type names
         var props = groupInfo.props || {};
         var typenames = props.usertypenames || {};
@@ -321,20 +347,27 @@ function(nl, nlDlg, nlImporter, nlGroupCache) {
         for (var ut in typenames) {
             groupInfo.derived.typeNameToUt[typenames[ut]] = parseInt(ut);
         }
-        // Update login id to user dict
-        var udict = {};
-        for(var uid in groupInfo.users) {
-            var user = self.getUserObj(uid, grpid);
-            if (_canAddUser(user, myOuList)) {
-                udict[user.username] = user;
-            }
-        }
-        groupInfo.derived.keyToUsers = udict;
-        
         // Update ou ids to ous dict
         var ouDict = {};
         _getOusAsDict(groupInfo.outree, ouDict);
         groupInfo.derived.ouDict = ouDict;
+        _initOrgToSubOrgMapping(groupInfo);
+    }
+
+    function _initUsernameDict(groupInfo, grpid) {
+        if (groupInfo.derived.keyToUsers) return;
+        // Update login id to user dict
+        var udict = {};
+        for(var uid in groupInfo.users) {
+            var uInfo = groupInfo.users[uid];
+            if (!uInfo) continue;
+            var org_unit = uInfo[self.ORG_UNIT] || '';
+            if (_canAddUser(org_unit, groupInfo.derived.myOuList)) {
+                var user = self.getUserObj(uid, grpid);
+                udict[user.username] = user;
+            }
+        }
+        groupInfo.derived.keyToUsers = udict;
     }
 
     function _getMyOuList(loggedInUser) {
@@ -348,10 +381,10 @@ function(nl, nlDlg, nlImporter, nlGroupCache) {
         return myOuList2;
     }
 
-    function _canAddUser(user, myOuList) {
+    function _canAddUser(org_unit, myOuList) {
         if (!myOuList) return true;
         for (var i=0; i<myOuList.length; i++) {
-            var ou = user.org_unit.trim();
+            var ou = org_unit.trim();
             var myOu = myOuList[i];
             if (ou == myOu || ou.indexOf(myOu + '.') == 0) return true;
             }
@@ -367,32 +400,36 @@ function(nl, nlDlg, nlImporter, nlGroupCache) {
         }
     }
 
+    function _updateOrgByParts(user) {
+        var parts = (user.org_unit || '').split('.');
+        for(var i=0; i < 4; i++) {
+            var p = ('' + parts[i]).trim();
+            if (p && p.toUpperCase) p = p.toUpperCase();
+            user['ou_part' + (i+1)] = (i < parts.length) ? p : '';
+        }
+    }
+
     //##################################################################################################
     // org to suborg mapping
     //##################################################################################################
-
-    function _getOrgToSubOrgMapping(grpid) {
-        if (!grpid) grpid = '';
-        var groupinfo = _groupInfos[grpid]; 
-        if (groupinfo.orgToSubOrgMapping) return groupinfo.orgToSubOrgMapping;
+    function _initOrgToSubOrgMapping(groupInfo) {
         var orgToSubOrgMapping = {};
-        groupinfo.orgToSubOrgMapping = orgToSubOrgMapping;
-        for(var i=0; i<groupinfo.outree.length; i++) {
-            var ou = groupinfo.outree[i];
-            _addSubOrgTree(ou, orgToSubOrgMapping, groupinfo);
+        groupInfo.derived.orgToSubOrgMapping = orgToSubOrgMapping;
+        for(var i=0; i<groupInfo.outree.length; i++) {
+            var ou = groupInfo.outree[i];
+            _addSubOrgTree(ou, orgToSubOrgMapping, groupInfo);
         }
-        return groupinfo.orgToSubOrgMapping;
     }
 
     function _addSubOrgTree(ou, orgToSubOrgMapping, groupinfo) {
         var suborg = ou.suborg || 0;
         if (suborg == 1) {
             groupinfo.isSubOrgEnabled = true;
-            var suborgId = ou.id;
+            var suborgId = _getSubOrgLastPart(ou.id);
             _addSubTreeToSubOrg(ou, suborgId, orgToSubOrgMapping);
             return;
         }
-        orgToSubOrgMapping[ou.id] = 'Others';
+        orgToSubOrgMapping[ou.id] = 'OTHERS';
         if (!ou.children) return;
         if (suborg != 2) {
             for(var i=0; i<ou.children.length; i++)
@@ -403,12 +440,19 @@ function(nl, nlDlg, nlImporter, nlGroupCache) {
         groupinfo.isSubOrgEnabled = true;
         for(var i=0; i<ou.children.length; i++) {
             var child = ou.children[i];
-            var suborgId = child.id;
+            var suborgId = _getSubOrgLastPart(child.id);
             _addSubTreeToSubOrg(child, suborgId, orgToSubOrgMapping);
         }
     }
 
+    function _getSubOrgLastPart(subOrgId) {
+        var subOrgParts = subOrgId.split('.');
+        return subOrgParts[subOrgParts.length -1];
+    }
+
     function _addSubTreeToSubOrg(ou, suborgId, orgToSubOrgMapping) {
+        suborgId = ('' + suborgId).trim();
+        if (suborgId && suborgId.toUpperCase) suborgId = suborgId.toUpperCase();
         orgToSubOrgMapping[ou.id] = suborgId;
         if (!ou.children) return;
         for(var i=0; i<ou.children.length; i++)

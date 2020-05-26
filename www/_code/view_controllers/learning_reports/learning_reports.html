@@ -60,9 +60,9 @@
                     </span>
                 </span>
             </div>
-            <nl-table-view-selector ng-show='nhtViewSelectorConfig && (tabData.selectedTab.id == "nhtrunning" || tabData.selectedTab.id == "nhtclosed")  && !tabData.processingOnging'
+            <nl-table-view-selector ng-show='nhtViewSelectorConfig && (tabData.selectedTab.id == "nhtrunning" || tabData.selectedTab.id == "nhtclosed")'
                 config=nhtViewSelectorConfig></nl-table-view-selector>
-            <nl-table-view-selector ng-show='lrViewSelectorConfig && tabData.selectedTab.id == "learningrecords" && !tabData.processingOnging'
+            <nl-table-view-selector ng-show='lrViewSelectorConfig && tabData.selectedTab.id == "learningrecords"'
                 config=lrViewSelectorConfig></nl-table-view-selector>
             <span ng-repeat='tb in toolbar'
                 title='{{tb.title}}'
@@ -89,10 +89,14 @@
                 <i class='nl-link-text icon fsh4 fblue padding-mid ion-ios-search'
                     ng-click='tabData.onSearch(null)'>
                 </i>
-                <div ng-if='canShowFilterDialog' class='padding-small'></div>
-                <i ng-if='canShowFilterDialog' class='nl-link-text icon fsh4 fblue padding-mid ion-funnel'
-                   ng-click='tabData.onFilter(null)'>
-                </i>
+                <div class='padding-small'></div>
+                <div ng-click='tabData.onFilter(null)'
+                     class='{{filterCount > 0 ? "forange" : "fblue"}} nl-link-text padding-mid'>
+                     <div class='row row-top padding0 margin0'>
+                        <i class='icon fsh4 ion-funnel'></i>
+                        <span ng-if='filterCount' class='nl-superscript'>{{filterCount}}</span>
+                     </div>
+                </div>
             </div>
         </div>
     </div>
@@ -103,6 +107,7 @@
         ******************************************************************* -->
         <div style='padding-right:0px'>
             <div ng-repeat='tb in tabData.tabs'
+                 ng-if='tb.canShow'
                  class='nl-link-text nl-show-tooltip {{(tb.id == tabData.selectedTab.id) ? "nl-left-tab-selected" : "nl-left-tab"}}'>
                 <div class='padding-mid row row-center margin0' 
                      ng-click='tabData.onTabSelect(tb)'>
@@ -123,7 +128,7 @@
             <!-- **************************************************************
                 Nothing to display tab
             ******************************************************************* -->
-            <div  ng-if='tabData.nothingToDisplay'
+            <div ng-if='tabData.nothingToDisplay'
                 class='anim-enter fade fsh5 padding'>
                 <span>No data is available to display.</span>
                 <span ng-show='tabData.isFilterApplied'>Check for applied filters by clicking on the filter button.</span>
@@ -131,7 +136,7 @@
             <!-- **************************************************************
                 Overview tab
             ******************************************************************* -->
-            <div  ng-if='tabData.selectedTab.id == "overview" && !tabData.processingOnging'
+            <div ng-if='tabData.selectedTab.id == "overview" && !tabData.processingOnging'
                 class='anim-enter1 flyfrom-l'>
                 <div class='row row-center row-wrap row-justify-evenly text-center padding0 margin0' >
                     <div ng-class='$root.respCol331' style='width: 100%'>
@@ -227,7 +232,7 @@
             <!-- **************************************************************
             NHT Overview tab
             ******************************************************************* -->
-            <div  ng-if='tabData.selectedTab.id == "nhtoverview" && !tabData.processingOnging'
+            <div ng-show='tabData.selectedTab.id == "nhtoverview" && !tabData.processingOnging'
                 class='anim-enter1 flyfrom-l'>
                 <div class='row row-center row-wrap row-justify-evenly padding0 margin0'>
                     <div ng-class='$root.resp3Col80'>
@@ -290,17 +295,19 @@
                     </div> 
                     <div ng-class='$root.resp3Col20'
                         style='min-width: 150px;min-height:150px' class='text-center'>
-                        <div class='fsh5 padding-mid' style='text-align: center'>NHT overview</div>
-                        <div>
-                            <canvas class='chart chart-doughnut'
-                                    height='150'
-                                    width='150'
-                                    chart-data='nhtOverviewInfo.chartData[0].data'
-                                    chart-labels='nhtOverviewInfo.chartData[0].labels'
-                                    chart-colours='nhtOverviewInfo.chartData[0].colors'
-                                    chart-series='nhtOverviewInfo.chartData[0].series'
-                                    chart-options='nhtOverviewInfo.chartData[0].options'>
-                            </canvas>
+                        <div ng-show='nhtOverviewInfo.showChart'>
+                            <div class='fsh5 padding-mid' style='text-align: center'>Initial HC split</div>
+                            <div>
+                                <canvas class='chart chart-doughnut'
+                                        height='150'
+                                        width='150'
+                                        chart-data='nhtOverviewInfo.chartData[0].data'
+                                        chart-labels='nhtOverviewInfo.chartData[0].labels'
+                                        chart-colours='nhtOverviewInfo.chartData[0].colors'
+                                        chart-series='nhtOverviewInfo.chartData[0].series'
+                                        chart-options='nhtOverviewInfo.chartData[0].options'>
+                                </canvas>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -309,7 +316,7 @@
             <!-- **************************************************************
                 Learning records tab
             ******************************************************************* -->
-            <div ng-if='tabData.selectedTab.id == "learningrecords" && !tabData.processingOnging'
+            <div ng-show='tabData.selectedTab.id == "learningrecords" && !tabData.processingOnging'
                 class='anim-enter1 flyfrom-t padding-mid'>
                 <div class='padding-small fgrey'>
                     {{getMaxVisibleString()}}
@@ -354,28 +361,28 @@
             <!-- **************************************************************
                 Drill down tab
             ******************************************************************* -->
-            <div ng-if='tabData.selectedTab.id == "drilldown"  && !tabData.processingOnging'
+            <div ng-show='tabData.selectedTab.id == "drilldown"  && !tabData.processingOnging'
                 class='anim-enter1 flyfrom-l' style='width: {{checkOverflow($event) ? "fit-content" : ""}}'>
                 <nl-lr-drilldown-tab drilldown='drillDownInfo'></nl-lr-drilldown-tab>
             </div>
             <!-- **************************************************************
                 NHT Running Batches tab
             ******************************************************************* -->
-            <div ng-if='tabData.selectedTab.id == "nhtrunning" && !tabData.processingOnging'
+            <div ng-show='tabData.selectedTab.id == "nhtrunning" && !tabData.processingOnging'
                 class='anim-enter1 flyfrom-l' style='width: {{checkOverflow($event) ? "fit-content" : ""}}'>
                 <nl-lr-nht-tab nht='nhtRunningInfo'></nl-lr-nht-tab>
             </div>
             <!-- **************************************************************
                 NHT Closed Batches tab
             ******************************************************************* -->
-            <div ng-if='tabData.selectedTab.id == "nhtclosed" && !tabData.processingOnging'
+            <div ng-show='tabData.selectedTab.id == "nhtclosed" && !tabData.processingOnging'
                 class='anim-enter1 flyfrom-l' style='width: {{checkOverflow($event) ? "fit-content" : ""}}'>
                 <nl-lr-nht-tab nht='nhtClosedInfo'></nl-lr-nht-tab>
             </div>
             <!-- **************************************************************
                 NHT Batch Attendance tab
             ******************************************************************* -->
-            <div ng-if='tabData.selectedTab.id == "iltbatchdata"  && !tabData.processingOnging'
+            <div ng-show='tabData.selectedTab.id == "nhtbatchattendance"  && !tabData.processingOnging'
                 class='padding-mid anim-enter1 flyfrom-l' style='width: {{checkOverflow($event) ? "fit-content" : ""}}'>
                 <table class='nl-table nl-table-styled3 rowlines'>
                     <tr class='header'>
@@ -395,7 +402,7 @@
             <!-- **************************************************************
                 Certificate tab
             ******************************************************************* -->
-            <div ng-if='tabData.selectedTab.id == "certificate"  && !tabData.processingOnging'
+            <div ng-show='tabData.selectedTab.id == "certificate"  && !tabData.processingOnging'
                 class='padding-mid anim-enter1 flyfrom-l' style='width: {{checkOverflow($event) ? "fit-content" : ""}}'
                 ng-include='"view_controllers/learning_reports/lr_certificate_tabdata.html"'>
             </div>
