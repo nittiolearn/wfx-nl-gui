@@ -716,7 +716,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			var record = records[recid];
 			if (record.raw_record.isNHT) {
 				_tabManager.nhtRecordFound();
-				// TODO-NOW-1 call nlGetManyStore.updateBatchStatusInReport(record);
+				// TODO-NOW call nlGetManyStore.updateBatchStatusInReport(record);
 				nlGetManyStore.getBatchMilestoneInfo(record.raw_record, batchStatusObj);
 			} else {
 				_tabManager.lmsRecordFound();

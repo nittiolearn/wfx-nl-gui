@@ -237,9 +237,14 @@ function Paginator(nl, info, nlExpressionProcessor) {
     function _getFieldValue(record, fieldId, avps) {
         if(!record) return '';
         var ret = '';
-        if (fieldId.indexOf('custom.') != 0) ret = _getFixedFieldValue(record, fieldId);
-        else ret = _getCustomFieldValue(record, fieldId, avps);
-        if (!ret && ret !== 0) ret = '';
+        if (fieldId.indexOf('custom.') != 0) {
+            ret = _getFixedFieldValue(record, fieldId);
+            if (!ret && ret !== 0) ret = '';
+        } else {
+            ret = _getCustomFieldValue(record, fieldId, avps);
+            if (!ret && ret !== 0) ret = '';
+            record.custom[fieldId] = ret
+        }
         return ret;
     }
 
