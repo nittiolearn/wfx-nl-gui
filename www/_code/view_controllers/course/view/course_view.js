@@ -221,7 +221,7 @@ function ModeHandler(nl, nlCourse, nlServerApi, nlDlg, nlGroupInfo, $scope, nlRe
     };
 
     this.setDependencyArray = function(cm, prereqs, nlTreeListSrv) {
-        if (!cm.dependencyArray) cm['dependencyArray'] = [];
+        cm.dependencyArray = cm.dependencyArrayFromRepHelper || [];
         for(var i=0; i<prereqs.length; i++){
             var p = prereqs[i];
             var cmid = p.module;
@@ -1050,7 +1050,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlCourseEditor, nlC
         }
         var itemInfo = itemIdToInfo[cm.id] || {};
         cm.hideItem = (modeHandler.mode == MODES.DO || modeHandler.mode == MODES.REPORT_VIEW) && itemInfo.hideItem;
-        if (itemInfo.dependencyArray) cm.dependencyArray = itemInfo.dependencyArray || [];
+        if (itemInfo.dependencyArray) cm.dependencyArrayFromRepHelper = itemInfo.dependencyArray || [];
         if (cm.type === 'info' || cm.type === 'link') {
             _updateLinkData(cm, itemInfo);
         } else if (cm.type === 'certificate') {

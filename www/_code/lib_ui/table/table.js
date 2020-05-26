@@ -243,7 +243,8 @@ function Paginator(nl, info, nlExpressionProcessor) {
         } else {
             ret = _getCustomFieldValue(record, fieldId, avps);
             if (!ret && ret !== 0) ret = '';
-            record.custom[fieldId] = ret
+            if (fieldId.indexOf('custom.') == 0) fieldId = fieldId.substring(7, fieldId.length);
+            record.custom[fieldId] = ret;            
         }
         return ret;
     }
