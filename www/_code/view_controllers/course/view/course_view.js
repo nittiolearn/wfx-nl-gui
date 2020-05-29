@@ -1417,7 +1417,7 @@ function ScopeExtensions(nl, modeHandler, nlContainer, nlCourseEditor, nlCourseC
 	this.hideReviewButton = function(cm) {
         if (!cm) return true;
         if (this.canShowTryAgain(cm)) return true;
-        if (!modeHandler.course.content.hide_answers || modeHandler.mode != MODES.DO) return false;
+        if (!(modeHandler.course.content.hide_answers || cm.hide_answers) || modeHandler.mode != MODES.DO) return false; 
         return (cm.type == 'lesson' && (cm.state.status == 'success' || cm.state.status == 'failed'));
 	};
 
