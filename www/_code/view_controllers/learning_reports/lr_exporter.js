@@ -693,12 +693,14 @@ function(nl, nlDlg, nlRouter, nlExporter, nlLrHelper, nlLrSummaryStats, nlGroupI
             {id: 'title', name:'Page Title'},
             {id: 'maxScore', name:'Maximum Score'},
             {id: 'score', name:'Achieved Score'},
-            {id: 'answer', name:'Answers provided'}];
+            {id: 'answer', name:'Answers provided'},
+            {id: 'module_status', name:'Module status'}];
     var _h1Feedback = [
             {id: 'page', name:'Page No'},
             {id: 'title', name:'Page Title'},
             {id: 'question', name:'Question'},
-            {id: 'response', name:'Response'}];
+            {id: 'response', name:'Response'},
+            {id: 'module_status', name:'Module status'}];
 
     var _hCourseDetailsElem1 = [
             {id: '_assignTypeStr', name:'Record Type'},
@@ -777,7 +779,7 @@ function(nl, nlDlg, nlRouter, nlExporter, nlLrHelper, nlLrSummaryStats, nlGroupI
             _email: rep._email, _assignTypeStr: rep._assignTypeStr, 
             _courseName: rep._courseName, _batchName: rep._batchName,
             assign_remarks: report.repcontent.assign_remarks, assignment: rep.assignment,
-            _courseId: rep._courseId, containerid: rep.containerid, _attempts : rep._attempts};
+            _courseId: rep._courseId, containerid: rep.containerid, _attempts : rep._attempts, module_status: report.stats.status.txt};
             
         for(var i=0; i<mh.length; i++)
             currentPageRecord[mh[i].id] = rep[mh[i].id];

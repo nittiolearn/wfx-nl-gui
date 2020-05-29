@@ -61,10 +61,11 @@
 	}
 
     .nl-pagetype-preview-title {
-      white-space: nowrap;
       text-overflow : ellipsis;
       overflow : hidden;
       max-width: 240px;
+	  height: 42px;
+	  font-size: 90%;
     }
 </style>
 
@@ -98,7 +99,6 @@ show-close='{{showClose}}'>
 			        <div ng-repeat='layout in options.layouts track by layout.id'>
 			        	<div class='padding'>
 					        <div class='padding-mid  nl-link-img {{layout.id == data.layout.id ? "nl-layout-selected" : ""}}'>
-		                        <div class='nl-pagetype-preview-title text-center padding-mid fsh6'>{{layout.layoutName}}</div>
 							    <div class='row margin0 padding0'>
 							        <div class='col padding0'></div>
 			                        <div class='nl-pagetype-preview page_format_preview {{bginfos[layout.id].imgtype == "default_popup_bg" ? "module_popup_img" : ""}}'
@@ -122,6 +122,9 @@ show-close='{{showClose}}'>
 			                        </div>
 			                        <div class='col padding0'></div>
 							    </div>
+		                        <div class='nl-pagetype-preview-title text-center padding-mid'>
+									{{layout.layoutName}}
+								</div>
 							</div>
 						</div>
 					</div>
