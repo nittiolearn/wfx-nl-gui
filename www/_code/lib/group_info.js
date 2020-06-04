@@ -135,8 +135,25 @@ function(nl, nlDlg, nlImporter, nlGroupCache) {
         if (subOrgMapping) user.suborg = subOrgMapping[user.org_unit];
         _updateOrgByParts(user);
         user.usertypeStr = user.getUtStr ? user.getUtStr() : '';
-        userCache[user] = user;
+        var customAttrs = groupInfo.derived.customAttrs;
+        user.custom = customAttrs && customAttrs[user.username] ? customAttrs[user.username] : {};
+        userCache[strUid] = user;
         return user;
+    };
+
+    this.updateCustomAttrsOfCachedUsers = function(customAttrs) {
+        var groupInfo = self.get();
+        groupInfo.derived.customAttrs = customAttrs;
+        var cnt = 0;
+        for(var key in groupInfo.derived.uidToUsers) {
+            var user = groupInfo.derived.uidToUsers[key];
+            if (!customAttrs[user.username]) user.custom = {};
+            else {
+                user.custom = customAttrs[user.username];
+                cnt++;
+            }
+        }
+        return cnt;
     };
 
     this.getUserObj = function(uid, grpid) {

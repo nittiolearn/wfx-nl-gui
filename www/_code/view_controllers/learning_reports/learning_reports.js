@@ -256,7 +256,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			onClick : _onBulkDelete
 		}, {
 			title : 'Import user data',
-			icon : 'ion-ios-download',
+			icon : 'ion-android-contacts',
 			id: 'importuserdata',
 			onClick : _onImportUserData
 		}, {
@@ -673,16 +673,17 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			var keyName = 'usermd.' + mh[i].id;
 			columns.push(_col(keyName, mh[i].name));
 		}
-		if (nlLrHelper.getUserAttrCols()) {
-			var userAttrCols = nlLrHelper.getUserAttrCols();
-			for (var i=1; i<userAttrCols.length; i++) columns.push(_col('user.'+userAttrCols[i].id, userAttrCols[i].name));
-		}
-
 		// Id's are always exported, So the below 3 fields.
 		columns.push(_col('raw_record.id', 'Report Id', 'text-right'));
 		columns.push(_col('raw_record.assignment', 'Assign Id', 'text-right'));
 		columns.push(_col('raw_record.lesson_id', 'Course/ Module Id', 'text-right'));
 		columns.push(_col('repcontent.targetLang', 'Language'));
+		var userAttrCols = nlLrHelper.getUserAttrCols();
+		for (var i=0; i<userAttrCols.length; i++) {
+			var c = userAttrCols[i];
+			columns.push(_col(c.id, c.name));
+		}
+
 		nlTableViewSelectorSrv.updateAllColumnNames('lr_views', columns);
 		return columns;
 	}
@@ -1719,7 +1720,9 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 
 	function _onImportUserData() {
 		nlLrHelper.showImportUserAttrsDlg($scope).then(function(result) {
-			_updateReportRecords();
+			if (!result) return;
+			nlTable.resetCache($scope.utable);
+			_updateScope();
 		});
 	}
 	
