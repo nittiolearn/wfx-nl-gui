@@ -362,7 +362,6 @@ function(nl, nlDlg, nlRouter, nlExporter, nlLrHelper, nlLrSummaryStats, nlGroupI
     function _updateLrRow(reports) {
         var lrHeaderRow = _lrDict.columns;
         for(var i=0; i<reports.length; i++) {
-            // TODO-NOW: Custom columns are not updated in the object?
             if (_exportFormat == 'csv') 
                 ctx.lrRow.push(nlExporter.getCsvRow(lrHeaderRow, reports[i]));
             else

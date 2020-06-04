@@ -339,7 +339,7 @@ function(nl, nlRouter, nlDlg, nlGroupInfo, nlLrHelper, nlLrFilter, nlGetManyStor
             user: user, usermd: user.metadataObj, stats: stats, quizscore: stainf.quizScore,
             created: nl.fmt.fmtDateDelta(report.created, null, 'minute'),
             updated: nl.fmt.fmtDateDelta(report.updated, null, 'minute'),
-            custom: {} // TODO-NOW: either fill this or do alternate approach in lr_export
+            custom: {}
         };
         return ret;
     }
