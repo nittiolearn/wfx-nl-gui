@@ -335,6 +335,11 @@ function(nl, nlRouter, nlDlg, nlGroupInfo, nlLrHelper, nlLrFilter, nlGetManyStor
         var groupInfo = nlGroupInfo.get();
         if (groupInfo.props.etmAsd && groupInfo.props.etmAsd.length > 0) _updateMsDates(repcontent, modules, courseAssignment.info);
         if (_qsMaxLen < stainf.quizScoreLen) _qsMaxLen = stainf.quizScoreLen;
+        var customAttrDict = nlLrHelper.getCustomAttrDict();
+        if (customAttrDict && (user.username in customAttrDict)) {
+            var userAttrs = customAttrDict[user.username];
+            for (var key in userAttrs) user[key] = userAttrs[key];
+        }
         var ret = {raw_record: report, repcontent: repcontent, course: course,
             user: user, usermd: user.metadataObj, stats: stats, quizscore: stainf.quizScore,
             created: nl.fmt.fmtDateDelta(report.created, null, 'minute'),
@@ -442,6 +447,11 @@ function(nl, nlRouter, nlDlg, nlGroupInfo, nlLrHelper, nlLrFilter, nlGetManyStor
         stats.percCompleteDesc = '';
         report.typeStr = 'Module';
         _updateHideDeleteButton(report);
+        var customAttrDict = nlLrHelper.getCustomAttrDict();
+        if (customAttrDict && (user.username in customAttrDict)) {
+            var userAttrs = customAttrDict[user.username];
+            for (var key in userAttrs) user[key] = userAttrs[key];
+        }
         var ret = {raw_record: report, repcontent: repcontent,
             user: user, usermd: user.metadataObj, stats: stats,
             created: nl.fmt.fmtDateDelta(report.created, null, 'minute'), 

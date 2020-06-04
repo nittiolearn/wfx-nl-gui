@@ -243,6 +243,11 @@ textarea, input[type="text"], input[type="password"], input[type="datetime"], in
   display:inline;
 }
 
+.default-input {
+  background-color: #FFFFFF;
+  border: 1px solid #DDDDFF;
+}
+
 select {
   background-color: #FFFFFF;
   border: 1px solid #DDDDFF;

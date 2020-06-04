@@ -36,6 +36,7 @@ function(nl, nlDlg, nlRouter, nlOuUserSelect, nlGroupInfo) {
 		showfilters: true,	// Should the initial fetch filter dialog be shown
 		showfilterjson: false, // Should json for additional filters be shown
 		debug: false, //only for testing in debug mode
+		custom: false, //Enable custom mode for groups to allow trainer to import the user data
 		chunksize: 50,
 		userSelection: false,
 		dontZip: false,
@@ -56,7 +57,7 @@ function(nl, nlDlg, nlRouter, nlOuUserSelect, nlGroupInfo) {
         if (!_oneOf(_data.type, ['all', 'module', 'course', 'training_kind', 'module_assign', 'course_assign', 'module_self_assign', 'training_batch', 'user']))
         	_data.type = 'course';
 		_fillAttrs(_data, ['timestamptype', 'mode', 'myou', 'myoulevel', 'myoufilter', 'assignor', 'parentonly',
-			'repsubtype', 'objid', 'title', 'showfilters', 'showfilterjson', 'debug', 'chunksize', 'dontZip', 'assignid', 'moduleid'], 
+			'repsubtype', 'objid', 'title', 'showfilters', 'showfilterjson', 'debug', 'custom', 'chunksize', 'dontZip', 'assignid', 'moduleid'], 
         	[settings, urlParams, _dataDefaults]);
         if (_oneOf(_data.type, ['module_assign', 'course_assign', 'training_batch', 'user']))
 			_data.showfilters = false;
@@ -75,6 +76,7 @@ function(nl, nlDlg, nlRouter, nlOuUserSelect, nlGroupInfo) {
         _toBool(_data, 'showfilters');
         _toBool(_data, 'userSelection');
 		_toBool(_data, 'debug');
+		_toBool(_data, 'custom');
 		_toInt(_data, 'chunksize');
         _toBool(_data, 'dontZip');
         if (!_data.myou && !nlRouter.isPermitted(userInfo, 'assignment_manage')) _data.assignor = 'me';
@@ -126,7 +128,11 @@ function(nl, nlDlg, nlRouter, nlOuUserSelect, nlGroupInfo) {
     	return _data.debug;
 	}
     
-    this.getObjectId = function() {
+	this.isCustomEnabled = function() {
+    	return _data.custom;
+	}
+
+	this.getObjectId = function() {
     	return _data.objid;
     };
     
@@ -252,6 +258,7 @@ function(nl, nlDlg, nlRouter, nlOuUserSelect, nlGroupInfo) {
 			}
 		}
 		if (_data.debug) ret.debug = true;
+		if (_data.custom) ret.custom = true;
 		if (_data.chunksize) ret.chunksize = _data.chunksize;
 		ret.filters = _getOusPlusRepSubTypePlusCustomFilters();
 		return ret;

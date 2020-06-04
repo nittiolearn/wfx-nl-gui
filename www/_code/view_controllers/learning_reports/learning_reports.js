@@ -255,6 +255,11 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			id: 'bulkdelete',
 			onClick : _onBulkDelete
 		}, {
+			title : 'Import user data',
+			icon : 'ion-ios-download',
+			id: 'importuserdata',
+			onClick : _onImportUserData
+		}, {
 			title : 'Download report',
 			icon : 'ion-ios-cloud-download',
 			id: 'export',
@@ -308,6 +313,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		if (tbid == 'selectUser') return (nlLrFilter.getType() == 'user');
 		var canManage = nlRouter.isPermitted(_userInfo, 'assignment_manage');
 		if (tbid == 'bulkdelete') return (canManage && (type == 'course_assign' || type == 'module_assign'));
+		if (tbid == 'importuserdata') return nlLrFilter.isCustomEnabled();
 		return true;
 	};
 	
@@ -666,6 +672,10 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		for(var i=0; i<mh.length; i++) {
 			var keyName = 'usermd.' + mh[i].id;
 			columns.push(_col(keyName, mh[i].name));
+		}
+		if (nlLrHelper.getUserAttrCols()) {
+			var userAttrCols = nlLrHelper.getUserAttrCols();
+			for (var i=1; i<userAttrCols.length; i++) columns.push(_col('user.'+userAttrCols[i].id, userAttrCols[i].name));
 		}
 
 		// Id's are always exported, So the below 3 fields.
@@ -1707,6 +1717,12 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			[okButton], cancelButton);
 	};
 
+	function _onImportUserData() {
+		nlLrHelper.showImportUserAttrsDlg($scope).then(function(result) {
+			_updateReportRecords();
+		});
+	}
+	
 	function _onViewContent() {
 		var objId = nlLrFilter.getObjectId();
 		var type = nlLrFilter.getType();
