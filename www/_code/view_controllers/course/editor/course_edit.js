@@ -766,7 +766,7 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
 		gatePassscore: 'Provide the pass score to mark status of item for learner.',
 		showInReport: 'Enable this to show the score of this gate item in the overall learning report.',
 		isReattempt: 'You could control if the learning report is marked as certified in first attempt or not with this attribute. If this attribute is enabled and the learner reached upto to this item, it means that the learner did not complete the course in first attempt. This is useful to set for the re-certification items within the course.',
-		hide_answers: 'Enable this attribute to disallow the learners to see the correct answers.'
+		hide_answers: 'Enable this attribute to disallow the learners to see the reports after submission. This restrict learner from verifying the correct answers.'
     };
     
     function _getDescriptionHelp() {
