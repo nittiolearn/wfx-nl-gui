@@ -4,11 +4,12 @@
         <li ng-repeat='child in card.children'
             ng-if='$index < 4'>
             <div ng-if='child.url'>
-                <a ng-href='{{child.url}}' class='nl-link-text' nl-wait-on-click>{{child.title}}</a>
+                <a ng-href='{{child.url}}' nlta='{{child.title}}' class='nl-link-text' nl-wait-on-click>{{child.title}}</a>
             </div>
             <div ng-if='!child.url && child.internalUrl'>
                 <span class='nl-link-text'
-                      ng-click='onCardInternalUrlClicked($event, card, child.internalUrl)'>
+                      ng-click='onCardInternalUrlClicked($event, card, child.internalUrl)'
+                      nlta='{{child.title}}'>
                     {{child.title}}
                 </span>
             </div>

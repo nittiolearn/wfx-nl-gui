@@ -1,7 +1,7 @@
 <div class='nl-dlg-field-value nl-link-text'
      ng-click='$parent.data[fieldmodel] = !$parent.data[fieldmodel]; $parent.onFieldChange(fieldmodel);'
      ng-keypress='$event.keyCode == 13 ? $parent.data[fieldmodel] = !$parent.data[fieldmodel] : "" ; $event.keyCode == 13 ? $parent.onFieldChange(fieldmodel) : ""'>
-    <div class='{{fieldcls}}'
+    <div class='{{fieldcls}} nlta_{{fieldmodel}}'
          tabindex="{{fieldindex}}">
         <span>
             <i ng-show='$parent.data[fieldmodel]' class="icon ion-android-checkbox-outline black"></i>

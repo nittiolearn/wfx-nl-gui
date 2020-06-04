@@ -3,7 +3,7 @@
            ng-model='$parent.data[fieldmodel]'
            ng-change='onFieldChange(fieldmodel)'
            ng-class='{"nl-dlg-field-error": $parent.error[fieldmodel]}'
-           class='{{fieldcls}}'
+           class='{{fieldcls}} nlta_{{fieldmodel}}'
            min='{{fieldminvalue}}'
            max='{{fieldmaxvalue}}'
            tabindex='{{fieldindex}}'

@@ -8,10 +8,12 @@
 <div class='nl-card-links'>
 	<div class='nl-card-more-links'>
 	    <span ng-repeat='link in card.links' ng-click='onCardLinkClicked($event, card, link.id)'
-	    	  ng-if='link.id != "details"'
+			  ng-if='link.id != "details"'
+			  nlta='{{link.text}}'
 	          class='nl-link-text'>{{link.text}}</span>
 	</div>
     <i ng-repeat='link in card.links' ng-click='onCardLinkClicked($event, card, link.id)'
        ng-if='link.id == "details"'
+	   nlta='details'
        class='nl-card-more-icon nl-link-img ion-more icon fsh2'></i>
 </div>    
