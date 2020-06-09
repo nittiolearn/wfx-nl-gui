@@ -639,6 +639,8 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		columns.push(_col('stats.delayDays', 'Delay days', 'text-right'));
 		columns.push(_col('repcontent.iltVenue', 'Venue'));
 		columns.push(_col('repcontent.iltTrainerName','Trainer'));
+		columns.push(_col('repcontent.senderName', 'Sender Name'));
+		columns.push(_col('repcontent.senderID', 'Sender ID'));
 		columns.push(_col('repcontent.iltCostInfra', 'Infra Cost', 'text-right'));
 		columns.push(_col('repcontent.iltCostTrainer', 'Trainer Cost', 'text-right'));
 		columns.push(_col('repcontent.iltCostFoodSta', 'Food Cost', 'text-right'));
@@ -1470,7 +1472,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		var sessionDate =  sessionInfo.sessiondate || '';
 		if (!sessionDate) return;
 		if (sessionInfo.shiftHrs && sessionInfo.shiftMins)
-			sessionDates[sessionDate] = {start: nl.t('{}:{}', sessionInfo.shiftHrs, sessionInfo.shiftMins), end: _getShiftEnd(sessionInfo)};
+			sessionDates[sessionDate] = {start: nl.t('{}:{}', sessionInfo.shiftHrs, sessionInfo.shiftMins), end: _getShiftEnd(sessionInfo), sessionName: sessionInfo.sessionName};
 		else sessionDates[sessionDate] = {};
 	}
 
@@ -1558,7 +1560,8 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		headerRow.push({id: 'not_after', name: nl.t('End date'), class: 'minw-number'});
 		headerRow.push({id: 'learner_status', name: nl.t('Status'), class: 'minw-number'});
 		var sessionDatesArray = [];
-		for(var key in sessionDates) sessionDatesArray.push({date: nl.fmt.json2Date(key) || '', start: sessionDates[key].start, end: sessionDates[key].end});
+		for(var key in sessionDates)
+			sessionDatesArray.push({date: nl.fmt.json2Date(key) || '', start: sessionDates[key].start, end: sessionDates[key].end , sessionName: sessionDates[key].sessionName});
 		sessionDatesArray.sort(function(a, b) {
 			var key1 = new Date(a.date);
 			var key2 = new Date(b.date);
@@ -1574,8 +1577,8 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 
 		for(var i=0; i<sessionDatesArray.length; i++) {
 			var date = nl.fmt.date2StrDDMMYY(sessionDatesArray[i].date, null, 'date');
-			var hrName = nl.t('{}', date);
-			if (sessionDatesArray[i].start) hrName += nl.t(' {} - {}', sessionDatesArray[i].start, sessionDatesArray[i].end);
+			var hrName = (sessionDatesArray[i].sessionName || "") + "- " + nl.t('{}', date);
+			if (sessionDatesArray[i].start) hrName += nl.t('{} - {}', sessionDatesArray[i].start, sessionDatesArray[i].end);
 			headerRow.push({id: date, name: hrName, class: 'minw-number'});
 		}
 		return headerRow;

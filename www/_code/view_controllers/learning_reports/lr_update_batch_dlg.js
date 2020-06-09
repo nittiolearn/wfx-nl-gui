@@ -445,6 +445,7 @@ function DbAttendanceObject(courseAssignment, ctx) {
 			sessionInfo.shiftHrs = cm.shiftHrs.id;
 			sessionInfo.shiftMins = cm.shiftMins.id;
 			sessionInfo.shiftEnd = cm.shiftEnd;
+			sessionInfo.sessionName = cm.name;
 		} else {
 			if (!('asd' in sessionInfo)) sessionInfo.asd = [];
 			sessionInfo.asd.push({
@@ -455,6 +456,7 @@ function DbAttendanceObject(courseAssignment, ctx) {
 				shiftMins: cm.shiftMins.id,
 				shiftEnd: cm.shiftEnd,
 				id: cm.id,
+				sessionName: cm.name,
 				name: nlReportHelper.getItemName(cm)
 			});
 		}

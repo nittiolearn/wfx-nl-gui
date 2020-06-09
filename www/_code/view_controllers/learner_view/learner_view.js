@@ -168,6 +168,7 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlServerA
 	function _init(userInfo) {
 		nlLearnerViewRecords.init(userInfo);
 		$scope.tabData = _initTabData();
+		$scope.userName = userInfo.displayname;
 		nlTopbarSrv.setPageMenus($scope.tabData.tabs, $scope.tabData.selectedTab.id);
 		_initChartData();
 		_onResize();
