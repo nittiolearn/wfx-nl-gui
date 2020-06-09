@@ -62,11 +62,6 @@
     <div ng-if='rec._raw.stats.certValid' class='padding-mid' ng-class='$root.respCol422'><b>Valid till :</b></div>
     <div ng-if='rec._raw.stats.certValid' class='padding-mid' ng-class='$root.respCol422'>{{rec._raw.stats.certValid || '-'}}</div>
 
-    <div class='padding-mid' ng-class='$root.respCol422' ng-show='rec._raw.stats.percCompleteDesc'><b>Progress:</b></div>
-    <div class='padding-mid' ng-class='$root.respCol422' ng-show='rec._raw.stats.percCompleteDesc'>
-        <span > {{rec._raw.stats.percCompleteDesc}}</span>
-    </div>
-
     <div class='padding-mid' ng-class='$root.respCol422'><b>Time spent:</b></div>
     <div class='padding-mid' ng-class='$root.respCol422'>
         <span>{{rec._raw.stats.timeSpentStr}}</span>

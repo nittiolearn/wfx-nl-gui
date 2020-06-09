@@ -891,7 +891,9 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlCourseEditor, nlC
 	
 	$scope.getCompletionStatus = function() {
         if (!_statusInfo) return 0;
-        return _statusInfo.progPerc;
+        var ncompleted = _statusInfo.nCompletedItems;
+        var nActual = _statusInfo.cnttotal - (_statusInfo.nlockedcnt + _statusInfo.nhiddencnt);
+        return Math.round((100*ncompleted/nActual));
 	};
 	
 	$scope.getLaunchButtonState = function(cm) {

@@ -257,11 +257,8 @@ function(nl, nlRouter, nlDlg, nlGroupInfo, nlLrHelper, nlLrFilter, nlGetManyStor
             timeSpentMinutes: Math.ceil(stainf.onlineTimeSpentSeconds/60),
             iltTimeSpent: stainf.iltTimeSpent, 
             iltTotalTime: stainf.iltTotalTime,
-            percCompleteStr: '' + stainf.progPerc + ' %',
-            percCompleteDesc: stainf.progDesc,
             nScore: stainf.nTotalQuizScore, nMaxScore: stainf.nTotalQuizMaxScore,
             feedbackScore: stainf.feedbackScore,
-            progressPerc: stainf.progPerc,
             customScores: stainf.customScores,
             attritedAt: stainf.attritedAt,
             attritionStr: stainf.attritionStr,
@@ -269,8 +266,10 @@ function(nl, nlRouter, nlDlg, nlGroupInfo, nlLrHelper, nlLrFilter, nlGetManyStor
             isCertified: stainf.isCertified,
             customScoreDict: stainf.customScoreDict,
             certid: stainf.certid
-        };
-
+        };1
+        var ncompleted = stainf.nCompletedItems;
+        var nActual = stainf.cnttotal - (stainf.nlockedcnt + stainf.nhiddencnt);
+        stats.progress = Math.round(100*ncompleted/nActual);
         if (stainf.inductionDropOut) stats.inductionDropOut = true;
         if(stainf.customScores.length != 0) {
             for(var i=0; i<stainf.customScores.length; i++) {
@@ -437,9 +436,6 @@ function(nl, nlRouter, nlDlg, nlGroupInfo, nlLrHelper, nlLrFilter, nlGetManyStor
             }
         }
 
-        stats.percCompleteStr = stats.status.id == nlReportHelper.STATUS_PENDING ? '0 %'
-            : stats.status.id == nlReportHelper.STATUS_STARTED ? 'Started' : '100 %';
-        stats.percCompleteDesc = '';
         report.typeStr = 'Module';
         _updateHideDeleteButton(report);
         var ret = {raw_record: report, repcontent: repcontent,

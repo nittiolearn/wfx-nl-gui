@@ -732,7 +732,6 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
 			if (!_validateMilestone(scope, module, modules)) return false;
 			if (!_validateRatingModule(scope, module)) return false;
 			if (!_validateGate(scope, module, uniqueIds)) return false;
-			if(!_validateCompletionPercentage(scope, module, courseContent)) return false;	
 
 			uniqueIds[module.id] = module.type;
 		}
@@ -831,22 +830,6 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
 		return true;
 	}
 	
-	function _validateCompletionPercentage(scope, module, courseContent) {
-		var _allModules = courseContent.modules || [];
-		if(!module.completionPerc) return true;
-		if(module.completionPerc < 0 || module.completionPerc > 100) 
-			return _validateModuleFail(scope, module, 'Completion percentage should be in range of 0 - 100.', module);
-
-		for(var i=0; i<_allModules.length; i++) {
-			var item = _allModules[i];
-			if(!item.completionPerc) continue;
-			if(module.id == item.id) break;
-			if(item.completionPerc < module.completionPerc) continue;
-			return _validateModuleFail(scope, module, 'Completion percentage for this item should be greater than completion percentage of earlier items.', module);
-		}
-		return true;
-	}
-
 	function _validateRatingModule(scope, module) {
 		if(module.type != 'rating') return true;
 		if(!module.rating_type) return _validateModuleFail(scope, module, '"rating_type" is mandatory for "type": "rating"');

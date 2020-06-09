@@ -138,7 +138,7 @@ function(nlReportHelper, nlTable) {
             statsCountObj['cntActive'] = 0;
             statsCountObj['cntInactive'] = 1;
             if(!(statusStr in _attritionObj))
-                _attritionObj[statusStr] = record.stats.progressPerc;
+                _attritionObj[statusStr] = record.stats.progress;
             return;
         }
         if(status.id == nlReportHelper.STATUS_STARTED) {
@@ -147,7 +147,7 @@ function(nlReportHelper, nlTable) {
             statsCountObj['notcompleted'] = 1;
             if(statusStr !== 'started') {
                 if(!(statusStr in _customStartedStatusObj)) 
-                    _customStartedStatusObj[statusStr] = record.stats.progressPerc;
+                    _customStartedStatusObj[statusStr] = record.stats.progress;
             }
             return;
         } 

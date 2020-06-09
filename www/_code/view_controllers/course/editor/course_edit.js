@@ -705,7 +705,6 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
 		{name: 'hide_answers', stored_at: 'module', fields: ['lesson-assesment', 'lesson-self'], type: 'boolean', text: 'Hide ',  desc: 'Disallow reviewing the completed reports for learner.', group: 'grp_additionalAttrs'},
 		{name: 'icon', stored_at: 'module', fields: ['module', 'lesson-assesment', 'lesson-self', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating', 'gate'], type: 'string', text: 'Icon', group: 'grp_additionalAttrs'},
         {name: 'text', stored_at: 'module', fields: ['module', 'lesson-assesment', 'lesson-self', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating', 'gate'], type: 'wikitext', valueName: 'textHtml', text: 'Description', group: 'grp_additionalAttrs', debug: true},
-		{name: 'completionPerc', stored_at: 'module', fields: ['lesson-assesment', 'lesson-self', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating', 'gate'], text: 'Completion percentage',type: 'number', group: 'grp_additionalAttrs', debug: true},
 		{name: 'customStatus', stored_at: 'module', fields: ['lesson-assesment', 'lesson-self', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating', 'gate'], text: 'New status',type: 'list', group: 'grp_additionalAttrs', 
 			valueNamesUpdated: false, valueNames: {}, values: [], 
 			updateDropdown: _updateNewStatusDropdown,
@@ -759,7 +758,6 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
         bgimg: 'Select the background image to be displayed in the canvas when the folder is opened.',
         bgcolor: 'The background image is resized to retain aspect ratio. This could result in horizontal or vertical bands. You can choose the color of the bands to align with the edge of the image.',
         iltduration: 'The planned duration of the instructor led session in minutes.',
-        completionPerc: 'By default, the progress percentage shown for a course item is computed based on number of completed items and the total number of items in the course. You may change this by setting custom completion percentages for different course items. The progreess percentage is set to the value as specified in this field once the current item is completed. The completion percentage of any item should be greater than or equal to earlier items. If completion percentage is specified even for a single item, the default calculation switched off.',
         customStatus: 'For long form courses with distinct phases, a simple "pending" -> "started" -> "completed" workflow may be insufficient. In that case, custom status strings may be defined in the course and these are shown in the course report. For example a state transition like "pending" -> "class room training" -> "on the job training" -> "undergoing certification" -> "certified" may be implemented by specifying this attribute for the appropreate course items. The course report will accordingly show this as the status if the learner reached till this item.',
 		canMarkAttendance: 'Set this to allow learner to mark attendance.',
 		gateFormula: _getGateFormulaHelp(),
@@ -1277,8 +1275,6 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
 		if (!_validateMilestoneModule(errorLocation, module)) return false;
 		if (!_validateRatingModule(errorLocation, module)) return false;
 		if (!_validateGateModule(errorLocation, module)) return false;
-
-		if(!_validateCompletionPercentage(errorLocation, module)) return false;
 		return true;
     }
     
@@ -1344,21 +1340,6 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
     	return true;
     }
 	
-	function _validateCompletionPercentage(errorLocation, module) {
-		if(!module.completionPerc) return true;
-		if(module.completionPerc < 0 || module.completionPerc > 100) 
-			return _validateFail(errorLocation, 'Completion percentage', 'Completion percentage should be in range of 0 - 100.', module);
-
-		for(var i=0; i<_allModules.length; i++) {
-			var item = _allModules[i];
-			if(!item.completionPerc) continue;
-			if(module.id == item.id) break;
-			if(item.completionPerc <= module.completionPerc) continue;
-			return _validateFail(errorLocation, 'Completion percentage', 'Completion percentage for this item should be greater than completion percentage of earlier items.', module);
-		}
-		return true;
-	}
-
     function _validateRatingModule(errorLocation, module) {
     	if(module.type != 'rating') return true;
 		if(!module.rating_type) return _validateFail(errorLocation, 'Rating type', 'Rating type is mandatory.', module);

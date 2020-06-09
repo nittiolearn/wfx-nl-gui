@@ -527,7 +527,7 @@ function(nl, nlDlg, nlRouter, nlExporter, nlLrHelper, nlLrSummaryStats, nlGroupI
         var mh = nlLrHelper.getMetaHeaders(false);
         var headers = ['User Id', 'User Name'];
         headers = headers.concat(['Course Name', 'Batch name', _gradelabel, _subjectlabel, 'Assigned On', 'Last Updated On', 
-            'From', 'Till', 'Status', 'Progress', 'Progress Details', 'Quiz Attempts',
+            'From', 'Till', 'Status', 'Quiz Attempts',
             'Achieved %', 'Maximum Score', 'Achieved Score']);
         for(var i=0; i<_customScoresHeader.length; i++) headers.push(_customScoresHeader[i]);
         headers = headers.concat(['Feedback score', 'Online Time Spent (minutes)', 'ILT time spent(minutes)', 'ILT total time(minutes)', 'Venue', 'Trainer name']);
@@ -549,8 +549,7 @@ function(nl, nlDlg, nlRouter, nlExporter, nlLrHelper, nlLrSummaryStats, nlGroupI
         	report.raw_record.subject || '', nl.fmt.date2Str(report.raw_record.created), nl.fmt.date2Str(report.raw_record.updated),
             report.repcontent.not_before ? nl.fmt.date2Str(nl.fmt.json2Date(report.repcontent.not_before)) : '',
             report.repcontent.not_after ? nl.fmt.date2Str(nl.fmt.json2Date(report.repcontent.not_after)) : '', 
-            report.stats.status.txt, report.stats.percCompleteStr,
-            report.stats.percCompleteDesc, report.stats.avgAttempts || '',
+            report.stats.status.txt, report.stats.avgAttempts || '',
             report.stats.percScoreStr, report.stats.nMaxScore, report.stats.nScore]) 
 
         var customScores = report.stats.customScores || []; //customScores is array of objects [{name: 'itemname', score: 12}]
@@ -590,8 +589,7 @@ function(nl, nlDlg, nlRouter, nlExporter, nlLrHelper, nlLrSummaryStats, nlGroupI
 
         ret = ret.concat([report.repcontent.not_before ? nl.fmt.date2Str(nl.fmt.json2Date(report.repcontent.not_before)) : '',
                         report.repcontent.not_after ? nl.fmt.date2Str(nl.fmt.json2Date(report.repcontent.not_after)) : '', 
-                        report.stats.status.txt, report.raw_record.completed ? '' + 100 + '%' : 0+'%',
-                        report.stats.percCompleteDesc, report.raw_record.completed ? 1 : '',
+                        report.stats.status.txt, report.raw_record.completed ? 1 : '',
                         report.stats.percScoreStr || '', report.stats.nMaxScore || '', report.stats.nScore || '']);
         for(var i=0; i<_customScoresHeader.length; i++) ret.push(' ');
         ret = ret.concat([' ', Math.ceil(report.stats.timeSpentSeconds/60), ' ', ' ', ' ', ' ']);
@@ -995,7 +993,7 @@ function(nl, nlDlg, nlRouter, nlExporter, nlLrHelper, nlLrSummaryStats, nlGroupI
         defaultRowObj._assignTypeStr = 'Milestone inside course';
         if (!statusinfo) return;
         defaultRowObj._status = statusinfo.status || 'pending';
-        defaultRowObj._passScoreStr = statusinfo.status == 'done' ? item.completionPerc : '';
+        defaultRowObj._passScoreStr = statusinfo.status == 'done' ? '100%' : '';
         defaultRowObj.remarks = statusinfo.remarks || '';
         defaultRowObj.ended = (statusinfo.status == 'done' && statusinfo.reached) ? statusinfo.reached : '';
         defaultRowObj.updated = statusinfo.updated ? statusinfo.updated : '';

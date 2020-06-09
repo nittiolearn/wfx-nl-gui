@@ -174,8 +174,8 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
     function _getCourseStatus() {
         _ctx = {unlockNext: {}};
         msInfoDict = {latestMarkedMilestone: null, firstPendingMs: null}
-        var ret = {status: 'pending', progPerc: 0, progDesc: '', itemIdToInfo: {}, delayDays: 0,
-            nItems: 0, nCompletedItems: 0,
+        var ret = {status: 'pending', itemIdToInfo: {}, delayDays: 0,
+            nCompletedItems: 0,
             nQuizes: 0, nQuizAttempts: 0, nPassedQuizes: 0, nFailedQuizes: 0, 
             nTotalQuizScore: 0, nTotalQuizMaxScore: 0,
             onlineTimeSpentSeconds: 0, iltTimeSpent: 0, iltTotalTime: 0,
@@ -184,7 +184,11 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
             customScoreDict: {},
             inductionDropOut: null,
             quizScoreLen: 0,
-            quizScore: {}
+            quizScore: {},
+            nlockedcnt: 0,
+            nhiddencnt: 0,
+            ndelayedcnt: 0
+
             // Also may have has following:
             // reattempt: true/false
         };
@@ -198,7 +202,7 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
         var defaultCourseStatus = 'pending';
         var isAttrition = false;
         var earlierTrainerItems = {};
-
+        ret.cnttotal = _modules.length;
         for(var i=0; i<_modules.length; i++) {
             var cm = _modules[i];
             var itemInfo = {};
@@ -216,6 +220,7 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
                 // itemInfo.lockedMsg = nl.fmt2('Marked as {} at {}', ret.attritionStr, _getItemName(atritedCm));
                 itemInfo.isAttrition = true;
                 if (cm.hide_locked) itemInfo.hideItem = true;
+                ret.nlockedcnt++;
                 continue;
             }
             if (cm.isReattempt && itemInfo.rawStatus != 'pending') ret.reattempt = true;
@@ -223,6 +228,7 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
             _updateItemToLocked(cm, itemInfo, earlierTrainerItems); 
             if((cm.hide_locked && itemInfo.status == 'waiting') || itemInfo.hideItem) {
                 itemInfo.hideItem = true;
+                ret.nhiddencnt++;
                 continue;
             }
             _updateUnlockedTimeStamp(cm, itemInfo, itemIdToInfo);
@@ -271,7 +277,6 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
         }
 
         _updateCourseLevelStatus(ret, isAttrition, defaultCourseStatus);
-        _updateCourseProgress(ret);
         if (!_isNHT) _updateCourseDelayForLMS(ret);
         if (_isNHT) _updateCourseDelayForNHT(ret);
         ret.feedbackScore = _getFeedbackScoreForCourse(_lessonReports);
@@ -430,7 +435,6 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
     function _getRawStatusOfItem(cm, itemInfo, itemIdToInfo) {
         itemInfo.type = cm.type;
         itemInfo.name = cm.name;
-        itemInfo.completionPerc = cm.completionPerc || null;
         if (_isCertificate(cm)) {
             var sinfo = _statusinfo[cm.id] || {};
             itemInfo.rawStatus = 'success';
@@ -780,10 +784,9 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
 
     function _updateStatistics(itemInfo, cm, ret) {
         var isEnded = _isEndItemState(itemInfo.status);
-        if (isEnded && itemInfo.completionPerc) ret.progPerc = itemInfo.completionPerc;
-        var autoCompletingType = _isAutoCompletingType(itemInfo.type);
-        if (!autoCompletingType) ret.nItems++;
-        if (!autoCompletingType && isEnded) ret.nCompletedItems++;
+        if (isEnded) ret.nCompletedItems++;
+        else if (itemInfo.status == 'waiting') ret.nlockedcnt++;
+        else if (itemInfo.status == 'delayed') ret.ndelayedcnt++;
         _updateStatisticsOfQuiz(itemInfo, cm, ret, isEnded);
         _updateStatisticsOfTimeSpent(itemInfo, ret);
     }
@@ -863,19 +866,6 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
             var tenure = tenures[i];
             if (tenure.after < diff) ret.status = tenure.id;
         }
-   }
- 
-    function _updateCourseProgress(ret) {
-        if (_isEndCourseState(ret)) {
-            ret.progPerc = 100;
-        } else if (ret.status == 'pending') {
-            ret.progPerc = 0;
-        } else if (!ret.progPerc && ret.nItems) {
-            ret.progPerc = Math.round(100.0*ret.nCompletedItems/ret.nItems);
-        } else {
-            ret.progPerc = Math.round(ret.progPerc);
-        }
-        ret.progDesc = nl.fmt2('{} of {} items done', ret.nCompletedItems, ret.nItems);
     }
 
     function _updateCourseDelayForLMS(ret) {
@@ -968,10 +958,6 @@ function _isEndCourseState(courseStatusObj, attritionIsEndState) {
     var status = courseStatusObj.status;
     if (attritionIsEndState && status.indexOf('attrition') == 0) return true;
     return courseStatusObj.isCertified || status == 'failed' || status == 'certified' || status == 'passed' || status == 'done';
-}
-
-function _isAutoCompletingType(itemType) {
-    return (itemType == 'certificate' || itemType == 'gate' || itemType == 'module');
 }
 
 function _getFeedbackScoreForModule(feedback) {

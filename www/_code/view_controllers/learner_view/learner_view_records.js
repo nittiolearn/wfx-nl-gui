@@ -165,11 +165,8 @@
                 timeSpentSeconds: stainf.onlineTimeSpentSeconds, 
                 iltTimeSpent: stainf.iltTimeSpent, 
                 iltTotalTime: stainf.iltTotalTime,
-                percCompleteStr: '' + stainf.progPerc + ' %',
-                percCompleteDesc: stainf.progDesc,
                 nScore: stainf.nTotalQuizScore, nMaxScore: stainf.nTotalQuizMaxScore,
                 feedbackScore: stainf.feedbackScore,
-                progressPerc: stainf.progPerc
             };
 
     
@@ -216,11 +213,8 @@
                 raw_record.authorname = moduleAssignment['authorname'];
             }
             stats.nLessons++;
-            stats.percCompleteStr = 'Pending';
             if(repcontent.started) {
                 stats.timeSpentSeconds = repcontent.timeSpentSeconds || 0;
-                stats.percCompleteStr = 'Started';
-                stats.percCompleteDesc = repcontent.started ? 'Module started' :  'Module pending';
                 stats.nAttempts = 1;
                 stats.nLessonsAttempted = 1;
                 stats.nQuiz = 1;
@@ -270,8 +264,6 @@
                 else 
                     stats.nLessonsFailed++;
                 stats.status = repcontent.selfLearningMode ? nlReportHelper.statusInfos[nlReportHelper.STATUS_DONE] : nlReportHelper.statusInfos[_getModuleStatus(stats, repcontent, raw_record)];
-                stats.percCompleteStr = 'Completed';
-                stats.percCompleteDesc = 'Module completed';
                 repcontent.maxScore = maxScore;
                 repcontent.score = score;
                 raw_record.urlTitle = nl.t('View report');
