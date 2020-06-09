@@ -253,7 +253,10 @@ function Paginator(nl, info, nlExpressionProcessor) {
         if(!record) return '';
         var parts = fieldId.split('.');
         var obj = record;
-        for(var i=0; i<parts.length; i++) obj = obj[parts[i]];
+        for(var i=0; i<parts.length; i++) {
+            obj = obj[parts[i]];
+            if (!obj) break;
+        }
         return obj;
     }
 
