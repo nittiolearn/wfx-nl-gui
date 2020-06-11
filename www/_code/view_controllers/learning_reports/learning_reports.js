@@ -1485,6 +1485,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 	function _updateAsdSessionDates(sessionInfo, sessionDates) {
 		for(var j=0; j<sessionInfo.asd.length; j++) {
 			var session = sessionInfo.asd[j];
+			session.sessionName = session.sessionName || sessionInfo.name;
 			if(session) _updateSessionDates(session, sessionDates);
 		}
 	}
@@ -1508,8 +1509,9 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			if (cm.asdChildren && cm.asdChildren.length > 0) _updateAsdSessionDates(sessionInfos[cm.id], sessionDates);
 			if(!cm.asdSession) {
 				var sessionInfo = sessionInfos[cm.id];
+				sessionInfo.sessionName = sessionInfo.sessionName || cm.name;
 				if(sessionInfo)
-					_updateSessionDates(sessionInfo, sessionDates, sessionInfos);
+					_updateSessionDates(sessionInfo, sessionDates);
 			}
 		}
 
