@@ -1229,10 +1229,10 @@ function(nl, nlDlg, nlRouter, nlExporter, nlLrHelper, nlLrSummaryStats, nlGroupI
             var msgFmt = '<p>Cannot append to raw-data sheet.</p>' + 
                 '<p>Reason: {}.</p>' +
                 '<p>Please generate complete report without appending.</p>';
-            var errHeader = 'headers in raw-data sheet xlsx is not matching';
 
             var inputRows = rawsheet.content;
-            if (!_areHeadersSame(header, inputRows[0])) return _errorResolve(resolve, nl.fmt2(msgFmt, errHeader));
+            var errorDict = _validateHeaders(header, inputRows[0])
+            if (errorDict.error) return _errorResolve(resolve, nl.fmt2(msgFmt, errorDict.msg));
 
             var repidsFoundInInputXls = {};
             for(var i=1; i<inputRows.length; i++) {
@@ -1258,12 +1258,24 @@ function(nl, nlDlg, nlRouter, nlExporter, nlLrHelper, nlLrSummaryStats, nlGroupI
         return rows;
     }
 
-    function _areHeadersSame(newHeader, oldHeader) {
-        if (!newHeader || !oldHeader) return false;
-        if (newHeader.length != oldHeader.length) return false;
-        for(var i=0; i<newHeader.length; i++)
-            if (newHeader[i].toLowerCase() != oldHeader[i].toLowerCase()) return false;
-        return true;
+    function _validateHeaders(supportedHeaders, customHeaders) {
+        if (!supportedHeaders || !customHeaders) return false;
+        var supportedHeaderDict = _getSupportedDict(supportedHeaders);
+        for(var i=0; i<customHeaders.length; i++) {
+            var header = customHeaders[i].toLowerCase();
+            if (header in supportedHeaderDict) continue;
+            return {error: true, msg: nl.t('header "{}" in raw-data sheet xlsx is not supported', customHeaders[i])};
+        }
+        return {error: false};
+    }
+
+    function _getSupportedDict(header) {
+        var ret = {};
+        for (var i=0; i<header.length; i++) {
+            var item = header[i].toLowerCase();
+            ret[item] = true;
+        }
+        return ret;
     }
 
     var REPORTID_POS = 31;

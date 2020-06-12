@@ -383,7 +383,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			if (sortObj.ascending) return _compare(aVal, bVal);
 			else return _compare(bVal, aVal);
 		});
-		nht.rows.splice(0, 0, summaryRow);
+		if (summaryRow.isSummaryRow) nht.rows.splice(0, 0, summaryRow);
 	}
 
     function _compare(a,b) {
@@ -523,7 +523,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 
 	function _actualUpdateCurrentTab(tabData, tab) {
 		_initTabDataFilterdRecords();
-		if (!tab) tab = $scope.tabData.selectedTab;
+		if (!(tab && tab.canShow)) tab = $scope.tabData.selectedTab;
 		tab.updated = true;
 		if (tab.id == 'overview') {
 			_updateOverviewTab(tabData.summaryStatSummaryRow);
@@ -727,8 +727,9 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			var record = records[recid];
 			if (record.raw_record.isNHT) {
 				_tabManager.nhtRecordFound();
-				// TODO-NOW call nlGetManyStore.updateBatchStatusInReport(record);
-				nlGetManyStore.getBatchMilestoneInfo(record.raw_record, batchStatusObj);
+				var modules = record.course && record.course.content ? record.course.content.modules : record.repcontent.content.modules;
+				var courseAssignment = nlGetManyStore.getAssignmentRecordFromReport(record.raw_record);
+				nlGetManyStore.updateMilestoneBatchInfo(courseAssignment, modules);
 			} else {
 				_tabManager.lmsRecordFound();
 			}
@@ -1485,6 +1486,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 	function _updateAsdSessionDates(sessionInfo, sessionDates) {
 		for(var j=0; j<sessionInfo.asd.length; j++) {
 			var session = sessionInfo.asd[j];
+			session.sessionName = session.sessionName || sessionInfo.name;
 			if(session) _updateSessionDates(session, sessionDates);
 		}
 	}
@@ -1508,8 +1510,9 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			if (cm.asdChildren && cm.asdChildren.length > 0) _updateAsdSessionDates(sessionInfos[cm.id], sessionDates);
 			if(!cm.asdSession) {
 				var sessionInfo = sessionInfos[cm.id];
+				sessionInfo.sessionName = sessionInfo.sessionName || cm.name;
 				if(sessionInfo)
-					_updateSessionDates(sessionInfo, sessionDates, sessionInfos);
+					_updateSessionDates(sessionInfo, sessionDates);
 			}
 		}
 

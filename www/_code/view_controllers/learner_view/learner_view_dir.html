@@ -1,12 +1,13 @@
-<div class="nl-limitwidth bgdefault shape-rounded-small padding fsh5 fdarkgrey2">{{userName}}</div>
 <div class='nl-thin-scroll' style='position:absolute; width: 100%; height: 100%'>
 <div class='{{tabData.cls}} padding'> <!-- Dummy div to solve scrolled view disappears with popup issue #701 -->
     <div ng-if='!tabData.dataLoaded && (tabData.selectedTab.id == "assigned" || tabData.selectedTab.id == "summary")'
-            class='nl-limitwidth bgdefault shape-rounded-small fgrey padding'>
-        Learning records are being loaded from the server. Please wait ...
+        class='nl-limitwidth bgdefault shape-rounded-small fgrey padding'>
+        Hi {{userName}}! Your learning records are being loaded from the server. Please wait ...
     </div>
     <div ng-if='tabData.selectedTab.id == "assigned" && tabData.dataLoaded'
             class='nl-limitwidth bgdefault shape-rounded-small padding'>
+        <div class="fgrey">Hi {{userName}}!</div>
+        <div class='padding-small'></div>
         <!-- Search box -->
         <div class='row row-top row-wrap margin0 padding0'>
             <div class='padding0 nl-searchbox' style='padding-bottom: 8px'>

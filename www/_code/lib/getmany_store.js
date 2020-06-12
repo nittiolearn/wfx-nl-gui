@@ -15,7 +15,7 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo) {
     var self = this;
     var _records = null;
     var _subFetcher = new SubFetcher(nl, nlDlg, nlServerApi, this);
-    
+    var _updateNHTBatchStats = new UpdateBatch(nl, nlGroupInfo);
     this.init = function() {
         _records = {'assignment': {}, 'course_assignment': {}, 'course': {}};
     };
@@ -114,124 +114,177 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo) {
         return repcontent;
     };
     
+    this.clearCache = function() {
+        _updateNHTBatchStats.clearCache();
+    }
+
+    this.getNhtBatchStates = function() {
+        return _updateNHTBatchStats.getNhtBatchStates();
+    };
+
+    this.getBatchInfo = function(reportRecord) { 
+        var courseAssignment = self.getAssignmentRecordFromReport(reportRecord);
+        if (!courseAssignment.id) return {};
+        var _msInfoCache = _updateNHTBatchStats.getMsInfoCache();
+        if (courseAssignment.id in _msInfoCache) {
+            return _msInfoCache[courseAssignment.id];
+        }
+    };
+
+    this.updateMilestoneBatchInfo = function(courseAssignment, modules) {
+        var courseAssign = courseAssignment;
+        var _msInfoCache = _updateNHTBatchStats.getMsInfoCache();
+        if (courseAssign.id in _msInfoCache) return;
+        _updateNHTBatchStats.setAssignementCredentials(modules, courseAssign);
+        if (!_updateNHTBatchStats.canUpdateBatchData()) return;
+        _updateNHTBatchStats.updateBatchInfo();
+    };
+}];
+
+function UpdateBatch(nl, nlGroupInfo) {
+    var _groupMsInfo = null;
+    var _modules = null;
+    var _courseAssign = null;
     var _msInfoCache = {};
+    var _plannedMsInfo = {};
+    var _milestone = null;
     var _nhtBatchStatus = {};
     this.clearCache = function() {
         _msInfoCache = {};
         _nhtBatchStatus = {};
-    }
+    };
 
     this.getNhtBatchStates = function() {
         return _nhtBatchStatus;
-    }
-    this.getBatchMilestoneInfo = function(reportRecord, nhtBatchStatus) {
-        // TODO-NOW: Only the first guy's batch status is considerd. Everyone has to be considered?
-        // TODO-NOW: Duplicate NHT records have to be filtered out at a initial stage (not after filtering)
-        var courseAssignment = this.getAssignmentRecordFromReport(reportRecord) || {};
-        var _batchStatus = nhtBatchStatus[reportRecord.assignment] || {};
-        if (!courseAssignment.id) return {};
-        if (courseAssignment.id in _msInfoCache) {
-            var msInfo = _msInfoCache[courseAssignment.id];
-            if(msInfo.batchStatus == 'Closed') _nhtBatchStatus.closed = true;
-            else _nhtBatchStatus.running = true;
-            return _msInfoCache[courseAssignment.id];
-        }
-        var ret = {batchStatus: ''};
-        _msInfoCache[courseAssignment.id] = ret;
+    };
 
-        var groupMsInfo = _getGroupMilestonesAsDict();
-        var grpMilestoneDict = groupMsInfo.ret;
-        var defaultBatchStatus = groupMsInfo.defaultBatchStatus;
-        _updateBatchStatusWithDefaultStates(defaultBatchStatus, _batchStatus);
-        if (!grpMilestoneDict) return ret;
+    this.getMsInfoCache = function() {
+        return _msInfoCache;
+    };
 
-        var course = this.getRecord(this.getContentKeyFromReport(reportRecord));
-        var modules = course && course.content ? course.content.modules : null;
-        if (!modules) return ret;
+    this.isGroupMilestoneDefined = function() {
+        return _groupMsInfo;
+    };
 
-        var plannedMsInfo = courseAssignment.info ? courseAssignment.info.msDates : null;
-        if (!plannedMsInfo) return ret;
-        if (Object.keys(plannedMsInfo).length == 0) return ret;
-        ret.batchStatus = 'Pending';
-        
-        var actualMsInfo = courseAssignment.milestone ? angular.fromJson(courseAssignment.milestone) : {};
-        
-        var allMilestonesReached = true;
-        var firstMsUpdated = false;
-        var lastPlanned = null;
-        var lastActual = null;
-        for(var i=0; i<modules.length; i++) {
-            var item = modules[i]
-            if(item.type != 'milestone') continue;
-            var mstype = item.milestone_type;
-            if(!mstype) continue;
-            var plannedMs = plannedMsInfo['milestone_'+item.id] || '';
-            var actualMs = actualMsInfo[item.id] || {};
-            if (!firstMsUpdated) {
-                firstMsUpdated = true;
-                ret.firstPlanned = nl.fmt.json2Date(plannedMs || '', 'date');
-                ret.firstActual = nl.fmt.json2Date(actualMs.reached || '', 'date');
-            }
-            ret[mstype+'planned'] = nl.fmt.date2StrDDMMYY(nl.fmt.json2Date(plannedMs || '', 'date'));
-            lastPlanned = plannedMs;
-            var grpMileStoneObj = grpMilestoneDict[mstype];
-            if (!allMilestonesReached || !grpMileStoneObj) continue;
+    this.setAssignementCredentials = function(modules, courseAssign) {
+        _courseAssign = courseAssign;
+        _modules = modules;
+        _plannedMsInfo = _courseAssign.info ? _courseAssign.info.msDates : null;
+        _milestone = _courseAssign.milestone ? angular.fromJson(_courseAssign.milestone) : null;        
+        _groupMsInfo = _getGroupMilestonesAsDict();
+    };
 
-            if(grpMileStoneObj.batch_status && !(grpMileStoneObj.batch_status in _batchStatus)) {
-                allMilestonesReached = false;
+    this.canUpdateBatchData = function() {
+        if (!_groupMsInfo) return false;
+        if (!_plannedMsInfo || Object.keys(_plannedMsInfo).length == 0) return false;
+        if (!_modules) return false;
+        return true;
+    };
+
+    this.updateBatchInfo = function() {
+        var firstMsItemInCourse = null;
+        var ret = {batchStatus: 'Pending', allMsMarked: true};
+        for (var i=0; i<_modules.length; i++) {
+            var cm = _modules[i];
+            if (cm.type != 'milestone') continue;
+            if(!cm.milestone_type) continue;
+            if (!firstMsItemInCourse) firstMsItemInCourse = cm;
+            _updatePlannedForMs(ret, cm);
+            if (!ret.allMsMarked) continue;
+            var markedMilestoneObj = _milestone[cm.id] || {}; //_id1: {status: done|pending, comment: 'Some remark', reached: reachedtime, learnersDict: {repid: {}}}
+            if (!markedMilestoneObj.learnersDict) {
+                _updateMsForNonEtmAsd(ret, cm);
                 continue;
             }
-            if(!actualMs.reached || actualMs.status != 'done') {
-                if(grpMileStoneObj.batch_status in _batchStatus) ret.batchStatus = grpMileStoneObj.batch_status;
-                allMilestonesReached = false;
-                continue;
-            }
-            lastActual = nl.fmt.json2Date(actualMs.reached || '', 'date');
-            ret[mstype+'actual'] = nl.fmt.date2StrDDMMYY(nl.fmt.json2Date(actualMs.reached || '', 'date'));
-            if (grpMileStoneObj && grpMileStoneObj.batch_status)
-                ret.batchStatus = grpMileStoneObj.batch_status;
+            _updateMsForEtmAsd(ret, cm);
         }
-        ret.lastPlanned = lastPlanned;
-        ret.lastActual = lastActual;
-        if (allMilestonesReached || ret.batchStatus == 'Closed') {
+        if (ret.batchStatus == 'Pending') {
+            var mstype = firstMsItemInCourse.milestone_type;
+            var ms = _groupMsInfo[mstype];
+            if (ms.batch_status) ret.batchStatus = ms.batch_status;
+        }
+        if (ret.allMsMarked || ret.batchStatus == 'Closed') {
             ret.batchStatus = 'Closed';
             _nhtBatchStatus.closed = true;
         } else {
             _nhtBatchStatus.running = true;
         }
+        _msInfoCache[_courseAssign.id] = ret;
         return ret;
+
     };
 
-    function _updateBatchStatusWithDefaultStates(defaultBatchStatus, _batchStatus) {
-        var status = angular.copy(_batchStatus);
-        for (var key in status) {
-            var index = defaultBatchStatus[key];
-            if (!(key in defaultBatchStatus)) continue;
-            _updateBatchStates(index, _batchStatus, defaultBatchStatus);
+    function _updatePlannedForMs(ret, cm) {
+        var mstype = cm.milestone_type;
+        var plannedMs = _plannedMsInfo['milestone_'+cm.id] || '';
+        ret[mstype+'planned'] = nl.fmt.date2StrDDMMYY(nl.fmt.json2Date(plannedMs || '', 'date'));
+        if (!ret.firstPlanned) ret.firstPlanned = nl.fmt.json2Date(plannedMs || '', 'date');
+        ret.lastPlanned = plannedMs;
+    }
+
+    function _updateMsForNonEtmAsd(ret, cm) {
+        var mstype = cm.milestone_type;
+        var markedMilestone = _milestone[cm.id] || {};
+        if (markedMilestone.status == 'done') {
+            ret[mstype+'actual'] = markedMilestoneObj ? nl.fmt.date2StrDDMMYY(nl.fmt.json2Date(markedMilestoneObj.reached || '', 'date')) : '';
+            if (ret.firstActual) ret.firstActual = nl.fmt.json2Date(markedMilestoneObj.reached || '', 'date');
+            var grpMsObj = _groupMsInfo[mstype];
+            if (grpMsObj.batch_status) ret.batchStatus = grpMsObj.batch_status;
+            ret.lastActual = markedMilestoneObj.reached;
+        } else {
+            ret.allMsMarked = false;
         }
     }
 
-    function _updateBatchStates(index, _batchStatus, defaultBatchStatus) {
-        for (var key in defaultBatchStatus) {
-
-            if (defaultBatchStatus[key] < index) _batchStatus[key] = true;
+    function _updateMsForEtmAsd(ret, cm) {
+        var mstype = cm.milestone_type;
+        var markedObj = _getMarkedMsInfo(cm);
+        if (markedObj.marked) {
+            var grpMsObj = _groupMsInfo[mstype];
+            if (grpMsObj.batch_status) ret.batchStatus = grpMsObj.batch_status;
+            ret[mstype+'actual'] = markedObj.markedOn ? nl.fmt.date2StrDDMMYY(nl.fmt.json2Date(markedObj.markedOn || '', 'date')) : '';
+            ret.lastActual = markedObj.markedOn;
+        } else {
+            ret.allMsMarked = false;
         }
+    }
+
+    function _getMarkedMsInfo(cm) {
+        var markedMilestone = _milestone[cm.id] || {};
+        var learnersDict = 'learnersDict' in markedMilestone ? markedMilestone['learnersDict'] : '';
+        var msStats = {marked: false, markedOn: ''};
+        var noLearnerMarked = true;
+        for (var repid in learnersDict) {
+            var msLearnerInfo = learnersDict[repid];
+            if (msLearnerInfo.marked == 'done') {
+                noLearnerMarked = false;
+                msStats.marked = true;
+                if (!msStats.markedOn || msStats.markedOn > msLearnerInfo.reached) msStats.markedOn = msLearnerInfo.reached;
+            }
+        }
+        if (noLearnerMarked) {
+            //Code to update ms if no learner marked.
+            //If none of learner gone through recertification this case handled here
+            if (markedMilestone.status == 'done') {
+                msStats.marked = true;
+                msStats.markedOn = markedMilestone.reached;
+            }
+        }
+        return msStats;
     }
 
     function  _getGroupMilestonesAsDict() {
         var groupInfo = nlGroupInfo.get();
-        if (!groupInfo.props.milestones) return {ret: null, defaultBatchStatus: {}};
+        if (!groupInfo.props.milestones) return null;
         var milestones = groupInfo.props.milestones;
         var ret = {};
-        var defaultBatchStatus = {};
         for(var i=0; i<milestones.length; i++) {
             ret[milestones[i].id] = milestones[i];
-            if (milestones[i].batch_status) defaultBatchStatus[milestones[i].batch_status] = i;
         }
-        return {ret: ret, defaultBatchStatus: defaultBatchStatus};
+        return ret;
     }
 
-}];
+}
 
 function SubFetcher(nl, nlDlg, nlServerApi, nlGetManyStore) {
     var _pendingKeys = {};

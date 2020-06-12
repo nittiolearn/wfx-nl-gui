@@ -41,7 +41,7 @@ function(nl, nlReportHelper, nlGetManyStore) {
         nhtCounts.clear();
         for(var key in reportDict) {
             if (batchType) {
-                var msInfo = nlGetManyStore.getBatchMilestoneInfo(record.raw_record, batchStatusObj);
+                var msInfo = nlGetManyStore.getBatchInfo(reportDict[key].raw_record);
                 if(batchType == 'nhtrunning' && msInfo.batchStatus == 'Closed' ||
                     batchType == 'nhtclosed' && msInfo.batchStatus != 'Closed') {
                     continue;
@@ -239,7 +239,7 @@ function NhtCounts(nl, nlGetManyStore, nlGroupInfo) {
         if (updatedStats.propertiesUpdated) return;
         updatedStats.propertiesUpdated = true;
         var report = batches[batchid];
-        var msInfo = nlGetManyStore.getBatchMilestoneInfo(report.raw_record, {});
+        var msInfo = nlGetManyStore.getBatchInfo(report.raw_record);
         for (var key in msInfo) updatedStats[key] = msInfo[key];
         updatedStats['start'] = nl.fmt.fmtDateDelta(report.repcontent.not_before, null, 'date');
         updatedStats['end'] =nl.fmt.fmtDateDelta(report.repcontent.not_after, null, 'date');

@@ -240,11 +240,16 @@ function(nl, nlRouter, nlDlg, nlGroupInfo, nlLrHelper, nlLrFilter, nlGetManyStor
         if (!course) {
             course = {};
         }
-        if (course.content && course.content.nht) report.isNHT = true;
         report.canReview = true;
         if(!course.is_published) report.canReview = false;
         var courseAssignment = nlGetManyStore.getAssignmentRecordFromReport(report) || {};
         if (!courseAssignment.info) courseAssignment.info = {};
+        if (course.content && course.content.nht) {
+            report.isNHT = true;
+            var modules = course && course.content ? course.content.modules : repcontent.content.modules;
+            nlGetManyStore.updateMilestoneBatchInfo(courseAssignment, modules);
+        }
+
         var repHelper = nlReportHelper.getCourseStatusHelper(report, _userInfo.groupinfo, courseAssignment, course);
         var stainf = repHelper.getCourseStatus();
         var statusObj = nlReportHelper.getStatusInfoFromCourseStatsObj(stainf);
@@ -266,7 +271,7 @@ function(nl, nlRouter, nlDlg, nlGroupInfo, nlLrHelper, nlLrFilter, nlGetManyStor
             isCertified: stainf.isCertified,
             customScoreDict: stainf.customScoreDict,
             certid: stainf.certid
-        };1
+        };
         var ncompleted = stainf.nCompletedItems;
         var nActual = stainf.cnttotal - (stainf.nlockedcnt + stainf.nhiddencnt);
         stats.progress = Math.round(100*ncompleted/nActual);
