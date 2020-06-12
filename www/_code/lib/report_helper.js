@@ -202,10 +202,11 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
         var defaultCourseStatus = 'pending';
         var isAttrition = false;
         var earlierTrainerItems = {};
-        ret.cnttotal = _modules.length;
+        ret.cnttotal = 0;
         for(var i=0; i<_modules.length; i++) {
             var cm = _modules[i];
             var itemInfo = {};
+            if (cm.type != 'module') ret.cnttotal += 1;
             if (cm.isReattempt) ret['reattempt'] = false;
             itemIdToInfo[cm.id] = itemInfo;
             _getRawStatusOfItem(cm, itemInfo, itemIdToInfo);
@@ -220,7 +221,7 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
                 // itemInfo.lockedMsg = nl.fmt2('Marked as {} at {}', ret.attritionStr, _getItemName(atritedCm));
                 itemInfo.isAttrition = true;
                 if (cm.hide_locked) itemInfo.hideItem = true;
-                ret.nlockedcnt++;
+                if (cm.type != 'module') ret.nlockedcnt++;
                 continue;
             }
             if (cm.isReattempt && itemInfo.rawStatus != 'pending') ret.reattempt = true;
@@ -228,13 +229,13 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
             _updateItemToLocked(cm, itemInfo, earlierTrainerItems); 
             if((cm.hide_locked && itemInfo.status == 'waiting') || itemInfo.hideItem) {
                 itemInfo.hideItem = true;
-                ret.nhiddencnt++;
+                if (cm.type != 'module') ret.nhiddencnt++;
                 continue;
             }
             _updateUnlockedTimeStamp(cm, itemInfo, itemIdToInfo);
             _updateStatusToDelayedIfNeeded(cm, itemInfo); //Calculate delay of course based on
             if (cm.type == 'milestone' && _isNHT) _updateDelayDaysForMs(cm, itemInfo, itemIdToInfo, ret);
-            _updateStatistics(itemInfo, cm, ret);
+            if (cm.type != 'module') _updateStatistics(itemInfo, cm, ret);
             if (cm.type == 'certificate') {
                 ret['certid'] = cm.id;
             }

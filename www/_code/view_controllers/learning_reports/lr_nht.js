@@ -41,7 +41,7 @@ function(nl, nlReportHelper, nlGetManyStore) {
         nhtCounts.clear();
         for(var key in reportDict) {
             if (batchType) {
-                var msInfo = nlGetManyStore.getBatchInfo(record.raw_record);
+                var msInfo = nlGetManyStore.getBatchInfo(reportDict[key].raw_record);
                 if(batchType == 'nhtrunning' && msInfo.batchStatus == 'Closed' ||
                     batchType == 'nhtclosed' && msInfo.batchStatus != 'Closed') {
                     continue;
