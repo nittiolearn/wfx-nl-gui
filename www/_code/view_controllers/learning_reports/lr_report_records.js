@@ -397,7 +397,7 @@ function(nl, nlRouter, nlDlg, nlGroupInfo, nlLrHelper, nlLrFilter, nlGetManyStor
         report._assignTypeStr = _getAssignTypeStr(report.assigntype, repcontent);
         report._courseName = (report.assigntype == _nl.atypes.ATYPE_TRAINING ? repcontent.trainingKindName : repcontent.courseName) || '';
         report._courseId = (report.assigntype == _nl.atypes.ATYPE_TRAINING ? repcontent.trainingKindId : repcontent.courseId ) || '';
-        report._attempts = repcontent.started ? 1 : 0;
+        report._attempts = repcontent.attempt|| '' ;
         report.containerid = report.containerid || '';
         report._grade = repcontent.grade || '';
         report.subject = repcontent.subject || '';
