@@ -224,8 +224,8 @@ function UpdateBatch(nl, nlGroupInfo) {
 
     function _updateMsForNonEtmAsd(ret, cm) {
         var mstype = cm.milestone_type;
-        var markedMilestone = _milestone[cm.id] || {};
-        if (markedMilestone.status == 'done') {
+        var markedMilestoneObj = _milestone[cm.id] || {};
+        if (markedMilestoneObj.status == 'done') {
             ret[mstype+'actual'] = markedMilestoneObj ? nl.fmt.date2StrDDMMYY(nl.fmt.json2Date(markedMilestoneObj.reached || '', 'date')) : '';
             if (ret.firstActual) ret.firstActual = nl.fmt.json2Date(markedMilestoneObj.reached || '', 'date');
             var grpMsObj = _groupMsInfo[mstype];
