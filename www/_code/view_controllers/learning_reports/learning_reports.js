@@ -1472,7 +1472,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		if (!sessionDate) return;
 		if (sessionInfo.shiftHrs && sessionInfo.shiftMins)
 			sessionDates[sessionDate] = {start: nl.t('{}:{}', sessionInfo.shiftHrs, sessionInfo.shiftMins), end: _getShiftEnd(sessionInfo), sessionName: sessionInfo.sessionName};
-		else sessionDates[sessionDate] = {};
+		else sessionDates[sessionDate] = {sessionName: sessionInfo.sessionName};
 	}
 
 	function _getShiftEnd(sessionInfo) {
@@ -1548,7 +1548,9 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			if(b.name.toLowerCase() > a.name.toLowerCase()) return -1;
 			if(b.name.toLowerCase() == a.name.toLowerCase()) return 0;				
 		});
-		$scope.iltBatchInfo = {columns: _getNhtBatchAttendanceColumns(sessionDates), rows: iltBatchInfoRow};
+		var nhtHeaderObj = _getNhtBatchAttendanceColumns(sessionDates);
+		iltBatchInfoRow.splice(0, 0, nhtHeaderObj.titleRow);
+		$scope.iltBatchInfo = {columns: nhtHeaderObj.header, rows: iltBatchInfoRow};
 	}
 
 	function _getNhtBatchAttendanceColumns(sessionDates) {
@@ -1575,14 +1577,15 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 				return 1;
 			}
 		});	
-
+		var titleDict = {class: 'header'};
 		for(var i=0; i<sessionDatesArray.length; i++) {
 			var date = nl.fmt.date2StrDDMMYY(sessionDatesArray[i].date, null, 'date');
-			var hrName = (sessionDatesArray[i].sessionName || "") + "- " + nl.t('{}', date);
-			if (sessionDatesArray[i].start) hrName += nl.t('{} - {}', sessionDatesArray[i].start, sessionDatesArray[i].end);
-			headerRow.push({id: date, name: hrName, class: 'minw-number'});
+			var hrname = date;
+			if (sessionDatesArray[i].start) hrname += nl.t(' {} - {}', sessionDatesArray[i].start, sessionDatesArray[i].end);
+			headerRow.push({id: date, name: hrname, class: 'minw-number'});
+			titleDict[date] = sessionDatesArray[i].sessionName || "";
 		}
-		return headerRow;
+		return {header: headerRow, titleRow: titleDict};
 	}
 
 	//---------------------------------------------------------------------------------------------------------------------------------------------------------
