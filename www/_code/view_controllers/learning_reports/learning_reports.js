@@ -1483,11 +1483,12 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		}
 	}
 
-	function _updateAsdSessionDates(sessionInfo, sessionDates) {
+	function _updateAsdSessionDates(sessionInfo, sessionDates, uniqueSessionDates) {
 		for(var j=0; j<sessionInfo.asd.length; j++) {
 			var session = sessionInfo.asd[j];
 			session.sessionName = session.name || sessionInfo.name;
-			if(session) _updateSessionDates(session, sessionDates);
+			var sessionDate =  sessionInfo.sessiondate;
+			if(session && !uniqueSessionDates[sessionDate]) _updateSessionDates(session, sessionDates);
 		}
 	}
 
@@ -1501,18 +1502,21 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		var sessionDates = {};
 		var iltSessions = [];
 		var	sessionInfos = attendance.sessionInfos || {};	
-		if ('_root' in sessionInfos) _updateAsdSessionDates(sessionInfos['_root'], sessionDates);
-
+		var uniqueSessionDates = {};
+		if ('_root' in sessionInfos) _updateAsdSessionDates(sessionInfos['_root'], sessionDates, uniqueSessionDates);
 		for(var i=0; i<asdAddedModules.length; i++) {
 			var cm = asdAddedModules[i];
 			if (cm.type != 'iltsession') continue;
 			iltSessions.push(cm);
-			if (cm.asdChildren && cm.asdChildren.length > 0) _updateAsdSessionDates(sessionInfos[cm.id], sessionDates);
+			if (cm.asdChildren && cm.asdChildren.length > 0) _updateAsdSessionDates(sessionInfos[cm.id], sessionDates, uniqueSessionDates);
 			if(!cm.asdSession) {
 				var sessionInfo = sessionInfos[cm.id];
 				if(sessionInfo) sessionInfo.sessionName = sessionInfo.sessionName || cm.name;
-				if(sessionInfo)
+				if(sessionInfo) {
+					var sessionDate =  sessionInfo.sessiondate;
+					uniqueSessionDates[sessionDate] = true;
 					_updateSessionDates(sessionInfo, sessionDates);
+				}
 			}
 		}
 
