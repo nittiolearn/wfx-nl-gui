@@ -201,7 +201,7 @@ function UpdateBatch(nl, nlGroupInfo) {
         if (ret.batchStatus == 'Pending') {
             var mstype = firstMsItemInCourse.milestone_type;
             var ms = _groupMsInfo[mstype];
-            if (ms.batch_status) ret.batchStatus = ms.batch_status;
+            if (ms && ms.batch_status) ret.batchStatus = ms.batch_status;
         }
         if (ret.allMsMarked || ret.batchStatus == 'Closed') {
             ret.batchStatus = 'Closed';
@@ -229,7 +229,7 @@ function UpdateBatch(nl, nlGroupInfo) {
             ret[mstype+'actual'] = markedMilestoneObj ? nl.fmt.date2StrDDMMYY(nl.fmt.json2Date(markedMilestoneObj.reached || '', 'date')) : '';
             if (ret.firstActual) ret.firstActual = nl.fmt.json2Date(markedMilestoneObj.reached || '', 'date');
             var grpMsObj = _groupMsInfo[mstype];
-            if (grpMsObj.batch_status) ret.batchStatus = grpMsObj.batch_status;
+            if (grpMsObj && grpMsObj.batch_status) ret.batchStatus = grpMsObj.batch_status;
             ret.lastActual = markedMilestoneObj.reached;
         } else {
             ret.allMsMarked = false;
@@ -241,7 +241,7 @@ function UpdateBatch(nl, nlGroupInfo) {
         var markedObj = _getMarkedMsInfo(cm);
         if (markedObj.marked) {
             var grpMsObj = _groupMsInfo[mstype];
-            if (grpMsObj.batch_status) ret.batchStatus = grpMsObj.batch_status;
+            if (grpMsObj && grpMsObj.batch_status) ret.batchStatus = grpMsObj.batch_status;
             ret[mstype+'actual'] = markedObj.markedOn ? nl.fmt.date2StrDDMMYY(nl.fmt.json2Date(markedObj.markedOn || '', 'date')) : '';
             ret.lastActual = markedObj.markedOn;
         } else {
