@@ -1083,6 +1083,8 @@ function PageFetcher(nl, nlDlg, attrs) {
             }
             var timeOut = _retryCount*2000;
             _retryCount++;
+            if (_retryCount == 1) params.max = 100;
+            if (_retryCount == 2) params.max = 50;
             if (timeOut == 0) {
                 _fetchPageImpl(listingFn, params, true, _batchCallback, dontHideLoading);
             } else {
