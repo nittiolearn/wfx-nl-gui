@@ -702,6 +702,7 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
             if (!preItem) continue;
             condCnt++;
             if (!_isEndItemState(preItem.status)) {
+                if(_pastLessonReports[p.module]) continue;
                 pendCnt++;
                 continue;
             }
