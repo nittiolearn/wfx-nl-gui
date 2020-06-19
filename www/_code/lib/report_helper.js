@@ -253,6 +253,7 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
                     defaultCourseStatus ='started';
                 }
                 if (itemInfo.customStatus) defaultCourseStatus = itemInfo.customStatus;
+                if (itemInfo.isModuleCompleted) defaultCourseStatus = itemInfo.isModuleCompleted;
             }
             if (cm.showInReport && _isEndItemState(itemInfo.status)) {
                 var isCustomScoreNameUnique = true;
