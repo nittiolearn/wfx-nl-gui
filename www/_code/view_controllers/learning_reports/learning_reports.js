@@ -1716,9 +1716,11 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			var data = confirmationDlg.scope.data;
 			for(var i=0; i<data.validReports.length; i++) repids.push(data.validReports[i].id);
 			nlDlg.showLoadingScreen();
-			nlServerApi.learningReportDelete({repids: repids}).then(function(status){
+			_learningReportDeleteInLoop(repids, 0, function(status) {
 				nlDlg.hideLoadingScreen();
+				nlDlg.popdownStatus(0);
 				nlDlg.closeAll();
+				if (!status) return;
 				for (var i=0; i<repids.length; i++) nlLrReportRecords.removeRecord(repids[i]);
 				_updateScope();
 			});
@@ -1728,6 +1730,16 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		confirmationDlg.show('view_controllers/learning_reports/confirm_bulk_delete_dlg.html',
 			[okButton], cancelButton);
 	};
+
+	function _learningReportDeleteInLoop(repids, startpos, onDoneFn) {
+		nlDlg.popdownStatus(nl.fmt2('Deleting ... ({} of {} done)', startpos, repids.length), false);
+		nlServerApi.learningReportDelete({repids: repids, startpos: startpos}).then(function(result) {
+			if (!result.more) return onDoneFn(true);
+			_learningReportDeleteInLoop(repids, result.nextstartpos);
+		}, function() {
+			onDoneFn(false);
+		});
+	}
 
 	function _onImportUserData() {
 		nlLrHelper.showImportUserAttrsDlg($scope).then(function(result) {
