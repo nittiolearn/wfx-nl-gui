@@ -475,6 +475,24 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
         if (itemInfo.rawStatus == 'success') _ctx.unlockNext[cm.id] = itemInfo.updated;
     }
     
+    function _checkStatusPastLessonReports(id, itemInfo) {
+        var pastInfo = _pastLessonReports[id] || {};
+        if(pastInfo.length < 1) return;
+        var maxPerc = _getPerc(pastInfo[0]);
+        var maxLinfo = pastInfo[0];
+        for(var i=pastInfo.length-1; i>=0; i--) {
+            var pastRep = pastInfo[i];
+            if (!pastRep.completed || !pastRep.reportId) continue; // For data created by old bug (see #956)
+            var pastPerc = _getPerc(pastRep);
+            if(pastPerc <= maxPerc) continue;
+            maxPerc = pastPerc;
+            maxLinfo = pastRep;
+        }
+        var maxScore = _getMaxScore(maxLinfo);
+        var passScore = parseInt(maxLinfo.passScore || 0);
+        itemInfo.isModuleCompleted = !maxScore ? 'success' : (maxScore && (maxPerc >= passScore)) ? 'success' : 'failed';
+    }
+
     function _getRawStatusOfLesson(cm, itemInfo) {
         var linfo = _lessonReports[cm.id] || null;
         itemInfo.selfLearningMode = false;
@@ -489,6 +507,7 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
         itemInfo.moduleRepId = linfo.reportId || null;
         itemInfo.selfLearningMode = linfo.selfLearningMode || false;
         if (!linfo.completed) {
+            _checkStatusPastLessonReports(cm.id,itemInfo);
             itemInfo.rawStatus = 'started';
             itemInfo.score = null;
             return;
@@ -702,7 +721,7 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
             if (!preItem) continue;
             condCnt++;
             if (!_isEndItemState(preItem.status)) {
-                if(_pastLessonReports[p.module]) continue;
+                if(_pastLessonReports[p.module] && preItem.isModuleCompleted == 'success') continue;
                 pendCnt++;
                 continue;
             }
