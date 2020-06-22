@@ -1732,10 +1732,10 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 	};
 
 	function _learningReportDeleteInLoop(repids, startpos, onDoneFn) {
-		nlDlg.popdownStatus(nl.fmt2('Deleting ... ({} of {} done)', startpos, repids.length), false);
+		nlDlg.popupStatus(nl.fmt2('Deleting ... ({} of {} done)', startpos, repids.length), false);
 		nlServerApi.learningReportDelete({repids: repids, startpos: startpos}).then(function(result) {
 			if (!result.more) return onDoneFn(true);
-			_learningReportDeleteInLoop(repids, result.nextstartpos);
+			_learningReportDeleteInLoop(repids, result.nextstartpos, onDoneFn);
 		}, function() {
 			onDoneFn(false);
 		});
