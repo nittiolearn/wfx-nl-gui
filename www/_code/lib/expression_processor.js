@@ -179,6 +179,7 @@ function(nl) {
         '$if(': '_ExpressionProcessor_if(',
         '$date_format(': '_ExpressionProcessor_date_format(',
         '$lookup(': '_ExpressionProcessor_lookup(',
+        '$arithmetic(': '_ExpressionProcessor_arithmetic(',
     };
 
     function _ExpressionProcessor_min(inputArgs) {
@@ -252,10 +253,36 @@ function(nl) {
         return inputArgs[nElems-1] || 0;
     }
 
+    function _ExpressionProcessor_arithmetic(inputArgs) {
+        _ExpressionProcessor_check(inputArgs, 'arithmetic');
+        if (inputArgs.length < 3 && inputArgs.length > 4) throw(nl.fmt2('$arithmetic(...) function takes max 4 arguments and min 3 arguments, {} given.', inputArgs.length));
+        var allowedOperation = {'+': true, '-': true, '*': true, '/': true, '**': true, '%': true};
+        if (!allowedOperation[inputArgs[1]]) throw(nl.fmt2('$arithmetic(...) function takes only +,-,/,*,**,% values in 2nd argument, {} given.', inputArgs[1]));
+        
+        var result = null;
+        if (inputArgs[1] == '+') result = inputArgs[0] + inputArgs[2];
+        else if (inputArgs[1] == '-') result = inputArgs[0] - inputArgs[2];
+        else if (inputArgs[1] == '*') result = inputArgs[0] * inputArgs[2];
+        else if (inputArgs[1] == '/') result = inputArgs[0] / inputArgs[2];
+        else if (inputArgs[1] == '%') result = inputArgs[0] % inputArgs[2];
+        else if (inputArgs[1] == '**') result = Math.pow(inputArgs[0], inputArgs[2]);
+        if(inputArgs[3] && Number.isInteger(inputArgs[3])) {
+            result = Math.round (result * Math.pow(10, inputArgs[3]))/ Math.pow(10, inputArgs[3]);
+        }
+        return result;   
+    }
+
     function _ExpressionProcessor_if(inputArgs) {
+        if (inputArgs.length != 3) throw(nl.fmt2('$if(...) function takes 3 arguments, {} given.', inputArgs.length));  
+        _updateArgsForIf(inputArgs);
         _ExpressionProcessor_check(inputArgs, 'if');
-        if (inputArgs.length != 3) throw(nl.fmt2('$if(...) function takes 3 arguments, {} given.', inputArgs.length));
-        return inputArgs[0] ? inputArgs[1] : inputArgs[2];
+        var condition = '"'+ inputArgs[0] + '"' + inputArgs[1] + '"'+ inputArgs[2] + '"';
+        return eval(condition) ? inputArgs[3] : inputArgs[4];
+    }
+
+    function _updateArgsForIf(inputArgs) {
+        var logicArgSplit = inputArgs[0].split('"');
+        inputArgs.splice(0, 1, logicArgSplit[1], logicArgSplit[2], logicArgSplit[3]);
     }
 
     function _ExpressionProcessor_date_format(inputArgs) {
