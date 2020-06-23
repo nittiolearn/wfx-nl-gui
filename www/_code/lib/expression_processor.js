@@ -180,6 +180,8 @@ function(nl) {
         '$date_format(': '_ExpressionProcessor_date_format(',
         '$lookup(': '_ExpressionProcessor_lookup(',
         '$arithmetic(': '_ExpressionProcessor_arithmetic(',
+        '$to_int(': '_ExpressionProcessor_to_int(',
+        '$to_float(': '_ExpressionProcessor_to_float(',
     };
 
     function _ExpressionProcessor_min(inputArgs) {
@@ -266,10 +268,29 @@ function(nl) {
         else if (inputArgs[1] == '/') result = inputArgs[0] / inputArgs[2];
         else if (inputArgs[1] == '%') result = inputArgs[0] % inputArgs[2];
         else if (inputArgs[1] == '**') result = Math.pow(inputArgs[0], inputArgs[2]);
-        if(inputArgs[3] && Number.isInteger(inputArgs[3])) {
+        if((inputArgs[3]==0 || inputArgs[3]) && Number.isInteger(inputArgs[3])) {
             result = Math.round (result * Math.pow(10, inputArgs[3]))/ Math.pow(10, inputArgs[3]);
         }
         return result;   
+    }
+
+    function _ExpressionProcessor_to_int(inputArgs) {
+        _numberCheck(inputArgs, 'to_int');
+        if(inputArgs[0] && !isNaN(inputArgs[0])) return parseInt(inputArgs[0]);
+        return 0;
+    }
+
+    function _ExpressionProcessor_to_float(inputArgs) {
+        _numberCheck(inputArgs, 'to_float');
+        if(inputArgs[0] && !isNaN(inputArgs[0])) return parseFloat(inputArgs[0]);
+        return 0.0;
+    }
+
+    function _numberCheck(inputArgs, fn) {
+        if (inputArgs.length != 1) throw(nl.fmt2('${}(...) function takes 1 arguments, {} given.', fn, inputArgs.length));
+        _ExpressionProcessor_replace(inputArgs);
+        if(!inputArgs[0]) return 0;
+        inputArgs[0] = inputArgs[0].replace(/[\s\-%a-zA-Z]+/g, '');       //removes spaces, % , - characters
     }
 
     function _ExpressionProcessor_if(inputArgs) {

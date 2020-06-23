@@ -341,6 +341,8 @@
                         { "name": "$nth_min - nth loweest of the given items", "val": "$nth_min{}", "cursor": -1 },
                         { "name": "$if - condition with values for true and false", "val": "$if{}", "cursor": -1 },
                         { "name": "$arithmetic - perform arithmetic operations", "val": "$arithmetic{}", "cursor": -1 },
+                        { "name": "$to_int - conversion into integer", "val": "$to_int{}", "cursor": -1 },
+                        { "name": "$to_float - conversion into float", "val": "$to_float{}", "cursor": -1 },
                     ],
                 '_':[]
             };
