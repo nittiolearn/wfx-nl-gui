@@ -478,7 +478,7 @@ function(nl, nlRouter, nlDlg, nlGroupInfo, nlLrHelper, nlLrFilter, nlGetManyStor
 
     function _updateCommonParams(report, ctypestr) {
         var repcontent = angular.fromJson(report.content);
-        var assignorInfo = nlGroupInfo.getUserObj(report.assignor);
+        var assignorInfo = nlGroupInfo.getUserObj(report.assignor) || {};
         nlGetManyStore.overrideAssignmentParametersInRepContent(report, repcontent);
         report.updated = nl.fmt.json2Date(report.updated);
         report.created = nl.fmt.json2Date(report.created);
@@ -488,8 +488,8 @@ function(nl, nlRouter, nlDlg, nlGroupInfo, nlLrHelper, nlLrFilter, nlGetManyStor
         repcontent.not_before_str = repcontent.not_before ? nl.fmt.fmtDateDelta(repcontent.not_before, null, 'minute') : '';
         repcontent.not_after_str = repcontent.not_after ? nl.fmt.fmtDateDelta(repcontent.not_after, null, 'minute') : '';
         repcontent.iltTrainerName = repcontent.iltTrainerName || repcontent.assigned_by;
-        repcontent.senderName = assignorInfo.name;
-        repcontent.senderID = assignorInfo.user_id;
+        repcontent.senderName = assignorInfo.name || '';
+        repcontent.senderID = assignorInfo.user_id || '';
         if (!repcontent.batchtype) repcontent.batchtype = '';
         return repcontent;
     }
