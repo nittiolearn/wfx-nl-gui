@@ -295,10 +295,11 @@ function(nl) {
 
     function _ExpressionProcessor_if(inputArgs) {
         if (inputArgs.length != 3) throw(nl.fmt2('$if(...) function takes 3 arguments, {} given.', inputArgs.length));  
-        _updateArgsForIf(inputArgs);
+        if(typeof(inputArgs[0]) == 'string') _updateArgsForIf(inputArgs);
         _ExpressionProcessor_check(inputArgs, 'if');
-        var condition = '"'+ inputArgs[0] + '"' + inputArgs[1] + '"'+ inputArgs[2] + '"';
-        return eval(condition) ? inputArgs[3] : inputArgs[4];
+        var condition = inputArgs[0];
+        if(typeof(inputArgs[0]) == 'string') condition = '"'+ inputArgs[0] + '"' + inputArgs[1] + '"'+ inputArgs[2] + '"';
+        return eval(condition) ? inputArgs[inputArgs.length-2] : inputArgs[inputArgs.length-1];
     }
 
     function _updateArgsForIf(inputArgs) {
