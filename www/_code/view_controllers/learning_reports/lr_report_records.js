@@ -275,6 +275,7 @@ function(nl, nlRouter, nlDlg, nlGroupInfo, nlLrHelper, nlLrFilter, nlGetManyStor
         var ncompleted = stainf.nCompletedItems;
         var nActual = stainf.cnttotal - (stainf.nlockedcnt + stainf.nhiddencnt);
         stats.progress = Math.round(100*ncompleted/nActual);
+        stats.progressDesc = nl.t('{} of {} completed', ncompleted, nActual);
         if (stainf.inductionDropOut) stats.inductionDropOut = true;
         if(stainf.customScores.length != 0) {
             for(var i=0; i<stainf.customScores.length; i++) {

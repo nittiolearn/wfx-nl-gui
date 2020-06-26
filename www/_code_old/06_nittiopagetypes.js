@@ -616,6 +616,14 @@ npagetypes = function() {
 			jQuery(this).removeClass('selected');
 		});
 		pgSecView.addClass('selected');
+		var lesson = nlesson.theLesson;
+		var curPage = lesson.getCurrentPage();
+		if (lesson.oLesson.autoNavigate) {
+			var voiceDefined = curPage.oPage.isVoiceButton;
+			if (voiceDefined && !curPage.oPage.voiceEnded) return;		
+			if(lesson.oLesson.selfLearningMode && !_isCorrect(layout, secNo)) return;
+			lesson.globals.slides.next();
+		}
 	}
 
 	//----------------------------------------------------------------------------------------				
@@ -659,7 +667,7 @@ npagetypes = function() {
 					if(_isCorrect(layout, secNo)) _popupStatusTick();
 					else _popupStatusCross();
 				}
-				_BehMcq_onClick(pgSecView);
+				_BehMcq_onClick(pgSecView, layout, secNo);
 			});
 			
 			if ('answer' in section.oSection && section.oSection.answer == 1) {

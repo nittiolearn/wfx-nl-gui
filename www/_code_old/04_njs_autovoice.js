@@ -507,6 +507,7 @@ function AudioManager() {
             _updateIcon(info);
             info.playStarted = false;
             if(info.opage) info.opage.voiceEnded = true;
+            if (nlesson.theLesson.oLesson.autoNavigate) _checkAndNavigateToNextPage();
             return;
         } else if (_isCurrentInfo(info)) {
             if (_getFragmentStatus(info) == 'loading') {
@@ -642,6 +643,58 @@ function AudioManager() {
             _pauseFragment(info);
         }
         _updateIcon(info);
+    }
+    //----------------------------------------------------------------------------------------------------------------------
+    //Handling auto navigate to next page
+    //----------------------------------------------------------------------------------------------------------------------
+    function _checkAndNavigateToNextPage() {
+        var lesson = nlesson.theLesson;
+		var pageNo = lesson.getCurrentPageNo();
+        var curPage = lesson.getCurrentPage();
+        if (!lesson.oLesson.autoVoiceProvider || lesson.oLesson.autoVoiceProvider != 'polly') return;
+        if (!_isInteractive(curPage) && _noPopupsDefined(curPage) && !_lastPage()) {
+            lesson.globals.slides.next();
+        } 
+        var pagetype = curPage.pagetype;
+        if (_isInteractive(curPage) && pagetype.pt.interaction == 'MCQ') {
+            if (lesson.renderCtx.launchMode() != 'edit') {
+                if (lesson.oLesson.notAnswered.indexOf(pageNo) > -1) return;
+                if (lesson.oLesson.selfLearningMode) {
+                    var score = curPage.getScore();
+                    var maxScore = curPage.getMaxScore();
+                    if (score < maxScore) return;                
+                }    
+            }
+            lesson.globals.slides.next();    
+        }
+    }    
+
+    function _isInteractive(page) {
+        var sections = page.sections;
+        for (var i=0; i<sections.length; i++) {
+            if(!page.pagetype.isInteractive(sections[i])) continue;
+            return true;
+        }
+        return false;
+    }
+
+    function _noPopupsDefined(page) {
+        var sections = page.oPage.sections;
+        for (var i=0; i<sections.length; i++) {
+            if (sections[i].popups) return false;
+        }
+        return true;
+    }
+
+    function _lastPage(pageNo, curPage) {
+        return false;
+        //TODO-NOW: Disable auto navigate if the curPage is last page.
+        var curPage = nlesson.theLesson.globals.slides.curPage;
+        var pages = nlesson.theLesson.globals.slides.pages;
+        var cnt = 1;
+        if (nlesson.theLesson.renderCtx.launchMode() == 'do') cnt = 2
+        if (curPage == pages.length-cnt) return true;
+        return false;
     }
 }
 

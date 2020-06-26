@@ -528,7 +528,7 @@ function(nl, nlDlg, nlRouter, nlExporter, nlLrHelper, nlLrSummaryStats, nlGroupI
         var headers = ['User Id', 'User Name'];
         headers = headers.concat(['Course Name', 'Batch name', _gradelabel, _subjectlabel, 'Assigned On', 'Last Updated On', 
             'From', 'Till', 'Status', 'Quiz Attempts',
-            'Achieved %', 'Maximum Score', 'Achieved Score']);
+            'Achieved %', 'Maximum Score', 'Achieved Score', 'Progress']);
         for(var i=0; i<_customScoresHeader.length; i++) headers.push(_customScoresHeader[i]);
         headers = headers.concat(['Feedback score', 'Online Time Spent (minutes)', 'ILT time spent(minutes)', 'ILT total time(minutes)', 'Venue', 'Trainer name']);
     	headers = headers.concat([ 'Infra Cost', 'Trainer Cost', 'Food Cost', 'Travel Cost', 'Misc Cost']);
@@ -550,7 +550,7 @@ function(nl, nlDlg, nlRouter, nlExporter, nlLrHelper, nlLrSummaryStats, nlGroupI
             report.repcontent.not_before ? nl.fmt.date2Str(nl.fmt.json2Date(report.repcontent.not_before)) : '',
             report.repcontent.not_after ? nl.fmt.date2Str(nl.fmt.json2Date(report.repcontent.not_after)) : '', 
             report.stats.status.txt, report.stats.avgAttempts || '',
-            report.stats.percScoreStr, report.stats.nMaxScore, report.stats.nScore]) 
+            report.stats.percScoreStr, report.stats.nMaxScore, report.stats.nScore, report.stats.progressDesc]) 
 
         var customScores = report.stats.customScores || []; //customScores is array of objects [{name: 'itemname', score: 12}]
         for(var i=0; i<_customScoresHeader.length; i++) {

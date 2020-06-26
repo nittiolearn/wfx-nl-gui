@@ -20,7 +20,7 @@ function(nl, nlDlg, nlServerApi, nlLrFilter, nlLrReportRecords, nlGetManyStore, 
     var _limit = null;
 
 	this.init = function() {
-	    _pageFetcher = nlServerApi.getPageFetcher({defMax: 500, itemType: 'learning record'});
+	    _pageFetcher = nlServerApi.getPageFetcher({defMax: 10000, itemType: 'learning record'});
 	    var params = nl.location.search();
 		_limit = ('limit' in params) ? parseInt(params.limit) : 100000;
 	};

@@ -1029,7 +1029,7 @@ function NlServerInterface(nl, nlDlg, nlConfig, Upload, brandingInfoHandler) {
 function PageFetcher(nl, nlDlg, attrs) {
     if (!attrs) attrs = {};
     var urlParams = nl.location.search();
-    var _max = ('max' in urlParams) ? parseInt(urlParams.max) : attrs.defMax || 50;
+    var _max = attrs.defMax || 10000;
     var _itemType = attrs.itemType || 'item';
     var _blockTillDone = attrs.blockTillDone || false;
 
@@ -1102,7 +1102,7 @@ function PageFetcher(nl, nlDlg, attrs) {
     function _fetchPageImpl(listingFn, params, fetchMore, callback, dontHideLoading) {
         _fetchInProgress = true;
         if (!fetchMore) _nextStartPos = null;
-        if (!params.max) params.max = _max;
+        params.max = _max;
         params.startpos = _nextStartPos;
         if (!attrs.noStatus) nlDlg.popupStatus(IN_PROG_MSG, false);
         listingFn(params).then(function(resp) {
