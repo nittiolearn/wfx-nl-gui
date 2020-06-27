@@ -198,8 +198,12 @@ function Paginator(nl, info, nlExpressionProcessor) {
         var records = info._internal.recs;
         var visible = [];
         var startpos = self.startpos;
-        for (var i=startpos; i < records.length && visible.length < info.maxVisible; i++) {
-            visible.push(_getDisplayRecord(records[i]));
+        for (var i=startpos; i < records.length; i++) {
+            if(visible.length < info.maxVisible) {
+                visible.push(_getDisplayRecord(records[i]));
+            } else {
+                _getDisplayRecord(records[i]);
+            }
         }
         info._internal.visibleRecs = visible;
         _updateInfoTxt();
