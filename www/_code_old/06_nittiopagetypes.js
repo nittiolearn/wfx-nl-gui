@@ -610,21 +610,33 @@ npagetypes = function() {
 	//----------------------------------------------------------------------------------------
 	// BehMcq
 	//----------------------------------------------------------------------------------------
-	function _BehMcq_onClick(pgSecView) {
+	function _BehMcq_onClick(pgSecView, layout, secNo) {
 		var siblings = _getSiblings(pgSecView);
 		siblings.each(function() {
 			jQuery(this).removeClass('selected');
 		});
 		pgSecView.addClass('selected');
 		var lesson = nlesson.theLesson;
+		if (lesson.renderCtx.launchMode() == 'edit') return;
 		var curPage = lesson.getCurrentPage();
 		if (lesson.oLesson.autoNavigate) {
 			var voiceDefined = curPage.oPage.isVoiceButton;
 			if (voiceDefined && !curPage.oPage.voiceEnded) return;		
 			if(lesson.oLesson.selfLearningMode && !_isCorrect(layout, secNo)) return;
+			if(_lastPage()) return;
 			lesson.globals.slides.next();
 		}
 	}
+
+	function _lastPage() {
+        var lesson = nlesson.theLesson;
+        var pages = lesson.pages;
+        var curPageNo = lesson.getCurrentPageNo();
+        var count = 1;
+        if (lesson.renderCtx.launchCtx() == 'do_assign') count = 2;
+        if((pages.length - curPageNo) <= count && !nlesson.modulePopup.isPopupOpen()) return true;
+        return false;
+    }
 
 	//----------------------------------------------------------------------------------------				
 	var BehMcq = {

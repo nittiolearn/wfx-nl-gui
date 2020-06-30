@@ -1263,6 +1263,7 @@ function(nl, nlDlg, nlRouter, nlExporter, nlLrHelper, nlLrSummaryStats, nlGroupI
         var supportedHeaderDict = _getSupportedDict(supportedHeaders);
         for(var i=0; i<customHeaders.length; i++) {
             var header = customHeaders[i].toLowerCase();
+            if (header == 'report id') REPORTID_POS = i;
             if (header in supportedHeaderDict) continue;
             return {error: true, msg: nl.t('header "{}" in raw-data sheet xlsx is not supported', customHeaders[i])};
         }
@@ -1278,8 +1279,9 @@ function(nl, nlDlg, nlRouter, nlExporter, nlLrHelper, nlLrSummaryStats, nlGroupI
         return ret;
     }
 
-    var REPORTID_POS = 31;
+    var REPORTID_POS = null;
     function _getRepidFromInputXlsRow(inputXlsRow) {
+        if (!REPORTID_POS) return null;
         if (inputXlsRow.length <= REPORTID_POS) return null;
         var parts = inputXlsRow[REPORTID_POS].split('=');
         if (parts.length != 2 || parts[0] != 'id') return null;

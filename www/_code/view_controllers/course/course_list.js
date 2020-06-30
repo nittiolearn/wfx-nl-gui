@@ -398,7 +398,7 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
 	}
 
 	function _createReportCard(report, isReport) {
-		var url = nl.fmt2('#/learning_reports?type=course_assign&objid={}&max=500', report.id);
+		var url = nl.fmt2('#/learning_reports?type=course_assign&objid={}', report.id);
 		var title = report.name;
 		var help = '';
 		if (isReport) {

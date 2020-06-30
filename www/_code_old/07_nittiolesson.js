@@ -2458,7 +2458,7 @@ function ModulePopupHadler() {
 
     function _canShowPopup(section) {
     	if (!section.oSection.popups) return false;
-        if (g_lesson.renderCtx.launchCtx() != 'do_assign') return true;
+        if (g_lesson.renderCtx.launchCtx() != 'do_assign' && g_lesson.renderCtx.launchCtx() != 'view') return true;
         if (!section.page.pagetype.isInteractive(section)) return true;
         //if (g_lesson.oLesson.selfLearningMode) return true;
         return false;

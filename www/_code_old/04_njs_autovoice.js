@@ -651,20 +651,20 @@ function AudioManager() {
         var lesson = nlesson.theLesson;
 		var pageNo = lesson.getCurrentPageNo();
         var curPage = lesson.getCurrentPage();
+        if (lesson.renderCtx.launchMode() == 'edit') return;
         if (!lesson.oLesson.autoVoiceProvider || lesson.oLesson.autoVoiceProvider != 'polly') return;
-        if (!_isInteractive(curPage) && _noPopupsDefined(curPage) && !_lastPage()) {
+        if (_lastPage()) return;
+        if (!_isInteractive(curPage) && _noPopupsDefined(curPage)) {
             lesson.globals.slides.next();
         } 
         var pagetype = curPage.pagetype;
         if (_isInteractive(curPage) && pagetype.pt.interaction == 'MCQ') {
-            if (lesson.renderCtx.launchMode() != 'edit') {
-                if (lesson.oLesson.notAnswered.indexOf(pageNo) > -1) return;
-                if (lesson.oLesson.selfLearningMode) {
-                    var score = curPage.getScore();
-                    var maxScore = curPage.getMaxScore();
-                    if (score < maxScore) return;                
-                }    
-            }
+            if (lesson.oLesson.notAnswered.indexOf(pageNo) > -1) return;
+            if (lesson.oLesson.selfLearningMode) {
+                var score = curPage.getScore();
+                var maxScore = curPage.getMaxScore();
+                if (score < maxScore) return;                
+            }    
             lesson.globals.slides.next();    
         }
     }    
@@ -686,14 +686,13 @@ function AudioManager() {
         return true;
     }
 
-    function _lastPage(pageNo, curPage) {
-        return false;
-        //TODO-NOW: Disable auto navigate if the curPage is last page.
-        var curPage = nlesson.theLesson.globals.slides.curPage;
-        var pages = nlesson.theLesson.globals.slides.pages;
-        var cnt = 1;
-        if (nlesson.theLesson.renderCtx.launchMode() == 'do') cnt = 2
-        if (curPage == pages.length-cnt) return true;
+    function _lastPage() {
+        var lesson = nlesson.theLesson;
+        var pages = lesson.pages;
+        var curPageNo = lesson.getCurrentPageNo();
+        var count = 1;
+        if (lesson.renderCtx.launchCtx() == 'do_assign') count = 2;
+        if((pages.length - curPageNo) <= count && !nlesson.modulePopup.isPopupOpen()) return true;
         return false;
     }
 }
