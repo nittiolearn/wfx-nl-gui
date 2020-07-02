@@ -194,7 +194,8 @@ npagetypes = function() {
 		this.getMaxScore = PageType_getMaxScore;
 		this.isScoreEditable = PageType_isScoreEditable;
 		this.isDoToggleSupported = PageType_isDoToggleSupported;
-        this.isInteractive = PageType_isInteractive;
+		this.isInteractive = PageType_isInteractive;
+		this.isCorrect = PageType_isCorrect;
 	}
 
 	function PageType_init(oPage) {
@@ -366,6 +367,12 @@ npagetypes = function() {
 	function PageType_isInteractive(section) {
         return _isInteractive(_getLayoutOfSec(section), section.secNo);
 	}
+
+	function PageType_isCorrect(section) {
+		var layout = _getLayoutOfSec(section);
+		var secNo = section.secNo;
+		return _isCorrect(layout, secNo);
+	};
 
 	function PageType_isDoToggleSupported(page) {
 		var functionPointer = _getBehaviourFn(this.interaction, 'is_do_toggle_supported');
@@ -632,9 +639,7 @@ npagetypes = function() {
         var lesson = nlesson.theLesson;
         var pages = lesson.pages;
         var curPageNo = lesson.getCurrentPageNo();
-        var count = 1;
-        if (lesson.renderCtx.launchCtx() == 'do_assign') count = 2;
-        if((pages.length - curPageNo) <= count && !nlesson.modulePopup.isPopupOpen()) return true;
+        if((pages.length - curPageNo) <= 1 && !nlesson.modulePopup.isPopupOpen()) return true;
         return false;
     }
 

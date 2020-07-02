@@ -659,15 +659,33 @@ function AudioManager() {
         } 
         var pagetype = curPage.pagetype;
         if (_isInteractive(curPage) && pagetype.pt.interaction == 'MCQ') {
-            if (lesson.oLesson.notAnswered.indexOf(pageNo) > -1) return;
-            if (lesson.oLesson.selfLearningMode) {
-                var score = curPage.getScore();
-                var maxScore = curPage.getMaxScore();
-                if (score < maxScore) return;                
-            }    
+            if (!_optionSelected(curPage)) return;
             lesson.globals.slides.next();    
         }
     }    
+
+    function _optionSelected(page) {
+        var sections = page.sections || [];
+        var pgSecView = sections[0].pgSecView;
+        var answered = {ans: false, pos: null}; 
+        var siblings = _getSiblings(pgSecView);        
+        var pos = 0;
+        siblings.each(function(pos) {
+            if(jQuery(this).hasClass('selected')) {
+                answered = {ans: true, pos: pos};
+            }
+            if (!answered.ans) pos++;
+        });
+        if(answered.ans && nlesson.theLesson.oLesson.selfLearningMode) {
+            answered.ans = page.pagetype.isCorrect(sections[answered.pos]);
+        }
+        return answered.ans;
+    }
+
+    function _getSiblings(pgSecView) {
+		return pgSecView.parents('.pgHolder').find('.pgSecView');
+	}
+
 
     function _isInteractive(page) {
         var sections = page.sections;
@@ -690,9 +708,7 @@ function AudioManager() {
         var lesson = nlesson.theLesson;
         var pages = lesson.pages;
         var curPageNo = lesson.getCurrentPageNo();
-        var count = 1;
-        if (lesson.renderCtx.launchCtx() == 'do_assign') count = 2;
-        if((pages.length - curPageNo) <= count && !nlesson.modulePopup.isPopupOpen()) return true;
+        if((pages.length - curPageNo) <= 1 && !nlesson.modulePopup.isPopupOpen()) return true;
         return false;
     }
 }
