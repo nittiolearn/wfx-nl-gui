@@ -107,9 +107,14 @@ function(nl, nlDlg, nlTreeSelect, nlModuleStatusInfo, nlResourceAddModifySrv) {
 	};
 	
 	function _getHelpForAutoNavigate() {
-		var help = nl.t('<div>If this parameter is checked, automatic navigated to next page after page voice is completely played for current page.</div>');
-			help += '<ul><li>Auto move is done on for page detailed and MCQ pages, For detailed pages as soon as playing voice is completed navigation for next page is done.</li>';
-			help += '<li>For MCQ pages navigation to next page is not done. Navigation to next page happens only after any option is selected for quiz modules and only if the right option is selected for self learning modules</li></ul>';
+		var help = nl.t('<div>If this parameter is checked, automatic navigation to the next page happens after the page voice for the current page is played completely.</div>');
+			help += nl.t('<div>Auto move is supported for below conditions.</div>');
+			help += '<ul><li>Auto move works only for information and MCQ page types.</li>';
+			help += '<li>If the MCQ page has voice over, then auto move happens only after page voice has played completely and the learner has clicked on an option.</li>';
+			help += '<li>If the MCQ page has no voice over then automove happens after an option is clicked.</li>';
+			help += '<li>In self learning modules for MCQ pages, auto move happens only after the correct answer has been selected.</li>';
+			help += '<li>The auto move functionality is also applicable across the popup pages.</li>';
+			help += '<li>No auto movement happens for pages which have popups.</li></ul>';
 		return help;
 	}
 
