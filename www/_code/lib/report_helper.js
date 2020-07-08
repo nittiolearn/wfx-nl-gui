@@ -796,7 +796,11 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
         } else if ((repcontent.content || {}).planning && cm.planned_date) {
             dueDate = cm.planned_date;
         }
-        if(dueDate >= now) return;
+        if (dueDate) dueDate = new Date(dueDate);
+        if (now) now = new Date(now);
+        dueDate = dueDate.getTime();
+        now = now.getTime();
+        if(dueDate === now || dueDate > now) return;
         itemInfo.delayDays = 1.0*(now - dueDate)/1000.0/3600.0/24;
         if (itemInfo.status == 'pending') itemInfo.status = 'delayed';
     }
