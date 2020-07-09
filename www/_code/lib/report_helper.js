@@ -786,9 +786,9 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
     }
 
     function _updateStatusToDelayedIfNeeded(cm, itemInfo) {
-        var dueDate = new Date();
         var now = _isEndItemState(itemInfo.status) ? itemInfo.updated : new Date();
         if (!now) return;
+        var dueDate = new Date();
 
         if (cm.type == 'milestone') {
             var msid = 'milestone_' + cm.id;
