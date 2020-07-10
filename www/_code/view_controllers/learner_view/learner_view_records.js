@@ -289,6 +289,7 @@
                     return {type: "past", button: "REVIEW", url: nl.fmt2('/lesson/view_report_assign/{}', raw_record.id)};
                 } else {
                     var canRetry = _getCanRedoCourse(repcontent, stats);
+                    if (canRetry && not_after) canRetry = not_after > curDate || submissionAfterEndtime;
                     if(canRetry) {
                         return {type: "past", button: "REWORK", url: nl.fmt2('#/course_view?id={}&mode=do', raw_record.id)};
                     } else {
