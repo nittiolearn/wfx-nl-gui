@@ -313,10 +313,16 @@
         function _getCanRedoCourse(repcontent, stats) {
             var lessonReps = repcontent.lessonReports || {};
             var modules = repcontent.content.modules || [];
+            var statusinfo = repcontent.statusinfo || {};
             var canRetry = false;
             for(var i=modules.length-1; i>=0; i--) {
                 var module = modules[i];
+                var itemInfo = statusinfo[module.id] || {};
                 if(module.type != "lesson") continue;
+                if (itemInfo.status == 'started' || itemInfo.status == 'pending') {
+                    canRetry = true;
+                    break;
+                }
                 if(module.type == "lesson") {
                     if(module.maxAttempts == 0) {
                         canRetry = true;

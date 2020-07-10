@@ -92,7 +92,7 @@ function(nl, nlCourse, nlExpressionProcessor) {
 function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, report, groupinfo, courseAssign, course, modules, launchMode) {
     if (!report) report = {};
     _processCourseRecord(course);
-
+    var _course = course || {};
     //--------------------------------------------------------------------------------
     // Public interfaces
     this.getCourseStatus = function() {
@@ -793,7 +793,7 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
         if (cm.type == 'milestone') {
             var msid = 'milestone_' + cm.id;
             if (msid in _msDates) dueDate = _msDates[msid];
-        } else if ((repcontent.content || {}).planning && cm.planned_date) {
+        } else if (((_course.content || {}).planning || (repcontent.content || {}).planning) && cm.planned_date) {
             dueDate = cm.planned_date;
         }
         if (dueDate) dueDate = new Date(dueDate);
