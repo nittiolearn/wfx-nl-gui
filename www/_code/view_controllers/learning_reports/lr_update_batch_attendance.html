@@ -119,6 +119,9 @@
 					autofocus=''
 					tabindex='0'>
 				</select>
+				<div ng-show='dontShowOptions[report.attendance.id]' class='fsmall1 nl-dlg-field-greyedmsg'>
+					Marked as {{report.attendance.name}}
+				</div>
 				<div ng-if='report.bulkEntry && report.error' class='nl-dlg-field-errormsg'>
 					{{report.error}}
 				</div>

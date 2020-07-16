@@ -186,6 +186,10 @@ function DbAttendanceObject(courseAssignment, ctx) {
 		return _etmAsd;
 	};
 
+	this.getDontShowOptions = function() {
+		return _dontShowOptions;
+	};
+
 	this.getDbObj = function() {
 		return _dbobj;
 	};
@@ -483,6 +487,7 @@ function DbAttendanceObject(courseAssignment, ctx) {
 	var _attendanceOptionsAsd = [];
 	var _attendanceOptionsDict = {};
 	var _remOptions = null;
+	var _dontShowOptions = {};
 	var _fixed_keys_in_db_obj = {
 		'attendance_version' : true,
 		'sessionInfos' : true,
@@ -505,10 +510,18 @@ function DbAttendanceObject(courseAssignment, ctx) {
 	function _initAttendanceOptions() {
 		ctx.firstPresentOption = null;
 		ctx.firstAbsentOption = null;	
-		_attendanceOptionsAsd = ctx.groupInfo.props.attendance || []; 
+		var grpAttendance = ctx.groupInfo.props.attendance || [];
+		for (var i=0; i<grpAttendance.length;i++) {
+			var item = grpAttendance[i];
+			_attendanceOptionsDict[item.id] = item;
+			if (item.dontShow) {
+				_dontShowOptions[item.id] = true;
+				continue;
+			}
+			_attendanceOptionsAsd.push(item);
+		}
 		for (var i=0; i<_attendanceOptionsAsd.length; i++) {
 			var item = _attendanceOptionsAsd[i];
-			_attendanceOptionsDict[item.id] = item;
 			if (item.id === 'notapplicable') continue;
 			if (!ctx.firstPresentOption && item.timePerc == 100) ctx.firstPresentOption = item;
 			if (!ctx.firstAbsentOption && !item.isAttrition && item.timePerc == 0) ctx.firstAbsentOption = item;
@@ -1002,6 +1015,7 @@ function UpdateTrainingBatchDlg($scope, ctx, resolve) {
 			reason: ctx.dbAttendance.getEtmAsd()};
 		dlgScope.data = {dlgtype: dlgtypeDefault || dlgScope.options.dlgtype[0]};
 		dlgScope.isEtmAsd = ctx.dbAttendance.getEtmAsd().length > 0;
+		dlgScope.dontShowOptions = ctx.dbAttendance.getDontShowOptions();
 		if (dlgScope.isEtmAsd) {
 			dlgScope.options.shiftHrs = getShiftHrsOptions();
 			dlgScope.options.shiftMins = [{id: '00'}, {id: '15'}, {id: '30'}, {id: '45'}];

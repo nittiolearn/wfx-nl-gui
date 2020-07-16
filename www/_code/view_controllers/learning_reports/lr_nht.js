@@ -150,6 +150,9 @@ function(nl) {
             $scope.onDetailsClick = function(e, item, columns) {
                 nl.utils.getFnFromParentOrGrandParent($scope, 'onDetailsClick')(e, item, columns);
             };
+            $scope.onLinkClicked = function(e, item, col) {
+                nl.utils.getFnFromParentOrGrandParent($scope, 'onLinkClicked')(e, item, col);
+            };
             $scope.sortRows = function(colid) {
                 nl.utils.getFnFromParentOrGrandParent($scope, 'sortNhtRows')(colid);
             };
@@ -271,6 +274,7 @@ function NhtCounts(nl, nlGetManyStore, nlGroupInfo) {
             if(key == 'batchid') {
                 if(!(statusCnt[key] in updatedStats.batchIdDict)) {
                     updatedStats.batchIdDict[statusCnt[key]] = true;
+                    updatedStats['batchid'] = statusCnt[key];
                     updatedStats['batchTotal'] += 1;
                 }
                 continue;

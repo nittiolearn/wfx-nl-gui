@@ -108,7 +108,7 @@ function(nl, nlDlg, nlGroupInfo, nlImporter, nlProgressLog, nlRouter, nlServerAp
     var _SERVER_CHUNK_SIZE = 100;
     var _canUpdateLoginId = false;
     var _pastUserInfosFetcher = nlGroupInfo.getPastUserInfosFetcher();
-    
+    var _ouDict = {};
     this.init = function(groupInfo, userInfo, grpid) {
         _groupInfo = groupInfo;
         _userInfo = userInfo;
@@ -149,6 +149,7 @@ function(nl, nlDlg, nlGroupInfo, nlImporter, nlProgressLog, nlRouter, nlServerAp
         dlg.scope.started = false;
         dlg.scope.running = false;
         dlg.scope.data = {filelist: [], validateOnly: true, createMissingOus: false};
+        _updateOuDict();
         dlg.scope.onImport = function(e) {
             _progressLevels = dlg.scope.data.validateOnly ? _progressLevelsValidateOnly : _progressLevelsFull;
             _onImport(e, dlg.scope);
@@ -157,7 +158,6 @@ function(nl, nlDlg, nlGroupInfo, nlImporter, nlProgressLog, nlRouter, nlServerAp
         self.pl.showLogDetails(true);
         if (!debugLog) self.pl.hideDebugAndInfoLogs();
         self.pl.clear();
-        
         var cancelButton = {
             text : nl.t('Close'),
             onTap: function(e) {
@@ -172,6 +172,23 @@ function(nl, nlDlg, nlGroupInfo, nlImporter, nlProgressLog, nlRouter, nlServerAp
             }
         };
         dlg.show('view_controllers/admin/user_import_dlg.html', [], cancelButton, false);
+    }
+
+    function _updateOuDict() {
+        var ouDict = _groupInfo.derived.ouDict;
+        for(var key in ouDict) {
+            var origou = key;
+            var ou = key;
+            if (ou.indexOf('.') > 0) {
+                var ouarray = ou.split('.');
+                for(var i=0; i<ouarray.length; i++) ouarray[i] = ouarray[i].toLowerCase().trim();
+                ou = ouarray.join('.');
+            } else {
+                ou = ou.toLowerCase().trim();
+            }
+            if (ou in _ouDict) continue;
+            _ouDict[ou] = origou;
+        }
     }
 
     this.initImportOperation = function() {
@@ -595,7 +612,14 @@ function(nl, nlDlg, nlGroupInfo, nlImporter, nlProgressLog, nlRouter, nlServerAp
     };
     
     function _checkOu(ou, row) {
-        if (ou in _groupInfo.derived.ouDict) return;
+        if (ou.indexOf('.') > 0) {
+            var ouarray = ou.split('.');
+            for(var i=0; i<ouarray.length; i++) ouarray[i] = ouarray[i].toLowerCase().trim();
+            ou = ouarray.join('.');
+        } else {
+            ou = ou.toLowerCase().trim();
+        }
+        if (ou in _ouDict) return {isFound: true, ou: ou};
         var msg = nl.fmt2('OU not present in tree: {}', ou);
         if (ou in self.missingOus) {
             self.pl.debug(msg, row);
@@ -604,13 +628,15 @@ function(nl, nlDlg, nlGroupInfo, nlImporter, nlProgressLog, nlRouter, nlServerAp
             self.pl.warn(msg, row);
             self.missingOus[ou] = 1;
         }
+        return {isFound: false}
     }
 
     this.validateOu = function(row) {
         row.org_unit = row.org_unit.trim();
         if (!(row.org_unit))
             _throwException('OU is mandatory', row);
-        _checkOu(row.org_unit, row);
+        var oufound = _checkOu(row.org_unit, row);
+        if (oufound.isFound) row.org_unit = _ouDict[oufound.ou];
     };
         
     this.validateSecOu = function(row) {
@@ -618,9 +644,13 @@ function(nl, nlDlg, nlGroupInfo, nlImporter, nlProgressLog, nlRouter, nlServerAp
         row.sec_ou_list = row.sec_ou_list.trim();
         if (row.sec_ou_list == '') return;
         var sec_ou_list = row.sec_ou_list.split(',');
-        for(var i=0; i<sec_ou_list.length; i++) {
-            _checkOu(sec_ou_list[i], row);
+        var array = [];
+        for(var i=0; i<sec_ou_list.length; i++) {            
+            var oufound = _checkOu(sec_ou_list[i], row);
+            if (oufound.isFound) array.push(_ouDict[oufound.ou]);
+            else array.push(sec_ou_list[i]);
         }
+        row.sec_ou_list = array.join(',');
     };
 
     this.deleteUnwanted = function(row) {

@@ -32,7 +32,8 @@
             </td>
             <td ng-repeat='col in nht.selectedColumns track by $index'
                 class='minw-number'  ng-if='canShow(col) && ($root.screenSize != "small" && col.table) || ($root.screenSize == "small" && col.smallScreen)'>
-                <div class='row row-center margin0 padding0 {{!col.hidePerc ? "text-right" : ""}}'>
+                <div class='row row-center margin0 padding0 {{!col.hidePerc ? "text-right" : ""}} {{col.hyperlink ? "nl-link-text" : ""}}'
+                    ng-click='onLinkClicked($event, rec, col)'>
                     <div class='col padding0'>{{rec[col.id] || '-'}}</div>
                     <div class='col padding0 nl-perc-class text-left' ng-if='!col.hidePerc'>{{(col.percid && rec[col.percid]) ? rec[col.percid]+'%' : ''}}</div>
                 </div>

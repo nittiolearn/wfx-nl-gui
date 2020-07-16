@@ -335,6 +335,12 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		return (bodyElement[0].clientHeight - topElem[0].clientHeight-18);
 	};
 
+	$scope.onLinkClicked = function(e, item, col) {
+		if (!col.hyperlink) return;
+		var url = nl.fmt2('#/learning_reports?type=course_assign&objid={}', item.batchid);
+		nl.window.open(url,'_blank');
+	};
+
 	$scope.onDetailsClick = function(e, item, columns) {
 		e.stopImmediatePropagation();
 		e.preventDefault();
@@ -1210,9 +1216,10 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		_customScoresHeader = nlLrReportRecords.getCustomScoresHeader();
 		var customScoresHeaderWithType = nlLrReportRecords.getCustomScoresHeaderWithType();
 		var milestones = _groupInfo.props.milestones || [];
+		var type = nlLrFilter.getType();
 		columns.push({id: 'cntTotal', name: 'Head Count', table: true, hidePerc:true, smallScreen: true, background: 'bggrey', showAlways: true});
 		columns.push({id: 'batchStatus', name: 'Batch Status', table: true, hidePerc:true, smallScreen: true, showAlways: true});
-		columns.push({id: 'batchName', name: 'Batch', table: true, hidePerc:true, smallScreen: true, background: 'bggrey', showAlways: true});
+		columns.push({id: 'batchName', name: 'Batch', table: true, hidePerc:true, smallScreen: true, background: 'bggrey', showAlways: true, hyperlink: (type != 'course_assign' ? true : false)});
 		columns.push({id: 'suborg', name: 'Center', table: true, hidePerc:true, smallScreen: true, background: 'bggrey', showAlways: true});
 		columns.push({id: 'subject', name: _groupInfo.props.subjectlabel, table: true, hidePerc:true, smallScreen: true, background: 'bggrey', showAlways: true});
 

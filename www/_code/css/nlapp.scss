@@ -1178,6 +1178,11 @@ input.nl-dlg-field-error, .nl-dlg-field-error {
   color: red;
 }
 
+.nl-dlg-field-greyedmsg {
+  padding: 2px;
+  color: $nlDaryGrey2;
+}
+
 .nl-login-darkbg .nl-dlg-field-errormsg {
   color: rgba(255, 128, 128, 1);
 }
