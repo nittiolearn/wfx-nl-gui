@@ -294,6 +294,10 @@ function(nl, nlDlg, nlGroupInfo, nlImporter, nlProgressLog, nlRouter, nlServerAp
             nlGroupInfo.init3(_grpid).then(function() {
                 nlGroupInfo.update(_grpid);
                 _groupInfo = nlGroupInfo.get(_grpid);
+                if (!validateOnly) {
+                    _ouDict = {};
+                    _updateOuDict();
+                }
                 _doneImpl(validateOnly);
                 resolve();
             });
@@ -646,7 +650,19 @@ function(nl, nlDlg, nlGroupInfo, nlImporter, nlProgressLog, nlRouter, nlServerAp
         if (!(row.org_unit))
             _throwException('OU is mandatory', row);
         var oufound = _checkOu(row.org_unit, row);
-        if (oufound.isFound) row.org_unit = _ouDict[oufound.ou];
+        if (oufound.isFound) {
+            row.org_unit = _ouDict[oufound.ou];
+        } else {
+            var actualOU = row.org_unit;
+            if (actualOU.indexOf('.') > 0) {
+                var ouarray = actualOU.split('.');
+                for(var i=0; i<ouarray.length; i++) ouarray[i] = ouarray[i].trim();
+                actualOU = ouarray.join('.');
+            } else {
+                actualOU = ou.trim();
+            }
+            row.org_unit = actualOU;
+        }
     };
         
     this.validateSecOu = function(row) {
@@ -657,8 +673,19 @@ function(nl, nlDlg, nlGroupInfo, nlImporter, nlProgressLog, nlRouter, nlServerAp
         var array = [];
         for(var i=0; i<sec_ou_list.length; i++) {            
             var oufound = _checkOu(sec_ou_list[i], row);
-            if (oufound.isFound) array.push(_ouDict[oufound.ou]);
-            else array.push(sec_ou_list[i]);
+            if (oufound.isFound) {
+                array.push(_ouDict[oufound.ou]);
+            } else {
+                var actualOU = sec_ou_list[i];
+                if (actualOU.indexOf('.') > 0) {
+                    var ouarray = actualOU.split('.');
+                    for(var i=0; i<ouarray.length; i++) ouarray[i] = ouarray[i].trim();
+                    actualOU = ouarray.join('.');
+                } else {
+                    actualOU = ou.trim();
+                }
+                array.push(actualOU);
+            }
         }
         row.sec_ou_list = array.join(',');
     };
