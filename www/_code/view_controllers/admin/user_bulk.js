@@ -110,11 +110,13 @@ function(nl, nlDlg, nlGroupInfo, nlImporter, nlProgressLog, nlRouter, nlServerAp
     var _pastUserInfosFetcher = nlGroupInfo.getPastUserInfosFetcher();
     var _ouDict = {};
     this.init = function(groupInfo, userInfo, grpid) {
+        _ouDict = {};
         _groupInfo = groupInfo;
         _userInfo = userInfo;
         _grpid = grpid;
         _canUpdateLoginId = nlRouter.isPermitted(_userInfo, 'admin_user');
         _pastUserInfosFetcher.init(_groupInfo, true);
+        _updateOuDict();
         return _pastUserInfosFetcher.fetchAllPastUsersFiles(true).then(function() {
             return true;
         });
@@ -149,7 +151,6 @@ function(nl, nlDlg, nlGroupInfo, nlImporter, nlProgressLog, nlRouter, nlServerAp
         dlg.scope.started = false;
         dlg.scope.running = false;
         dlg.scope.data = {filelist: [], validateOnly: true, createMissingOus: false};
-        _updateOuDict();
         dlg.scope.onImport = function(e) {
             _progressLevels = dlg.scope.data.validateOnly ? _progressLevelsValidateOnly : _progressLevelsFull;
             _onImport(e, dlg.scope);
@@ -612,6 +613,7 @@ function(nl, nlDlg, nlGroupInfo, nlImporter, nlProgressLog, nlRouter, nlServerAp
     };
     
     function _checkOu(ou, row) {
+        var actualOU = ou;
         if (ou.indexOf('.') > 0) {
             var ouarray = ou.split('.');
             for(var i=0; i<ouarray.length; i++) ouarray[i] = ouarray[i].toLowerCase().trim();
@@ -620,6 +622,14 @@ function(nl, nlDlg, nlGroupInfo, nlImporter, nlProgressLog, nlRouter, nlServerAp
             ou = ou.toLowerCase().trim();
         }
         if (ou in _ouDict) return {isFound: true, ou: ou};
+        if (actualOU.indexOf('.') > 0) {
+            var ouarray = actualOU.split('.');
+            for(var i=0; i<ouarray.length; i++) ouarray[i] = ouarray[i].trim();
+            actualOU = ouarray.join('.');
+        } else {
+            actualOU = ou.trim();
+        }
+        ou = actualOU;
         var msg = nl.fmt2('OU not present in tree: {}', ou);
         if (ou in self.missingOus) {
             self.pl.debug(msg, row);
