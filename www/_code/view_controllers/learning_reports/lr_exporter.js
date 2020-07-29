@@ -526,12 +526,21 @@ function(nl, nlDlg, nlRouter, nlExporter, nlLrHelper, nlLrSummaryStats, nlGroupI
         var type = nlLrFilter.getType();
         var mh = nlLrHelper.getMetaHeaders(false);
         var headers = ['User Id', 'User Name'];
+        var trainingParams = 'trainingParams' in _groupInfo.props ? _groupInfo.props.trainingParams : [];
         headers = headers.concat(['Course Name', 'Batch name', _gradelabel, _subjectlabel, 'Assigned On', 'Last Updated On', 
             'From', 'Till', 'Status', 'Quiz Attempts',
             'Achieved %', 'Maximum Score', 'Achieved Score', 'Progress']);
         for(var i=0; i<_customScoresHeader.length; i++) headers.push(_customScoresHeader[i]);
-        headers = headers.concat(['Feedback score', 'Online Time Spent (minutes)', 'ILT time spent(minutes)', 'ILT total time(minutes)', 'Venue', 'Trainer name']);
-    	headers = headers.concat([ 'Infra Cost', 'Trainer Cost', 'Food Cost', 'Travel Cost', 'Misc Cost']);
+        headers = headers.concat(['Feedback score', 'Online Time Spent (minutes)', 'ILT time spent(minutes)', 'ILT total time(minutes)']);
+        if (trainingParams.length > 0) {
+            for (var i=0; i<trainingParams.length; i++) {
+                var param = trainingParams[i];
+                if (!param.name) continue;
+                headers.push(param.name);
+            }
+        } else {
+            headers = headers.concat(['Venue', 'Trainer name', 'Infra Cost', 'Trainer Cost', 'Food Cost', 'Travel Cost', 'Misc Cost']);
+        }
         headers = headers.concat(['User state', 'Email Id', 'Org']);
         for(var i=0; i<mh.length; i++) headers.push(mh[i].name);
         headers = headers.concat(_idFields);
@@ -567,8 +576,17 @@ function(nl, nlDlg, nlRouter, nlExporter, nlLrHelper, nlLrSummaryStats, nlGroupI
         }
     
         ret = ret.concat([feedbackScore, Math.ceil(report.stats.timeSpentSeconds/60), Math.ceil(report.stats.iltTimeSpent), report.stats.iltTotalTime]);
-        ret = ret.concat([report.repcontent.iltVenue || '', report.repcontent.iltTrainerName || '', report.repcontent.iltCostInfra || '', report.repcontent.iltCostTrainer || '',
-        			report.repcontent.iltCostFoodSta || '', report.repcontent.iltCostTravelAco || '', report.repcontent.iltCostMisc || '']);
+        var trainingParams = 'trainingParams' in _groupInfo.props ? _groupInfo.props.trainingParams : [];
+        if (trainingParams.length > 0) {
+            for (var i=0; i<trainingParams.length; i++) {
+                var param = trainingParams[i];
+                if (!param.name) continue;
+                ret.push(report.repcontent[param.id] || '');
+            }
+        } else {
+            ret = ret.concat([report.repcontent.iltVenue || '', report.repcontent.iltTrainerName || '', report.repcontent.iltCostInfra || '', report.repcontent.iltCostTrainer || '',
+            report.repcontent.iltCostFoodSta || '', report.repcontent.iltCostTravelAco || '', report.repcontent.iltCostMisc || '']);    
+        }
         ret.push(report.user.state ? 'active' : 'inactive');        
         ret.push(report.user.email);
         ret.push(report.user.org_unit);

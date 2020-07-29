@@ -606,6 +606,8 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 
 	function _getLrColumns() {
 		_customScoresHeader = nlLrReportRecords.getCustomScoresHeader();
+        var trainingParams = 'trainingParams' in _groupInfo.props ? _groupInfo.props.trainingParams : [];
+		var trainingParamDict = trainingParams.length > 0 ? nl.utils.arrayToDictById(trainingParams) : null;
 		var type = nlLrFilter.getType();
 		var columns = [];
 		columns.push(_col('user.user_id', 'User Id', 'text-left',  type == 'user'));
@@ -641,15 +643,23 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		columns.push(_col('stats.iltTimeSpent', 'ILT time spent(minutes)', 'text-right'));
 		columns.push(_col('stats.iltTotalTime', 'ILT total time(minutes)', 'text-right'));
 		columns.push(_col('stats.delayDays', 'Delay days', 'text-right'));
-		columns.push(_col('repcontent.iltVenue', 'Venue'));
-		columns.push(_col('repcontent.iltTrainerName','Trainer'));
 		columns.push(_col('repcontent.senderName', 'Sender Name'));
 		columns.push(_col('repcontent.senderID', 'Sender ID'));
-		columns.push(_col('repcontent.iltCostInfra', 'Infra Cost', 'text-right'));
-		columns.push(_col('repcontent.iltCostTrainer', 'Trainer Cost', 'text-right'));
-		columns.push(_col('repcontent.iltCostFoodSta', 'Food Cost', 'text-right'));
-		columns.push(_col('repcontent.iltCostTravelAco', 'Travel Cost', 'text-right'));
-		columns.push(_col('repcontent.iltCostMisc', 'Misc Cost', 'text-right'));
+	if (trainingParams.length > 0) {
+			for (var i=0; i<trainingParams.length; i++) {
+				var param = trainingParams[i];
+				if (!param.name) continue;
+				columns.push(_col('repcontent.'+param.id, param.name));
+			}
+		} else {
+			columns.push(_col('repcontent.iltVenue', 'Venue'));
+			columns.push(_col('repcontent.iltTrainerName', 'Trainer name'));
+			columns.push(_col('repcontent.iltCostInfra', 'Infra Cost', 'text-right'));
+			columns.push(_col('repcontent.iltCostTrainer', 'Trainer Cost', 'text-right'));
+			columns.push(_col('repcontent.iltCostFoodSta', 'Food Cost', 'text-right'));
+			columns.push(_col('repcontent.iltCostTravelAco', 'Travel Cost', 'text-right'));	
+			columns.push(_col('repcontent.iltCostMisc', 'Misc Cost', 'text-right'));
+		}
 		columns.push(_col('user.stateStr', 'User state', 'text-right'));
 		columns.push(_col('user.email', 'Email Id'));
 		columns.push(_col('user.org_unit', 'Org'));

@@ -163,13 +163,6 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect, nlCourse) {
             submissionAfterEndtime: 'submissionAfterEndtime' in _assignInfo ? _assignInfo.submissionAfterEndtime : false,
             sendEmail: dlgScope.enableEmailNotifications,
             batchname: _assignInfo.batchname || '',
-			iltTrainerName: _assignInfo.iltTrainerName,
-			iltVenue: _assignInfo.iltVenue,
-			iltCostInfra: _assignInfo.iltCostInfra,
-			iltCostTrainer: _assignInfo.iltCostTrainer,
-			iltCostFoodSta: _assignInfo.iltCostFoodSta,
-			iltCostTravelAco: _assignInfo.iltCostTravelAco,
-            iltCostMisc: _assignInfo.iltCostMisc,
             courseContent: (_assignInfo.course && _assignInfo.course.content) ? _assignInfo.course.content : null,
             update_content: false,
             modifiedILT: _assignInfo.modifiedILT || {},
@@ -195,7 +188,7 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect, nlCourse) {
 
         dlgScope.help = _getHelp();
         _updateBatchType(dlgScope); 
-
+        _updateTrainingParams(dlgScope);
         dlgScope.data.milestoneItems = _updateMilestones(_assignInfo);
         var currentMsDates = _assignInfo.msDates || {};
 
@@ -236,6 +229,37 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect, nlCourse) {
         dlgScope.options.batchtype = options;
     }
 
+    function _updateTrainingParams(dlgScope) {
+        var groupInfo = nlGroupInfo.get();
+        dlgScope.data.allTrngAttrs = {};
+        var trainingParams = 'trainingParams' in groupInfo.props ? groupInfo.props.trainingParams : [];
+        if (trainingParams.length == 0) {
+			dlgScope.data.iltTrainerName = _assignInfo.iltTrainerName;
+			dlgScope.data.iltVenue = _assignInfo.iltVenue;
+			dlgScope.data.iltCostInfra = _assignInfo.iltCostInfra;
+			dlgScope.data.iltCostTrainer = _assignInfo.iltCostTrainer;
+			dlgScope.data.iltCostFoodSta = _assignInfo.iltCostFoodSta;
+			dlgScope.data.iltCostTravelAco = _assignInfo.iltCostTravelAco;
+            dlgScope.data.iltCostMisc = _assignInfo.iltCostMisc;
+            dlgScope.data.allTrngAttrs= {iltTrainerName: true, iltVenue: true, iltCostInfra: true, iltCostTrainer: true, iltCostFoodSta: true, iltCostTravelAco: true, iltCostMisc: true};
+            dlgScope.help.iltTrainerName = {name: 'Trainer name', help: nl.t('Provide trainer name to this training.')};
+			dlgScope.help.iltVenue = {name: 'Venue', help: nl.t('Configure venue of this training.')};
+			dlgScope.help.iltCostInfra = {name: 'Infrastructure cost', help: nl.t(' Configure the infrastructure cost.')};
+			dlgScope.help.iltCostTrainer = {name: 'Trainer cost', help: nl.t(' Configure the trainer cost.')};
+			dlgScope.help.iltCostFoodSta = {name: 'Stationary and Food cost', help: nl.t(' Configure the stationary and food cost.')};
+			dlgScope.help.iltCostTravelAco = {name: 'Travel and Accomodation cost', help: nl.t(' Configure the travel and accomodation cost.')};
+			dlgScope.help.iltCostMisc = {name: 'Miscellaneous cost', help: nl.t(' Configure the miscellaneous cost.')};
+            return;
+        }
+        for (var i=0;i<trainingParams.length; i++) {
+            var param = trainingParams[i];
+            if (!param.name) continue;
+            dlgScope.data.allTrngAttrs[param.id] = true;
+			dlgScope.data[param.id] = _assignInfo[param.id];
+			dlgScope.help[param.id] = {name: param.name, help: param.help || nl.t('configure {}', param.name)};
+        }
+    }
+
 	function _getHelp() {
 		var showAnsStr = '<ul><li>By default, answers are shown to the learner "after submitting" the assignment.</li>';
 			showAnsStr += '<li>You could change this to "on every page" if you want to learners to self learn and the score is not important.</li>';
@@ -258,13 +282,6 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect, nlCourse) {
 			submissionAfterEndtime: {name: 'Submission after end time', help: nl.t('You can allow learners to submit assignment after the mentioned end time.')},
 			sendEmail: {name: 'Notifications', help: nl.t('You could choose to send notifications to the learners.')},
             batchParams: {name: 'Training details', help: nl.t('You may configure the training batch details.')},
-            iltTrainerName: {name: 'Trainer name', help: nl.t('Provide trainer name to this training.')},
-			iltVenue: {name: 'Venue', help: nl.t('Configure venue of this training.')},
-			iltCostInfra: {name: 'Infrastructure cost', help: nl.t(' Configure the infrastructure cost.')},
-			iltCostTrainer: {name: 'Trainer cost', help: nl.t(' Configure the trainer cost.')},
-			iltCostFoodSta: {name: 'Stationary and Food cost', help: nl.t(' Configure the stationary and food cost.')},
-			iltCostTravelAco: {name: 'Travel and Accomodation cost', help: nl.t(' Configure the travel and accomodation cost.')},
-			iltCostMisc: {name: 'Miscellaneous cost', help: nl.t(' Configure the miscellaneous cost.')},
 			batchname: {name: 'Batch name', help: nl.t('This is an batch name mentioned while sending an assignemnt.')},
 			update_content: {name: 'Update content', help: updateContentStr},
 			batchtype: {name: 'Batch type', help: nl.t('This is an batch type mentioned while sending an assignemnt.')},
