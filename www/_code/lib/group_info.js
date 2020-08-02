@@ -475,6 +475,43 @@ function(nl, nlDlg, nlImporter, nlGroupCache) {
         for(var i=0; i<ou.children.length; i++)
             _addSubTreeToSubOrg(ou.children[i], suborgId, orgToSubOrgMapping);
     }
+
+    this.getTrainingParams = function() {
+        var defaultTrainingParams = [
+            {id: 'iltTrainerName', name: 'Trainer name', help: nl.t('Provide trainer name to this training.')},
+			{id: 'iltVenue', name: 'Venue', help: nl.t('Configure venue of this training.')},
+			{id: 'iltCostInfra', name: 'Infrastructure cost', help: nl.t(' Configure the infrastructure cost.')},
+			{id: 'iltCostTrainer', name: 'Trainer cost', help: nl.t(' Configure the trainer cost.')},
+			{id: 'iltCostFoodSta', name: 'Stationary and Food cost', help: nl.t(' Configure the stationary and food cost.')},
+			{id: 'iltCostTravelAco', name: 'Travel and Accomodation cost', help: nl.t(' Configure the travel and accomodation cost.')},
+			{id: 'iltCostMisc', name: 'Miscellaneous cost', help: nl.t(' Configure the miscellaneous cost.')}
+        ];
+        var trainingParamsOverride = ((this.get().props || {}).features || {}).training;
+        // This could be undefined, null, false, true or a dict
+        // If dict, it will be of form:
+        // {
+        //      iltTrainerName: {name: 'Trainer name', help: 'Provide trainer name to this training.'},
+        //      ...
+        // }
+        // If a key is missing, take the default. If key is present and name is empty, remove the element.
+        if (!trainingParamsOverride || typeof trainingParamsOverride !== 'object') {
+            trainingParamsOverride = {};
+        }
+        var trainingParams = [];
+        for (var i=0; i<defaultTrainingParams; i++) {
+            var param = defaultTrainingParams[i];
+            var override = trainingParamsOverride[param.id];
+            if (!override) {
+                trainingParams.push(param);
+                continue;
+            }
+            if (!override.name) continue; // Ignore this element
+            param.name = override.name;
+            param.help = override.help || nl.t(' Configure the "{}" parameter.', param.name);
+            trainingParams.push(param);
+        }
+        return trainingParams;
+    };
 }];
 
 //-------------------------------------------------------------------------------------------------
