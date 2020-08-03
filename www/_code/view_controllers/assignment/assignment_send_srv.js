@@ -111,6 +111,7 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect, nlCourse) {
     var _ouUserSelector = null;
     var _selectedUsers = {};
     var _sessionDetails = null;
+    var _trainingParams = null;
     //---------------------------------------------------------------------------------------------
     // Constants
     //---------------------------------------------------------------------------------------------
@@ -149,6 +150,7 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect, nlCourse) {
         dlgScope.assignInfo = _assignInfo;
         dlgScope.enableEmailNotifications = _assignInfo.hideEmailNotifications ? false : _isAssignmentEnabled();
         dlgScope.options = {showAnswers: learningModeStrings};
+        _trainingParams = nlGroupInfo.getTrainingParams();
         if(_assignInfo.isModify && _assignInfo.dontShowUsers) {
 	        dlgScope.addedUserStr = nl.t('Already {} users are added to this assignment.', Object.keys(_assignInfo.dontShowUsers).length);
         }
@@ -188,7 +190,7 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect, nlCourse) {
 
         dlgScope.help = _getHelp();
         _updateBatchType(dlgScope); 
-        _updateTrainingParams(dlgScope);
+        if (_dlg.scope.assignInfo.blended) _updateTrainingParams(dlgScope);
         dlgScope.data.milestoneItems = _updateMilestones(_assignInfo);
         var currentMsDates = _assignInfo.msDates || {};
 
@@ -203,6 +205,7 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect, nlCourse) {
             modifyDlg.setCssClass('nl-height-max nl-width-max');
             modifyDlg.scope.dlgTitle = nl.t('Modify training details');
             modifyDlg.scope.assignInfo = _assignInfo;
+            modifyDlg.scope.trainingParams = _trainingParams;
             modifyDlg.scope.data = dlgScope.data;
             modifyDlg.scope.help = dlgScope.help;
             var cancelButton = {text : nl.t('Modify')};
@@ -230,33 +233,10 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect, nlCourse) {
     }
 
     function _updateTrainingParams(dlgScope) {
-        var groupInfo = nlGroupInfo.get();
-        dlgScope.data.allTrngAttrs = {};
-        var trainingParams = 'trainingParams' in groupInfo.props ? groupInfo.props.trainingParams : [];
-        if (trainingParams.length == 0) {
-			dlgScope.data.iltTrainerName = _assignInfo.iltTrainerName;
-			dlgScope.data.iltVenue = _assignInfo.iltVenue;
-			dlgScope.data.iltCostInfra = _assignInfo.iltCostInfra;
-			dlgScope.data.iltCostTrainer = _assignInfo.iltCostTrainer;
-			dlgScope.data.iltCostFoodSta = _assignInfo.iltCostFoodSta;
-			dlgScope.data.iltCostTravelAco = _assignInfo.iltCostTravelAco;
-            dlgScope.data.iltCostMisc = _assignInfo.iltCostMisc;
-            dlgScope.data.allTrngAttrs= {iltTrainerName: true, iltVenue: true, iltCostInfra: true, iltCostTrainer: true, iltCostFoodSta: true, iltCostTravelAco: true, iltCostMisc: true};
-            dlgScope.help.iltTrainerName = {name: 'Trainer name', help: nl.t('Provide trainer name to this training.')};
-			dlgScope.help.iltVenue = {name: 'Venue', help: nl.t('Configure venue of this training.')};
-			dlgScope.help.iltCostInfra = {name: 'Infrastructure cost', help: nl.t(' Configure the infrastructure cost.')};
-			dlgScope.help.iltCostTrainer = {name: 'Trainer cost', help: nl.t(' Configure the trainer cost.')};
-			dlgScope.help.iltCostFoodSta = {name: 'Stationary and Food cost', help: nl.t(' Configure the stationary and food cost.')};
-			dlgScope.help.iltCostTravelAco = {name: 'Travel and Accomodation cost', help: nl.t(' Configure the travel and accomodation cost.')};
-			dlgScope.help.iltCostMisc = {name: 'Miscellaneous cost', help: nl.t(' Configure the miscellaneous cost.')};
-            return;
-        }
-        for (var i=0;i<trainingParams.length; i++) {
-            var param = trainingParams[i];
-            if (!param.name) continue;
-            dlgScope.data.allTrngAttrs[param.id] = true;
-			dlgScope.data[param.id] = _assignInfo[param.id];
-			dlgScope.help[param.id] = {name: param.name, help: param.help || nl.t('configure {}', param.name)};
+        for (var i=0; i<_trainingParams.length; i++) {
+            var param = _trainingParams[i];
+            dlgScope.data[param.id] = _assignInfo[param.id] || '';
+            dlgScope.help[param.id] = {name: param.name, help: param.help};
         }
     }
 
@@ -488,13 +468,10 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect, nlCourse) {
 		if (assignInfo.blended) {
             params.blended = true;
             params.modifiedILT = _sessionDetails.getMinimizedSessionDetails();
-			params.iltTrainerName = data.iltTrainerName;
-			params.iltVenue = data.iltVenue;
-			params.iltCostInfra = data.iltCostInfra;
-			params.iltCostTrainer = data.iltCostTrainer;
-			params.iltCostFoodSta = data.iltCostFoodSta;
-			params.iltCostTravelAco = data.iltCostTravelAco;
-			params.iltCostMisc = data.iltCostMisc;
+            for (var i=0; i<_trainingParams.length; i++) {
+                var param = _trainingParams[i];
+                params[param.id] = data[param.id] || '';                   
+            }
         }
         _updateMilestoneDates(_dlg.scope, params);
 		_validateBeforeModify(params, assignInfo, function() {
@@ -586,13 +563,10 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect, nlCourse) {
                 } else {
                     data.modifiedILT = {};
                 }
-				data.iltTrainerName = _dlg.scope.data.iltTrainerName || '';
-				data.iltVenue = _dlg.scope.data.iltVenue || '';
-				data.iltCostInfra = _dlg.scope.data.iltCostInfra || '';
-				data.iltCostTrainer = _dlg.scope.data.iltCostTrainer || '';
-				data.iltCostFoodSta = _dlg.scope.data.iltCostFoodSta || '';
-				data.iltCostTravelAco = _dlg.scope.data.iltCostTravelAco || '';
-				data.iltCostMisc = _dlg.scope.data.iltCostMisc || '';
+                for (var i=0; i<_trainingParams.length; i++) {
+                    var param = _trainingParams[i];
+                    data[param.id] = _dlg.scope.data[param.id] || '';                   
+                }
 			}
         }
         _updateMilestoneDates(_dlg.scope, data);

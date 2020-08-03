@@ -606,8 +606,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 
 	function _getLrColumns() {
 		_customScoresHeader = nlLrReportRecords.getCustomScoresHeader();
-        var trainingParams = 'trainingParams' in _groupInfo.props ? _groupInfo.props.trainingParams : [];
-		var trainingParamDict = trainingParams.length > 0 ? nl.utils.arrayToDictById(trainingParams) : null;
+        var trainingParams = nlGroupInfo.getTrainingParams();
 		var type = nlLrFilter.getType();
 		var columns = [];
 		columns.push(_col('user.user_id', 'User Id', 'text-left',  type == 'user'));
@@ -645,20 +644,9 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		columns.push(_col('stats.delayDays', 'Delay days', 'text-right'));
 		columns.push(_col('repcontent.senderName', 'Sender Name'));
 		columns.push(_col('repcontent.senderID', 'Sender ID'));
-	if (trainingParams.length > 0) {
-			for (var i=0; i<trainingParams.length; i++) {
-				var param = trainingParams[i];
-				if (!param.name) continue;
-				columns.push(_col('repcontent.'+param.id, param.name));
-			}
-		} else {
-			columns.push(_col('repcontent.iltVenue', 'Venue'));
-			columns.push(_col('repcontent.iltTrainerName', 'Trainer name'));
-			columns.push(_col('repcontent.iltCostInfra', 'Infra Cost', 'text-right'));
-			columns.push(_col('repcontent.iltCostTrainer', 'Trainer Cost', 'text-right'));
-			columns.push(_col('repcontent.iltCostFoodSta', 'Food Cost', 'text-right'));
-			columns.push(_col('repcontent.iltCostTravelAco', 'Travel Cost', 'text-right'));	
-			columns.push(_col('repcontent.iltCostMisc', 'Misc Cost', 'text-right'));
+		for (var i=0; i<trainingParams.length; i++) {
+			var param = trainingParams[i];			
+			columns.push(_col('repcontent.'+param.id, param.name, param.number ? 'text-right' : 'text-left'));
 		}
 		columns.push(_col('user.stateStr', 'User state', 'text-right'));
 		columns.push(_col('user.email', 'Email Id'));
@@ -1996,13 +1984,11 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		} else {
 			assignInfo.blended = assignContent.blended || false;
 			assignInfo.modifiedILT = assignContent.modifiedILT;
-			assignInfo.iltTrainerName = assignContent.iltTrainerName || '';
-			assignInfo.iltVenue = assignContent.iltVenue || '';
-			assignInfo.iltCostInfra = assignContent.iltCostInfra || '';
-			assignInfo.iltCostTrainer = assignContent.iltCostTrainer || '';
-			assignInfo.iltCostFoodSta = assignContent.iltCostFoodSta || '';
-			assignInfo.iltCostTravelAco = assignContent.iltCostTravelAco || '';
-			assignInfo.iltCostMisc = assignContent.iltCostMisc || '';
+			var trainingParams = nlGroupInfo.getTrainingParams();
+			for (var i=0; i<trainingParams.length; i++) {
+				var param = trainingParams[i];
+				assignInfo[param.id] = assignContent[param.id] || '';	
+			}
 			assignInfo.course = nlGetManyStore.getRecord(nlGetManyStore.key('course', assignContent.courseid));
 		}
 		nlSendAssignmentSrv.show($scope, assignInfo, _userInfo).then(function(result) {
@@ -2021,13 +2007,11 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 				assignContent.remarks = result.remarks;
 				if (assignContent.blended) {
 					assignContent.modifiedILT = result.modifiedILT || {};
-					assignContent.iltTrainerName = result.iltTrainerName || '';
-					assignContent.iltVenue = result.iltVenue || '';
-					assignContent.iltCostInfra = result.iltCostInfra || '';
-					assignContent.iltCostTrainer = result.iltCostTrainer || '';
-					assignContent.iltCostFoodSta = result.iltCostFoodSta || '';
-					assignContent.iltCostTravelAco = result.iltCostTravelAco || '';
-					assignContent.iltCostMisc = result.iltCostMisc || '';
+					var trainingParams = nlGroupInfo.getTrainingParams();
+					for (var i=0; i<trainingParams.length; i++) {
+						var param = trainingParams[i];
+						assignContent[param.id] = result[param.id] || '';	
+					}
 				}
 			}
 			if(result.selectedusers.length > 0) {

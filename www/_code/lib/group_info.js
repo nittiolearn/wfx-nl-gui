@@ -480,11 +480,11 @@ function(nl, nlDlg, nlImporter, nlGroupCache) {
         var defaultTrainingParams = [
             {id: 'iltTrainerName', name: 'Trainer name', help: nl.t('Provide trainer name to this training.')},
 			{id: 'iltVenue', name: 'Venue', help: nl.t('Configure venue of this training.')},
-			{id: 'iltCostInfra', name: 'Infrastructure cost', help: nl.t(' Configure the infrastructure cost.')},
-			{id: 'iltCostTrainer', name: 'Trainer cost', help: nl.t(' Configure the trainer cost.')},
-			{id: 'iltCostFoodSta', name: 'Stationary and Food cost', help: nl.t(' Configure the stationary and food cost.')},
-			{id: 'iltCostTravelAco', name: 'Travel and Accomodation cost', help: nl.t(' Configure the travel and accomodation cost.')},
-			{id: 'iltCostMisc', name: 'Miscellaneous cost', help: nl.t(' Configure the miscellaneous cost.')}
+			{id: 'iltCostInfra', name: 'Infrastructure cost', help: nl.t(' Configure the infrastructure cost.'), number: true},
+			{id: 'iltCostTrainer', name: 'Trainer cost', help: nl.t(' Configure the trainer cost.'), number: true},
+			{id: 'iltCostFoodSta', name: 'Stationary and Food cost', help: nl.t(' Configure the stationary and food cost.'), number: true},
+			{id: 'iltCostTravelAco', name: 'Travel and Accomodation cost', help: nl.t(' Configure the travel and accomodation cost.'), number: true},
+			{id: 'iltCostMisc', name: 'Miscellaneous cost', help: nl.t(' Configure the miscellaneous cost.'), number: true}
         ];
         var trainingParamsOverride = ((this.get().props || {}).features || {}).training;
         // This could be undefined, null, false, true or a dict
@@ -498,7 +498,7 @@ function(nl, nlDlg, nlImporter, nlGroupCache) {
             trainingParamsOverride = {};
         }
         var trainingParams = [];
-        for (var i=0; i<defaultTrainingParams; i++) {
+        for (var i=0; i<defaultTrainingParams.length; i++) {
             var param = defaultTrainingParams[i];
             var override = trainingParamsOverride[param.id];
             if (!override) {
