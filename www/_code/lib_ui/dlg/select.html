@@ -1,5 +1,6 @@
 <div class='nl-dlg-field-value'>
     <select ng-model='$parent.data[fieldmodel]' 
+            id='nlta-{{fieldmodel}}'
     		ng-change='onFieldChange(fieldmodel)'
             ng-options='elem as elem.name group by elem.group for elem in $parent.options[fieldmodel] track by elem.id'
             class='{{fieldcls}}'
