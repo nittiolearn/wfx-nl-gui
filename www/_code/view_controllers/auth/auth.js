@@ -154,7 +154,7 @@ function _loginControllerImpl(ctrlType, nl, nlRouter, $scope, nlServerApi, nlDlg
                 resolve(false);
                 return;
             }
-            _loginOptionsUpdate($scope);
+            if ($scope.msgType != 'impersonate') _loginOptionsUpdate($scope);
             _pageEnerDone(resolve);
         });
     }
