@@ -154,7 +154,7 @@ function _loginControllerImpl(ctrlType, nl, nlRouter, $scope, nlServerApi, nlDlg
                 resolve(false);
                 return;
             }
-            _loginOptionsUpdate($scope);
+            if ($scope.msgType != 'impersonate') _loginOptionsUpdate($scope);
             _pageEnerDone(resolve);
         });
     }
@@ -215,7 +215,7 @@ function _loginControllerImpl(ctrlType, nl, nlRouter, $scope, nlServerApi, nlDlg
     function _successBrandinginfoUpdate() {
         var brandingInfo = nlServerApi.getBrandingInfo();
         $scope.loginMethods = brandingInfo.loginMethods || ['userid_pwd'];
-        _loginOptionsUpdate($scope);
+        if ($scope.msgType != 'impersonate') _loginOptionsUpdate($scope);
     }
 
     function _loginOptionsUpdate($scope) {
