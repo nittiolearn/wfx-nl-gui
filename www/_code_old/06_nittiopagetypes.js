@@ -1996,6 +1996,9 @@ npagetypes = function() {
 			}
 			return 'Enter the question here';
 		},
+		'cssClass': function(layout, secNo) {
+			return _cssClass(layout, secNo, 'no_shadow');
+		},
 		'getRandomAttrName': function() {
 			// None of the sections are randomized in this case. The default 'ans' attr should
 			// not be taken as random indicator. So a non-existent attribure name is returned
