@@ -53,6 +53,10 @@ function(nl, nlDlg, nlConfig, Upload) {
     this.getBrandingInfo = function() {
     	return _brandingInfoHandler.getInfo();
     };
+
+    this.updateBrandingInfoWithGroupId = function(data) {
+        return _postWithReoadUserData('_serverapi/update_branding_info.json', data, false);
+    };
     
     //---------------------------------------------------------------------------------------------
     // Auth Module

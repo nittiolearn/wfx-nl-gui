@@ -99,6 +99,11 @@ function _loginControllerImpl(ctrlType, nl, nlRouter, $scope, nlServerApi, nlDlg
     $scope.initDone = false;
     
     var brandingInfo = nlServerApi.getBrandingInfo();
+    if(brandingInfo.loginMethods) {
+        $scope.loginMethods = brandingInfo.loginMethods;
+    } else if(brandingInfo.grp) updateBrandingInfo(brandingInfo.grp, _successBrandinginfoUpdate);
+    else  _updateMsg('groupid_login');
+    $scope.grpid = brandingInfo.grp;
     nl.pginfo.hidemenu = true;    
     $scope.bgimg = nl.url.resUrl2(brandingInfo.bgimg) || '';
 
@@ -149,6 +154,7 @@ function _loginControllerImpl(ctrlType, nl, nlRouter, $scope, nlServerApi, nlDlg
                 resolve(false);
                 return;
             }
+            _loginOptionsUpdate($scope);
             _pageEnerDone(resolve);
         });
     }
@@ -173,9 +179,62 @@ function _loginControllerImpl(ctrlType, nl, nlRouter, $scope, nlServerApi, nlDlg
             var fieldName = 'username';
             if ($scope.msgType == 'pw_change') fieldName = 'password';
             else if ($scope.msgType == 'pw_reset') fieldName = 'new_password1';
-            nlDlg.getField(fieldName).focus();
+            else if ($scope.msgType == 'groupid_login') fieldName = 'groupid';
+            var field = nlDlg.getField(fieldName) ? nlDlg.getField(fieldName) : nlDlg.getField('mobile');
+            if(field) field.focus();
             resolve(true);
         });
+    }
+
+    $scope.onGroupIdEnter = function(keyEvent) {
+        if (keyEvent.which !== 13) return;
+        $scope.updateBrandingInfoForLogin();
+    };
+
+    $scope.updateBrandingInfoForLogin = function() {
+        nlDlg.showLoadingScreen();
+        if(!_validateInputs($scope, 'groupid')) return;
+        var parts = $scope.data.groupid.split('.');
+        var grpid = parts.length == 2 ? parts[1] : $scope.data.groupid;
+        console.log('grpid: ', grpid);
+        if(parts.length == 2) $scope.data.username = $scope.data.groupid;
+        updateBrandingInfo(grpid, function() {
+            _successBrandinginfoUpdate();
+            nlDlg.hideLoadingScreen();
+        });
+    }
+    
+    function updateBrandingInfo(grpid, fn) {
+        console.log('in updateBrandingInfo');
+        var dataToServer = {grpid: grpid, showExtendedStatusCode: true};
+        nlServerApi.updateBrandingInfoWithGroupId(dataToServer).then(fn, function() {
+            console.log('TODO-NOW: brandinginfo- error mesg or when the group does not exits');
+        });
+    }
+
+    function _successBrandinginfoUpdate() {
+        var brandingInfo = nlServerApi.getBrandingInfo();
+        $scope.loginMethods = brandingInfo.loginMethods || ['userid_pwd'];
+        _loginOptionsUpdate($scope);
+    }
+
+    function _loginOptionsUpdate($scope) {
+        if ($scope.loginMethods && $scope.loginMethods.length > 0) {
+            $scope.data = $scope.data || {};
+            $scope.data.loginOptions = [];
+            var loginMethods = {mobile_otp: "Mobile OTP", userid_pwd: "Username Password"};
+            for(var i=0; i< $scope.loginMethods.length; i++) {
+                $scope.data.loginOptions.push({id: $scope.loginMethods[i], name: loginMethods[$scope.loginMethods[i]]});
+            }
+            $scope.data.loginOptionSelected = $scope.data.loginOptions[0] || {};
+            $scope.showLoginOptions = $scope.loginMethods.length > 1 ? true : false;
+            _updateMsg($scope.loginMethods[0]);
+        }
+    }
+
+    $scope.onLoginMethodChange = function() {
+        var id = $scope.data.loginOptionSelected.id;
+        _updateMsg(id);
     }
 
     $scope.onUsernameEnter = function(keyEvent) {
@@ -233,10 +292,11 @@ function _loginControllerImpl(ctrlType, nl, nlRouter, $scope, nlServerApi, nlDlg
     }    	
     
     $scope.loginOTP = function() { _updateMsg('login_otp'); };
-    $scope.loginWithUserID = function() { 
+    $scope.retryOtp = function() { 
         $scope.isOtp2fa = false; 
         $scope.data.otp = '';
-        _updateMsg('login_userid'); 
+        if($scope.msgType = "mobile_login_otp_received") _updateMsg('mobile_otp'); 
+        else _updateMsg('login_userid'); 
     };
 
     $scope.loginWithOTP = function() {
@@ -244,9 +304,11 @@ function _loginControllerImpl(ctrlType, nl, nlRouter, $scope, nlServerApi, nlDlg
         nlDlg.showLoadingScreen();
         if ($scope.isOtp2fa) return $scope.loginWithSignInOrEnter();
         nlServerApi.clearCache();
-        var dataToServer = {phonenumber: $scope.data.phonenumber, username: $scope.data.username,
-            otp: $scope.data.otp};
-        // TODO-LATER: This has to be reimplemented later
+        if ($scope.isLoginOtp) {
+            var dataToServer = {grpid: $scope.grpid, remember: $scope.data.remember, showExtendedStatusCode: true,
+                mobile: '91'+ $scope.data.phonenumber, otp_2fa: $scope.data.otp};
+            nlServerApi.authLogin(dataToServer).then(_onLoginSuccess, _onLoginFailed);
+        }
     }
 
     $scope.isNumberKey = function(evt, len, fieldname, fn) {
@@ -273,7 +335,12 @@ function _loginControllerImpl(ctrlType, nl, nlRouter, $scope, nlServerApi, nlDlg
         var phonenumber = $scope.data.phonenumber;
         if (phonenumber[0] != '+') phonenumber = "+91" + phonenumber;
         // TODO-LATER: Call the server
-        $scope.msgType = "login_otp_received"
+        if($scope.msgType != "mobile_otp") $scope.msgType = "login_otp_received"
+        else {
+            var dataToServer = {grpid: $scope.grpid, remember: $scope.data.remember, showExtendedStatusCode: true,
+                mobile: '91'+ $scope.data.phonenumber};
+            nlServerApi.authLogin(dataToServer).then(_onLoginSuccess, _onLoginFailed);
+        }
     }
 
     function _validatePhoneNumber(scope) {
@@ -327,6 +394,14 @@ function _loginControllerImpl(ctrlType, nl, nlRouter, $scope, nlServerApi, nlDlg
     
     function _validateInputs(scope, fieldType) {
         scope.error = {};
+        if (fieldType == 'groupid') {
+            var parts = $scope.data.groupid.split('.');
+            if (parts.length > 2 || parts.length < 1) {
+            	return nlDlg.setFieldError(scope, 'groupid',
+            		nl.t('Group ID needs to be of format "groupid" or "userid.groupid"'));
+            } 
+            return true;
+        }
         if (scope.data.username == '') {
         	return nlDlg.setFieldError(scope, 'username',
         		nl.t('Username is required'));
@@ -400,8 +475,13 @@ function _loginControllerImpl(ctrlType, nl, nlRouter, $scope, nlServerApi, nlDlg
                 if($scope.msgType == 'pw_change') {
                     $scope.data.password = $scope.data.new_password1;
                 }
-                $scope.msgType = "login_otp_received";
-                $scope.isOtp2fa = true;
+                if($scope.msgType == 'mobile_otp') {
+                    $scope.msgType = "mobile_login_otp_received";
+                    $scope.isLoginOtp = true;
+                } else {
+                    $scope.msgType = "login_otp_received";
+                    $scope.isOtp2fa = true;
+                }
             }
         });
     }

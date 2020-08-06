@@ -33,6 +33,9 @@
 input.nl-border-radius {
 	border-radius: 5px;
 }
+.nl-border-radius {
+	border-radius: 5px;
+}
 
 .nl-signin-msg {
 	opacity: 0.5;
@@ -69,118 +72,148 @@ input.nl-border-radius {
 
 			<div class='padding {{screenSize != "small" ? "" : "col"}}' style='min-width:300px'>
 				<div ng-if='initDone'>
-				<div ng-if='logo2 && (screenSize != "small" || showLogo2InMobile)'
-					 class='padding-mid {{logo2url ? "nl-link-img" : ""}}'
-					 ng-click='onLinkClicked(logo2url)'
-					 title='{{logo2text}}'>
-					<img ng-src='{{logo2}}' style='max-width: {{screenSize == "large" ? logo2w : logo2wm}}px; max-height: {{screenSize == "large" ? logo2h : logo2hm}}px;'>
-				</div>
-				<div ng-if='logo2' class='padding-mid'></div>
-				<div class='text-left' ng-show='msg'>
-					<div class='padding-mid {{msgClass}}'>{{msg}}</div>
-					<div class='padding-small'></div>
-			    </div>
-				<div class='text-left' ng-show='hintmsg'>
-					<div class='hintmsg padding-mid' ng-bind-html='hintmsg'></div>
-					<div class='padding-small'></div>
-				</div>
-			    <div ng-if='msgType != "login_otp" && msgType != "login_otp_received"' class='row row-wrap row-top padding0 margin0 text-left'>
-			        <div ng-class='resp2Col33' class='padding-mid'>
-			            <div class='padding-mid-v'>User ID</div></div>
-					<div ng-if='msgType != "pw_change" && msgType != "pw_reset"'
-						 ng-class='resp2Col67' class='padding-mid-v'>
-						<nl-input fieldmodel='username' fieldtype='text' fieldcls='w100 nl-border-radius'
-								  ng-keypress="onUsernameEnter($event)"></nl-input>
-			        </div>
-					<div ng-if='msgType == "pw_change" || msgType == "pw_reset"'
-						 ng-class='resp2Col67' class='padding-mid-v'>
-						<div class='padding-mid'><b>{{data.username}}</b></div>
+					<div ng-if='logo2 && (screenSize != "small" || showLogo2InMobile)'
+						class='padding-mid {{logo2url ? "nl-link-img" : ""}}'
+						ng-click='onLinkClicked(logo2url)'
+						title='{{logo2text}}'>
+						<img ng-src='{{logo2}}' style='max-width: {{screenSize == "large" ? logo2w : logo2wm}}px; max-height: {{screenSize == "large" ? logo2h : logo2hm}}px;'>
 					</div>
-				</div>
-		
-			    <div class='row row-wrap row-top padding0 margin0 text-left'
-			         ng-if='msgType != "impersonate" &&  msgType != "pw_reset" && msgType != "login_otp" && msgType != "login_otp_received"'>
-			        <div ng-class='resp2Col33' class='padding-mid'>
-			            <div class='padding-mid-v'>
-							<span ng-show='msgType == "pw_change"'>Current </span>Password
-						</div></div>
-			        <div ng-class='resp2Col67' class='padding-mid-v'>
-			            <nl-input fieldmodel='password' fieldtype='password' fieldcls='w100 nl-border-radius'
-			                      ng-keypress="onPasswordEnter($event)"></nl-input>
-			        </div>
-			    </div>
-			    <div class='row row-wrap row-top padding0 margin0 text-left'
-			         ng-if='msgType == "pw_change" || msgType == "pw_reset"'>
-			        <div ng-class='resp2Col33' class='padding-mid'>
-			            <div class='padding-mid-v'>New password</div></div>
-			        <div ng-class='resp2Col67' class='padding-mid-v'>
-			            <nl-input fieldmodel='new_password1' fieldtype='password' fieldcls='w100 nl-border-radius'
-			                      ng-keypress="onNewPasswordEnter($event)"></nl-input>
-			        </div>
-			    </div>
-			    <div class='row row-wrap row-top padding0 margin0 text-left'
-			         ng-if='msgType == "pw_change" || msgType == "pw_reset"'>
-			        <div ng-class='resp2Col33' class='padding-mid'>
-			            <div class='padding-mid-v'>Verify new password</div></div>
-			        <div ng-class='resp2Col67' class='padding-mid-v'>
-			            <nl-input fieldmodel='new_password2' fieldtype='password' fieldcls='w100 nl-border-radius'
-			                      ng-keypress="onVerifyNewPasswordEnter($event)"></nl-input>
-			        </div>
-			    </div>
-				<div ng-if='msgType != "impersonate" && msgType != "pw_change" && msgType != "pw_reset" && msgType != "login_otp" && msgType != "login_otp_received"'
-					 class='nl-link-text2 padding-mid text-left'
-			         ng-click='lostPassword()'>
-			         <div class='padding-mid-v'>Forgot Password?</div>
-			    </div>
-			    <div ng-if='msgType != "login_otp" && msgType != "login_otp_received"' class='padding-mid'>
-				    <div class='nl-signin-button nl-link-text2' ng-click='loginWithSignInOrEnter()'>Login</div>
-				</div>
-				<div ng-if='debug && msgType != "login_otp" && msgType != "login_otp_received"' class='padding-mid text-center'>
-					<div class='padding-mid-v'>OR</div>
-				</div>
-	
-				<div class='padding-mid' ng-if='debug && msgType != "login_otp" && msgType != "login_otp_received"'>
-					<div class='nl-signin-button nl-link-text2' ng-click='loginOTP()'>Login with OTP</div>
-				</div>
-		
-				<div ng-if='msgType == "login_otp"' 
-					class='row row-wrap row-top padding0 margin0 text-left'>
-					<div ng-class='resp2Col33' class='padding-mid'><div class='padding-mid-v'>Mobile Number</div></div>
-					<div ng-class='resp2Col67' class='padding-mid-v'>
-						<nl-input fieldmodel='phonenumber' ng-keypress="onMobileEnter($event)" fieldtype='tel' fieldcls='w100 nl-border-radius'></nl-input>
+					<div ng-if='logo2' class='padding-mid'></div>
+					<div class='text-left' ng-show='msg'>
+						<div class='padding-mid {{msgClass}}'>{{msg}}</div>
+						<div class='padding-small'></div>
 					</div>
-				</div>
-	
-				<div class='padding-mid' ng-if='msgType == "login_otp"'>
-					<div class='nl-signin-button nl-link-text2' ng-click='requestOTP()'>Request OTP</div>
-				</div>
+					<div class='text-left' ng-show='hintmsg'>
+						<div class='hintmsg padding-mid' ng-bind-html='hintmsg'></div>
+						<div class='padding-small'></div>
+					</div>
+					<div class='row row-wrap row-top padding0 margin0 text-left' ng-if='msgType == "groupid_login"'>
+						<div ng-class='resp2Col33' class='padding-mid'>
+							<div class='padding-mid-v'>Group ID</div>
+						</div>
+						<div ng-class='resp2Col67' class='padding-mid-v'>
+							<nl-input fieldmodel='groupid' fieldtype='text' fieldcls='w100 nl-border-radius'
+									ng-keypress="onGroupIdEnter($event)"></nl-input>
+						</div>
+					</div>
+					<div ng-if='msgType == "groupid_login"' class='padding-mid'>
+						<div class='nl-signin-button nl-link-text2' ng-click='updateBrandingInfoForLogin()'>Go to Login page</div>
+					</div>			
 
-				<div ng-if='msgType == "login_otp_received"' class='row row-wrap row-top padding0 margin0 text-left'>
-					<div ng-class='resp2Col33' class='padding-mid'><div class='padding-mid-v'>Enter OTP</div></div>
-					<div ng-class='resp2Col67' class='padding-mid-v'>
-						<nl-input fieldmodel='otp' ng-keypress="isNumberKey($event, 4, 'otp', loginWithOTP)" fieldtype='text'  fieldcls='w100 nl-border-radius'></nl-input>
-					</div>
-				</div>
-	
-				<div class='padding-mid' ng-if='msgType == "login_otp_received"'>
-					<div class='nl-signin-button nl-link-text2' ng-click='loginWithOTP()'>Login</div>
-				</div>
-	
-				<div ng-if='msgType == "login_otp" || msgType == "login_otp_received"' class='padding-mid text-center'>
-					<div class='padding-mid-v'>OR</div>
-				</div>
+					<div ng-if='msgType != "groupid_login"'>
+						<div class='row row-wrap row-top padding0 margin0 text-left' ng-if="showLoginOptions">
+							<div ng-class='resp2Col33' class='padding-mid'>
+								<div class='padding-mid-v'>Login Method
+								</div>
+							</div>
+							<div ng-class='resp2Col67' class='padding-mid nl-dlg-field-value'>
+								<select ng-model='data.loginOptionSelected' tabindex="0" class='w100 nl-border-radius' autofocus=''
+										ng-change='onLoginMethodChange()'
+										ng-options='opt as opt.name for opt in data.loginOptions track by opt.id'>
+								</select>
+							</div>
+						</div>
+
+						<div ng-if='msgType != "mobile_otp" && msgType != "mobile_login_otp_received"'>
+							<div ng-if='msgType != "login_otp" && msgType != "login_otp_received"' class='row row-wrap row-top padding0 margin0 text-left'>
+								<div ng-class='resp2Col33' class='padding-mid'>
+									<div class='padding-mid-v'>User ID</div></div>
+								<div ng-if='msgType != "pw_change" && msgType != "pw_reset"'
+									ng-class='resp2Col67' class='padding-mid-v'>
+									<nl-input fieldmodel='username' fieldtype='text' fieldcls='w100 nl-border-radius'
+											ng-keypress="onUsernameEnter($event)"></nl-input>
+								</div>
+								<div ng-if='msgType == "pw_change" || msgType == "pw_reset"'
+									ng-class='resp2Col67' class='padding-mid-v'>
+									<div class='padding-mid'><b>{{data.username}}</b></div>
+								</div>
+							</div>
 					
-				<div class='padding-mid' ng-if='msgType == "login_otp" || msgType == "login_otp_received"'>
-					<div class='nl-link-text2' ng-click='loginWithUserID()'>Retry</div>
-				</div>
+							<div class='row row-wrap row-top padding0 margin0 text-left'
+								ng-if='msgType != "impersonate" &&  msgType != "pw_reset" && msgType != "login_otp" && msgType != "login_otp_received"'>
+								<div ng-class='resp2Col33' class='padding-mid'>
+									<div class='padding-mid-v'>
+										<span ng-show='msgType == "pw_change"'>Current </span>Password
+									</div></div>
+								<div ng-class='resp2Col67' class='padding-mid-v'>
+									<nl-input fieldmodel='password' fieldtype='password' fieldcls='w100 nl-border-radius'
+											ng-keypress="onPasswordEnter($event)"></nl-input>
+								</div>
+							</div>
+							<div class='row row-wrap row-top padding0 margin0 text-left'
+								ng-if='msgType == "pw_change" || msgType == "pw_reset"'>
+								<div ng-class='resp2Col33' class='padding-mid'>
+									<div class='padding-mid-v'>New password</div></div>
+								<div ng-class='resp2Col67' class='padding-mid-v'>
+									<nl-input fieldmodel='new_password1' fieldtype='password' fieldcls='w100 nl-border-radius'
+											ng-keypress="onNewPasswordEnter($event)"></nl-input>
+								</div>
+							</div>
+							<div class='row row-wrap row-top padding0 margin0 text-left'
+								ng-if='msgType == "pw_change" || msgType == "pw_reset"'>
+								<div ng-class='resp2Col33' class='padding-mid'>
+									<div class='padding-mid-v'>Verify new password</div></div>
+								<div ng-class='resp2Col67' class='padding-mid-v'>
+									<nl-input fieldmodel='new_password2' fieldtype='password' fieldcls='w100 nl-border-radius'
+											ng-keypress="onVerifyNewPasswordEnter($event)"></nl-input>
+								</div>
+							</div>
+						
+							<div ng-if='msgType != "impersonate" && msgType != "pw_change" && msgType != "pw_reset" && msgType != "login_otp" && msgType != "login_otp_received"'
+								class='nl-link-text2 padding-mid text-left'
+								ng-click='lostPassword()'>
+								<div class='padding-mid-v'>Forgot Password?</div>
+							</div>
+							<div ng-if='msgType != "login_otp" && msgType != "login_otp_received"' class='padding-mid'>
+								<div class='nl-signin-button nl-link-text2' ng-click='loginWithSignInOrEnter()'>Login</div>
+							</div>
+							<div ng-if='debug && msgType != "login_otp" && msgType != "login_otp_received"' class='padding-mid text-center'>
+								<div class='padding-mid-v'>OR</div>
+							</div>
 				
+							<div class='padding-mid' ng-if='debug && msgType != "login_otp" && msgType != "login_otp_received"'>
+								<div class='nl-signin-button nl-link-text2' ng-click='loginOTP()'>Login with OTP</div>
+							</div>
+						</div>
+
+						<div ng-if='msgType == "login_otp" || msgType == "mobile_otp"' 
+							class='row row-wrap row-top padding0 margin0 text-left'>
+							<div ng-class='resp2Col33' class='padding-mid'><div class='padding-mid-v'>Mobile Number</div></div>
+							<div ng-class='resp2Col67' class='padding-mid-v'>
+								<nl-input fieldmodel='phonenumber' ng-keypress="onMobileEnter($event)" fieldtype='tel' fieldcls='w100 nl-border-radius'></nl-input>
+							</div>
+						</div>
+			
+						<div class='padding-mid' ng-if='msgType == "mobile_otp" || msgType == "login_otp"'>
+							<div class='nl-signin-button nl-link-text2' ng-click='requestOTP()'>Request OTP</div>
+						</div>
+
+						<div ng-if='msgType == "login_otp_received" || msgType == "mobile_login_otp_received"' class='row row-wrap row-top padding0 margin0 text-left'>
+							<div ng-class='resp2Col33' class='padding-mid'><div class='padding-mid-v'>Enter OTP</div></div>
+							<div ng-class='resp2Col67' class='padding-mid-v'>
+								<nl-input fieldmodel='otp' ng-keypress="isNumberKey($event, 4, 'otp', loginWithOTP)" fieldtype='text'  fieldcls='w100 nl-border-radius'></nl-input>
+							</div>
+						</div>
+			
+						<div class='padding-mid' ng-if='msgType == "login_otp_received" || msgType == "mobile_login_otp_received"'>
+							<div class='nl-signin-button nl-link-text2' ng-click='loginWithOTP()'>Login</div>
+						</div>
+			
+						<div ng-if='msgType == "login_otp" || msgType == "login_otp_received" || msgType == "mobile_login_otp_received"' class='padding-mid text-center'>
+							<div class='padding-mid-v'>OR</div>
+						</div>
+								
+						<div class='padding-mid' ng-if='msgType == "login_otp" || msgType == "login_otp_received" || msgType == "mobile_login_otp_received"'>
+							<div class='nl-link-text2' ng-click='retryOtp()'>Retry</div>
+						</div>
+
+					</div>					
 				</div>
 			</div>
+			<div class='padding text-center'
+				ng-show='screenSize == "small" && showImgInMobile'>
+				<img ng-src='{{mainImg}}' class='nl-signin-img'>
+			</div>
 		</div>
-		<div class='padding text-center'
-			ng-show='screenSize == "small" && showImgInMobile'>
-			<img ng-src='{{mainImg}}' class='nl-signin-img'>
-		</div>
-	</div>
 	<div class='col padding0'></div>
 </div>
