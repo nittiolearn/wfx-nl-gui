@@ -544,7 +544,8 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		} else if (tab.id == 'nhtclosed') {
 			_updateClosedNhtTab();
 		} else if (tab.id == 'nhtbatchattendance') {
-			_updateNhtBatchAttendanceTab();
+			if (nlLrFilter.getType() == 'course_assign') _updateNhtBatchAttendanceTab();
+			if (nlLrFilter.getType() == 'course') _updateNhtBatchAttendanceTabForCourses();
 		} else if (tab.id == 'certificate') {
 			_certHandler.updateCertificateTab();
 		} else if (tab.id == 'nhtoverview') {
@@ -1085,7 +1086,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 	// NHT overview tab
 	//---------------------------------------------------------------------------------------------------------------------------------------------------------
 	function _updateNhtOverviewBatch() {
-		var overviewStats = nlLrNht.getStatsCountDict('', $scope.tabData.records || [], null);
+		var overviewStats = nlLrNht.getStatsCountDict('', $scope.tabData.records || []);
 		var allCount = overviewStats[0].cnt;
 		$scope.nhtOverviewInfo = {
 			firstInfoGraphics: _getfirstInfoGraphicsArray(allCount), 
@@ -1159,8 +1160,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 
 	function _getNhtTab(batchType) {
 		var colInfo = _getNhtAllAndSelectedColumns();
-		var statusCounts = nlLrNht.getStatsCountDict(batchType, $scope.tabData.records || [],
-			nlLrReportRecords.getNhtBatchStatus());
+		var statusCounts = nlLrNht.getStatsCountDict(batchType, $scope.tabData.records || []);
 		return {columns: colInfo.all,  selectedColumns: colInfo.selected,
 			isRunning: batchType == 'nhtrunning', rows: _generateDrillDownArray(true, statusCounts,
 			false, (nlLrFilter.getType() == "course_assign"), true)};
@@ -1497,12 +1497,50 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		}
 	}
 
+	function _updateNhtBatchAttendanceTabForCourses() {
+		var tmsRecordsDict = nlLrNht.getStatsCountDict('', $scope.tabData.records || [], true);
+		var assignmentObj = nlGetManyStore.getTmsAssignmentInfo();
+		var sessionDates = {};
+		var assignmentToObj = {};
+		var uniqueSessionDates = {};
+		for (var key in assignmentObj) {
+			var ilts = [];
+			var assignKey = nlGetManyStore.key('course_assignment', key);
+			var courseAssignment = nlGetManyStore.getRecord(assignKey);
+			var attendance = courseAssignment.attendance ? angular.fromJson(courseAssignment.attendance) : {};
+			var modules = angular.copy(assignmentObj[key].modules);
+				attendance = nlCourse.migrateCourseAttendance(attendance);
+			var asdAddedModules = nlReportHelper.getAsdUpdatedModules(modules || [], attendance)
+			var	sessionInfos = attendance.sessionInfos || {};
+			if ('_root' in sessionInfos) _updateAsdSessionDates(sessionInfos['_root'], sessionDates, uniqueSessionDates);
+			for(var i=0; i<asdAddedModules.length; i++) {
+				var cm = asdAddedModules[i];
+				if (cm.type != 'iltsession') continue;
+				ilts.push(cm);
+				if (cm.asdChildren && cm.asdChildren.length > 0) _updateAsdSessionDates(sessionInfos[cm.id], sessionDates, uniqueSessionDates);
+				if(!cm.asdSession) {
+					var sessionInfo = sessionInfos[cm.id];
+					if(sessionInfo) sessionInfo.sessionName = sessionInfo.sessionName || cm.name;
+					if(sessionInfo) {
+						var sessionDate =  sessionInfo.sessiondate;
+						uniqueSessionDates[sessionDate] = true;
+						_updateSessionDates(sessionInfo, sessionDates);
+					}
+				}
+			}
+			assignmentToObj[key] = {sessions: angular.copy(ilts)};
+		}
+		var records = [];
+		for (var key in tmsRecordsDict) records.push(tmsRecordsDict[key]);
+		_updateNhtAttendanceRows(sessionDates, null, records, assignmentToObj, true);
+	}
+	
 	function _updateNhtBatchAttendanceTab() {
 		var records = $scope.tabData.records || [];
 		var content = _getContentOfCourseAssignment();
 		var courseAssignment = _getCourseAssignmnt();
 		var attendance = courseAssignment.attendance ? angular.fromJson(courseAssignment.attendance) : {};
-		attendance = nlCourse.migrateCourseAttendance(attendance);
+			attendance = nlCourse.migrateCourseAttendance(attendance);
 		var asdAddedModules = nlReportHelper.getAsdUpdatedModules(content.modules || [], attendance)
 		var sessionDates = {};
 		var iltSessions = [];
@@ -1524,7 +1562,10 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 				}
 			}
 		}
+		_updateNhtAttendanceRows(sessionDates, iltSessions, records, null, false);
+	}
 
+	function _updateNhtAttendanceRows(sessionDates, iltSessions, records, assignmentObj, multipleCourses) {
 		var userObj = {};
 		var iltBatchInfoRow = [];
 		for(var i=0; i<records.length; i++) {
@@ -1539,6 +1580,8 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			var _statusInfos = record.repcontent.statusinfo;
 			userObj.subject = record.raw_record.subject;
 			var isCertified = false;
+			if (multipleCourses) 
+				iltSessions = assignmentObj[record.raw_record.assignment].sessions;
 			for(var j=0; j<iltSessions.length; j++) {
 				var cm = iltSessions[j];
 				var sessionInfo = _statusInfos[cm.id];
@@ -1557,12 +1600,13 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			if(b.name.toLowerCase() > a.name.toLowerCase()) return -1;
 			if(b.name.toLowerCase() == a.name.toLowerCase()) return 0;				
 		});
-		var nhtHeaderObj = _getNhtBatchAttendanceColumns(sessionDates);
-		iltBatchInfoRow.splice(0, 0, nhtHeaderObj.titleRow);
+		var nhtHeaderObj = _getNhtBatchAttendanceColumns(sessionDates, multipleCourses);
+		if (!multipleCourses)
+			iltBatchInfoRow.splice(0, 0, nhtHeaderObj.titleRow);
 		$scope.iltBatchInfo = {columns: nhtHeaderObj.header, rows: iltBatchInfoRow};
 	}
 
-	function _getNhtBatchAttendanceColumns(sessionDates) {
+	function _getNhtBatchAttendanceColumns(sessionDates, isCourses) {
 		var headerRow = [];
 		headerRow.push({id: 'name', name: nl.t('Learner name'), class: 'minw-string'});
 		headerRow.push({id: 'subject', name: _groupInfo.props.subjectlabel, class: 'minw-string'});
@@ -1572,8 +1616,12 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		headerRow.push({id: 'not_after', name: nl.t('End date'), class: 'minw-number'});
 		headerRow.push({id: 'learner_status', name: nl.t('Status'), class: 'minw-number'});
 		var sessionDatesArray = [];
-		for(var key in sessionDates)
-			sessionDatesArray.push({date: nl.fmt.json2Date(key) || '', start: sessionDates[key].start, end: sessionDates[key].end , sessionName: sessionDates[key].sessionName});
+		for(var key in sessionDates) {
+			if (isCourses)
+				sessionDatesArray.push({date: nl.fmt.json2Date(key) || ''});
+			else
+				sessionDatesArray.push({date: nl.fmt.json2Date(key) || '', start: sessionDates[key].start, end: sessionDates[key].end , sessionName: sessionDates[key].sessionName});
+		}
 		sessionDatesArray.sort(function(a, b) {
 			var key1 = new Date(a.date);
 			var key2 = new Date(b.date);
@@ -1586,6 +1634,14 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 				return 1;
 			}
 		});	
+		if (isCourses) {
+			for(var i=0; i<sessionDatesArray.length; i++) {
+				var date = nl.fmt.date2StrDDMMYY(sessionDatesArray[i].date, null, 'date');
+				var hrname = date;
+				headerRow.push({id: date, name: hrname, class: 'minw-number'});
+			}
+			return {header: headerRow} 
+		}
 		var titleDict = {class: 'header'};
 		for(var i=0; i<sessionDatesArray.length; i++) {
 			var date = nl.fmt.date2StrDDMMYY(sessionDatesArray[i].date, null, 'date');
@@ -1635,8 +1691,9 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			}
 		}
 		var nhtBatchAttendanceStats = null;
-		if (nlLrFilter.getType() == 'course_assign' && _groupInfo.props.etmAsd && _groupInfo.props.etmAsd.length > 0) {
-			_updateNhtBatchAttendanceTab();
+		if (_groupInfo.props.etmAsd && _groupInfo.props.etmAsd.length > 0) {
+			if (nlLrFilter.getType() == 'course_assign') _updateNhtBatchAttendanceTab();
+			if (nlLrFilter.getType() == 'course') _updateNhtBatchAttendanceTabForCourses();
 			nhtBatchAttendanceStats = {statsCountArray: $scope.iltBatchInfo.rows, columns: $scope.iltBatchInfo.columns};
 		}
 
@@ -2312,7 +2369,7 @@ function LrTabManager(tabData, nlGetManyStore, nlLrFilter, _groupInfo) {
 		_tabsDict.nhtoverview.canShow = _recordsFound.nht && subtype != 'lms' || subtype == 'nht';
 		_tabsDict.nhtrunning.canShow =  (type != 'user' && batchStatus.running);
 		_tabsDict.nhtclosed.canShow =  (type != 'user' && batchStatus.closed);
-		_tabsDict.nhtbatchattendance.canShow = (type == 'course_assign' && _recordsFound.nht);
+		_tabsDict.nhtbatchattendance.canShow = (type != 'user' && _recordsFound.nht);
 	}
 
 	function _updateSelectedTab(tabs) {

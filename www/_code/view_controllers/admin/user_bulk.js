@@ -74,7 +74,8 @@ function(nl, nlDlg, nlGroupInfo, nlExporter) {
                 };
                 var val = toCsv(user, attr, groupInfo);
                 if (val === null || val === undefined) val = '';
-                if (typeof val === 'number' && val.length > 12) val += 'id='+val; //add id= while exporting user list
+                var value = parseInt(val);
+                if (typeof value === 'number' && val.length > 12) val = 'id='+val; //add id= while exporting user list
                 row.push(val);
             }
             csv += DELIM + nlExporter.getCsvString(row);

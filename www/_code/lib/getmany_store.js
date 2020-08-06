@@ -122,6 +122,10 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo) {
         return _updateNHTBatchStats.getNhtBatchStates();
     };
 
+    this.getTmsAssignmentInfo = function() {
+        return _updateNHTBatchStats.getMsInfoCache();
+    };
+
     this.getBatchInfo = function(reportRecord) { 
         var courseAssignment = self.getAssignmentRecordFromReport(reportRecord);
         if (!courseAssignment.id) return {};
@@ -137,7 +141,7 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo) {
         if (courseAssign.id in _msInfoCache) return;
         _updateNHTBatchStats.setAssignementCredentials(modules, courseAssign);
         if (!_updateNHTBatchStats.canUpdateBatchData()) return;
-        _updateNHTBatchStats.updateBatchInfo();
+        _updateNHTBatchStats.updateBatchInfo(modules);
     };
 }];
 
@@ -181,9 +185,9 @@ function UpdateBatch(nl, nlGroupInfo) {
         return true;
     };
 
-    this.updateBatchInfo = function() {
+    this.updateBatchInfo = function(modules) {
         var firstMsItemInCourse = null;
-        var ret = {batchStatus: 'Pending', allMsMarked: true};
+        var ret = {batchStatus: 'Pending', allMsMarked: true, modules: modules};
         for (var i=0; i<_modules.length; i++) {
             var cm = _modules[i];
             if (cm.type != 'milestone') continue;

@@ -16,7 +16,7 @@ function(nl, nlReportHelper, nlGetManyStore) {
     };
 
     // batchType = nhtrunning or nhtclosed or ''
-	this.getStatsCountDict = function(batchType, records, batchStatusObj) {
+	this.getStatsCountDict = function(batchType, records, getNhtRecords) {
         var reportDict = {};
 		var transferedOut = {};
 		for (var i=0; i<records.length; i++) {
@@ -37,7 +37,7 @@ function(nl, nlReportHelper, nlGetManyStore) {
 			if (transferid in reportDict) continue;
 			reportDict[transferid] = transferedOut[transferid];
         }
-
+        if (getNhtRecords) return reportDict;
         nhtCounts.clear();
         for(var key in reportDict) {
             if (batchType) {
