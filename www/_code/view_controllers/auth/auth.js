@@ -337,6 +337,7 @@ function _loginControllerImpl(ctrlType, nl, nlRouter, $scope, nlServerApi, nlDlg
         // TODO-LATER: Call the server
         if($scope.msgType != "mobile_otp") $scope.msgType = "login_otp_received"
         else {
+            if($scope.data.phonenumber.length > 10) $scope.data.phonenumber = $scope.data.phonenumber.slice($scope.data.phonenumber.length-10);
             var dataToServer = {grpid: $scope.grpid, remember: $scope.data.remember, showExtendedStatusCode: true,
                 mobile: '91'+ $scope.data.phonenumber};
             nlServerApi.authLogin(dataToServer).then(_onLoginSuccess, _onLoginFailed);
@@ -349,7 +350,8 @@ function _loginControllerImpl(ctrlType, nl, nlRouter, $scope, nlServerApi, nlDlg
             return nlDlg.setFieldError(scope, 'phonenumber', nl.t('Phone Number is required'));
         } else if (scope.data.phonenumber.length > 0) {
             scope.data.phonenumber = scope.data.phonenumber.trim();
-            var num = scope.data.phonenumber.replace(/ /g, "");
+            var num = scope.data.phonenumber.replace(/ |\-/g, "");
+            scope.data.phonenumber = num;
             if (num.length < 10 || num.match(/^\+?[0-9]+$/) == null) {
                 return nlDlg.setFieldError(scope, 'phonenumber', nl.t('Please Enter a Valid Phone Number'));
             }
