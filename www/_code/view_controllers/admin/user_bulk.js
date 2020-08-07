@@ -59,6 +59,7 @@ function(nl, nlDlg, nlGroupInfo, nlExporter) {
     };
 
     var DELIM = '\n';
+    var NUM_REG = new RegExp("^[0-9]+$");
     function _export(groupInfo, grpid, resolve) {
         var headers = nlGroupInfo.getUserTableHeaders(grpid);
         var csv = nlExporter.getCsvString(headers, 'name');
@@ -74,8 +75,7 @@ function(nl, nlDlg, nlGroupInfo, nlExporter) {
                 };
                 var val = toCsv(user, attr, groupInfo);
                 if (val === null || val === undefined) val = '';
-                var value = parseInt(val);
-                if (typeof value === 'number' && val.length > 12) val = 'id='+val; //add id= while exporting user list
+                if (val && NUM_REG.test(val) && val.length > 12) val = 'id='+val; //add id= while exporting user list
                 row.push(val);
             }
             csv += DELIM + nlExporter.getCsvString(row);
