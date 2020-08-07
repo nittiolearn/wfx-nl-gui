@@ -192,11 +192,10 @@ function _loginControllerImpl(ctrlType, nl, nlRouter, $scope, nlServerApi, nlDlg
     };
 
     $scope.updateBrandingInfoForLogin = function() {
-        nlDlg.showLoadingScreen();
         if(!_validateInputs($scope, 'groupid')) return;
+        nlDlg.showLoadingScreen();
         var parts = $scope.data.groupid.split('.');
         var grpid = parts.length == 2 ? parts[1] : $scope.data.groupid;
-        console.log('grpid: ', grpid);
         if(parts.length == 2) $scope.data.username = $scope.data.groupid;
         updateBrandingInfo(grpid, function() {
             _successBrandinginfoUpdate();
@@ -205,7 +204,6 @@ function _loginControllerImpl(ctrlType, nl, nlRouter, $scope, nlServerApi, nlDlg
     }
     
     function updateBrandingInfo(grpid, fn) {
-        console.log('in updateBrandingInfo');
         var dataToServer = {grpid: grpid, showExtendedStatusCode: true};
         nlServerApi.updateBrandingInfoWithGroupId(dataToServer).then(fn, function() {
             console.log('TODO-NOW: brandinginfo- error mesg or when the group does not exits');
@@ -214,6 +212,7 @@ function _loginControllerImpl(ctrlType, nl, nlRouter, $scope, nlServerApi, nlDlg
 
     function _successBrandinginfoUpdate() {
         var brandingInfo = nlServerApi.getBrandingInfo();
+        $scope.grpid = brandingInfo.grp;
         $scope.loginMethods = brandingInfo.loginMethods || ['userid_pwd'];
         if ($scope.msgType != 'impersonate') _loginOptionsUpdate($scope);
     }
@@ -397,7 +396,7 @@ function _loginControllerImpl(ctrlType, nl, nlRouter, $scope, nlServerApi, nlDlg
     function _validateInputs(scope, fieldType) {
         scope.error = {};
         if (fieldType == 'groupid') {
-            var parts = $scope.data.groupid.split('.');
+            var parts = $scope.data.groupid ? $scope.data.groupid.split('.') : [];
             if (parts.length > 2 || parts.length < 1) {
             	return nlDlg.setFieldError(scope, 'groupid',
             		nl.t('Group ID needs to be of format "groupid" or "userid.groupid"'));
