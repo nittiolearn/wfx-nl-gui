@@ -24,6 +24,9 @@ function(nl, nlDlg) {
             $scope.onItemClick = function(rec, action) {
                 $scope.info.onItemClick($scope, rec, action);
             };
+            $scope.isGrpAdmin = function() {
+                return nl.utils.getFnFromParentOrGrandParent($scope, 'grpAdmin');
+            };
             $scope.checkOverflow = function() {
                 var document = nl.window.document;
                 var element = document.getElementsByClassName("nl-left-tabbed-content");

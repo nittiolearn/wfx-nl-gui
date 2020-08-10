@@ -58,7 +58,10 @@
                         <div class='row row-center margin0 padding0'>
                             <i class='icon ion-minus-round forange padding-small nl-icons border-circle-forange nl-link-text'
                                 ng-click="removeItem($index)"></i>
-                            <div class='col padding-large-left' ng-class="{'fblue2': column.formula}">{{column.name}}</div>
+                            <div class='col padding-large-left' ng-class="{'fblue2': column.formula}">
+                                {{column.name}}
+                                <span ng-if='isGrpAdmin && column.origName' class='fgrey fsh6 fsmall1'> {{column.origName}}</span>
+                            </div>
                         </div>
                     </div>
 
@@ -71,7 +74,10 @@
                         <div class='row row-center margin0 padding0'>
                             <i class='icon ion-plus-round fblue padding-small nl-icons border-circle-fblue nl-link-text'
                                 ng-click="onColumnAdd($index)"></i>
-                            <div class='col padding-large-left' ng-show="renameCol == undefined || renameCol != $index || columnType != 'fixed'">{{column.name}}</div>
+                            <div class='col padding-large-left' ng-show="renameCol == undefined || renameCol != $index || columnType != 'fixed'">
+                                {{column.name}}
+                                <span ng-if='isGrpAdmin && column.origName' class='fgrey fsh6 fsmall1'> {{column.origName}}</span>
+                            </div>
                             <div class="col nl-display-inline-block padding-large-left" ng-show="renameCol == $index && columnType == 'fixed'">
                                 <input type="text" ng-model="data.newName" tabindex="0">
                             </div>

@@ -111,14 +111,17 @@ function(nl, nlDlg, nlGroupInfo, nlImporter, nlProgressLog, nlRouter, nlServerAp
     var _canUpdateLoginId = false;
     var _pastUserInfosFetcher = nlGroupInfo.getPastUserInfosFetcher();
     var _ouDict = {};
+    var _secloginDict = {};
     this.init = function(groupInfo, userInfo, grpid) {
         _ouDict = {};
+        _secloginDict = {};
         _groupInfo = groupInfo;
         _userInfo = userInfo;
         _grpid = grpid;
         _canUpdateLoginId = nlRouter.isPermitted(_userInfo, 'admin_user');
         _pastUserInfosFetcher.init(_groupInfo, true);
         _updateOuDict();
+        _updateSecLoginDict();
         return _pastUserInfosFetcher.fetchAllPastUsersFiles(true).then(function() {
             return true;
         });
@@ -194,6 +197,22 @@ function(nl, nlDlg, nlGroupInfo, nlImporter, nlProgressLog, nlRouter, nlServerAp
         }
     }
 
+    function _updateSecLoginDict() {
+        var columnMap = _groupInfo.column_mapping || [];
+        var secPos = null;
+        for (var i=0; i<columnMap.length; i++) {
+            if (columnMap[i] == 'seclogin') secPos = i;
+        }
+        var users = _groupInfo.users || {};
+        for (var key in users) {
+            var userRow = users[key];
+            var secloginid = userRow[secPos];
+            if (secloginid in _secloginDict || !secloginid) continue;
+            if (secloginid.indexOf('id:') == 0) secloginid = secloginid.replace('id=', '');
+            _secloginDict[secloginid] = userRow[0];
+        }
+    }
+    
     this.initImportOperation = function() {
         self.statusCnts = {total: 0, ignore: 0, process: 0, success: 0, error: 0};
         self.foundKeys = {};
@@ -614,9 +633,11 @@ function(nl, nlDlg, nlGroupInfo, nlImporter, nlProgressLog, nlRouter, nlServerAp
         row.seclogin = row.seclogin.replace(/\s/g, '');
         row.seclogin = row.seclogin.toLowerCase();
         row.seclogin = row.seclogin.indexOf('id:') === 0 ? row.seclogin.replace('id:', '') : row.seclogin;
-        
         if(!SECLOGIN_REGEX.test(row.seclogin))
             _throwException('Secondary login can have only characters from a-z, 0-9, _, -. ( optional: It can start with id:) ', row);
+        if (row.seclogin in _secloginDict && _secloginDict[row.seclogin] != row.username)
+            _throwException('Secondary login should be unique and cannot be repeated, -. ( optional: It can start with id:) ', row);
+        if (!(row.seclogin in _secloginDict)) _secloginDict[row.seclogin] = row.username;
     };
     
     function _checkOu(ou, row) {

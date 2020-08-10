@@ -6,6 +6,9 @@
             <div class='row margin0 padding0'>
                 <div class='col padding0 margin0'>
                     {{col.name}}
+                    <span ng-if='isGrpAdmin() && col.origName' class='fgrey fsh6 fsmall1'>
+                        ({{col.origName}})
+                    </span>
                 </div>
                 <div>
                     <i  class="icon ion-arrow-down-b nl-dlg-field-icon fgrey"

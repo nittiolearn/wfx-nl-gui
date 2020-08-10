@@ -147,6 +147,9 @@ function(nl) {
                 var nht = $scope.nht;
                 return (nht.isRunning && col.showIn != 'closed' || !nht.isRunning && col.showIn != 'running');
             };
+            $scope.isGrpAdmin = function() {
+                return nl.utils.getFnFromParentOrGrandParent($scope, 'grpAdmin');
+            };
             $scope.onDetailsClick = function(e, item, columns) {
                 nl.utils.getFnFromParentOrGrandParent($scope, 'onDetailsClick')(e, item, columns);
             };

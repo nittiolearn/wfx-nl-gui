@@ -112,8 +112,10 @@
         this.updateAllColumnNames = function(settingsType, allColumns) {
             var updatedColumnNamesDict = this.getColumnNames(settingsType);
             for(var i=0; i<allColumns.length; i++) {
-                if(allColumns[i].id in updatedColumnNamesDict)
+                if(allColumns[i].id in updatedColumnNamesDict) {
                     allColumns[i].name = updatedColumnNamesDict[allColumns[i].id];
+                    allColumns[i].origName = allColumns[i].defName;
+                }
             }
         };
 
@@ -455,14 +457,16 @@
         _dlg.scope.editColumnDone = function(index) {
             var column = _dlg.scope.columnType == 'custom' ? _dlg.scope.notSelectedCustomColumns[index] : _dlg.scope.notSelectedFixedColumns[index];
             var colid = column.id;
-            if(!_validateColumnName(_dlg.scope.data.newName)) return;
             if(_dlg.scope.columnType == 'custom') {
                 if(!_validateCustomColumnFormula(_dlg.scope.data.newFormula, index)) return;
                 column.formula = _dlg.scope.data.newFormula;
                 _editCustomFormula(colid, column.formula);
             }
-            column.name = _dlg.scope.data.newName;
-            _dlg.scope.columnNames[colid] = column.name;
+            column.name = _dlg.scope.data.newName || column.defName;
+            if (_dlg.scope.data.newName && _dlg.scope.data.newName != column.defName) {
+                _dlg.scope.columnNames[colid] = column.name;
+                column.origName = column.defName;
+            }
             _dlg.scope.editColumnClose();
         };
 

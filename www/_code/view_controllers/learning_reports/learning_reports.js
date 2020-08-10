@@ -128,6 +128,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			$scope.pivotConfig.level2Field = {id: null};
 		}
 		$scope.pivotConfig.pivotIndividualCourses = true;
+		$scope.grpAdmin = ((_userInfo || {}).permissions || {}).nittio_support || false;
 
 		nlLrDrilldown.init($scope);
 		nlLrNht.init(nlGroupInfo);
@@ -688,7 +689,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			var c = userAttrCols[i];
 			columns.push(_col(c.id, c.name));
 		}
-
+		for (var i=0; i<columns.length; i++) columns[i].defName = columns[i].name;
 		nlTableViewSelectorSrv.updateAllColumnNames('lr_views', columns);
 		return columns;
 	}
@@ -1272,6 +1273,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		columns.push({id: 'end', name: 'Batch end date', table: false, hidePerc:true, style:'min-width:fit-content'});
 		columns.push({id: 'pending', name: 'Pending', hidePerc:true, table: false, showAlways: true});
 		columns.push({id: 'batchTotal', name: 'Batches', table: false, hidePerc:true, showAlways: true});
+		for (var i=0; i<columns.length; i++) columns[i].defName = columns[i].name;
 		nlTableViewSelectorSrv.updateAllColumnNames('nht_views', columns);
 		return columns;
 	}

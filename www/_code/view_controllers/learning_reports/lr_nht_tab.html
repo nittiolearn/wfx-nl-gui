@@ -7,7 +7,12 @@
                 ng-click='sortRows(col.id)'
                 ng-if='canShow(col) && ($root.screenSize != "small" && col.table) || ($root.screenSize == "small" && col.smallScreen)'>
                 <div class='row padding0 margin0'>
-                    <div class='col'>{{col.name}}</div>
+                    <div class='col'>
+                        {{col.name}}
+                        <span ng-if='isGrpAdmin() && col.origName' class='fgrey fsmall1'>
+                            ({{col.origName}})
+                        </span>
+                    </div>
                     <span>
                         <i  class="icon ion-arrow-down-b nl-dlg-field-icon fgrey"
                             ng-show="!nht.sort || nht.sort.colid != col.id"></i>
