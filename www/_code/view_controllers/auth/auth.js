@@ -194,6 +194,7 @@ function _loginControllerImpl(ctrlType, nl, nlRouter, $scope, nlServerApi, nlDlg
     $scope.updateBrandingInfoForLogin = function() {
         if(!_validateInputs($scope, 'groupid')) return;
         nlDlg.showLoadingScreen();
+        $scope.data.groupid = $scope.data.groupid.toLowerCase();
         var parts = $scope.data.groupid.split('.');
         var grpid = parts.length == 2 ? parts[1] : $scope.data.groupid;
         if(parts.length == 2) $scope.data.username = $scope.data.groupid;
@@ -221,7 +222,7 @@ function _loginControllerImpl(ctrlType, nl, nlRouter, $scope, nlServerApi, nlDlg
         if ($scope.loginMethods && $scope.loginMethods.length > 0) {
             $scope.data = $scope.data || {};
             $scope.data.loginOptions = [];
-            var loginMethods = {mobile_otp: "Mobile OTP", userid_pwd: "Username Password"};
+            var loginMethods = {mobile_otp: "Mobile OTP", userid_pwd: "Username and password"};
             for(var i=0; i< $scope.loginMethods.length; i++) {
                 $scope.data.loginOptions.push({id: $scope.loginMethods[i], name: loginMethods[$scope.loginMethods[i]]});
             }

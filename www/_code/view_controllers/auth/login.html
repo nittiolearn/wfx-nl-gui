@@ -89,7 +89,7 @@ input.nl-border-radius {
 					</div>
 					<div class='row row-wrap row-top padding0 margin0 text-left' ng-if='msgType == "groupid_login"'>
 						<div ng-class='resp2Col33' class='padding-mid'>
-							<div class='padding-mid-v'>Group ID</div>
+							<div class='padding-mid-v'>Group ID/ Username</div>
 						</div>
 						<div ng-class='resp2Col67' class='padding-mid-v'>
 							<nl-input fieldmodel='groupid' fieldtype='text' fieldcls='w100 nl-border-radius'
@@ -97,14 +97,14 @@ input.nl-border-radius {
 						</div>
 					</div>
 					<div ng-if='msgType == "groupid_login"' class='padding-mid'>
-						<div class='nl-signin-button nl-link-text2' ng-click='updateBrandingInfoForLogin()'>Go to Login page</div>
+						<div class='nl-signin-button nl-link-text2' ng-click='updateBrandingInfoForLogin()'>Login</div>
 					</div>			
 
 					<div ng-if='msgType != "groupid_login"'>
 						<div class='row row-wrap row-top padding0 margin0 text-left'
 							ng-if='showLoginOptions && msgType != "impersonate"'>
 							<div ng-class='resp2Col33' class='padding-mid'>
-								<div class='padding-mid-v'>Login Method
+								<div class='padding-mid-v'>Login using
 								</div>
 							</div>
 							<div ng-class='resp2Col67' class='padding-mid nl-dlg-field-value'>
