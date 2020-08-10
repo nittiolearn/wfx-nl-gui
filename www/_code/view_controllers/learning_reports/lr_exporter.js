@@ -86,7 +86,7 @@ function(nl, nlDlg, nlRouter, nlExporter, nlLrHelper, nlLrSummaryStats, nlGroupI
         }
         if (iltBatchStats) {
             _iltBatchDict = iltBatchStats || {};
-            dlg.scope.showIltBatchCheckbox = (dlg.scope.reptype == 'course_assign');
+            dlg.scope.showIltBatchCheckbox = dlg.scope.reptype == 'course_assign' || dlg.scope.reptype == 'course';
             dlg.scope.export['iltBatch'] = false;
         }
         dlg.scope.data = {};

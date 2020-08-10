@@ -1691,7 +1691,8 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			}
 		}
 		var nhtBatchAttendanceStats = null;
-		if (_groupInfo.props.etmAsd && _groupInfo.props.etmAsd.length > 0) {
+		var subtype = nlLrFilter.getRepSubtype();
+		if (_tabManager.isTmsRecordFound() && subtype != 'lms' || subtype == 'nht') {
 			if (nlLrFilter.getType() == 'course_assign') _updateNhtBatchAttendanceTab();
 			if (nlLrFilter.getType() == 'course') _updateNhtBatchAttendanceTabForCourses();
 			nhtBatchAttendanceStats = {statsCountArray: $scope.iltBatchInfo.rows, columns: $scope.iltBatchInfo.columns};
@@ -2247,6 +2248,10 @@ function LrTabManager(tabData, nlGetManyStore, nlLrFilter, _groupInfo) {
 		_recordsFound.lms = true;
 	};
 
+	this.isTmsRecordFound = function() {
+		return _recordsFound.nht;
+	};
+
 	this.update = function(bUpdateSelectedTab) {
 		_updateCanShowOfTabs();
 		if (bUpdateSelectedTab) _updateSelectedTab(tabData.tabs);
@@ -2369,7 +2374,7 @@ function LrTabManager(tabData, nlGetManyStore, nlLrFilter, _groupInfo) {
 		_tabsDict.nhtoverview.canShow = _recordsFound.nht && subtype != 'lms' || subtype == 'nht';
 		_tabsDict.nhtrunning.canShow =  (type != 'user' && batchStatus.running);
 		_tabsDict.nhtclosed.canShow =  (type != 'user' && batchStatus.closed);
-		_tabsDict.nhtbatchattendance.canShow = (type != 'user' && _recordsFound.nht);
+		_tabsDict.nhtbatchattendance.canShow = _recordsFound.nht && subtype != 'lms' || subtype == 'nht';
 	}
 
 	function _updateSelectedTab(tabs) {
