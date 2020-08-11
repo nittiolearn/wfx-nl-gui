@@ -115,6 +115,9 @@
                 if(allColumns[i].id in updatedColumnNamesDict) {
                     allColumns[i].name = updatedColumnNamesDict[allColumns[i].id];
                     if (allColumns[i].name != allColumns[i].defName) allColumns[i].origName = allColumns[i].defName;
+                } else {
+                    allColumns[i].name = allColumns[i].defName;
+                    delete allColumns[i].origName;
                 }
             }
         };
