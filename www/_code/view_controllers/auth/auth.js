@@ -154,7 +154,7 @@ function _loginControllerImpl(ctrlType, nl, nlRouter, $scope, nlServerApi, nlDlg
                 resolve(false);
                 return;
             }
-            if ($scope.msgType != 'impersonate') _loginOptionsUpdate($scope);
+            _loginOptionsUpdate($scope);
             _pageEnerDone(resolve);
         });
     }
@@ -215,10 +215,11 @@ function _loginControllerImpl(ctrlType, nl, nlRouter, $scope, nlServerApi, nlDlg
         var brandingInfo = nlServerApi.getBrandingInfo();
         $scope.grpid = brandingInfo.grp;
         $scope.loginMethods = brandingInfo.loginMethods || ['userid_pwd'];
-        if ($scope.msgType != 'impersonate') _loginOptionsUpdate($scope);
+        _loginOptionsUpdate($scope);
     }
 
     function _loginOptionsUpdate($scope) {
+        if ($scope.msgType == 'impersonate' || $scope.msgType == 'pw_change' || $scope.msgType == 'pw_reset' ) return;
         if ($scope.loginMethods && $scope.loginMethods.length > 0) {
             $scope.data = $scope.data || {};
             $scope.data.loginOptions = [];
@@ -364,7 +365,7 @@ function _loginControllerImpl(ctrlType, nl, nlRouter, $scope, nlServerApi, nlDlg
         $scope.msgType = msgType;
         $scope.msgClass = 'nl-signin-msg';
         nl.pginfo.pageTitle = nl.t('Sign In');
-        $scope.msg = '';
+        if (msgType != 'mobile_otp' && msgType != 'userid_pwd') $scope.msg = '';
         if (msgType == 'logout') {
             $scope.msg = 'You have been signed out. Sign in again?';
         } else if (msgType == 'auth_error') {
