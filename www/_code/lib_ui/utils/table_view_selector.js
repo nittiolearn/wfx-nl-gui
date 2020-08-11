@@ -114,7 +114,7 @@
             for(var i=0; i<allColumns.length; i++) {
                 if(allColumns[i].id in updatedColumnNamesDict) {
                     allColumns[i].name = updatedColumnNamesDict[allColumns[i].id];
-                    allColumns[i].origName = allColumns[i].defName;
+                    if (allColumns[i].name != allColumns[i].defName) allColumns[i].origName = allColumns[i].defName;
                 }
             }
         };
@@ -213,7 +213,6 @@
 
             function _onOptionSelect(config, option) {
                 $scope.selected = option;
-                nlTableViewSelectorSrv.updateAllColumnNames(config.tableType, config.allColumns);
                 var selectedColIds = _getSelectedColIds(config.tableType, config.allColumns, option.columns);
                 $scope.config.onViewChange(selectedColIds); // Array of col ids
             }
@@ -466,6 +465,10 @@
             if (_dlg.scope.data.newName && _dlg.scope.data.newName != column.defName) {
                 _dlg.scope.columnNames[colid] = column.name;
                 column.origName = column.defName;
+            }
+            if (_dlg.scope.data.newName == column.defName) {
+                delete column.origName;
+                delete _dlg.scope.columnNames[colid];
             }
             _dlg.scope.editColumnClose();
         };

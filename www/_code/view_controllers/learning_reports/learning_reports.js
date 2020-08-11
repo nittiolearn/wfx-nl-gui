@@ -1189,6 +1189,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			$scope.nhtViewSelectorConfig = {
 				canEdit: nlRouter.isPermitted(_userInfo, 'assignment_manage'),
 				tableType: 'nht_views',
+				allColumns: _getNhtColumns(),
 				defaultViewColumns: {id: 'default', name: 'Default', columns: _defaultNhtColIds},
 				onViewChange: function(selectedColIdList) {
 					// Custom columns are not supported for NHT View
