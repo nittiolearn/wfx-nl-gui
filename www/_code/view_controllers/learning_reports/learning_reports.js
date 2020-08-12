@@ -1571,15 +1571,21 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 	function _updateNhtAttendanceRows(sessionDates, iltSessions, records, assignmentObj, multipleCourses) {
 		var userObj = {};
 		var iltBatchInfoRow = [];
+		var metaHeaders = $scope.metaHeaders;
 		for(var i=0; i<records.length; i++) {
 			userObj = {};
 			var record = records[i];
+			var usermd = record.usermd || {};
 			userObj.name = record.user.name;
 			userObj.coursename = record.repcontent.name;
 			userObj.batchname = record.raw_record._batchName;
 			userObj.not_before = nl.fmt.fmtDateDelta(record.repcontent.not_before, null, 'date');
 			userObj.not_after = nl.fmt.fmtDateDelta(record.repcontent.not_after, null, 'date');
 			userObj.learner_status = (record.user.state == 0) ? nl.t('Inactive') : nl.t('Active')
+			for(var j=0; j<metaHeaders.length; j++) {
+				var metas = metaHeaders[j];
+				userObj[metas.id] = usermd[metas.id] || "";
+			}
 			var _statusInfos = record.repcontent.statusinfo;
 			userObj.subject = record.raw_record.subject;
 			var isCertified = false;
@@ -1618,6 +1624,10 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		headerRow.push({id: 'not_before', name: nl.t('Start date'), class: 'minw-number'});
 		headerRow.push({id: 'not_after', name: nl.t('End date'), class: 'minw-number'});
 		headerRow.push({id: 'learner_status', name: nl.t('Status'), class: 'minw-number'});
+		for(var i=0; i<$scope.metaHeaders.length; i++) {
+			var metas = $scope.metaHeaders[i];
+			headerRow.push({id: metas.id, name: metas.name, class: 'minw-number'});
+		}
 		var sessionDatesArray = [];
 		for(var key in sessionDates) {
 			if (isCourses)
