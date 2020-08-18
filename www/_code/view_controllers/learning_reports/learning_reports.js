@@ -1612,7 +1612,13 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		var nhtHeaderObj = _getNhtBatchAttendanceColumns(sessionDates, multipleCourses);
 		if (!multipleCourses)
 			iltBatchInfoRow.splice(0, 0, nhtHeaderObj.titleRow);
-		$scope.iltBatchInfo = {columns: nhtHeaderObj.header, rows: iltBatchInfoRow, isMoreCols: nhtHeaderObj.totalCnt > 40, totalCnt: nhtHeaderObj.totalCnt};
+		var headercols = [];
+		for (var i=0; i<nhtHeaderObj.header.length; i++) {
+			var header = nhtHeaderObj.header[i];
+			if (header.hideCol) continue;
+			headercols.push(header);
+		}
+		$scope.iltBatchInfo = {columns: headercols, origColumns: nhtHeaderObj.header,  rows: iltBatchInfoRow, isMoreCols: nhtHeaderObj.totalCnt > 40, totalCnt: nhtHeaderObj.totalCnt};
 	}
 
 	function _getNhtBatchAttendanceColumns(sessionDates, isCourses) {
@@ -1709,7 +1715,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		if (_tabManager.isTmsRecordFound() && subtype != 'lms' || subtype == 'nht') {
 			if (nlLrFilter.getType() == 'course_assign') _updateNhtBatchAttendanceTab();
 			if (nlLrFilter.getType() == 'course') _updateNhtBatchAttendanceTabForCourses();
-			nhtBatchAttendanceStats = {statsCountArray: $scope.iltBatchInfo.rows, columns: $scope.iltBatchInfo.columns};
+			nhtBatchAttendanceStats = {statsCountArray: $scope.iltBatchInfo.rows, columns: $scope.iltBatchInfo.origColumns};
 		}
 
 		var lrStats = {columns: $scope.utable.origColumns};

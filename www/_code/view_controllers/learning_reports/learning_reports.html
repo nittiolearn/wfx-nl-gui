@@ -391,13 +391,13 @@
                 <table class='nl-table nl-table-styled3 rowlines'>
                     <tr class='header'>
                         <td ng-repeat='col in iltBatchInfo.columns track by $index'
-                            class='{{col.class}}' ng-hide='col.hideCol'>
+                            class='{{col.class}}'>
                             <div>{{col.name || '-'}}</div>
                         </td>
                     </tr>
                     <tr ng-repeat='rec in iltBatchInfo.rows track by $index' class='{{rec.class}}'>
                         <td ng-repeat='col in iltBatchInfo.columns track by $index'
-                            class='{{col.class}}' ng-hide='col.hideCol'>
+                            class='{{col.class}}'>
                             {{rec[col.id] || '-'}}
                         </td>
                     </tr>
