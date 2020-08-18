@@ -1612,7 +1612,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		var nhtHeaderObj = _getNhtBatchAttendanceColumns(sessionDates, multipleCourses);
 		if (!multipleCourses)
 			iltBatchInfoRow.splice(0, 0, nhtHeaderObj.titleRow);
-		$scope.iltBatchInfo = {columns: nhtHeaderObj.header, rows: iltBatchInfoRow};
+		$scope.iltBatchInfo = {columns: nhtHeaderObj.header, rows: iltBatchInfoRow, isMoreCols: nhtHeaderObj.totalCnt > 40, totalCnt: nhtHeaderObj.totalCnt};
 	}
 
 	function _getNhtBatchAttendanceColumns(sessionDates, isCourses) {
@@ -1647,23 +1647,24 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 				return 1;
 			}
 		});	
+		var sessionDatesLen = sessionDatesArray.length - 40;
 		if (isCourses) {
 			for(var i=0; i<sessionDatesArray.length; i++) {
 				var date = nl.fmt.date2StrDDMMYY(sessionDatesArray[i].date, null, 'date');
 				var hrname = date;
-				headerRow.push({id: date, name: hrname, class: 'minw-number'});
+				headerRow.push({id: date, name: hrname, class: 'minw-number', hideCol: i < sessionDatesLen ? true : false});
 			}
-			return {header: headerRow} 
+			return {header: headerRow, totalCnt: sessionDatesArray.length};
 		}
 		var titleDict = {class: 'header'};
 		for(var i=0; i<sessionDatesArray.length; i++) {
 			var date = nl.fmt.date2StrDDMMYY(sessionDatesArray[i].date, null, 'date');
 			var hrname = date;
 			if (sessionDatesArray[i].start) hrname += nl.t(' {} - {}', sessionDatesArray[i].start, sessionDatesArray[i].end);
-			headerRow.push({id: date, name: hrname, class: 'minw-number'});
+			headerRow.push({id: date, name: hrname, class: 'minw-number', hideCol: i < sessionDatesLen ? true : false});
 			titleDict[date] = sessionDatesArray[i].sessionName || "";
 		}
-		return {header: headerRow, titleRow: titleDict};
+		return {header: headerRow, titleRow: titleDict, totalCnt: sessionDatesArray.length};
 	}
 
 	//---------------------------------------------------------------------------------------------------------------------------------------------------------

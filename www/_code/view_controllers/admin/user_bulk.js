@@ -476,6 +476,7 @@ function(nl, nlDlg, nlGroupInfo, nlImporter, nlProgressLog, nlRouter, nlServerAp
     }
     
     function _validateRow(row, headerInfo) {
+        _formatUserName(row);
         self.validateOp(row);
         self.validateGroup(row);
         self.validateKeyColumns(row);
@@ -490,6 +491,15 @@ function(nl, nlDlg, nlGroupInfo, nlImporter, nlProgressLog, nlRouter, nlServerAp
         self.deleteUnwanted(row);
         self.validateRealChange(row);
         self.validateSeclogin(row);
+    }
+
+    function _formatUserName(row) {
+        var username = row.username || '';
+        if(!username) return;
+            username = username.split('.');
+        var partsArray = []
+        for (var i=0; i<username.length; i++) partsArray.push(username[i].trim());
+        row.username = partsArray.join('.');
     }
 
     var _validOps = {'c': true, 'C': true, 'u': true, 'U': true, 'd': true, 'e': true, 'E': true, 'i': true};
