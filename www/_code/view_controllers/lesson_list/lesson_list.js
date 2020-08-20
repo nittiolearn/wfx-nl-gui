@@ -410,8 +410,8 @@ this.show = function($scope, initialUserInfo, params) {
             card.links.push({id: 'lesson_view_priv', text: nl.t('view'), lessid: lesson.id});
             card.links.push({id: 'lesson_copy', text: nl.t('copy')});
         } else if (mode.mode == MODES.APPROVED) {
-            if (!_showInDlg && lesson.grp == _userInfo.groupinfo.id && userInfo.permissions.lesson_create
-                && mode.modeStr == 'approved')
+            if (!_showInDlg && lesson.grp == _userInfo.groupinfo.id && userInfo.permissions.lesson_create 
+                && userInfo.permissions.lesson_copy && mode.modeStr == 'approved')
                 card.links.push({id : 'lesson_copy', text : nl.t('copy')});
             card.links.push({id : 'lesson_report', text : nl.t('report')});
             _addMetadataLink(card);
@@ -471,7 +471,7 @@ this.show = function($scope, initialUserInfo, params) {
             nl.fmt.addLinkToAvp(linkAvp, 'copy', null, 'lesson_copy');
         } else if (mode.mode == MODES.APPROVED || mode.mode == MODES.MANAGE) {
             nl.fmt.addLinkToAvp(linkAvp, 'view', nl.fmt2('/lesson/view/{}/', lessonId));
-            if (lesson.grp == _userInfo.groupinfo.id)
+            if (lesson.grp == _userInfo.groupinfo.id && _userInfo.permissions.lesson_copy)
                 nl.fmt.addLinkToAvp(linkAvp, 'copy', null, 'lesson_copy');
             nl.fmt.addLinkToAvp(linkAvp, 'send assignment', null, 'send_assignment');
             _addApproveLinkToDetails(lesson, linkAvp);
