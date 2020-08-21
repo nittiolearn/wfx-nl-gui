@@ -692,8 +692,6 @@ function(nl, nlDlg, nlGroupInfo, nlImporter, nlProgressLog, nlRouter, nlServerAp
                 var ouarray = actualOU.split('.');
                 for(var i=0; i<ouarray.length; i++) ouarray[i] = ouarray[i].trim();
                 actualOU = ouarray.join('.');
-            } else {
-                actualOU = ou.trim();
             }
             row.org_unit = actualOU;
         }
