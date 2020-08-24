@@ -1506,13 +1506,13 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		var sessionDates = {};
 		var assignmentToObj = {};
 		var uniqueSessionDates = {};
-		for (var key in assignmentObj) {
+		for (var assignid in assignmentObj) {
 			var ilts = [];
-			var assignKey = nlGetManyStore.key('course_assignment', key);
+			var assignKey = nlGetManyStore.key('course_assignment', assignid);
 			var courseAssignment = nlGetManyStore.getRecord(assignKey);
 			var attendance = courseAssignment.attendance ? angular.fromJson(courseAssignment.attendance) : {};
-			var modules = angular.copy(assignmentObj[key].modules);
 				attendance = nlCourse.migrateCourseAttendance(attendance);
+			var modules = angular.copy(assignmentObj[assignid].modules || []);
 			var asdAddedModules = nlReportHelper.getAsdUpdatedModules(modules || [], attendance)
 			var	sessionInfos = attendance.sessionInfos || {};
 			if ('_root' in sessionInfos) _updateAsdSessionDates(sessionInfos['_root'], sessionDates, uniqueSessionDates);
@@ -1531,7 +1531,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 					}
 				}
 			}
-			assignmentToObj[key] = {sessions: angular.copy(ilts)};
+			assignmentToObj[assignid] = {sessions: angular.copy(ilts)};
 		}
 		var records = [];
 		for (var key in tmsRecordsDict) records.push(tmsRecordsDict[key]);
@@ -1635,11 +1635,11 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			headerRow.push({id: metas.id, name: metas.name, class: 'minw-number'});
 		}
 		var sessionDatesArray = [];
-		for(var key in sessionDates) {
+		for(var date in sessionDates) {
 			if (isCourses)
-				sessionDatesArray.push({date: nl.fmt.json2Date(key) || ''});
+				sessionDatesArray.push({date: nl.fmt.json2Date(date) || ''});
 			else
-				sessionDatesArray.push({date: nl.fmt.json2Date(key) || '', start: sessionDates[key].start, end: sessionDates[key].end , sessionName: sessionDates[key].sessionName});
+				sessionDatesArray.push({date: nl.fmt.json2Date(date) || '', start: sessionDates[date].start, end: sessionDates[date].end , sessionName: sessionDates[date].sessionName});
 		}
 		sessionDatesArray.sort(function(a, b) {
 			var key1 = new Date(a.date);
@@ -1710,14 +1710,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 				if(col.showIn != 'running') nhtStats.closedHeaders.push(col);
 			}
 		}
-		var nhtBatchAttendanceStats = null;
 		var subtype = nlLrFilter.getRepSubtype();
-		if (_tabManager.isTmsRecordFound() && subtype != 'lms' || subtype == 'nht') {
-			if (nlLrFilter.getType() == 'course_assign') _updateNhtBatchAttendanceTab();
-			if (nlLrFilter.getType() == 'course') _updateNhtBatchAttendanceTabForCourses();
-			nhtBatchAttendanceStats = {statsCountArray: $scope.iltBatchInfo.rows, columns: $scope.iltBatchInfo.origColumns};
-		}
-
 		var lrStats = {columns: $scope.utable.origColumns};
 		var certificateStats = null;
 		if (nlLrFilter.getType() == 'course' && nlLrFilter.getMode() == 'cert_report') {
@@ -1725,9 +1718,15 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		}
 
 		nlLrExporter.export($scope, _getReportRecordsForExport, _customScoresHeader, 
-			drillDownStats, nhtStats, nhtBatchAttendanceStats, lrStats, certificateStats);
+			drillDownStats, nhtStats, (_tabManager.isTmsRecordFound() && subtype != 'lms' || subtype == 'nht') ? _getNhtBatchAttendanceFn : null, lrStats, certificateStats);
 	}
 	
+	function _getNhtBatchAttendanceFn() {
+		if (nlLrFilter.getType() == 'course_assign') _updateNhtBatchAttendanceTab();
+		if (nlLrFilter.getType() == 'course') _updateNhtBatchAttendanceTabForCourses();
+		return {statsCountArray: $scope.iltBatchInfo.rows, columns: $scope.iltBatchInfo.origColumns};
+	}
+
 	function _getReportRecordsForExport(bFiltered) {
 		return bFiltered ? _initTabDataFilterdRecords() : nlLrReportRecords.asList();
 	}

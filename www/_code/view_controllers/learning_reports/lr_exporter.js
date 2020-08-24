@@ -49,7 +49,7 @@ function(nl, nlDlg, nlRouter, nlExporter, nlLrHelper, nlLrSummaryStats, nlGroupI
     	_subjectlabel = userInfo.groupinfo.subjectlabel;
 	};
 	
-    this.export = function($scope, getReportRecordsFn, customScoresHeader, drillDownDict, nhtDict, iltBatchStats, lrDict, certificateDict) {
+    this.export = function($scope, getReportRecordsFn, customScoresHeader, drillDownDict, nhtDict, getNhtAttendanceFn, lrDict, certificateDict) {
         var dlg = nlDlg.create($scope);
         _canzip = nlLrFilter.canZip();
         _customScoresHeader = customScoresHeader || [];
@@ -84,8 +84,7 @@ function(nl, nlDlg, nlRouter, nlExporter, nlLrHelper, nlLrSummaryStats, nlGroupI
             dlg.scope.showCertificateCheckbox = dlg.scope.certmode;
             dlg.scope.export['certificate'] = true;
         }
-        if (iltBatchStats) {
-            _iltBatchDict = iltBatchStats || {};
+        if (getNhtAttendanceFn) {
             dlg.scope.showIltBatchCheckbox = dlg.scope.reptype == 'course_assign' || dlg.scope.reptype == 'course';
             dlg.scope.export['iltBatch'] = false;
         }
@@ -122,6 +121,7 @@ function(nl, nlDlg, nlRouter, nlExporter, nlLrHelper, nlLrSummaryStats, nlGroupI
                     var isFiltered = dlg.scope.data.recordType.id == 'filtered';
                     nl.timeout(function() {
                         var reportRecords = getReportRecordsFn(isFiltered);
+                        if (filter.exportTypes.iltBatch) _iltBatchDict = getNhtAttendanceFn();
 	        	        _initCtx(reportRecords, _userInfo, filter);
 	                    _export(resolve, reject, filter, reportRecords);
                     }); // Seems needed for loadingScreen to appear properly.
