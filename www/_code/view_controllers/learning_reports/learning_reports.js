@@ -1491,12 +1491,12 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		}
 	}
 
-	function _updateAsdSessionDates(sessionInfo, sessionDates, uniqueSessionDates) {
+	function _updateAsdSessionDates(sessionInfo, sessionDates, uniqueFixedSessionDates) {
 		for(var j=0; j<sessionInfo.asd.length; j++) {
 			var session = sessionInfo.asd[j];
 			session.sessionName = session.name || sessionInfo.name;
 			var sessionDate =  sessionInfo.sessiondate;
-			if(session && !uniqueSessionDates[sessionDate]) _updateSessionDates(session, sessionDates);
+			if(session && !uniqueFixedSessionDates[sessionDate]) _updateSessionDates(session, sessionDates);
 		}
 	}
 
@@ -1505,33 +1505,35 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		var assignmentObj = nlGetManyStore.getTmsAssignmentInfo();
 		var sessionDates = {};
 		var assignmentToObj = {};
-		var uniqueSessionDates = {};
+		var uniqueFixedSessionDates = {};
 		for (var assignid in assignmentObj) {
 			var ilts = [];
 			var assignKey = nlGetManyStore.key('course_assignment', assignid);
 			var courseAssignment = nlGetManyStore.getRecord(assignKey);
 			var attendance = courseAssignment.attendance ? angular.fromJson(courseAssignment.attendance) : {};
 				attendance = nlCourse.migrateCourseAttendance(attendance);
-			var modules = angular.copy(assignmentObj[assignid].modules || []);
+
+			// TODO-NOW: Check if angular.copy is neeed here
+			var modules = assignmentObj[assignid].modules || [];
 			var asdAddedModules = nlReportHelper.getAsdUpdatedModules(modules || [], attendance);
 			var	sessionInfos = attendance.sessionInfos || {};
-			if ('_root' in sessionInfos) _updateAsdSessionDates(sessionInfos['_root'], sessionDates, uniqueSessionDates);
+			if ('_root' in sessionInfos) _updateAsdSessionDates(sessionInfos['_root'], sessionDates, uniqueFixedSessionDates);
 			for(var i=0; i<asdAddedModules.length; i++) {
 				var cm = asdAddedModules[i];
 				if (cm.type != 'iltsession') continue;
 				ilts.push(cm);
-				if (cm.asdChildren && cm.asdChildren.length > 0) _updateAsdSessionDates(sessionInfos[cm.id], sessionDates, uniqueSessionDates);
-				if(!cm.asdSession) {
-					var sessionInfo = sessionInfos[cm.id];
-					if(sessionInfo) sessionInfo.sessionName = sessionInfo.sessionName || cm.name;
-					if(sessionInfo) {
-						var sessionDate =  sessionInfo.sessiondate;
-						uniqueSessionDates[sessionDate] = true;
-						_updateSessionDates(sessionInfo, sessionDates);
-					}
-				}
+				if(cm.asdSession) continue;
+				var sessionInfo = sessionInfos[cm.id];
+				if (!sessionInfo) continue;
+				if (cm.asdChildren && cm.asdChildren.length > 0)
+					_updateAsdSessionDates(sessionInfo, sessionDates, uniqueFixedSessionDates);
+				sessionInfo.sessionName = sessionInfo.sessionName || cm.name;
+				var sessionDate =  sessionInfo.sessiondate;
+				uniqueFixedSessionDates[sessionDate] = true;
+				_updateSessionDates(sessionInfo, sessionDates);
 			}
-			assignmentToObj[assignid] = {sessions: angular.copy(ilts)};
+			// TODO-NOW: Check if angular.copy(ilts) is neeed here
+			assignmentToObj[assignid] = {sessions: ilts};
 		}
 		var records = [];
 		for (var key in tmsRecordsDict) records.push(tmsRecordsDict[key]);
@@ -1548,19 +1550,19 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		var sessionDates = {};
 		var iltSessions = [];
 		var	sessionInfos = attendance.sessionInfos || {};	
-		var uniqueSessionDates = {};
-		if ('_root' in sessionInfos) _updateAsdSessionDates(sessionInfos['_root'], sessionDates, uniqueSessionDates);
+		var uniqueFixedSessionDates = {};
+		if ('_root' in sessionInfos) _updateAsdSessionDates(sessionInfos['_root'], sessionDates, uniqueFixedSessionDates);
 		for(var i=0; i<asdAddedModules.length; i++) {
 			var cm = asdAddedModules[i];
 			if (cm.type != 'iltsession') continue;
 			iltSessions.push(cm);
-			if (cm.asdChildren && cm.asdChildren.length > 0) _updateAsdSessionDates(sessionInfos[cm.id], sessionDates, uniqueSessionDates);
+			if (cm.asdChildren && cm.asdChildren.length > 0) _updateAsdSessionDates(sessionInfos[cm.id], sessionDates, uniqueFixedSessionDates);
 			if(!cm.asdSession) {
 				var sessionInfo = sessionInfos[cm.id];
 				if(sessionInfo) sessionInfo.sessionName = sessionInfo.sessionName || cm.name;
 				if(sessionInfo) {
 					var sessionDate =  sessionInfo.sessiondate;
-					uniqueSessionDates[sessionDate] = true;
+					uniqueFixedSessionDates[sessionDate] = true;
 					_updateSessionDates(sessionInfo, sessionDates);
 				}
 			}
