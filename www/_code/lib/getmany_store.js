@@ -135,27 +135,21 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo) {
         }
     };
 
-    this.updateMilestoneBatchInfo = function(courseAssignment, modules) {
-        var courseAssign = courseAssignment;
+    this.updateMilestoneBatchInfo = function(courseAssign, modules) {
         var _msInfoCache = _updateNHTBatchStats.getMsInfoCache();
         if (courseAssign.id in _msInfoCache) return;
-        _updateNHTBatchStats.setAssignementCredentials(modules, courseAssign);
-        if (!_updateNHTBatchStats.canUpdateBatchData()) return;
-        _updateNHTBatchStats.updateBatchInfo(modules);
+        _updateNHTBatchStats.updateBatchInfo(modules, courseAssign);
     };
 }];
 
 function UpdateBatch(nl, nlGroupInfo) {
-    var _groupMsInfo = null;
-    var _modules = null;
-    var _courseAssign = null;
+    var _groupMsInfo = undefined;
     var _msInfoCache = {};
-    var _plannedMsInfo = {};
-    var _milestone = null;
     var _nhtBatchStatus = {};
     this.clearCache = function() {
         _msInfoCache = {};
         _nhtBatchStatus = {};
+        _groupMsInfo = undefined;
     };
 
     this.getNhtBatchStates = function() {
@@ -166,41 +160,29 @@ function UpdateBatch(nl, nlGroupInfo) {
         return _msInfoCache;
     };
 
-    this.isGroupMilestoneDefined = function() {
-        return _groupMsInfo;
-    };
+    this.updateBatchInfo = function(modules, courseAssign) {
+        if (!modules) return null;
+        if (_groupMsInfo === undefined) _groupMsInfo = _getGroupMilestonesAsDict();
+        if (!_groupMsInfo) return null;
+        var plannedMsInfo = courseAssign.info ? courseAssign.info.msDates : null;
+        if (!plannedMsInfo || Object.keys(plannedMsInfo).length == 0) return null;
+        var milestone = courseAssign.milestone ? angular.fromJson(courseAssign.milestone) : null;        
 
-    this.setAssignementCredentials = function(modules, courseAssign) {
-        _courseAssign = courseAssign;
-        _modules = modules;
-        _plannedMsInfo = _courseAssign.info ? _courseAssign.info.msDates : null;
-        _milestone = _courseAssign.milestone ? angular.fromJson(_courseAssign.milestone) : null;        
-        _groupMsInfo = _getGroupMilestonesAsDict();
-    };
-
-    this.canUpdateBatchData = function() {
-        if (!_groupMsInfo) return false;
-        if (!_plannedMsInfo || Object.keys(_plannedMsInfo).length == 0) return false;
-        if (!_modules) return false;
-        return true;
-    };
-
-    this.updateBatchInfo = function(modules) {
         var firstMsItemInCourse = null;
         var ret = {batchStatus: 'Pending', allMsMarked: true, modules: modules};
-        for (var i=0; i<_modules.length; i++) {
-            var cm = _modules[i];
+        for (var i=0; i<modules.length; i++) {
+            var cm = modules[i];
             if (cm.type != 'milestone') continue;
             if(!cm.milestone_type) continue;
             if (!firstMsItemInCourse) firstMsItemInCourse = cm;
-            _updatePlannedForMs(ret, cm);
+            _updatePlannedForMs(ret, cm, plannedMsInfo);
             if (!ret.allMsMarked) continue;
-            var markedMilestoneObj = _milestone[cm.id] || {}; //_id1: {status: done|pending, comment: 'Some remark', reached: reachedtime, learnersDict: {repid: {}}}
+            var markedMilestoneObj = milestone[cm.id] || {}; //_id1: {status: done|pending, comment: 'Some remark', reached: reachedtime, learnersDict: {repid: {}}}
             if (!markedMilestoneObj.learnersDict) {
-                _updateMsForNonEtmAsd(ret, cm);
+                _updateMsForNonEtmAsd(ret, cm, milestone);
                 continue;
             }
-            _updateMsForEtmAsd(ret, cm);
+            _updateMsForEtmAsd(ret, cm, milestone);
         }
         if (ret.batchStatus == 'Pending') {
             var mstype = firstMsItemInCourse.milestone_type;
@@ -213,22 +195,22 @@ function UpdateBatch(nl, nlGroupInfo) {
         } else {
             _nhtBatchStatus.running = true;
         }
-        _msInfoCache[_courseAssign.id] = ret;
+        _msInfoCache[courseAssign.id] = ret;
         return ret;
 
     };
 
-    function _updatePlannedForMs(ret, cm) {
+    function _updatePlannedForMs(ret, cm, plannedMsInfo) {
         var mstype = cm.milestone_type;
-        var plannedMs = _plannedMsInfo['milestone_'+cm.id] || '';
+        var plannedMs = plannedMsInfo['milestone_'+cm.id] || '';
         ret[mstype+'planned'] = nl.fmt.date2StrDDMMYY(nl.fmt.json2Date(plannedMs || '', 'date'));
         if (!ret.firstPlanned) ret.firstPlanned = nl.fmt.json2Date(plannedMs || '', 'date');
         ret.lastPlanned = plannedMs;
     }
 
-    function _updateMsForNonEtmAsd(ret, cm) {
+    function _updateMsForNonEtmAsd(ret, cm, milestone) {
         var mstype = cm.milestone_type;
-        var markedMilestoneObj = _milestone[cm.id] || {};
+        var markedMilestoneObj = milestone[cm.id] || {};
         if (markedMilestoneObj.status == 'done') {
             ret[mstype+'actual'] = markedMilestoneObj ? nl.fmt.date2StrDDMMYY(nl.fmt.json2Date(markedMilestoneObj.reached || '', 'date')) : '';
             if (ret.firstActual) ret.firstActual = nl.fmt.json2Date(markedMilestoneObj.reached || '', 'date');
@@ -240,9 +222,9 @@ function UpdateBatch(nl, nlGroupInfo) {
         }
     }
 
-    function _updateMsForEtmAsd(ret, cm) {
+    function _updateMsForEtmAsd(ret, cm, milestone) {
         var mstype = cm.milestone_type;
-        var markedObj = _getMarkedMsInfo(cm);
+        var markedObj = _getMarkedMsInfo(cm, milestone);
         if (markedObj.marked) {
             var grpMsObj = _groupMsInfo[mstype];
             if (grpMsObj && grpMsObj.batch_status) ret.batchStatus = grpMsObj.batch_status;
@@ -253,8 +235,8 @@ function UpdateBatch(nl, nlGroupInfo) {
         }
     }
 
-    function _getMarkedMsInfo(cm) {
-        var markedMilestone = _milestone[cm.id] || {};
+    function _getMarkedMsInfo(cm, milestone) {
+        var markedMilestone = milestone[cm.id] || {};
         var learnersDict = 'learnersDict' in markedMilestone ? markedMilestone['learnersDict'] : '';
         var msStats = {marked: false, markedOn: ''};
         var noLearnerMarked = true;

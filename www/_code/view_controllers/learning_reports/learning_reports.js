@@ -1513,7 +1513,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			var attendance = courseAssignment.attendance ? angular.fromJson(courseAssignment.attendance) : {};
 				attendance = nlCourse.migrateCourseAttendance(attendance);
 			var modules = angular.copy(assignmentObj[assignid].modules || []);
-			var asdAddedModules = nlReportHelper.getAsdUpdatedModules(modules || [], attendance)
+			var asdAddedModules = nlReportHelper.getAsdUpdatedModules(modules || [], attendance);
 			var	sessionInfos = attendance.sessionInfos || {};
 			if ('_root' in sessionInfos) _updateAsdSessionDates(sessionInfos['_root'], sessionDates, uniqueSessionDates);
 			for(var i=0; i<asdAddedModules.length; i++) {
