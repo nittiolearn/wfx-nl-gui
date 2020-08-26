@@ -55,6 +55,10 @@ function(nl, nlDlg) {
         for(var i=0; i<headers.length; i++) {
             var attr = headers[i].id;
             var attrValue = item[attr];
+            if (headers[i].singleAttr && !attrValue) {
+                row.push('');
+                continue;
+            }
             if(attr.indexOf('.') != -1) attrValue = _getAttrValue(attr.split('.'), item);
             var val = _fmtValue(attrValue, headers[i].fmt) || '';
             row.push(val);

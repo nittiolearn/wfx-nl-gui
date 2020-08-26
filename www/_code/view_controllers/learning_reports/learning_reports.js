@@ -1508,12 +1508,11 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		var uniqueFixedSessionDates = {};
 		for (var assignid in assignmentObj) {
 			var ilts = [];
+			assignid = parseInt(assignid);
 			var assignKey = nlGetManyStore.key('course_assignment', assignid);
 			var courseAssignment = nlGetManyStore.getRecord(assignKey);
 			var attendance = courseAssignment.attendance ? angular.fromJson(courseAssignment.attendance) : {};
 				attendance = nlCourse.migrateCourseAttendance(attendance);
-
-			// TODO-NOW: Check if angular.copy is neeed here
 			var modules = assignmentObj[assignid].modules || [];
 			var asdAddedModules = nlReportHelper.getAsdUpdatedModules(modules || [], attendance);
 			var	sessionInfos = attendance.sessionInfos || {};
@@ -1532,7 +1531,6 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 				uniqueFixedSessionDates[sessionDate] = true;
 				_updateSessionDates(sessionInfo, sessionDates);
 			}
-			// TODO-NOW: Check if angular.copy(ilts) is neeed here
 			assignmentToObj[assignid] = {sessions: ilts};
 		}
 		var records = [];
@@ -1599,6 +1597,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 				if (isCertified) continue;
 				isCertified = (sessionInfo.attId == 'certified');
 				var sessionDate =  nl.fmt.date2StrDDMMYY(nl.fmt.json2Date(cm.sessiondate || ''), null, 'date');
+				if (!sessionDate) break;
 				if (sessionInfo.stateStr == 'notapplicable' 
 					|| !sessionInfo.state || sessionInfo.status == 'waiting') continue;
 				if (sessionDate)
@@ -1606,11 +1605,12 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			}
 			iltBatchInfoRow.push(userObj);
 		};
-		iltBatchInfoRow.sort(function(a, b) {
-			if(b.name.toLowerCase() < a.name.toLowerCase()) return 1;
-			if(b.name.toLowerCase() > a.name.toLowerCase()) return -1;
-			if(b.name.toLowerCase() == a.name.toLowerCase()) return 0;				
-		});
+		//TODO-NAVEEN:Removed for performance reason
+		// iltBatchInfoRow.sort(function(a, b) {
+		// 	if(b.name.toLowerCase() < a.name.toLowerCase()) return 1;
+		// 	if(b.name.toLowerCase() > a.name.toLowerCase()) return -1;
+		// 	if(b.name.toLowerCase() == a.name.toLowerCase()) return 0;				
+		// });
 		var nhtHeaderObj = _getNhtBatchAttendanceColumns(sessionDates, multipleCourses);
 		if (!multipleCourses)
 			iltBatchInfoRow.splice(0, 0, nhtHeaderObj.titleRow);
@@ -1620,7 +1620,9 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			if (header.hideCol) continue;
 			headercols.push(header);
 		}
-		$scope.iltBatchInfo = {columns: headercols, origColumns: nhtHeaderObj.header,  rows: iltBatchInfoRow, isMoreCols: nhtHeaderObj.totalCnt > 40, totalCnt: nhtHeaderObj.totalCnt};
+		$scope.iltBatchInfo = {columns: headercols, origColumns: nhtHeaderObj.header, rows: iltBatchInfoRow, 
+							   isMoreCols: nhtHeaderObj.totalCnt > 40, totalCnt: nhtHeaderObj.totalCnt, rowCnt: iltBatchInfoRow.length > 5};
+		$scope.iltBatchInfo.visibleRows = iltBatchInfoRow.slice(0, 100);
 	}
 
 	function _getNhtBatchAttendanceColumns(sessionDates, isCourses) {
@@ -1660,7 +1662,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			for(var i=0; i<sessionDatesArray.length; i++) {
 				var date = nl.fmt.date2StrDDMMYY(sessionDatesArray[i].date, null, 'date');
 				var hrname = date;
-				headerRow.push({id: date, name: hrname, class: 'minw-number', hideCol: i < sessionDatesLen ? true : false});
+				headerRow.push({id: date, name: hrname, class: 'minw-number', singleAttr: true, hideCol: i < sessionDatesLen ? true : false});
 			}
 			return {header: headerRow, totalCnt: sessionDatesArray.length};
 		}
@@ -1669,7 +1671,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			var date = nl.fmt.date2StrDDMMYY(sessionDatesArray[i].date, null, 'date');
 			var hrname = date;
 			if (sessionDatesArray[i].start) hrname += nl.t(' {} - {}', sessionDatesArray[i].start, sessionDatesArray[i].end);
-			headerRow.push({id: date, name: hrname, class: 'minw-number', hideCol: i < sessionDatesLen ? true : false});
+			headerRow.push({id: date, name: hrname, class: 'minw-number', singleAttr: true, hideCol: i < sessionDatesLen ? true : false});
 			titleDict[date] = sessionDatesArray[i].sessionName || "";
 		}
 		return {header: headerRow, titleRow: titleDict, totalCnt: sessionDatesArray.length};

@@ -169,7 +169,7 @@ function UpdateBatch(nl, nlGroupInfo) {
         var milestone = courseAssign.milestone ? angular.fromJson(courseAssign.milestone) : null;        
 
         var firstMsItemInCourse = null;
-        var ret = {batchStatus: 'Pending', allMsMarked: true, modules: modules};
+        var ret = {batchStatus: 'Pending', allMsMarked: true, modules: angular.copy(modules)};
         for (var i=0; i<modules.length; i++) {
             var cm = modules[i];
             if (cm.type != 'milestone') continue;
