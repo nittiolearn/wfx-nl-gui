@@ -1605,12 +1605,11 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			}
 			iltBatchInfoRow.push(userObj);
 		};
-		//TODO-NAVEEN:Removed for performance reason
-		// iltBatchInfoRow.sort(function(a, b) {
-		// 	if(b.name.toLowerCase() < a.name.toLowerCase()) return 1;
-		// 	if(b.name.toLowerCase() > a.name.toLowerCase()) return -1;
-		// 	if(b.name.toLowerCase() == a.name.toLowerCase()) return 0;				
-		// });
+		iltBatchInfoRow.sort(function(a, b) {
+			if(b.name.toLowerCase() < a.name.toLowerCase()) return 1;
+			if(b.name.toLowerCase() > a.name.toLowerCase()) return -1;
+			if(b.name.toLowerCase() == a.name.toLowerCase()) return 0;				
+		});
 		var nhtHeaderObj = _getNhtBatchAttendanceColumns(sessionDates, multipleCourses);
 		if (!multipleCourses)
 			iltBatchInfoRow.splice(0, 0, nhtHeaderObj.titleRow);
@@ -1621,7 +1620,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			headercols.push(header);
 		}
 		$scope.iltBatchInfo = {columns: headercols, origColumns: nhtHeaderObj.header, rows: iltBatchInfoRow, 
-							   isMoreCols: nhtHeaderObj.totalCnt > 40, totalCnt: nhtHeaderObj.totalCnt, rowCnt: iltBatchInfoRow.length > 5};
+							   isMoreCols: nhtHeaderObj.totalCnt > 65, totalCnt: nhtHeaderObj.totalCnt, rowCnt: iltBatchInfoRow.length};
 		$scope.iltBatchInfo.visibleRows = iltBatchInfoRow.slice(0, 100);
 	}
 
@@ -1657,12 +1656,12 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 				return 1;
 			}
 		});	
-		var sessionDatesLen = sessionDatesArray.length - 40;
+		var sessionDatesLen = sessionDatesArray.length - 65;
 		if (isCourses) {
 			for(var i=0; i<sessionDatesArray.length; i++) {
 				var date = nl.fmt.date2StrDDMMYY(sessionDatesArray[i].date, null, 'date');
 				var hrname = date;
-				headerRow.push({id: date, name: hrname, class: 'minw-number', singleAttr: true, hideCol: i < sessionDatesLen ? true : false});
+				headerRow.push({id: date, name: hrname, class: 'minw-number', hideCol: i < sessionDatesLen ? true : false});
 			}
 			return {header: headerRow, totalCnt: sessionDatesArray.length};
 		}
@@ -1671,7 +1670,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			var date = nl.fmt.date2StrDDMMYY(sessionDatesArray[i].date, null, 'date');
 			var hrname = date;
 			if (sessionDatesArray[i].start) hrname += nl.t(' {} - {}', sessionDatesArray[i].start, sessionDatesArray[i].end);
-			headerRow.push({id: date, name: hrname, class: 'minw-number', singleAttr: true, hideCol: i < sessionDatesLen ? true : false});
+			headerRow.push({id: date, name: hrname, class: 'minw-number', hideCol: i < sessionDatesLen ? true : false});
 			titleDict[date] = sessionDatesArray[i].sessionName || "";
 		}
 		return {header: headerRow, titleRow: titleDict, totalCnt: sessionDatesArray.length};
