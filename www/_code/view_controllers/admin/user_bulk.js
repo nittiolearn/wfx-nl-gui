@@ -395,7 +395,6 @@ function(nl, nlDlg, nlGroupInfo, nlImporter, nlProgressLog, nlRouter, nlServerAp
             self.statusCnts.total++;
             if(row[0] == 'i') { 
                 self.statusCnts.ignore++;
-                if (self.pl) self.pl.debug('Validation of row - ignore');
                 continue;
             }
             if (self.pl) self.pl.debug(nl.fmt2('Validating row {} of {}', i+1, table.length), angular.toJson(row, 2));
