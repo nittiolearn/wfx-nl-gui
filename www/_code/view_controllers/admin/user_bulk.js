@@ -393,6 +393,10 @@ function(nl, nlDlg, nlGroupInfo, nlImporter, nlProgressLog, nlRouter, nlServerAp
         for (var i=start; i<end; i++) {
             var row = table[i];
             self.statusCnts.total++;
+            if(row[0] == 'i') { 
+                self.statusCnts.ignore++;
+                continue;
+            }
             if (self.pl) self.pl.debug(nl.fmt2('Validating row {} of {}', i+1, table.length), angular.toJson(row, 2));
             row = _getRowObj(row, headerInfo, i, csvHeader);
             if (row == null) {
