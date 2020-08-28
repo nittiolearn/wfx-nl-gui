@@ -906,18 +906,17 @@ function(nl, nlDlg, nlRouter, nlExporter, nlLrHelper, nlLrSummaryStats, nlGroupI
             // collecting feedback from questionnaire page not supported in old format
         }
     }
+    // var defObj = {_user_id: report.user.user_id, studentname: report.user.name, 
+    //     _assignTypeStr: '', _courseName: report.repcontent.name, _batchName: report.raw_record._batchName, _itemname: '',
+    //     subject: report.raw_record.subject,  _grade: report.raw_record._grade, 
+    //     created: report.raw_record.created, started: '', ended: '', updated: '', 
+    //     not_before: report.repcontent.not_before, not_after: report.repcontent.not_after, 
+    //     _status: 'pending', remarks: '', _attempts: '', _percStr: '', _maxScore: '', _score: '', _passScoreStr: '', feedbackScore: '', 
+    //     _timeMins: '', _timeIltMins: '', _timeIltTotalMins: '',
+    //     _stateStr: report.user.state ? 'active' : 'inactive', _email: report.user.email, org_unit: report.user.org_unit,
+    //     _reportId: 'id=' +report.raw_record.id, _assignId: 'id=' +report.raw_record.assignment, _courseId: 'id=' +report.raw_record.lesson_id, _moduleId: '', _moduleRepId : ''};
 
     function _updateCsvCourseDetailsRows(filter, report) {
-        var defaultRowObj = {_user_id: report.user.user_id, studentname: report.user.name, 
-            _assignTypeStr: '', _courseName: report.repcontent.name, _batchName: report.raw_record._batchName, _itemname: '',
-            subject: report.raw_record.subject,  _grade: report.raw_record._grade, 
-            created: report.raw_record.created, started: '', ended: '', updated: '', 
-            not_before: report.repcontent.not_before, not_after: report.repcontent.not_after, 
-            _status: 'pending', remarks: '', _attempts: '', _percStr: '', _maxScore: '', _score: '', _passScoreStr: '', feedbackScore: '', 
-            _timeMins: '', _timeIltMins: '', _timeIltTotalMins: '',
-            _stateStr: report.user.state ? 'active' : 'inactive', _email: report.user.email, org_unit: report.user.org_unit,
-            _reportId: 'id=' +report.raw_record.id, _assignId: 'id=' +report.raw_record.assignment, _courseId: 'id=' +report.raw_record.lesson_id, _moduleId: '', _moduleRepId : ''};
-
         var modules = report.course.content.modules;
         if (_groupInfo.props.etmAsd && _groupInfo.props.etmAsd.length > 0) {
             var courseAssign = nlGetManyStore.getRecord(nlGetManyStore.key('course_assignment', report.raw_record.assignment));
@@ -928,8 +927,14 @@ function(nl, nlDlg, nlRouter, nlExporter, nlLrHelper, nlLrSummaryStats, nlGroupI
         for(var i=0; i<modules.length; i++) {
             var item = modules[i]
             if(item.type == 'module') continue;
-            var defObj = angular.copy(defaultRowObj);
-            defObj._itemname = item.name;
+            //var defObj = angular.copy(defaultRowObj); //REmoved to improve performance
+            var defObj = {_user_id: report.user.user_id, studentname: report.user.name, _courseName: report.repcontent.name, 
+                          _batchName: report.raw_record._batchName, subject: report.raw_record.subject, _grade: report.raw_record._grade, 
+                          created: report.raw_record.created, not_before: report.repcontent.not_before, not_after: report.repcontent.not_after, 
+                          _status: 'pending', _stateStr: report.user.state ? 'active' : 'inactive', _email: report.user.email, org_unit: report.user.org_unit,
+                          _reportId: 'id=' +report.raw_record.id, _assignId: 'id=' +report.raw_record.assignment, _courseId: 'id=' +report.raw_record.lesson_id};
+    
+                defObj._itemname = item.name;
             var statusinfo = report.repcontent.statusinfo ? report.repcontent.statusinfo[item.id] : null;
             if(item.type == 'lesson') _updateCsvModuleRows1(report, item, statusinfo, defObj);
             else if(item.type == 'iltsession') _updateCsvSessionRows1(statusinfo, defObj);
@@ -998,7 +1003,7 @@ function(nl, nlDlg, nlRouter, nlExporter, nlLrHelper, nlLrSummaryStats, nlGroupI
         defaultRowObj._passScoreStr = statusinfo.passScore;
 	}
 
-	function _updateCsvMilestoneRows1(item, statusinfo, defaultRowObj) {
+	function _updateCsvMilestoneRows1(item, statusinfo, 1) {
         defaultRowObj._assignTypeStr = 'Milestone inside course';
         if (!statusinfo) return;
         defaultRowObj._status = statusinfo.status || 'pending';
