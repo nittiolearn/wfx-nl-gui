@@ -43,8 +43,10 @@ function(nl, nlDlg, nlTreeSelect, nlModuleStatusInfo, nlResourceAddModifySrv) {
 		   {id: 'learningMode', name: nl.t('Module type'), type: 'select', group:'optional_attr'},
 		   {id: 'passScore', name: nl.t('Pass score %'), type: 'number', group:'optional_attr', condition:'isQbOrAssessment', min: 0, max: 100},
 		   {id: 'allowed_max_score', name: nl.t('Score limit'), type: 'number', condition: 'isQuestionBank', group:'optional_attr', min: 0},
-		   {id: 'check_all_question_answered', name: nl.t('Ensure completion'), type: 'check', group:'optional_attr',
-		   		title: nl.t('Learner must complete the page to progress to next page.')},
+		   {id: 'check_all_question_answered', name: nl.t('Ensure completion in learner mode'), type: 'check', group:'optional_attr',
+				   title: nl.t('Learner must complete the page to progress to next page.')},
+			{id: 'check_all_question_on_browsing', name: nl.t('Ensure completion in browsing mode'), type: 'check', group:'optional_attr',
+					title: nl.t('Trainer must complete the page to progress to next page on browsing through the module.')},   
 		   {id: 'autoNavigate', name: nl.t('Auto move'), type: 'check', group:'optional_attr',
 		   		title: nl.t('Moves to next page after page voice is completly played.')},
 		   {id: 'forumTopic', name: nl.t('Discussion topic'), type: 'string', group:'optional_attr'},
@@ -103,6 +105,7 @@ function(nl, nlDlg, nlTreeSelect, nlModuleStatusInfo, nlResourceAddModifySrv) {
 		lessonState: lessonStatusDesc,
 		allowed_max_score: nl.t('This parameter is specific to question bank. When the question bank is distributed, each learner will get random subset of questions and in randomoized order. If "Score limit" is greater than 0, the total score of the chosen questions will be kept equal to the score limit. If "Score limit" is 0, all questions in the bank will be chosen but presented in random order. If the maximum scores are different for different pages, it is possible that the maximum score of chosen pages is slightly less than the score limit.'),
 		check_all_question_answered: nl.t('If this parameter is checked, learner is forced to complete a page before progressing to the next page. In assement modules, the learner is allowed to navigate to next page only after answering all questions in the current page and in all popups of the current page. In self learning modules, additionally the progress is blocked till the answer provided is correct.'),
+		check_all_question_on_browsing: nl.t('If this parameter is checked, trainer is forced to wait till voice over completely played and answer question on navigating to next page while bowsing through the module.'),
 		autoNavigate: _getHelpForAutoNavigate()
 	};
 	
@@ -193,6 +196,8 @@ function(nl, nlDlg, nlTreeSelect, nlModuleStatusInfo, nlResourceAddModifySrv) {
 		_oLesson.esttime = data.esttime;
 		_oLesson.passScore = data.passScore;
 		_oLesson.check_all_question_answered = data.check_all_question_answered || false;
+		_oLesson.check_all_question_on_browsing = data.check_all_question_on_browsing || false;
+		
 		_oLesson.autoNavigate = data.autoNavigate || false;
 		if(data.learningMode.id == 'question') {
 			_oLesson.allowed_max_score = data.allowed_max_score || 0;
@@ -278,6 +283,8 @@ function(nl, nlDlg, nlTreeSelect, nlModuleStatusInfo, nlResourceAddModifySrv) {
 		
 		editDlg.scope.data.showSearch = {};
 		editDlg.scope.data.check_all_question_answered = _oLesson.check_all_question_answered || false;
+		editDlg.scope.data.check_all_question_on_browsing = _oLesson.check_all_question_on_browsing || false;
+		
 		editDlg.scope.data.autoNavigate = _oLesson.autoNavigate || false;
 		if('allowed_max_score' in _oLesson) {
 			editDlg.scope.data.allowed_max_score = parseInt(_oLesson.allowed_max_score);
