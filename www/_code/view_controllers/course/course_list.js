@@ -313,12 +313,14 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
 	}
 
 	function _createFolderCard(fs) {
-		// TODO-NOW 5. update the styling of card - grey color if count is zero (see document)
+		var icon2 = fs.count ? 'ion-ios-folder fblue' : 'ion-ios-folder fgrey';
+		var cardStyle = fs.count ? '' : 'nl-opacity-6';
 		var card = {title: nl.fmt2('{} ({})', fs.folderName, fs.count),
-					icon2: 'ion-ios-folder fblue',
+					icon2: icon2,
 					fs: fs, 
 					internalUrl: 'folder_click',
-					children: []};
+					children: [],
+					style: cardStyle};
 		return card;
 	}
 
@@ -354,18 +356,30 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
 		var fs = _folderStructure[folderKey];
 		if (!fs) fs = _folderStructure['_root'];
 		var folders = fs.folders;
-		// TODO-NOW: 4 sort them appropreately
 		for(var key in fs.folders) {
 			var card = _createFolderCard(fs.folders[key]);
 			cards.push(card);
 		}
+		sortCards(cards, 0);
 		for(var key in fs.items) {
 			var card = _createCard(fs.items[key]);
 			cards.push(card);
 		}
+		var startSortPosForItems = fs.folders ? Object.keys(fs.folders).length : 0;
+		sortCards(cards, startSortPosForItems);
 		nlCardsSrv.updateCards($scope.cards, {
 			cardlist: cards,
 			canFetchMore: nlSearchCacheSrv.canFetchMore()
+		});
+	}
+
+	function sortCards(cards, start) {
+		if(cards.length < 2 || cards.length <= start) return;
+		cards.sort(function(a, b) {
+			if (cards.indexOf(a) < start) return 0;
+			if(b.title.toLowerCase() < a.title.toLowerCase()) return 1;
+			if(b.title.toLowerCase() > a.title.toLowerCase()) return -1;
+			if(b.title.toLowerCase() == a.title.toLowerCase()) return 0;
 		});
 	}
 
