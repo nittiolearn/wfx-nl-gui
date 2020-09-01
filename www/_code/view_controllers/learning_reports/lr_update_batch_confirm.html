@@ -23,6 +23,9 @@
             <td style='width: 20%;'>
                 Learner Id
             </td>
+            <td ng-if='change.cm.type == "iltsession"'>
+                Session date
+            </td>
             <td style='width: 20%;'>
                 <span ng-if='change.cm.type == "iltsession"'>Attendance Status</span>
                 <span ng-if='change.cm.type == "rating"'>Rating</span>
@@ -31,7 +34,7 @@
             <td>
                 Remarks
             </td>
-            <td ng-if='change.cm.etmAsd && change.cm.type == "milestone"'>
+            <td ng-if='lrChange.cm.type == "milestone"'>
                 Achieved on
             </td>
         </tr>
@@ -41,6 +44,9 @@
             </td>
             <td>
                 {{lrChange.lr.learnerid}}
+            </td>
+            <td ng-if='change.cm.type == "iltsession"'>
+                {{lrChange.lr.sessionDate}}
             </td>
             <td>
                 <span ng-if='change.cm.type == "iltsession"'>{{lrChange.lr.attendance.name}}</span>
