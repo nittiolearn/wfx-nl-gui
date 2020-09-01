@@ -90,11 +90,14 @@
 	</div>
 	<table class='nl-table nl-table-styled3'>
 		<tr class='header'>
-			<td style='width: 20%;'>
+			<td style='width: 15%;'>
 				Learner Name
 			</td>
-			<td style='width: 20%;'>
+			<td style='width: 15%;'>
 				Learner Id
+			</td>
+			<td style='width: 20%;'>
+				Session date
 			</td>
 			<td style='width: 20%;'>
 				Attendance Status
@@ -111,6 +114,9 @@
 			</td>
 			<td>
 				{{report.learnerid}}
+			</td>
+			<td ng-if='!report.lockedMessage'>
+				<nl-date-select fieldmodelbyref='report.sessionDate'></nl-date-select>
 			</td>
 			<td class='nl-dlg-field-value'>
 				<select ng-model='report.attendance' 

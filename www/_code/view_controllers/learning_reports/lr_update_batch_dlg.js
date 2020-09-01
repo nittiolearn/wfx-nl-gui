@@ -227,6 +227,7 @@ function DbAttendanceObject(courseAssignment, ctx) {
 			} else {
 				var itemInfo = lr.repcontent.statusinfo[cm.id] || {};
 				itemLr.attendance = _attendanceOptionsDict[itemInfo.attId] || {id: itemInfo.attId || ''};
+				itemLr.sessionDate = nl.fmt.json2Date(itemInfo.sessionDate || cm.sessionDate || '');
 				itemLr.remarks = {id: itemInfo.remarks || ''};
 				itemLr.otherRemarks = itemInfo.otherRemarks;
 				itemLr.updated = itemInfo.updated || null;
@@ -363,6 +364,10 @@ function DbAttendanceObject(courseAssignment, ctx) {
 		}
 		if (!lr.attendance.id) cm.isMarkingComplete = false;
 		else cm.someAtdFilled = true;
+		if (lr.attendance.id && !lr.sessionDate) {
+			lr.validationErrorMsg = 'Session date mandatory';
+			if (!cm.validationErrorMsg) cm.validationErrorMsg = nl.fmt2('{}: Session date mandatory for learner {}', nlReportHelper.getItemName(cm), lr.name);
+		}
 		if (attendanceConfig.isAttrition || attendanceConfig.id == 'certified') {
 			lr.cantProceedMessage = nl.fmt2('Marked {} at {}', attendanceConfig.name, nlReportHelper.getItemName(cm));
 			if (!lrBlocker.all) lrBlocker.all = lr;
@@ -420,6 +425,7 @@ function DbAttendanceObject(courseAssignment, ctx) {
 			(!_isOtherRemarksOption(lr) || lr.otherRemarks == oldLr.otherRemarks)) return;
 		lr.updated = new Date();
 		if (lr.attendance.id != oldLr.attendance.id) lr.marked = lr.updated;
+		if (lr.sessionDate || lr.sessionDate != oldLr.sessionDate) lr.sessionDate = nl.fmt.date2Str(lr.sessionDate, 'date');
 		lrChanges.push({lr: lr});
 	};
 
@@ -473,7 +479,8 @@ function DbAttendanceObject(courseAssignment, ctx) {
 			if (!(lr.id in objToSave)) objToSave[lr.id] = [];
 			var lrInDb = objToSave[lr.id];
 			var dbItem = {id: cm.id, updated: lr.updated || null, marked: lr.marked || null,
-				attId: lr.attendance.id, remarks: lr.remarks.id, otherRemarks: lr.otherRemarks || null};
+				attId: lr.attendance.id, remarks: lr.remarks.id, otherRemarks: lr.otherRemarks || null,
+				sessionDate: lr.sessionDate};
 			lrInDb.push(dbItem);
 		}
 	}
@@ -741,7 +748,7 @@ function DbMilestoneObject(courseAssignment, ctx) {
 	this.updateItem = function(cm) {
 		var milestoneInfo = _dbobj[cm.id] || {};
 		cm.comment = milestoneInfo.comment || '';
-		cm.milestoneMarked = milestoneInfo.status == 'done' ? true : false;
+		//cm.milestoneMarked = milestoneInfo.status == 'done' ? true : false;
 		var msInfoFromDb = _dbobj[cm.id] || {};
 		cm.updated = nl.fmt.json2Date(msInfoFromDb.updated);
 		cm.reached = nl.fmt.json2Date(msInfoFromDb.reached);
@@ -766,7 +773,16 @@ function DbMilestoneObject(courseAssignment, ctx) {
 	};
 
 	this.validateCm = function(cm, cmValidationCtx) {
-		cm.isMarkingComplete = cm.milestoneMarked;
+		for (var i=0; i<ctx.lrArray.length; i++) {
+			var itemLr = cm.learningRecords[i];
+			if (itemLr.bulkEntry) continue;
+			if (!itemLr.milestoneMarked) {
+				cm.isMarkingComplete = false;
+				break;
+			} else {
+				cm.isMarkingComplete = true;				
+			}
+		}
 	}
 
 	this.validateLr = function(lr, cm, lrBlocker) {
@@ -811,11 +827,12 @@ function DbMilestoneObject(courseAssignment, ctx) {
 			cm.updated = new Date();
 		}
 		if (cm.lockedOnItem) return;
-		if (cm.milestoneMarked != oldCm.milestoneMarked) {
-			cmChanges.push({attr: 'Milestone Status', val: cm.milestoneMarked ? 'Reached' : 'Not Reached'});
-			cm.updated = new Date();
-			cm.reached = cm.milestoneMarked ? cm.updated : null;
-		}
+		//TODO-NOW: Naveen - overall milestone marking removal
+		// if (cm.milestoneMarked != oldCm.milestoneMarked) {
+		// 	cmChanges.push({attr: 'Milestone Status', val: cm.milestoneMarked ? 'Reached' : 'Not Reached'});
+		// 	cm.updated = new Date();
+		// 	cm.reached = cm.milestoneMarked ? cm.updated : null;
+		// }
 	};
 
 	this.updateLrChanges = function(lr, oldLr, lrChanges) {
@@ -843,7 +860,9 @@ function DbMilestoneObject(courseAssignment, ctx) {
 		for (var i = 0; i < ctx.modulesToSave.length; i++) {
 			var cm = ctx.modulesToSave[i];
 			if (cm.type != 'milestone') continue;
-			var msInfo =  {status: cm.milestoneMarked ? 'done' : 'pending',
+			var msInfo =  {
+				//TODO: Now - Removed overall milestone marking
+				//status: cm.milestoneMarked ? 'done' : 'pending', 
 				comment: cm.comment,
 				updated: cm.updated || null,
 				reached: cm.reached || null,

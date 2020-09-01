@@ -11,16 +11,16 @@
     Please update <b>{{getItemName(selectedModule.lockedOnItem)}}</b> first.
 </div>
 <div ng-if='!selectedModule.lockedOnItem' class='padding-mid'>
-    <div ng-click='selectedModule.milestoneMarked = !selectedModule.milestoneMarked;' class='nl-link-text fsh5'>
+    <!--div ng-click='selectedModule.milestoneMarked = !selectedModule.milestoneMarked;' class='nl-link-text fsh5'>
         <i ng-show='selectedModule.milestoneMarked' class="icon ion-android-checkbox-outline black fsh6"></i>
         <i ng-hide='selectedModule.milestoneMarked' class="icon ion-android-checkbox-outline-blank fsh6"></i>
         <span>Check this to mark this milestone as completed</span>
     </div>
-    <div class='padding-small'></div>
+    <div class='padding-small'></div>-->
 
 
-    <div class='row row-center padding0 margin0'
-         ng-show='selectedModule.milestoneMarked'>
+    <div class='row row-center padding0 margin0'>
+         <!--ng-show='selectedModule.milestoneMarked'>-->
 		<div class='col padding0'></div>
 		<div class='nl-link-text nl-button-lowlight' ng-click='milestoneUnmarkAll($event, selectedModule)'>Unmark all</div>
         <div class='padding-small'></div>
@@ -28,8 +28,8 @@
 	</div>
     <div class='padding-small'></div>
 
-    <table class='nl-table nl-table-styled3'
-           ng-show='selectedModule.milestoneMarked'>
+    <table class='nl-table nl-table-styled3'>
+           <!--ng-show='selectedModule.milestoneMarked'>-->
         <tr class='header'>
             <td style='width: 50px;'>
             </td>
