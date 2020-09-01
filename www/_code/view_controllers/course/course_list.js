@@ -292,7 +292,7 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
 	}
 
 	function _updateCounts(fs) {
-		fs.count = Object.keys(fs.items).length;
+		fs.count = fs && fs.items ? Object.keys(fs.items).length : 0;
 		for(var key in fs.folders) {
 			var child = fs.folders[key];
 			_updateCounts(child);
