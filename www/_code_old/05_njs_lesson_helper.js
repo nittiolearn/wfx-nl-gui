@@ -118,11 +118,11 @@ function SlideChangeChecker(lesson) {
 			var pgNo  = p == curPgNo ? null : p+1;
 			if (lesson.renderCtx.launchCtx() == 'do' || lesson.renderCtx.launchCtx() == 'do_assign') {
 				if (_ensureCompletion && !_isPageCompleted(curPage, pgNo)) return false;
-			} else {
-				if (_ensureCompletionOnBrowsing && !_isPageCompleted(curPage, pgNo)) return false;
+				if (!_enoughTimeSpent(curPage, pgNo)) return false;
+			} else if (_ensureCompletionOnBrowsing) {
+				if(!_isPageCompleted(curPage, pgNo)) return false;
+				if (!_enoughTimeSpent(curPage, pgNo)) return false;
 			}
-
-	        if (!_enoughTimeSpent(curPage, pgNo)) return false;
     	}
         return true;
     };
