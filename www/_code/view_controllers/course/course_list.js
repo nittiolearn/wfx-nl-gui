@@ -91,6 +91,9 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
     var _canManage = false;
     var _resultList = [];
 	var _folder = null;
+	var _folderStructure = {};
+	$scope.currentFolder = null;
+	$scope.folderDisplayName = null;
 
 	function _onPageEnter(userInfo) {
 		_userInfo = userInfo;
@@ -119,6 +122,8 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
 	$scope.onCardLinkClicked = function(card, linkid) {
 		if (linkid === 'course_create') {
 			_createCourse($scope);
+		} else if (linkid === 'folder_click') {
+			_onFolderClick(card);
 		} else if (linkid === 'course_modify') {
 			_modifyCourse($scope, card.courseId);
 		} else if (linkid === 'course_delete') {
@@ -177,6 +182,14 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
 		_searchMetadata = nlMetaDlg.getMetadataFromUrl();
 		_maxDelete = params.max_delete || 50;
 		_max2 = ('max2' in params) ? parseInt(params.max2) : 500;
+
+		if (_folder == 'grade') {
+			$scope.folderDisplayName = _userInfo.groupinfo.gradelabel;
+		} else if (_folder == 'subject') {
+			$scope.folderDisplayName = _userInfo.groupinfo.subjectlabel;
+		} else if (_folder == 'authorname') {
+			$scope.folderDisplayName = 'Author:';
+		}
 	}
 
 	function _getPageTitle() {
@@ -199,7 +212,8 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
 	}
 
 	function _onSearch(filter, searchCategory, onSearchParamChange) {
-		// TODO-NOW: Test- how does it work in folder view cache mode. Test with metadata
+		// TODO-NOW: 6. Test- how does it work in folder view cache mode. Test with metadata
+		// TODO-NOW: 7. Do other tests mentioned your todo-list
         if (!_metadataEnabled) return;
         _searchMetadata.search = filter;
         var cmConfig = {canFetchMore: $scope.cards.canFetchMore,
@@ -225,19 +239,116 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
     }
 
     function _updateCards(itemsDict) {
+		if ($scope.folderDisplayName) return _updateCardsInFolderView(itemsDict);
 		var cards = [];
 		for (var itemId in itemsDict) {
-            var card = _createCard(itemsDict[itemId]);
+			var courseItem = itemsDict[itemId];
+			if (!_isOuAllowed(courseItem)) continue;
+			if (!_isSearchFilterPass(courseItem)) continue;
+			var card = _createCard(itemsDict[itemId]);
 			if (!card) continue;
-			// TODO-NOW: check for oulist. If oulist is not mine, so ignore that card. Look into ncourse.py
 			cards.push(card);
 		}
 		nlCardsSrv.updateCards($scope.cards, {
 			cardlist: cards,
 			canFetchMore: nlSearchCacheSrv.canFetchMore()
 		});
-    }
+	}
+
+    function _updateCardsInFolderView(itemsDict) {
+		_folderStructure = {};
+		for (var itemId in itemsDict) {
+			var courseItem = itemsDict[itemId];
+			if (!_isOuAllowed(courseItem)) continue;
+			var itemVisible = _isSearchFilterPass(courseItem);
+			_addToFolders(courseItem, itemVisible);
+		}
+		_updateCounts(_folderStructure['_root']);
+		_addCurrentFolderCards();
+	}
+
+	function _addToFolders(courseItem, itemVisible) {
+		var folder = courseItem[_folder] || 'Others';
+		_addItemToParentFolder(folder, courseItem, itemVisible ? 'item' : 'ignore');
+	}
+
+	function _addItemToParentFolder(folder, item, itemType) {
+		if (!_folderStructure[folder]) _folderStructure[folder] = {folders: {}, items: {}, folderName: folder, count: 0};
+		var fs = _folderStructure[folder];
+		if (itemType == 'folder') {
+			fs.folders[item.folderName] = item;
+		} else if (itemType == 'item') {
+			fs.items[item.id] = item;
+		}
+		if (folder == '_root') return;
+		var parts = folder.split('.');
+		if (parts.length == 1) {
+			_addItemToParentFolder('_root', fs, 'folder');
+			return;
+		}
+		parts.splice(parts.length-1, 1);
+		var parent = parts.join('.');
+		_addItemToParentFolder(parent, fs, 'folder');
+	}
+
+	function _updateCounts(fs) {
+		fs.count = Object.keys(fs.items).length;
+		for(var key in fs.folders) {
+			var child = fs.folders[key];
+			_updateCounts(child);
+			fs.count += child.count;
+		}
+	}
+
+	function _isOuAllowed(courseItem) {
+		// TODO-NOW: 2. check for oulist. If oulist is not mine, so ignore that card. Look into ncourse.py
+		// Release the software after this change.
+		return true;
+	}
+
+	function _isSearchFilterPass() {
+		// TODO-NOW: 3. Implement based on search string and filter dialog selection
+		return true;
+	}
+
+	function _createFolderCard(fs) {
+		// TODO-NOW 5. update the styling of card - grey color if count is zero (see document)
+		var card = {title: nl.fmt2('{} ({})', fs.folderName, fs.count),
+					icon2: 'ion-ios-folder fblue',
+					fs: fs, 
+					internalUrl: 'folder_click',
+					children: []};
+		return card;
+	}
+
+	function _onFolderClick(card) {
+		// TODO-NOW: 1. Display breadcrups on the top
+		$scope.currentFolder = card.fs.folderName;
+		_addCurrentFolderCards();
+	}
 	
+	function _addCurrentFolderCards() {
+		var cards = [];
+
+		var folderKey = $scope.currentFolder || '_root';
+		var fs = _folderStructure[folderKey];
+		if (!fs) fs = _folderStructure['_root'];
+		var folders = fs.folders;
+		// TODO-NOW: 4 sort them appropreately
+		for(var key in fs.folders) {
+			var card = _createFolderCard(fs.folders[key]);
+			cards.push(card);
+		}
+		for(var key in fs.items) {
+			var card = _createCard(fs.items[key]);
+			cards.push(card);
+		}
+		nlCardsSrv.updateCards($scope.cards, {
+			cardlist: cards,
+			canFetchMore: nlSearchCacheSrv.canFetchMore()
+		});
+	}
+
     var _pageFetcher = nlServerApi.getPageFetcher();
 	function _getDataFromServer(resolve, fetchMore) {
 		if(_folder) return _getCacheDataFromServer(resolve);
