@@ -75,6 +75,7 @@ function PendingTimer() {
 //#############################################################################################
 function SlideChangeChecker(lesson) {
 	var _ensureCompletion = false;
+	var _ensureCompletionOnBrowsing = false;
 	var _isTimerNeeded = false;
 	var _slm = false;
     var _lastTime = new Date();
@@ -83,6 +84,7 @@ function SlideChangeChecker(lesson) {
 	this.init = function() {
 		_slm = lesson.oLesson.selfLearningMode;
 		_ensureCompletion = lesson.oLesson.check_all_question_answered || false;
+		_ensureCompletionOnBrowsing = lesson.oLesson.check_all_question_on_browsing || false;
         _isTimerNeeded = lesson.renderCtx.launchMode() == 'do';
 		if (!_isTimerNeeded) return;
 
@@ -113,9 +115,14 @@ function SlideChangeChecker(lesson) {
         lesson.updateScore();
     	for (var p=curPgNo; p<newPgNo; p++) {
 	        var curPage = pages[p];
-	    	var pgNo  = p == curPgNo ? null : p+1;
-	        if (_ensureCompletion && !_isPageCompleted(curPage, pgNo)) return false;
-	        if (!_enoughTimeSpent(curPage, pgNo)) return false;
+			var pgNo  = p == curPgNo ? null : p+1;
+			if (lesson.renderCtx.launchCtx() == 'do' || lesson.renderCtx.launchCtx() == 'do_assign') {
+				if (_ensureCompletion && !_isPageCompleted(curPage, pgNo)) return false;
+				if (!_enoughTimeSpent(curPage, pgNo)) return false;
+			} else if (_ensureCompletionOnBrowsing) {
+				if(!_isPageCompleted(curPage, pgNo)) return false;
+				if (!_enoughTimeSpent(curPage, pgNo)) return false;
+			}
     	}
         return true;
     };

@@ -221,6 +221,18 @@ function(nl, nlDlg, nlConfig, Upload) {
     };
     
     //---------------------------------------------------------------------------------------------
+    // SearchCache Module
+    //---------------------------------------------------------------------------------------------
+    this.searchCacheGetInfo = function(data) {
+        return server.post('_serverapi/search_cache_get_info.json', data);
+    };
+
+    this.searchCacheGetJson = function(cachetype, cacheid) {
+        var url = nl.fmt2('_serverapi/search_cache_get_json.json?cachetype={}&cacheid={}', cachetype, cacheid);
+        return nl.http.get(url);
+    };
+
+    //---------------------------------------------------------------------------------------------
     // Dashboard customization methods
     //---------------------------------------------------------------------------------------------
     this.dashboardGetList = function(data) {
