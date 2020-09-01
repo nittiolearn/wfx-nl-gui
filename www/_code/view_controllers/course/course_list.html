@@ -1,2 +1,9 @@
-<div ng-show='currentFolder' class="padding-mid">{{folderDisplayName}}: {{currentFolder}}</div>
+<div ng-show='currentFolder' class="padding-mid">
+    <div class="padding-mid">
+        <span ng-repeat='path in folderPath track by $index' ng-click="onClickBreadCrumb(path.name)"
+                nlta='{{path.name}}'
+                class='nl-link-text padding-mid-right'>{{path.name}} >
+        </span>
+    </div>
+</div>
 <nl-cards cards='cards' class='nl-thin-scroll'></nl-cards>

@@ -94,6 +94,7 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
 	var _folderStructure = {};
 	$scope.currentFolder = null;
 	$scope.folderDisplayName = null;
+	$scope.folderPath = [];
 
 	function _onPageEnter(userInfo) {
 		_userInfo = userInfo;
@@ -322,9 +323,28 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
 	}
 
 	function _onFolderClick(card) {
-		// TODO-NOW: 1. Display breadcrups on the top
-		$scope.currentFolder = card.fs.folderName;
+		_updateFolderPath(card.fs.folderName);
 		_addCurrentFolderCards();
+	}
+
+	$scope.onClickBreadCrumb = function(folderName) {
+		_updateFolderPath(folderName);
+		_addCurrentFolderCards();
+	};
+
+	function _updateFolderPath(folderName) {
+		if(!folderName) return;
+		if ($scope.currentFolder == folderName) return;
+		if($scope.folderDisplayName == folderName) {
+			$scope.currentFolder = null; 
+			return;
+		}
+		$scope.currentFolder = folderName;
+		$scope.folderPath = [{name: $scope.folderDisplayName, value: '_root'}];
+		var parts = folderName.split('.');
+		for(var i=0; i<parts.length; i++) {
+			$scope.folderPath.push({ name: parts[i], value:parts.slice(0,i+1).join('.') });
+		}
 	}
 	
 	function _addCurrentFolderCards() {
