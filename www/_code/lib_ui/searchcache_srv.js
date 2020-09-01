@@ -126,6 +126,9 @@ function(nl, nlDlg, nlServerApi, $http) {
             if (updated < updatedInCache) continue;
             cache.itemsDict[itemId] = item;
         }
+        for(var itemId in cache.deleted_ids) {
+            if(itemId in cache.itemsDict) delete cache.itemsDict[itemId];
+        }
     }
 
 }];

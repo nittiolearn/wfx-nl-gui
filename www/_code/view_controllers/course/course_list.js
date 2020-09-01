@@ -20,7 +20,7 @@ function($stateProvider, $urlRouterProvider) {
 		url: '^/course_list',
 		views: {
 			'appContent': {
-				templateUrl: 'lib_ui/cards/cardsview.html',
+				templateUrl: 'view_controllers/course/course_list.html',
 				controller: 'nl.CourseListCtrl'
 			}
 		}});
@@ -50,19 +50,19 @@ function($stateProvider, $urlRouterProvider) {
 		}});
 }];
 
-var CourseListCtrl = ['nl', 'nlRouter', '$scope', 'nlServerApi', 'nlGetManyStore', 'nlDlg', 'nlCardsSrv', 'nlSendAssignmentSrv', 'nlMetaDlg', 'nlCourse', 'nlExpressionProcessor', 'nlChangeOwner',
-function(nl, nlRouter, $scope, nlServerApi, nlGetManyStore, nlDlg, nlCardsSrv, nlSendAssignmentSrv, nlMetaDlg, nlCourse, nlExpressionProcessor, nlChangeOwner) {
-	_listCtrlImpl('course', nl, nlRouter, $scope, nlServerApi, nlGetManyStore, nlDlg, nlCardsSrv, nlSendAssignmentSrv, nlMetaDlg, nlCourse, nlExpressionProcessor, nlChangeOwner);
+var CourseListCtrl = ['nl', 'nlRouter', '$scope', 'nlServerApi', 'nlGetManyStore', 'nlDlg', 'nlCardsSrv', 'nlSendAssignmentSrv', 'nlMetaDlg', 'nlCourse', 'nlExpressionProcessor', 'nlChangeOwner', 'nlSearchCacheSrv',
+function(nl, nlRouter, $scope, nlServerApi, nlGetManyStore, nlDlg, nlCardsSrv, nlSendAssignmentSrv, nlMetaDlg, nlCourse, nlExpressionProcessor, nlChangeOwner, nlSearchCacheSrv) {
+	_listCtrlImpl('course', nl, nlRouter, $scope, nlServerApi, nlGetManyStore, nlDlg, nlCardsSrv, nlSendAssignmentSrv, nlMetaDlg, nlCourse, nlExpressionProcessor, nlChangeOwner, nlSearchCacheSrv);
 }];
 
-var CourseAssignListCtrl = ['nl', 'nlRouter', '$scope', 'nlServerApi', 'nlGetManyStore', 'nlDlg', 'nlCardsSrv', 'nlSendAssignmentSrv', 'nlMetaDlg', 'nlCourse', 'nlExpressionProcessor', 'nlChangeOwner',
-function(nl, nlRouter, $scope, nlServerApi, nlGetManyStore, nlDlg, nlCardsSrv, nlSendAssignmentSrv, nlMetaDlg, nlCourse, nlExpressionProcessor, nlChangeOwner) {
-	_listCtrlImpl('assign', nl, nlRouter, $scope, nlServerApi, nlGetManyStore, nlDlg, nlCardsSrv, nlSendAssignmentSrv, nlMetaDlg, nlCourse, nlExpressionProcessor, nlChangeOwner);
+var CourseAssignListCtrl = ['nl', 'nlRouter', '$scope', 'nlServerApi', 'nlGetManyStore', 'nlDlg', 'nlCardsSrv', 'nlSendAssignmentSrv', 'nlMetaDlg', 'nlCourse', 'nlExpressionProcessor', 'nlChangeOwner', 'nlSearchCacheSrv',
+function(nl, nlRouter, $scope, nlServerApi, nlGetManyStore, nlDlg, nlCardsSrv, nlSendAssignmentSrv, nlMetaDlg, nlCourse, nlExpressionProcessor, nlChangeOwner, nlSearchCacheSrv) {
+	_listCtrlImpl('assign', nl, nlRouter, $scope, nlServerApi, nlGetManyStore, nlDlg, nlCardsSrv, nlSendAssignmentSrv, nlMetaDlg, nlCourse, nlExpressionProcessor, nlChangeOwner, nlSearchCacheSrv);
 }];
 
-var CourseAssignMyListCtrl = ['nl', 'nlRouter', '$scope', 'nlServerApi', 'nlGetManyStore', 'nlDlg', 'nlCardsSrv', 'nlSendAssignmentSrv', 'nlMetaDlg', 'nlCourse', 'nlExpressionProcessor', 'nlChangeOwner',
-function(nl, nlRouter, $scope, nlServerApi, nlGetManyStore, nlDlg, nlCardsSrv, nlSendAssignmentSrv, nlMetaDlg, nlCourse, nlExpressionProcessor, nlChangeOwner) {
-	_listCtrlImpl('assign_my', nl, nlRouter, $scope, nlServerApi, nlGetManyStore, nlDlg, nlCardsSrv, nlSendAssignmentSrv, nlMetaDlg, nlCourse, nlExpressionProcessor, nlChangeOwner);
+var CourseAssignMyListCtrl = ['nl', 'nlRouter', '$scope', 'nlServerApi', 'nlGetManyStore', 'nlDlg', 'nlCardsSrv', 'nlSendAssignmentSrv', 'nlMetaDlg', 'nlCourse', 'nlExpressionProcessor', 'nlChangeOwner', 'nlSearchCacheSrv',
+function(nl, nlRouter, $scope, nlServerApi, nlGetManyStore, nlDlg, nlCardsSrv, nlSendAssignmentSrv, nlMetaDlg, nlCourse, nlExpressionProcessor, nlChangeOwner, nlSearchCacheSrv) {
+	_listCtrlImpl('assign_my', nl, nlRouter, $scope, nlServerApi, nlGetManyStore, nlDlg, nlCardsSrv, nlSendAssignmentSrv, nlMetaDlg, nlCourse, nlExpressionProcessor, nlChangeOwner, nlSearchCacheSrv);
 }];
 
 var CourseReportListCtrl = ['nl', 'nlRouter', '$scope', 'nlServerApi', 'nlGetManyStore', 'nlDlg', 'nlCardsSrv', 'nlSendAssignmentSrv', 'nlMetaDlg', 'nlCourse',
@@ -70,10 +70,11 @@ function(nl, nlRouter, $scope, nlServerApi, nlGetManyStore, nlDlg, nlCardsSrv, n
 	_listCtrlImpl('report', nl, nlRouter, $scope, nlServerApi, nlGetManyStore, nlDlg, nlCardsSrv, nlSendAssignmentSrv, nlMetaDlg, nlCourse);
 }];
 
-function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, nlDlg, nlCardsSrv, nlSendAssignmentSrv, nlMetaDlg, nlCourse, nlExpressionProcessor, nlChangeOwner) {
+function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, nlDlg, nlCardsSrv, nlSendAssignmentSrv, nlMetaDlg, nlCourse, nlExpressionProcessor, nlChangeOwner, nlSearchCacheSrv) {
 	/* 
 	 * URLs handled
 	 * 'View published' : /course_list?type=course&my=0
+	 * 'View published grid view' : /course_list?type=course&folder=grade|subject
 	 * 'Edit my' : /course_list?type=course&my=1
 	 * 'Assigned courses (sent by all)' : /course_assign_list
 	 * 'Assigned courses (sent by me)' : /course_assign_my_list
@@ -89,6 +90,7 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
     var _searchMetadata = null;
     var _canManage = false;
     var _resultList = [];
+	var _folder = null;
 
 	function _onPageEnter(userInfo) {
 		_userInfo = userInfo;
@@ -98,12 +100,13 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
 			nlGetManyStore.init();
 			_initParams();
 			nl.pginfo.pageTitle = _getPageTitle();
+			if(_folder) nlSearchCacheSrv.init();
 			$scope.cards = {
 			    staticlist: _getStaticCards(), 
                 search: {onSearch: _metadataEnabled ? _onSearch: null, 
                          placeholder: nl.t('Enter course name/description')}
             };
-            nlCardsSrv.initCards($scope.cards);
+			nlCardsSrv.initCards($scope.cards);
 			_getDataFromServer(resolve);
 		});
 	}
@@ -168,7 +171,8 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
 	function _initParams() {
 		courseDict = {};
         var params = nl.location.search();
-        my = ('my' in params) ? parseInt(params.my) == 1: false;
+		_folder = params.folder || null;
+        my = ('my' in params && !_folder) ? parseInt(params.my) == 1: false;
         _metadataEnabled = (type == 'course') && !my;
 		_searchMetadata = nlMetaDlg.getMetadataFromUrl();
 		_maxDelete = params.max_delete || 50;
@@ -195,6 +199,7 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
 	}
 
 	function _onSearch(filter, searchCategory, onSearchParamChange) {
+		// TODO-NOW: Test- how does it work in folder view cache mode. Test with metadata
         if (!_metadataEnabled) return;
         _searchMetadata.search = filter;
         var cmConfig = {canFetchMore: $scope.cards.canFetchMore,
@@ -207,25 +212,35 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
             _getDataFromServer();
         });
     }
-
-	function _checkDateOutOfRange(card) {
-		var currentDate = new Date();
-	    var starttime = card['not_before'] && card['not_before'] != '' ? nl.fmt.json2Date(card.not_before) : '';
-	    var endtime = card['not_after'] && card['not_after'] != '' ? nl.fmt.json2Date(card.not_after) : '';
-	    if (starttime && currentDate < starttime)
-	        return true;
-	    if (endtime && (currentDate > endtime) && !card.submissionAfterEndtime){
-	        return true;
-	    }
-	    return false;	
-	}
 	
     function _fetchMore() {
         _getDataFromServer(null, true);
     }
-    
+	
+	function _getCacheDataFromServer(resolve) {
+        nlSearchCacheSrv.getItems('published_course').then(function(itemsDict, canFetchMore) {
+            _updateCards(itemsDict);
+            if (resolve) resolve(true);
+        });
+    }
+
+    function _updateCards(itemsDict) {
+		var cards = [];
+		for (var itemId in itemsDict) {
+            var card = _createCard(itemsDict[itemId]);
+			if (!card) continue;
+			// TODO-NOW: check for oulist. If oulist is not mine, so ignore that card. Look into ncourse.py
+			cards.push(card);
+		}
+		nlCardsSrv.updateCards($scope.cards, {
+			cardlist: cards,
+			canFetchMore: nlSearchCacheSrv.canFetchMore()
+		});
+    }
+	
     var _pageFetcher = nlServerApi.getPageFetcher();
 	function _getDataFromServer(resolve, fetchMore) {
+		if(_folder) return _getCacheDataFromServer(resolve);
         if (!fetchMore) _resultList = [];
         var params = {metadata: _searchMetadata};
 		if(fetchMore) params['max'] = _max2;
@@ -307,8 +322,6 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
 	function _getCards(resultList, nlCardsSrv) {
 		var cards = [];
 		for (var i = 0; i < resultList.length; i++) {
-			//Display the card irrecpective of From and till attributes
-			//if(type === 'report' && _checkDateOutOfRange(resultList[i])) continue;
 			var card = _createCard(resultList[i]);
 			cards.push(card);
 		}
@@ -357,11 +370,6 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
 		card.links.push({id: 'details', text: nl.t('details')});
 		return card;
 	}
-	
-    function _addMetadataLink(card) {
-        if (!_metadataEnabled || !_canManage) return;
-        card.links.push({id : 'course_metadata', text : nl.t('metadata')});
-    }
 
     function _addMetadataLinkToDetails(linkAvp) {
         if (!_metadataEnabled) return;
