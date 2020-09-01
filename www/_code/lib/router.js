@@ -294,6 +294,7 @@ function Permission(nl) {
         '/nittio_mobile_sim': {login: true, permission: 'nittio_support', termRestriction: TR_CLOSED},
         '/forum': {login: true, permission: 'basic_access', termRestriction: TR_RESTRICTED},
         '/course_list': {login: true, permission: 'assignment_send', termRestriction: TR_CLOSED},
+        '/folder_view': {login: true, permission: 'assignment_send', termRestriction: TR_CLOSED},
         '/course_assign_my_list': {login: true, permission: 'assignment_send', termRestriction: TR_CLOSED},
         '/course_assign_list': {login: true, permission: 'assignment_manage', termRestriction: TR_CLOSED},
 		'/course_report_list': {login:true, permission: 'course_do', termRestriction: TR_RESTRICTED},
