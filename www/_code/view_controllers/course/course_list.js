@@ -265,8 +265,6 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
 
 	var _myOus = null;
 	function _isOuAllowed(courseItem) {
-		// TODO-NOW: 0. check for oulist. If oulist is not mine, so ignore that card. Look into ncourse.py
-		// Release the software after this change.
 		var allowedOus = courseItem['oulist'] || [];
 		if (allowedOus.length == 0 || _userInfo.permissions.nittio_support) return true;
 		if (!_myOus) {
@@ -691,16 +689,26 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
 			nlServerApi.courseDelete(courseId).then(function(status) {
 				nlDlg.hideLoadingScreen();
 				if (courseId in courseDict) delete courseDict[courseId];
-				// TODO-NOW: 1. Do other tests mentioned your todo-list
-				// TODO-NOW: 1. May not work in folder view
 				for (var i in $scope.cards.cardlist) {
 					var card = $scope.cards.cardlist[i];
 					if (card.courseId !== courseId) continue;
 					$scope.cards.cardlist.splice(i, 1);
+					if(_folderView.folder) _deleteCardFromFolderView($scope, courseId);
 				}
                 nlCardsSrv.updateCards($scope.cards);
 			});	
 		});
+	}
+
+	function _deleteCardFromFolderView($scope, courseId) {
+		var currentFolderTree = _folderView.tree[_folderView.currentFolder];
+		delete currentFolderTree.items[courseId];
+		currentFolderTree.count--;
+		if(!currentFolderTree.count) {
+			if (_folderView.currentPath.length > 1) _folderView.currentPath.pop();
+			var folderName = _folderView.currentPath.length >= 1 ? _folderView.currentPath[_folderView.currentPath.length-1].value : null;
+			$scope.onClickBreadCrumb(folderName);
+		}
 	}
 	
 	function _deleteAssignment($scope, assignId) {
@@ -714,6 +722,7 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
 			_deleteAssignmentInLoop(assignId, 0, function() {
 				nlDlg.hideLoadingScreen();
 				// TODO-NOW: 1. May not work in folder view
+				// Do the similar update done at _deleteCourse(); for course delete.
 				for (var i in $scope.cards.cardlist) {
 					var card = $scope.cards.cardlist[i];
 					if (card.reportId !== assignId) continue;
@@ -871,7 +880,6 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
 			copyCourseDlg.show('view_controllers/course/course_copy.html', [], closeButton, true);	
 		}
 		if(isCopy && !my) return;
-		// TODO-NOW: 1. May not work in folder view
 		var card = _createCourseCard(course);
 		if (courseId !== null) {
 			var pos = _getCardPosition(course.id);
