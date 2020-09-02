@@ -1,6 +1,6 @@
-<div ng-show='currentFolder' class="padding-mid">
+<div ng-show='folderView.currentFolder' class="padding-mid">
     <div class="padding-mid">
-        <span ng-repeat='path in folderPath track by $index' ng-click="onClickBreadCrumb(path.name)"
+        <span ng-repeat='path in folderView.currentPath track by $index' ng-click="onClickBreadCrumb(path.name)"
                 nlta='{{path.name}}'
                 class='nl-link-text padding-mid-right'>{{path.name}} >
         </span>

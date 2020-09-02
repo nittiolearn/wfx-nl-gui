@@ -50,27 +50,27 @@ function($stateProvider, $urlRouterProvider) {
 		}});
 }];
 
-var CourseListCtrl = ['nl', 'nlRouter', '$scope', 'nlServerApi', 'nlGetManyStore', 'nlDlg', 'nlCardsSrv', 'nlSendAssignmentSrv', 'nlMetaDlg', 'nlCourse', 'nlExpressionProcessor', 'nlChangeOwner', 'nlSearchCacheSrv',
-function(nl, nlRouter, $scope, nlServerApi, nlGetManyStore, nlDlg, nlCardsSrv, nlSendAssignmentSrv, nlMetaDlg, nlCourse, nlExpressionProcessor, nlChangeOwner, nlSearchCacheSrv) {
-	_listCtrlImpl('course', nl, nlRouter, $scope, nlServerApi, nlGetManyStore, nlDlg, nlCardsSrv, nlSendAssignmentSrv, nlMetaDlg, nlCourse, nlExpressionProcessor, nlChangeOwner, nlSearchCacheSrv);
+var CourseListCtrl = ['nl', 'nlRouter', '$scope', 'nlServerApi', 'nlGetManyStore', 'nlDlg', 'nlCardsSrv', 'nlSendAssignmentSrv', 'nlMetaDlg', 'nlCourse', 'nlExpressionProcessor', 'nlChangeOwner', 'nlSearchCacheSrv', '$filter',
+function(nl, nlRouter, $scope, nlServerApi, nlGetManyStore, nlDlg, nlCardsSrv, nlSendAssignmentSrv, nlMetaDlg, nlCourse, nlExpressionProcessor, nlChangeOwner, nlSearchCacheSrv, $filter) {
+	_listCtrlImpl('course', nl, nlRouter, $scope, nlServerApi, nlGetManyStore, nlDlg, nlCardsSrv, nlSendAssignmentSrv, nlMetaDlg, nlCourse, nlExpressionProcessor, nlChangeOwner, nlSearchCacheSrv, $filter);
 }];
 
-var CourseAssignListCtrl = ['nl', 'nlRouter', '$scope', 'nlServerApi', 'nlGetManyStore', 'nlDlg', 'nlCardsSrv', 'nlSendAssignmentSrv', 'nlMetaDlg', 'nlCourse', 'nlExpressionProcessor', 'nlChangeOwner', 'nlSearchCacheSrv',
-function(nl, nlRouter, $scope, nlServerApi, nlGetManyStore, nlDlg, nlCardsSrv, nlSendAssignmentSrv, nlMetaDlg, nlCourse, nlExpressionProcessor, nlChangeOwner, nlSearchCacheSrv) {
-	_listCtrlImpl('assign', nl, nlRouter, $scope, nlServerApi, nlGetManyStore, nlDlg, nlCardsSrv, nlSendAssignmentSrv, nlMetaDlg, nlCourse, nlExpressionProcessor, nlChangeOwner, nlSearchCacheSrv);
+var CourseAssignListCtrl = ['nl', 'nlRouter', '$scope', 'nlServerApi', 'nlGetManyStore', 'nlDlg', 'nlCardsSrv', 'nlSendAssignmentSrv', 'nlMetaDlg', 'nlCourse', 'nlExpressionProcessor', 'nlChangeOwner', 'nlSearchCacheSrv', '$filter',
+function(nl, nlRouter, $scope, nlServerApi, nlGetManyStore, nlDlg, nlCardsSrv, nlSendAssignmentSrv, nlMetaDlg, nlCourse, nlExpressionProcessor, nlChangeOwner, nlSearchCacheSrv, $filter) {
+	_listCtrlImpl('assign', nl, nlRouter, $scope, nlServerApi, nlGetManyStore, nlDlg, nlCardsSrv, nlSendAssignmentSrv, nlMetaDlg, nlCourse, nlExpressionProcessor, nlChangeOwner, nlSearchCacheSrv, $filter);
 }];
 
-var CourseAssignMyListCtrl = ['nl', 'nlRouter', '$scope', 'nlServerApi', 'nlGetManyStore', 'nlDlg', 'nlCardsSrv', 'nlSendAssignmentSrv', 'nlMetaDlg', 'nlCourse', 'nlExpressionProcessor', 'nlChangeOwner', 'nlSearchCacheSrv',
-function(nl, nlRouter, $scope, nlServerApi, nlGetManyStore, nlDlg, nlCardsSrv, nlSendAssignmentSrv, nlMetaDlg, nlCourse, nlExpressionProcessor, nlChangeOwner, nlSearchCacheSrv) {
-	_listCtrlImpl('assign_my', nl, nlRouter, $scope, nlServerApi, nlGetManyStore, nlDlg, nlCardsSrv, nlSendAssignmentSrv, nlMetaDlg, nlCourse, nlExpressionProcessor, nlChangeOwner, nlSearchCacheSrv);
+var CourseAssignMyListCtrl = ['nl', 'nlRouter', '$scope', 'nlServerApi', 'nlGetManyStore', 'nlDlg', 'nlCardsSrv', 'nlSendAssignmentSrv', 'nlMetaDlg', 'nlCourse', 'nlExpressionProcessor', 'nlChangeOwner', 'nlSearchCacheSrv', '$filter',
+function(nl, nlRouter, $scope, nlServerApi, nlGetManyStore, nlDlg, nlCardsSrv, nlSendAssignmentSrv, nlMetaDlg, nlCourse, nlExpressionProcessor, nlChangeOwner, nlSearchCacheSrv, $filter) {
+	_listCtrlImpl('assign_my', nl, nlRouter, $scope, nlServerApi, nlGetManyStore, nlDlg, nlCardsSrv, nlSendAssignmentSrv, nlMetaDlg, nlCourse, nlExpressionProcessor, nlChangeOwner, nlSearchCacheSrv, $filter);
 }];
 
-var CourseReportListCtrl = ['nl', 'nlRouter', '$scope', 'nlServerApi', 'nlGetManyStore', 'nlDlg', 'nlCardsSrv', 'nlSendAssignmentSrv', 'nlMetaDlg', 'nlCourse',
-function(nl, nlRouter, $scope, nlServerApi, nlGetManyStore, nlDlg, nlCardsSrv, nlSendAssignmentSrv, nlMetaDlg, nlCourse) {
-	_listCtrlImpl('report', nl, nlRouter, $scope, nlServerApi, nlGetManyStore, nlDlg, nlCardsSrv, nlSendAssignmentSrv, nlMetaDlg, nlCourse);
+var CourseReportListCtrl = ['nl', 'nlRouter', '$scope', 'nlServerApi', 'nlGetManyStore', 'nlDlg', 'nlCardsSrv', 'nlSendAssignmentSrv', 'nlMetaDlg', 'nlCourse', 'nlExpressionProcessor', 'nlChangeOwner', 'nlSearchCacheSrv', '$filter',
+function(nl, nlRouter, $scope, nlServerApi, nlGetManyStore, nlDlg, nlCardsSrv, nlSendAssignmentSrv, nlMetaDlg, nlCourse, nlExpressionProcessor, nlChangeOwner, nlSearchCacheSrv, $filter) {
+	_listCtrlImpl('report', nl, nlRouter, $scope, nlServerApi, nlGetManyStore, nlDlg, nlCardsSrv, nlSendAssignmentSrv, nlMetaDlg, nlCourse, nlExpressionProcessor, nlChangeOwner, nlSearchCacheSrv, $filter);
 }];
 
-function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, nlDlg, nlCardsSrv, nlSendAssignmentSrv, nlMetaDlg, nlCourse, nlExpressionProcessor, nlChangeOwner, nlSearchCacheSrv) {
+function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, nlDlg, nlCardsSrv, nlSendAssignmentSrv, nlMetaDlg, nlCourse, nlExpressionProcessor, nlChangeOwner, nlSearchCacheSrv, $filter) {
 	/* 
 	 * URLs handled
 	 * 'View published' : /course_list?type=course&my=0
@@ -89,12 +89,25 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
     var _metadataEnabled = false;
     var _searchMetadata = null;
     var _canManage = false;
-    var _resultList = [];
-	var _folder = null;
-	var _folderStructure = {};
-	$scope.currentFolder = null;
-	$scope.folderDisplayName = null;
-	$scope.folderPath = [];
+	var _resultList = [];
+	
+	// All Global data needed folder view
+	var _folderView = {
+		folder: null, 			// This is derived from URL and not changed later.
+								// grade|subject|authorname|anythingelse (from URL). If defined, 
+								// searchcache is used to get cached data from server. The folder
+					  			// view itself is shown only when folderLabel is not null
+		folderLabel: null,		// This is initialzed on startup.
+								// If folder is a supported attribute, folderLabel is set to the
+								// display name. For example: grade => gradelabel. Only if this
+								// is set, the folderview is shown.
+		tree: {}, 				// Folder structure
+		currentFolder: null,	// Currently displayed folder
+		currentPath: [],		// Path shown in breadcrumps
+		searchStr: '',			// For custom searching in folder view
+		searchCategory: '',			// For custom searching in folder view
+	}; 
+	$scope.folderView = _folderView;
 
 	function _onPageEnter(userInfo) {
 		_userInfo = userInfo;
@@ -104,11 +117,12 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
 			nlGetManyStore.init();
 			_initParams();
 			nl.pginfo.pageTitle = _getPageTitle();
-			if(_folder) nlSearchCacheSrv.init();
+			if(_folderView.folder) nlSearchCacheSrv.init();
 			$scope.cards = {
 			    staticlist: _getStaticCards(), 
-                search: {onSearch: _metadataEnabled ? _onSearch: null, 
-                         placeholder: nl.t('Enter course name/description')}
+				search: {customSearch: _folderView.folderLabel ? _onFolderViewSearch: null,
+					onSearch: _metadataEnabled ? _onSearch: null, 
+                    placeholder: nl.t('Enter course name/description')}
             };
 			nlCardsSrv.initCards($scope.cards);
 			_getDataFromServer(resolve);
@@ -177,19 +191,19 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
 	function _initParams() {
 		courseDict = {};
         var params = nl.location.search();
-		_folder = params.folder || null;
-        my = ('my' in params && !_folder) ? parseInt(params.my) == 1: false;
+		_folderView.folder = params.folder || null;
+        my = ('my' in params && !_folderView.folder) ? parseInt(params.my) == 1: false;
         _metadataEnabled = (type == 'course') && !my;
 		_searchMetadata = nlMetaDlg.getMetadataFromUrl();
 		_maxDelete = params.max_delete || 50;
 		_max2 = ('max2' in params) ? parseInt(params.max2) : 500;
 
-		if (_folder == 'grade') {
-			$scope.folderDisplayName = _userInfo.groupinfo.gradelabel;
-		} else if (_folder == 'subject') {
-			$scope.folderDisplayName = _userInfo.groupinfo.subjectlabel;
-		} else if (_folder == 'authorname') {
-			$scope.folderDisplayName = 'Author:';
+		if (_folderView.folder == 'grade') {
+			_folderView.folderLabel = _userInfo.groupinfo.gradelabel;
+		} else if (_folderView.folder == 'subject') {
+			_folderView.folderLabel = _userInfo.groupinfo.subjectlabel;
+		} else if (_folderView.folder == 'authorname') {
+			_folderView.folderLabel = 'Author:';
 		}
 	}
 
@@ -213,8 +227,8 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
 	}
 
 	function _onSearch(filter, searchCategory, onSearchParamChange) {
-		// TODO-NOW: 6. Test- how does it work in folder view cache mode. Test with metadata
-		// TODO-NOW: 7. Do other tests mentioned your todo-list
+		// TODO-NOW: 2. Test- how does it work in folder view cache mode. Test with metadata
+		// This is not work with filter as of now
         if (!_metadataEnabled) return;
         _searchMetadata.search = filter;
         var cmConfig = {canFetchMore: $scope.cards.canFetchMore,
@@ -234,19 +248,50 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
 	
 	function _getCacheDataFromServer(resolve) {
         nlSearchCacheSrv.getItems('published_course').then(function(itemsDict, canFetchMore) {
-            _updateCards(itemsDict);
+			_filterOutDisallowedOus(itemsDict);
+            _updateCards();
             if (resolve) resolve(true);
         });
     }
 
-    function _updateCards(itemsDict) {
-		if ($scope.folderDisplayName) return _updateCardsInFolderView(itemsDict);
-		var cards = [];
+    function _filterOutDisallowedOus(itemsDict) {
+		courseDict = {};
 		for (var itemId in itemsDict) {
 			var courseItem = itemsDict[itemId];
 			if (!_isOuAllowed(courseItem)) continue;
-			if (!_isSearchFilterPass(courseItem)) continue;
-			var card = _createCard(itemsDict[itemId]);
+			courseDict[courseItem.id] = courseItem;
+		}
+	}
+
+	var _myOus = null;
+	function _isOuAllowed(courseItem) {
+		// TODO-NOW: 0. check for oulist. If oulist is not mine, so ignore that card. Look into ncourse.py
+		// Release the software after this change.
+		var allowedOus = courseItem['oulist'] || [];
+		if (allowedOus.length == 0 || _userInfo.permissions.nittio_support) return true;
+		if (!_myOus) {
+			_myOus = [];
+			var ou = _userInfo.org_unit || '';
+			if (ou) _myOus.push(ou);
+			var secOus = (_userInfo.sec_ou_list || '').split(',');
+			for(var i=0; i<secOus.length; i++) {
+				var secOu = secOus[i].trim();
+				if (secOu) _myOus.push(secOu);
+			}
+		}
+        for (var i=0; i<allowedOus.length; i++) {
+			for (var j=0; j<_myOus.length; j++) {
+				if (_myOus[j].indexOf(allowedOus[i]) == 0) return true;
+			}
+		}
+		return false;
+	}
+
+    function _updateCards() {
+		if (_folderView.folderLabel) return _updateCardsInFolderView();
+		var cards = [];
+		for (var itemId in courseDict) {
+			var card = _createCard(courseDict[itemId]);
 			if (!card) continue;
 			cards.push(card);
 		}
@@ -256,26 +301,33 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
 		});
 	}
 
-    function _updateCardsInFolderView(itemsDict) {
-		_folderStructure = {};
-		for (var itemId in itemsDict) {
-			var courseItem = itemsDict[itemId];
-			if (!_isOuAllowed(courseItem)) continue;
-			var itemVisible = _isSearchFilterPass(courseItem);
+    function _updateCardsInFolderView() {
+		_folderView.tree = {};
+		for (var itemId in courseDict) {
+			var courseItem = courseDict[itemId];
+			var card = _createCard(courseItem);
+			var result = $filter('nlFilter')([card], _folderView.searchStr, _folderView.searchCategory);
+			var itemVisible = result.length > 0 ? true : false;
 			_addToFolders(courseItem, itemVisible);
 		}
-		_updateCounts(_folderStructure['_root']);
+		_updateCounts(_folderView.tree['_root']);
 		_addCurrentFolderCards();
 	}
 
+	function _onFolderViewSearch(searchStr, searchCategory) {
+		_folderView.searchStr = searchStr;
+		_folderView.searchCategory = searchCategory;
+		_updateCardsInFolderView();
+	}
+
 	function _addToFolders(courseItem, itemVisible) {
-		var folder = courseItem[_folder] || 'Others';
+		var folder = courseItem[_folderView.folder] || 'Others';
 		_addItemToParentFolder(folder, courseItem, itemVisible ? 'item' : 'ignore');
 	}
 
 	function _addItemToParentFolder(folder, item, itemType) {
-		if (!_folderStructure[folder]) _folderStructure[folder] = {folders: {}, items: {}, folderName: folder, count: 0};
-		var fs = _folderStructure[folder];
+		if (!_folderView.tree[folder]) _folderView.tree[folder] = {folders: {}, items: {}, folderName: folder, count: 0};
+		var fs = _folderView.tree[folder];
 		if (itemType == 'folder') {
 			fs.folders[item.folderName] = item;
 		} else if (itemType == 'item') {
@@ -299,17 +351,6 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
 			_updateCounts(child);
 			fs.count += child.count;
 		}
-	}
-
-	function _isOuAllowed(courseItem) {
-		// TODO-NOW: 2. check for oulist. If oulist is not mine, so ignore that card. Look into ncourse.py
-		// Release the software after this change.
-		return true;
-	}
-
-	function _isSearchFilterPass() {
-		// TODO-NOW: 3. Implement based on search string and filter dialog selection
-		return true;
 	}
 
 	function _createFolderCard(fs) {
@@ -336,26 +377,25 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
 
 	function _updateFolderPath(folderName) {
 		if(!folderName) return;
-		if ($scope.currentFolder == folderName) return;
-		if($scope.folderDisplayName == folderName) {
-			$scope.currentFolder = null; 
+		if (_folderView.currentFolder == folderName) return;
+		if(_folderView.folderLabel == folderName) {
+			_folderView.currentFolder = null; 
 			return;
 		}
-		$scope.currentFolder = folderName;
-		$scope.folderPath = [{name: $scope.folderDisplayName, value: '_root'}];
+		_folderView.currentFolder = folderName;
+		_folderView.currentPath = [{name: _folderView.folderLabel, value: '_root'}];
 		var parts = folderName.split('.');
 		for(var i=0; i<parts.length; i++) {
-			$scope.folderPath.push({ name: parts[i], value:parts.slice(0,i+1).join('.') });
+			_folderView.currentPath.push({ name: parts[i], value:parts.slice(0,i+1).join('.') });
 		}
 	}
 	
 	function _addCurrentFolderCards() {
 		var cards = [];
 
-		var folderKey = $scope.currentFolder || '_root';
-		var fs = _folderStructure[folderKey];
-		if (!fs) fs = _folderStructure['_root'];
-		var folders = fs.folders;
+		var folderKey = _folderView.currentFolder || '_root';
+		var fs = _folderView.tree[folderKey];
+		if (!fs) fs = _folderView.tree['_root'];
 		for(var key in fs.folders) {
 			var card = _createFolderCard(fs.folders[key]);
 			cards.push(card);
@@ -385,7 +425,7 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
 
     var _pageFetcher = nlServerApi.getPageFetcher();
 	function _getDataFromServer(resolve, fetchMore) {
-		if(_folder) return _getCacheDataFromServer(resolve);
+		if(_folderView.folder) return _getCacheDataFromServer(resolve);
         if (!fetchMore) _resultList = [];
         var params = {metadata: _searchMetadata};
 		if(fetchMore) params['max'] = _max2;
@@ -651,6 +691,8 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
 			nlServerApi.courseDelete(courseId).then(function(status) {
 				nlDlg.hideLoadingScreen();
 				if (courseId in courseDict) delete courseDict[courseId];
+				// TODO-NOW: 1. Do other tests mentioned your todo-list
+				// TODO-NOW: 1. May not work in folder view
 				for (var i in $scope.cards.cardlist) {
 					var card = $scope.cards.cardlist[i];
 					if (card.courseId !== courseId) continue;
@@ -671,6 +713,7 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
 			nlDlg.showLoadingScreen();
 			_deleteAssignmentInLoop(assignId, 0, function() {
 				nlDlg.hideLoadingScreen();
+				// TODO-NOW: 1. May not work in folder view
 				for (var i in $scope.cards.cardlist) {
 					var card = $scope.cards.cardlist[i];
 					if (card.reportId !== assignId) continue;
@@ -828,6 +871,7 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
 			copyCourseDlg.show('view_controllers/course/course_copy.html', [], closeButton, true);	
 		}
 		if(isCopy && !my) return;
+		// TODO-NOW: 1. May not work in folder view
 		var card = _createCourseCard(course);
 		if (courseId !== null) {
 			var pos = _getCardPosition(course.id);

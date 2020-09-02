@@ -62,19 +62,26 @@ function(nl, $filter) {
                 cards.search.placeholder = 'Start typing to search';            
             if (!cards.search.icon) cards.search.icon = cards.search.onSearch ? 'ion-funnel' : '';
         } 
-        _updateInternal(cards);
+        _updateInternal2(cards);
     };
     
     this.updateInternal = function(cards, timeout) {
         cards._internal.clickDebouncer.debounce(timeout, _updateInternal)(cards);
     };
 
-    var _MAX_VISIBLE = 500;
     function _updateInternal(cards) {
+        if (!cards.search || !cards.search.customSearch) return _updateInternal2(cards);
+        var search = cards._internal.search;
+        cards.search.customSearch(search.filter, search.category);
+    }
+
+    var _MAX_VISIBLE = 500;
+    function _updateInternal2(cards) {
         var filteredCards = cards.cardlist;
         if (cards.search) {
             var search = cards._internal.search;
-            filteredCards = $filter('nlFilter')(filteredCards, search.filter, search.category);
+            if (!cards.search.customSearch)
+                filteredCards = $filter('nlFilter')(filteredCards, search.filter, search.category);
         }
         var matchedLen = filteredCards.length;
         var len = filteredCards.length > _MAX_VISIBLE ? _MAX_VISIBLE : filteredCards.length;
