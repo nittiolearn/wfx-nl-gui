@@ -314,7 +314,9 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
 	}
 
 	function _isMetadataPresent(courseItem) {
-		console.log('TODO-NOW', courseItem.contentmetadata, _searchMetadata);
+		for(var key in _searchMetadata) {
+			if (_searchMetadata[key] != courseItem.contentmetadata[key]) return false;
+		}
 		return true;
 	}
 
