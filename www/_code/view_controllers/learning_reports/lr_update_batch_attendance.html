@@ -3,7 +3,7 @@
     Please update <b>{{getItemName(selectedModule.lockedOnItem)}}</b> first.
 </div>
 
-<div ng-if='!selectedModule.lockedOnItem'>
+<div ng-if='!selectedModule.lockedOnItem' style='width:fit-content'>
 	<div class='row row-center padding0 margin0'>
 		<div class='col padding0'></div>
 	
@@ -24,41 +24,6 @@
 		<div ng-if='selectedModule.canShowAutoFillButton' class='nl-link-text nl-button-highlight' ng-click='onAutoFillAttendance(selectedModule)'>Autofill</div>	
 		<div ng-if='selectedModule.canShowAutoFillButton' class='padding-small'></div>
 		<div class='nl-link-text nl-button-highlight' ng-click='showBulkAttendanceMarker($event)'>Mark all</div>
-	</div>
-	<div ng-if='isEtmAsd' class='padding-small'></div>
-	<div ng-if='isEtmAsd' class='row row-center padding0 margin0'>
-		<div class='col padding0'></div>
-		<div class='nl-min-200'>
-			<nl-date-select fieldmodelbyref='selectedModule.sessiondate'></nl-date-select>
-		</div>
-		<div class='padding-small'></div>
-		<div class='padding-small'></div>
-		<div class='padding-small'>Shift: </div>
-		<div class='nl-dlg-field-value'>
-			<select ng-model='selectedModule.shiftHrs' 
-					ng-options='opt as opt.id for opt in options.shiftHrs track by opt.id'
-					ng-change='changeSessionShiftTime($event, selectedModule)'
-					class='w100'
-					autofocus=''
-					tabindex=""
-					style='min-height: 34px'>
-			</select>
-		</div>
-		<div class='padding-small'>:</div>
-		<div class='nl-dlg-field-value'>
-			<select ng-model='selectedModule.shiftMins' 
-					ng-options='opt as opt.id for opt in options.shiftMins track by opt.id'
-					ng-change='changeSessionShiftTime($event, selectedModule)'
-					class='w100'
-					autofocus=''
-					tabindex=""
-					style='min-height: 34px'>
-			</select>
-		</div>
-		<div class='padding-small'></div>
-		<div class='padding-small'>-</div>
-		<div class='padding-small'></div>
-		<div class='nl-xxx-select nl-dlg-field-value padding-mid' style='min-width:50px'>{{selectedModule.shiftEnd}}</div>
 	</div>
 
 	<div ng-if='selectedModule.validationErrorMsg' class='row row-center padding0 margin0'>
@@ -90,33 +55,72 @@
 	</div>
 	<table class='nl-table nl-table-styled3'>
 		<tr class='header'>
-			<td style='width: 15%;'>
-				Learner Name
-			</td>
-			<td style='width: 15%;'>
-				Learner Id
-			</td>
+            <td style='width: 50px;'>
+            </td>
 			<td style='width: 20%;'>
-				Session date
+				<div>Learner Name</div> 
+				<div>(Learner Id)</div>
 			</td>
-			<td style='width: 20%;'>
+			<td style='width: 25%;'>
+				Date
+			</td>
+			<td style='min-width: 150px;'>
 				Attendance Status
 			</td>
-			<td>
+			<td style='min-width: 250px'>
 				Remarks
 			</td>
 		</tr>
 		<tr ng-repeat='report in selectedModule.learningRecords'
 			ng-show='bulkMarker.showAttendance || !report.bulkEntry'
             class='{{report.bulkEntry ? "alternate" : report.lockedMessage ? "fgrey" : ""}}'>
+            <td>
+                <div class='nl-link-text fsh5' style='padding:10px' ng-if='bulkMarker.showAttendance && !report.bulkEntry && !report.lockedMessage'
+					ng-click='report.selectedLr = !report.selectedLr'>
+                    <i ng-show='report.selectedLr' class="icon ion-android-checkbox-outline black fsh6"></i>
+                    <i ng-hide='report.selectedLr' class="icon ion-android-checkbox-outline-blank fsh6"></i>
+                </div>
+            </td>
 			<td>
-				{{report.learnername}}
-			</td>
-			<td>
-				{{report.learnerid}}
+				<div>{{report.learnername}}</div>
+				<div ng-if='!report.bulkEntry' class="fgrey">({{report.learnerid}})</div>
 			</td>
 			<td ng-if='!report.lockedMessage'>
-				<nl-date-select fieldmodelbyref='report.sessionDate'></nl-date-select>
+				<div style='border: {{report.bulkEntry ? "1px solid #ffffff" : ""}}; box-shadow: {{ report.bulkEntry ? "2px 4px 5px 0 rgba(0,0,0,.06)" : ""}}'>
+					<nl-date-select fieldmodelbyref='report.attMarkedOn'></nl-date-select>
+				</div>
+				<div class='row row-center padding0 margin0'>
+					<div class='padding-small'>Shift: </div>
+					<div class='nl-dlg-field-value'
+						style='min-width:50px'>
+						<select ng-model='report.shiftHrs' 
+								ng-options='opt as opt.id for opt in options.shiftHrs track by opt.id'
+								ng-change='changeSessionShiftTime($event, report)'
+								class='w100'
+								autofocus=''
+								tabindex=""
+								style='min-height: 34px'>
+						</select>
+					</div>
+					<div class='padding-small'>:</div>
+					<div class='nl-dlg-field-value'
+						style='min-width:50px'>
+						<select ng-model='report.shiftMins' 
+								ng-options='opt as opt.id for opt in options.shiftMins track by opt.id'
+								ng-change='changeSessionShiftTime($event, report)'
+								class='w100'
+								autofocus=''
+								tabindex=""
+								style='min-height: 34px'>
+						</select>
+					</div>
+					<div class='padding-small'></div>
+					<div class='padding-small'>-</div>
+					<div class='padding-small'></div>
+					<div class='nl-xxx-select nl-dlg-field-value padding-mid' style='min-width:60px;border: {{report.bulkEntry ? "1px solid #ffffff" : ""}}; box-shadow: {{(report.bulkEntry ? "2px 4px 5px 0 rgba(0,0,0,.06)" : ""}}'>
+						{{report.shiftEnd}}
+					</div>
+				</div>
 			</td>
 			<td class='nl-dlg-field-value'>
 				<select ng-model='report.attendance' 
@@ -153,7 +157,6 @@
                         tabindex='0'
                         placeholder='Provide additional remarks'>
                 </div>
-			</div>
 				<div ng-if='!report.lockedMessage && !selectedModule.attendanceRemarksOptions'
 					 class='nl-dlg-field-value'>
 					 <input ng-model='report.remarks.id' 
@@ -166,12 +169,15 @@
 				</div>
 				<div ng-if='report.bulkEntry' class='row row-center padding-mid margin0'>
 						<div class='col padding0'></div>
-					
 						<div class='nl-link-text nl-button-lowlight padding-small'
 							 ng-click='hideBulkAttendanceMarker($event)'>Cancel</div>
 						<div class='padding-small'></div>
 						<div class='nl-link-text nl-button-highlight padding-small'
 							 ng-click='bulkAttendanceMarker($event)'>Mark All</div>
+						<div class='padding-small'></div>
+						<div class='nl-link-text nl-button-highlight padding-small'
+							 style='width:150px'
+							 ng-click='bulkAttendanceMarker($event)'>Mark Selected</div>
 				</div>
 			</td>
 		</tr>

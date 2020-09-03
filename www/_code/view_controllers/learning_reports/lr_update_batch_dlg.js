@@ -204,6 +204,7 @@ function DbAttendanceObject(courseAssignment, ctx) {
 
 	this.updateItem = function(cm) {
 		if (_etmAsd.length > 0) {
+			//TODO: NAVEEN This code should be removed after mapping session date and shif times to lr level
 			var sessionInfo = _sessionInfos[cm.id] || {};
 			if (!cm.sessiondate) cm.sessiondate = sessionInfo.sessiondate;
 			if (cm.asdSession) {
@@ -226,12 +227,30 @@ function DbAttendanceObject(courseAssignment, ctx) {
 				itemLr.remarks = {id: ''};
 			} else {
 				var itemInfo = lr.repcontent.statusinfo[cm.id] || {};
+				var sessionInfo = _sessionInfos[cm.id] || {};
+				if (!cm.sessiondate) cm.sessiondate = sessionInfo.sessiondate;
+				cm.sessiondate = nl.fmt.json2Date(cm.sessiondate || '');
+	
 				itemLr.attendance = _attendanceOptionsDict[itemInfo.attId] || {id: itemInfo.attId || ''};
-				itemLr.sessionDate = nl.fmt.json2Date(itemInfo.sessionDate || cm.sessionDate || '');
+				itemLr.attMarkedOn = nl.fmt.json2Date(itemInfo.attMarkedOn || cm.sessionDate || '');
 				itemLr.remarks = {id: itemInfo.remarks || ''};
 				itemLr.otherRemarks = itemInfo.otherRemarks;
 				itemLr.updated = itemInfo.updated || null;
 				itemLr.marked = itemInfo.marked || null;
+				if (cm.asdSession) {
+					itemLr.shiftHrs = {id: itemInfo.shiftHrs || cm.shiftHrs};
+					itemLr.shiftMins = {id: itemInfo.shiftMins || cm.shiftMins};
+				} else {
+					itemLr.shiftHrs = {id: itemInfo.shiftHrs || sessionInfo.shiftHrs} || '';
+					itemLr.shiftMins = {id: itemInfo.shiftMins || sessionInfo.shiftMins} || '';	
+				}
+				if (itemLr.shiftHrs.id && itemLr.shiftMins.id) {
+					var shiftEndHrs = parseInt(itemLr.shiftHrs.id) + 9;
+					if (shiftEndHrs && shiftEndHrs > 23) {
+						shiftEndHrs = shiftEndHrs % 24;
+					}
+					itemLr.shiftEnd = itemInfo.shiftEnd || nl.t('{}:{}', shiftEndHrs, itemLr.shiftMins.id);
+				}
 			}
 		}
 	};
@@ -272,13 +291,13 @@ function DbAttendanceObject(courseAssignment, ctx) {
 		}
 	};
 
-	this.changeSessionShiftTime = function(cm) {
-		if (!cm.shiftHrs || !cm.shiftHrs.id || !cm.shiftMins || !cm.shiftMins) return;
-		var shiftEndHrs = parseInt(cm.shiftHrs.id) + 9;
+	this.changeSessionShiftTime = function(lr) {
+		if (!lr.shiftHrs || !lr.shiftHrs.id || !lr.shiftMins || !lr.shiftMins) return;
+		var shiftEndHrs = parseInt(lr.shiftHrs.id) + 9;
 		if (shiftEndHrs && shiftEndHrs > 23) {
 			shiftEndHrs = shiftEndHrs % 24;
 		}
-		cm.shiftEnd = nl.t('{}:{}', shiftEndHrs, cm.shiftMins.id);
+		lr.shiftEnd = nl.t('{}:{}', shiftEndHrs, lr.shiftMins.id);
 	};
 
 	this.copyFrom = function(srcLr, destLr, cm) {
@@ -293,40 +312,41 @@ function DbAttendanceObject(courseAssignment, ctx) {
 		cm.dateValidationErrorIfSomeAtdFilled = null;
 		cm.canShowAutoFillButton = _isOnlineSession(cm);
 		if (_etmAsd.length == 0) return;
-		if (!cm.sessiondate) {
-			cm.dateValidationErrorIfSomeAtdFilled = 'Date mandatory';
-			return;
-		}
-		if (cm.sessiondate && cm.sessiondate > new Date()) {
-			cm.dateValidationError = nl.fmt2('Date cannot be in future.');
-			cm.validationErrorMsg = nl.fmt2('Date cannot be in future.');
-			return;
-		}
-		var myDate = nl.fmt.date2Str(cm.sessiondate, 'date');
-		var lastDate = cmValidationCtx.lastFixedSessionDate || null;
-		if (lastDate && myDate <= lastDate) {
-			cm.dateValidationError = nl.fmt2('Date must be later than date specified in {}', cmValidationCtx.lastFixedSessionDateCmName);
-			cm.validationErrorMsg = nl.fmt2('{}: {}', nlReportHelper.getItemName(cm), cm.dateValidationError);
-			return;
-		}
-		if (!cm.asdSession || (cm.reason.id != 'asd_weekoff' && cm.reason.id != 'asd_cancelled')) {
-			if (!cm.shiftHrs.id) {
-				cm.dateValidationErrorIfSomeAtdFilled = 'Shift time hrs is mandatory';
-				cm.dateValidationError = nl.fmt2('Shift time hrs is mandatory for {}', cm.name);
-				cm.validationErrorMsg = nl.fmt2('{}: {}', nlReportHelper.getItemName(cm), cm.dateValidationError);
-				return;
-			}
-			if (!cm.shiftMins.id) {
-				cm.dateValidationErrorIfSomeAtdFilled = 'Shift time minutes is mandatory';
-				cm.dateValidationError = nl.fmt2('Shift time minutes is mandatory for {}', cm.name);
-				cm.validationErrorMsg = nl.fmt2('{}: {}', nlReportHelper.getItemName(cm), cm.dateValidationError);
-				return;
-			}	
-		}
-		if (!cm.asdSession) {
-			cmValidationCtx.lastFixedSessionDate = myDate;
-			cmValidationCtx.lastFixedSessionDateCmName = nlReportHelper.getItemName(cm);
-		}
+		//TODO: Naveen Below commented hecck should happen at lr level not at cm level
+		// if (!cm.sessiondate) {
+		// 	cm.dateValidationErrorIfSomeAtdFilled = 'Date mandatory';
+		// 	return;
+		// }
+		// if (cm.sessiondate && cm.sessiondate > new Date()) {
+		// 	cm.dateValidationError = nl.fmt2('Date cannot be in future.');
+		// 	cm.validationErrorMsg = nl.fmt2('Date cannot be in future.');
+		// 	return;
+		// }
+		// var myDate = nl.fmt.date2Str(cm.sessiondate, 'date');
+		// var lastDate = cmValidationCtx.lastFixedSessionDate || null;
+		// if (lastDate && myDate <= lastDate) {
+		// 	cm.dateValidationError = nl.fmt2('Date must be later than date specified in {}', cmValidationCtx.lastFixedSessionDateCmName);
+		// 	cm.validationErrorMsg = nl.fmt2('{}: {}', nlReportHelper.getItemName(cm), cm.dateValidationError);
+		// 	return;
+		// }
+		// if (!cm.asdSession || (cm.reason.id != 'asd_weekoff' && cm.reason.id != 'asd_cancelled')) {
+		// 	if (!cm.shiftHrs.id) {
+		// 		cm.dateValidationErrorIfSomeAtdFilled = 'Shift time hrs is mandatory';
+		// 		cm.dateValidationError = nl.fmt2('Shift time hrs is mandatory for {}', cm.name);
+		// 		cm.validationErrorMsg = nl.fmt2('{}: {}', nlReportHelper.getItemName(cm), cm.dateValidationError);
+		// 		return;
+		// 	}
+		// 	if (!cm.shiftMins.id) {
+		// 		cm.dateValidationErrorIfSomeAtdFilled = 'Shift time minutes is mandatory';
+		// 		cm.dateValidationError = nl.fmt2('Shift time minutes is mandatory for {}', cm.name);
+		// 		cm.validationErrorMsg = nl.fmt2('{}: {}', nlReportHelper.getItemName(cm), cm.dateValidationError);
+		// 		return;
+		// 	}	
+		// }
+		// if (!cm.asdSession) {
+		// 	cmValidationCtx.lastFixedSessionDate = myDate;
+		// 	cmValidationCtx.lastFixedSessionDateCmName = nlReportHelper.getItemName(cm);
+		// }
 	}
 
 	function _isOnlineSession(cm) {
@@ -346,25 +366,27 @@ function DbAttendanceObject(courseAssignment, ctx) {
 	this.validateLr = function(lr, cm, lrBlocker) {
 		var attendanceConfig = _attendanceOptionsDict[lr.attendance.id] || {};
 		if (!cm.asdSession) lrBlocker.lastSessionAttended = false;
-		if (_etmAsd.length > 0) {
-			var lrAtdMarked = lr.attendance.id && lr.attendance.id != 'notapplicable';
-			var sessionDate = nl.fmt.date2Str(cm.sessiondate, 'date');
-			if (sessionDate && sessionDate in lrBlocker.atdMarkedDates) {
-				var markedAt = nlReportHelper.getItemName(lrBlocker.atdMarkedDates[sessionDate]);
-				lr.lockedMessage = nl.fmt2('Attendance already marked at {}', markedAt);
-				return;
-			} else if (sessionDate && lrAtdMarked) {
-				lrBlocker.atdMarkedDates[sessionDate] = cm;
-			}
-		}
+		//TODO - Naveen sessionDate check should hsppen on individual learner
+		// if (_etmAsd.length > 0) {
+		// 	var lrAtdMarked = lr.attendance.id && lr.attendance.id != 'notapplicable';
+		// 	var sessionDate = nl.fmt.date2Str(cm.sessiondate, 'date');
+		// 	if (sessionDate && sessionDate in lrBlocker.atdMarkedDates) {
+		// 		var markedAt = nlReportHelper.getItemName(lrBlocker.atdMarkedDates[sessionDate]);
+		// 		lr.lockedMessage = nl.fmt2('Attendance already marked at {}', markedAt);
+		// 		return;
+		// 	} else if (sessionDate && lrAtdMarked) {
+		// 		lrBlocker.atdMarkedDates[sessionDate] = cm;
+		// 	}
+		// }
 		if (lr.inactive && !lr.attendance.id) {
 			lr.lockedMessage = nl.fmt2('Learner is inactive');
 			if (!lrBlocker.all) lrBlocker.all = lr;
 			return;
 		}
+		if (lr.attendance.id) cm.anyMarkingDone = true
 		if (!lr.attendance.id) cm.isMarkingComplete = false;
 		else cm.someAtdFilled = true;
-		if (lr.attendance.id && !lr.sessionDate) {
+		if (lr.attendance.id && !lr.attMarkedOn) {
 			lr.validationErrorMsg = 'Session date mandatory';
 			if (!cm.validationErrorMsg) cm.validationErrorMsg = nl.fmt2('{}: Session date mandatory for learner {}', nlReportHelper.getItemName(cm), lr.name);
 		}
@@ -399,14 +421,16 @@ function DbAttendanceObject(courseAssignment, ctx) {
 	this.updateCmChanges = function(cm, oldCm, cmChanges) {
 		if (cm.lockedOnItem) return;
 		if (_etmAsd.length == 0) return null;
-		if (nl.fmt.date2Str(cm.sessiondate, 'date')  != nl.fmt.date2Str(oldCm.sessiondate, 'date')) {
-			cmChanges.push({attr: 'Date', val: nl.fmt.date2StrDDMMYY(cm.sessiondate)});
-		}
 
-		if (cm.shiftHrs.id  != oldCm.shiftHrs.id || cm.shiftMins.id  != oldCm.shiftMins.id) {
-			cmChanges.push({attr: 'Shift start time', val: nl.t ('{}:{}', cm.shiftHrs.id, cm.shiftMins.id)});
-			cmChanges.push({attr: 'Shift end time', val: nl.t ('{}', cm.shiftEnd)});
-		}
+		//TODO - Naveen remove these changes later
+		// if (nl.fmt.date2Str(cm.sessiondate, 'date')  != nl.fmt.date2Str(oldCm.sessiondate, 'date')) {
+		// 	cmChanges.push({attr: 'Date', val: nl.fmt.date2StrDDMMYY(cm.sessiondate)});
+		// }
+
+		// if (cm.shiftHrs.id  != oldCm.shiftHrs.id || cm.shiftMins.id  != oldCm.shiftMins.id) {
+		// 	cmChanges.push({attr: 'Shift start time', val: nl.t ('{}:{}', cm.shiftHrs.id, cm.shiftMins.id)});
+		// 	cmChanges.push({attr: 'Shift end time', val: nl.t ('{}', cm.shiftEnd)});
+		// }
 
 		if (!cm.asdSession) return;
 		if (cm.reason.id != oldCm.reason.id) {
@@ -425,7 +449,7 @@ function DbAttendanceObject(courseAssignment, ctx) {
 			(!_isOtherRemarksOption(lr) || lr.otherRemarks == oldLr.otherRemarks)) return;
 		lr.updated = new Date();
 		if (lr.attendance.id != oldLr.attendance.id) lr.marked = lr.updated;
-		if (lr.sessionDate || lr.sessionDate != oldLr.sessionDate) lr.sessionDate = nl.fmt.date2Str(lr.sessionDate, 'date');
+		if (lr.attMarkedOn || lr.attMarkedOn != oldLr.attMarkedOn) lr.attMarkedOn = nl.fmt.date2Str(lr.attMarkedOn, 'date');
 		lrChanges.push({lr: lr});
 	};
 
@@ -439,37 +463,31 @@ function DbAttendanceObject(courseAssignment, ctx) {
 		for (var i = 0; i < ctx.modulesToSave.length; i++) {
 			var cm = ctx.modulesToSave[i];
 			if (cm.type != 'iltsession') continue;
-			if (_etmAsd.length > 0) _updateSessionInfos(sessionInfos, cm);
+			if (_etmAsd.length > 0 && cm.asdSession) _updateSessionInfos(sessionInfos, cm);
 			_updateLrs(objToSave, cm);
 		}
 		return objToSave;
 	};
 
 	function _updateSessionInfos(sessionInfos, cm) {
-		var sessiondate = cm.sessiondate ? nl.fmt.date2Str(cm.sessiondate, 'date') : '';
 		var key = cm.asdSession ? cm.parentFixedSessionId : cm.id;
 		if (!(key in sessionInfos)) sessionInfos[key] = {};
 		var sessionInfo = sessionInfos[key];
-		if (!cm.asdSession) {
-			sessionInfo.sessiondate = sessiondate;
-			sessionInfo.shiftHrs = cm.shiftHrs.id;
-			sessionInfo.shiftMins = cm.shiftMins.id;
-			sessionInfo.shiftEnd = cm.shiftEnd;
-			sessionInfo.sessionName = cm.name;
-		} else {
-			if (!('asd' in sessionInfo)) sessionInfo.asd = [];
-			sessionInfo.asd.push({
-				reason: cm.reason || {id: ''},
-				remarks: cm.remarks || '',
-				sessiondate: sessiondate,
-				shiftHrs: cm.shiftHrs.id,
-				shiftMins: cm.shiftMins.id,
-				shiftEnd: cm.shiftEnd,
-				id: cm.id,
-				sessionName: cm.name,
-				name: nlReportHelper.getItemName(cm)
-			});
-		}
+		// if (!cm.asdSession) {
+		// 	sessionInfo.sessiondate = sessiondate;
+		// 	sessionInfo.shiftHrs = cm.shiftHrs.id;
+		// 	sessionInfo.shiftMins = cm.shiftMins.id;
+		// 	sessionInfo.shiftEnd = cm.shiftEnd;
+		// 	sessionInfo.sessionName = cm.name;
+		// } else {
+		if (!('asd' in sessionInfo)) sessionInfo.asd = [];
+		sessionInfo.asd.push({
+			reason: cm.reason || {id: ''},
+			remarks: cm.remarks || '',
+			id: cm.id,
+			sessionName: cm.name,
+			name: nlReportHelper.getItemName(cm)
+		});
 	}
 
 	function _updateLrs(objToSave, cm) {
@@ -480,7 +498,7 @@ function DbAttendanceObject(courseAssignment, ctx) {
 			var lrInDb = objToSave[lr.id];
 			var dbItem = {id: cm.id, updated: lr.updated || null, marked: lr.marked || null,
 				attId: lr.attendance.id, remarks: lr.remarks.id, otherRemarks: lr.otherRemarks || null,
-				sessionDate: lr.sessionDate};
+				attMarkedOn: lr.attMarkedOn, shiftHrs: lr.shiftHrs.id, shiftMins:lr.shiftMins.id, shiftEnd: lr.shiftEnd};
 			lrInDb.push(dbItem);
 		}
 	}
@@ -670,6 +688,7 @@ function DbRatingObject(courseAssignment, ctx) {
 			if (!lrBlocker.ms) lrBlocker.ms = lr;
 			return;
 		}
+		if (lr.rating.id) cm.anyMarkingDone = true;
 		if (!lr.rating.id && lr.rating.id !== 0) {
 			cm.isMarkingComplete = false;
 			lr.cantProceedMessage = nl.fmt2('{} not marked', nlReportHelper.getItemName(cm));
@@ -792,7 +811,7 @@ function DbMilestoneObject(courseAssignment, ctx) {
 			if (!lrBlocker.all) lrBlocker.all = lr;
 			return;
 		}
-
+		if (lr.milestoneMarked) cm.anyMarkingDone = true;
 		if (!cm.isMarkingComplete) return;
 		if (!isEtmAsd && lr.milestoneMarked) return;
 		if (lr.milestoneMarked && !lr.reached) {
@@ -914,6 +933,7 @@ function Validator(ctx) {
 		var firstInvalidCm = null;
 		for(var i=0; i<ctx.modules.length; i++) {
 			var cm = ctx.modules[i];
+				cm.anyMarkingDone = false;
 			if (!cm || cm.type == 'module') continue;
 			if (cm.type == 'multipleRating') {
 				var allMarked = true;
@@ -945,11 +965,10 @@ function Validator(ctx) {
 			}
 
 			if (!firstInvalidCm && cm.validationErrorMsg) firstInvalidCm = cm;
-			if (cm.isMarkingComplete) continue;
+			if (cm.isMarkingComplete || cm.anyMarkingDone) continue;
 			if (!blockers.all && (cm.type == 'milestone' ||
 				cm.type == 'iltsession' && !cm.asdSession)) blockers.all = cm;
 			if (!blockers.ms && cm.type == 'rating') blockers.ms = cm;
-
 		}
 		return firstInvalidCm;
 	};
@@ -1077,8 +1096,8 @@ function UpdateTrainingBatchDlg($scope, ctx, resolve) {
 		dlgScope.changeSessionReason = function(e, cm) {
 			ctx.dbAttendance.changeSessionReason(cm);
 		};
-		dlgScope.changeSessionShiftTime = function(e, cm) {
-			ctx.dbAttendance.changeSessionShiftTime(cm);
+		dlgScope.changeSessionShiftTime = function(e, lr) {
+			ctx.dbAttendance.changeSessionShiftTime(lr);
 		};
 		dlgScope.showBulkAttendanceMarker = function(e) {
 			_showBulkMarker(dlgScope, 'showAttendance');

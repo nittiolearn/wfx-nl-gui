@@ -598,7 +598,11 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
         itemInfo.otherRemarks = userCmAttendance.otherRemarks || '';
         itemInfo.marked = nl.fmt.json2Date(userCmAttendance.marked || '');
         itemInfo.updated = nl.fmt.json2Date(userCmAttendance.updated || '');
-        itemInfo.sessionDate = nl.fmt.json2Date(userCmAttendance.sessionDate || '');
+        itemInfo.attMarkedOn = nl.fmt.json2Date(userCmAttendance.attMarkedOn || '');
+        itemInfo.shiftHrs = userCmAttendance.shiftHrs || '';
+        itemInfo.shiftMins = userCmAttendance.shiftMins || '';
+        itemInfo.shiftEnd = userCmAttendance.shiftEnd || '';
+
         _ctx.unlockNext[cm.id] = itemInfo.marked;
         if (grpAttendanceObj.isAttrition) itemInfo.isAttrition = true;
         if (grpAttendanceObj.id == 'induction_dropout') itemInfo.inductionDropOut = true;

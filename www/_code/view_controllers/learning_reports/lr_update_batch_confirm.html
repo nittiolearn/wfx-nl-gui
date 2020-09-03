@@ -24,7 +24,7 @@
                 Learner Id
             </td>
             <td ng-if='change.cm.type == "iltsession"'>
-                Session date
+                Marked on
             </td>
             <td style='width: 20%;'>
                 <span ng-if='change.cm.type == "iltsession"'>Attendance Status</span>
@@ -46,7 +46,7 @@
                 {{lrChange.lr.learnerid}}
             </td>
             <td ng-if='change.cm.type == "iltsession"'>
-                {{lrChange.lr.sessionDate}}
+                {{lrChange.lr.attMarkedOn}}
             </td>
             <td>
                 <span ng-if='change.cm.type == "iltsession"'>{{lrChange.lr.attendance.name}}</span>
