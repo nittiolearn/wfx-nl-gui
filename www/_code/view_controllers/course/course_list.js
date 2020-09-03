@@ -233,7 +233,6 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
             banner: $scope.cards._internal.search.infotxt2};
         nlMetaDlg.showAdvancedSearchDlg($scope, _userInfo, 'course', _searchMetadata, cmConfig)
         .then(function(result) {
-			// TODO-NOW: 1. Search inside contentmeta fields is not happening
             if (result.canFetchMore) return _fetchMore();
             onSearchParamChange(result.metadata.search || '', searchCategory);
             _searchMetadata = result.metadata;
@@ -302,13 +301,21 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
 		_folderView.tree = {};
 		for (var itemId in courseDict) {
 			var courseItem = courseDict[itemId];
-			var card = _createCard(courseItem);
-			var result = $filter('nlFilter')([card], _folderView.searchStr, _folderView.searchCategory);
-			var itemVisible = result.length > 0 ? true : false;
+			var itemVisible = _isMetadataPresent(courseItem);
+			if (itemVisible) {
+				var card = _createCard(courseItem);
+				var result = $filter('nlFilter')([card], _folderView.searchStr, _folderView.searchCategory);
+				itemVisible = result.length > 0 ? true : false;
+			}
 			_addToFolders(courseItem, itemVisible);
 		}
 		_updateCounts(_folderView.tree['_root']);
 		_addCurrentFolderCards();
+	}
+
+	function _isMetadataPresent(courseItem) {
+		console.log('TODO-NOW', courseItem.contentmetadata, _searchMetadata);
+		return true;
 	}
 
 	function _onFolderViewSearch(searchStr, searchCategory) {
@@ -351,8 +358,8 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
 	}
 
 	function _createFolderCard(fs) {
-		var icon2 = fs.count ? 'ion-ios-folder fblue' : 'ion-ios-folder fgrey';
-		var cardStyle = fs.count ? '' : 'nl-opacity-6';
+		var icon2 = fs.count ? 'ion-ios-folder forange3' : 'ion-ios-folder fgrey';
+		var cardStyle = fs.count ? 'bgblue3' : 'bgdefault nl-opacity-5';
 		var card = {title: nl.fmt2('{} ({})', fs.folderName, fs.count),
 					icon2: icon2,
 					fs: fs, 
@@ -367,23 +374,22 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
 		_addCurrentFolderCards();
 	}
 
-	$scope.onClickBreadCrumb = function(folderName) {
-		_updateFolderPath(folderName);
+	$scope.onClickBreadCrumb = function(pathId) {
+		_updateFolderPath(pathId);
 		_addCurrentFolderCards();
 	};
 
-	function _updateFolderPath(folderName) {
-		if(!folderName) return;
-		if (_folderView.currentFolder == folderName) return;
-		if(_folderView.folderLabel == folderName) {
+	function _updateFolderPath(pathId) {
+		if (_folderView.currentFolder == pathId) return;
+		if(!pathId) {
 			_folderView.currentFolder = null; 
 			return;
 		}
-		_folderView.currentFolder = folderName;
-		_folderView.currentPath = [{name: _folderView.folderLabel, value: '_root'}];
-		var parts = folderName.split('.');
+		_folderView.currentFolder = pathId;
+		_folderView.currentPath = [{name: _folderView.folderLabel, id: null}];
+		var parts = pathId.split('.');
 		for(var i=0; i<parts.length; i++) {
-			_folderView.currentPath.push({ name: parts[i], value:parts.slice(0,i+1).join('.') });
+			_folderView.currentPath.push({ name: parts[i], id:parts.slice(0,i+1).join('.') });
 		}
 	}
 	
@@ -397,10 +403,21 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
 			var card = _createFolderCard(fs.folders[key]);
 			cards.push(card);
 		}
+		cards.sort(function(a, b) {
+			if(b.title.toLowerCase() < a.title.toLowerCase()) return 1;
+			if(b.title.toLowerCase() > a.title.toLowerCase()) return -1;
+			return 0;
+		});
+
 		for(var key in fs.items) {
 			var card = _createCard(fs.items[key]);
 			cards.push(card);
 		}
+		cards.sort(function(a, b) {
+			if (a.fs || b.fs) return 0;
+			return (b.updated - b.updated);
+		});
+
 		sortCards(cards);
 		nlCardsSrv.updateCards($scope.cards, {
 			cardlist: cards,
@@ -532,6 +549,7 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
 					help: course.description,
 					json: angular.toJson(course, 0),
 					grp: course.grp,
+					updated: nl.fmt.json2Date(course.updated),
 					children: []};
 		if (course.icon && course.icon.indexOf('icon:') == 0) {
 			var icon2 = course.icon.substring(5);
