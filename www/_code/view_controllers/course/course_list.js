@@ -227,14 +227,13 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
 	}
 
 	function _onSearch(filter, searchCategory, onSearchParamChange) {
-		// TODO-NOW: 2. Test- how does it work in folder view cache mode. Test with metadata
-		// This is not work with filter as of now
         if (!_metadataEnabled) return;
         _searchMetadata.search = filter;
         var cmConfig = {canFetchMore: $scope.cards.canFetchMore,
             banner: $scope.cards._internal.search.infotxt2};
         nlMetaDlg.showAdvancedSearchDlg($scope, _userInfo, 'course', _searchMetadata, cmConfig)
         .then(function(result) {
+			// TODO-NOW: 1. Search inside contentmeta fields is not happening
             if (result.canFetchMore) return _fetchMore();
             onSearchParamChange(result.metadata.search || '', searchCategory);
             _searchMetadata = result.metadata;
@@ -249,7 +248,7 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
 	function _getCacheDataFromServer(resolve) {
         nlSearchCacheSrv.getItems('published_course').then(function(itemsDict, canFetchMore) {
 			_filterOutDisallowedOus(itemsDict);
-            _updateCards();
+            _updateSearchCachedCards();
             if (resolve) resolve(true);
         });
     }
@@ -285,7 +284,7 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
 		return false;
 	}
 
-    function _updateCards() {
+    function _updateSearchCachedCards() {
 		if (_folderView.folderLabel) return _updateCardsInFolderView();
 		var cards = [];
 		for (var itemId in courseDict) {
@@ -689,28 +688,17 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
 			nlServerApi.courseDelete(courseId).then(function(status) {
 				nlDlg.hideLoadingScreen();
 				if (courseId in courseDict) delete courseDict[courseId];
+				if (_folderView.folderLabel) return _updateCardsInFolderView();
 				for (var i in $scope.cards.cardlist) {
 					var card = $scope.cards.cardlist[i];
 					if (card.courseId !== courseId) continue;
 					$scope.cards.cardlist.splice(i, 1);
-					if(_folderView.folder) _deleteCardFromFolderView($scope, courseId);
 				}
                 nlCardsSrv.updateCards($scope.cards);
 			});	
 		});
 	}
 
-	function _deleteCardFromFolderView($scope, courseId) {
-		var currentFolderTree = _folderView.tree[_folderView.currentFolder];
-		delete currentFolderTree.items[courseId];
-		currentFolderTree.count--;
-		if(!currentFolderTree.count) {
-			if (_folderView.currentPath.length > 1) _folderView.currentPath.pop();
-			var folderName = _folderView.currentPath.length >= 1 ? _folderView.currentPath[_folderView.currentPath.length-1].value : null;
-			$scope.onClickBreadCrumb(folderName);
-		}
-	}
-	
 	function _deleteAssignment($scope, assignId) {
 		var msg = {title: 'Please confirm', 
 				   template: 'Are you sure you want to delete? This cannot be undone.',
@@ -721,8 +709,7 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
 			nlDlg.showLoadingScreen();
 			_deleteAssignmentInLoop(assignId, 0, function() {
 				nlDlg.hideLoadingScreen();
-				// TODO-NOW: 1. May not work in folder view
-				// Do the similar update done at _deleteCourse(); for course delete.
+				if (_folderView.folderLabel) return _getCacheDataFromServer();
 				for (var i in $scope.cards.cardlist) {
 					var card = $scope.cards.cardlist[i];
 					if (card.reportId !== assignId) continue;
