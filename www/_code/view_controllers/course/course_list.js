@@ -315,7 +315,8 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
 
 	function _isMetadataPresent(courseItem) {
 		for(var key in _searchMetadata) {
-			if (_searchMetadata[key] != courseItem.contentmetadata[key]) return false;
+			var contentmetadata = courseItem.contentmetadata || {};
+			if (_searchMetadata[key] != contentmetadata[key]) return false;
 		}
 		return true;
 	}
