@@ -113,7 +113,7 @@ ul, ol, div, p {
 	width: auto;
 	height: auto;
 	display: block;
-	overflow: visible;
+	overflow: visible !important; 
 	margin: auto;
 }
 
