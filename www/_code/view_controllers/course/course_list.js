@@ -291,6 +291,9 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
 			if (!card) continue;
 			cards.push(card);
 		}
+		cards.sort(function(a, b) {
+			return ((b.updated || 0) - (a.updated || 0));
+		});
 		nlCardsSrv.updateCards($scope.cards, {
 			cardlist: cards,
 			canFetchMore: nlSearchCacheSrv.canFetchMore()
@@ -418,28 +421,12 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
 		}
 		cards.sort(function(a, b) {
 			if (a.fs || b.fs) return 0;
-			return (b.updated - b.updated);
+			return ((b.updated || 0) - (a.updated || 0));
 		});
 
-		sortCards(cards);
 		nlCardsSrv.updateCards($scope.cards, {
 			cardlist: cards,
 			canFetchMore: nlSearchCacheSrv.canFetchMore()
-		});
-	}
-
-	function sortCards(cards) {
-		if(cards.length < 2) return;
-		cards.sort(function(a, b) {
-			if(!a.fs) {
-				if(b.fs) return 1;
-				var ajson = JSON.parse(a.json);
-				var bjson = JSON.parse(b.json);
-				return (nl.fmt.json2Date(bjson.updated) - nl.fmt.json2Date(ajson.updated));
-			}
-			if(b.title.toLowerCase() < a.title.toLowerCase()) return 1;
-			if(b.title.toLowerCase() > a.title.toLowerCase()) return -1;
-			if(b.title.toLowerCase() == a.title.toLowerCase()) return 0;
 		});
 	}
 
