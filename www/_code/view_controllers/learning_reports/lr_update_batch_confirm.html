@@ -34,7 +34,7 @@
             <td>
                 Remarks
             </td>
-            <td ng-if='lrChange.cm.type == "milestone"'>
+            <td ng-if='change.cm.type == "milestone"'>
                 Achieved on
             </td>
         </tr>
@@ -46,7 +46,7 @@
                 {{lrChange.lr.learnerid}}
             </td>
             <td ng-if='change.cm.type == "iltsession"'>
-                {{lrChange.lr.attMarkedOn}}
+                {{lrChange.lr.attMarkedOnStr}}
             </td>
             <td>
                 <span ng-if='change.cm.type == "iltsession"'>{{lrChange.lr.attendance.name}}</span>

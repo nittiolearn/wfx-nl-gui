@@ -400,6 +400,7 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
             }
             if (_pendingOrWaitingIlt(earlierTrainerItems)) itemInfo.dependencyArray.push('Previous session is marked.');
         }
+        //TODO:Naveen Check this whether these computation is needed or not
         _computeCombinedStatusAndTimePerc(cm, itemInfo, earlierTrainerItems);
     }
 

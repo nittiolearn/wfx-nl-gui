@@ -61,7 +61,7 @@
 				<div>Learner Name</div> 
 				<div>(Learner Id)</div>
 			</td>
-			<td style='width: 25%;'>
+			<td style='width: 22%;'>
 				Date
 			</td>
 			<td style='min-width: 150px;'>
@@ -86,10 +86,13 @@
 				<div ng-if='!report.bulkEntry' class="fgrey">({{report.learnerid}})</div>
 			</td>
 			<td ng-if='!report.lockedMessage'>
-				<div style='border: {{report.bulkEntry ? "1px solid #ffffff" : ""}}; box-shadow: {{ report.bulkEntry ? "2px 4px 5px 0 rgba(0,0,0,.06)" : ""}}'>
+				<div ng-show='report.attendance.id == "notapplicable"'>
+					Date is not allowed for this learner.
+				</div>
+				<div ng-hide='report.attendance.id == "notapplicable"' style='border: {{report.bulkEntry ? "1px solid #ffffff" : ""}}; box-shadow: {{report.bulkEntry ? "2px 4px 5px 0 rgba(0,0,0,.06)" : ""}}'>
 					<nl-date-select fieldmodelbyref='report.attMarkedOn'></nl-date-select>
 				</div>
-				<div class='row row-center padding0 margin0'>
+				<div ng-hide='report.attendance.id == "notapplicable"' class='row row-center padding0 margin0'>
 					<div class='padding-small'>Shift: </div>
 					<div class='nl-dlg-field-value'
 						style='min-width:50px'>
@@ -117,7 +120,7 @@
 					<div class='padding-small'></div>
 					<div class='padding-small'>-</div>
 					<div class='padding-small'></div>
-					<div class='nl-xxx-select nl-dlg-field-value padding-mid' style='min-width:60px;border: {{report.bulkEntry ? "1px solid #ffffff" : ""}}; box-shadow: {{(report.bulkEntry ? "2px 4px 5px 0 rgba(0,0,0,.06)" : ""}}'>
+					<div class='nl-xxx-select nl-dlg-field-value padding-mid' style='min-width:60px;border: {{report.bulkEntry ? "1px solid #ffffff" : ""}}; box-shadow: {{report.bulkEntry ? "2px 4px 5px 0 rgba(0,0,0,.06)" : ""}}'>
 						{{report.shiftEnd}}
 					</div>
 				</div>
@@ -177,7 +180,7 @@
 						<div class='padding-small'></div>
 						<div class='nl-link-text nl-button-highlight padding-small'
 							 style='width:150px'
-							 ng-click='bulkAttendanceMarker($event)'>Mark Selected</div>
+							 ng-click='markSelectedAttendance($event)'>Mark Selected</div>
 				</div>
 			</td>
 		</tr>
