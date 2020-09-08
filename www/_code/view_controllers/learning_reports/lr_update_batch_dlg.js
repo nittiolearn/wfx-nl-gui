@@ -211,10 +211,12 @@ function DbAttendanceObject(courseAssignment, ctx) {
 			if (lr.bulkEntry) {
 				itemLr.attendance = _attendanceOptions.length > 0 ? _attendanceOptions[0] : {id: ''};
 				itemLr.remarks = {id: ''};
-				itemLr.attMarkedOn = "";
-				itemLr.shiftHrs = {id: ''};
-				itemLr.shiftMins = {id: ''};
-				itemLr.shiftEnd = "";
+				if (_etmAsd.length > 0) {
+					itemLr.attMarkedOn = "";
+					itemLr.shiftHrs = {id: ''};
+					itemLr.shiftMins = {id: ''};
+					itemLr.shiftEnd = "";	
+				}
 			} else {
 				var itemInfo = lr.repcontent.statusinfo[cm.id] || {};
 				var sessionInfo = _sessionInfos[cm.id] || {};
@@ -222,12 +224,12 @@ function DbAttendanceObject(courseAssignment, ctx) {
 					sessiondate = nl.fmt.json2Date(sessiondate || '');
 	
 				itemLr.attendance = _attendanceOptionsDict[itemInfo.attId] || {id: itemInfo.attId || ''};
-				itemLr.attMarkedOn = nl.fmt.json2Date(itemInfo.attMarkedOn || sessiondate || '');
 				itemLr.remarks = {id: itemInfo.remarks || ''};
 				itemLr.otherRemarks = itemInfo.otherRemarks;
 				itemLr.updated = itemInfo.updated || null;
 				itemLr.marked = itemInfo.marked || null;
 				if (_etmAsd.length > 0) {
+					itemLr.attMarkedOn = nl.fmt.json2Date(itemInfo.attMarkedOn || sessiondate || '');
 					if (cm.asdSession) {
 						itemLr.shiftHrs = {id: itemInfo.shiftHrs || cm.shiftHrs};
 						itemLr.shiftMins = {id: itemInfo.shiftMins || cm.shiftMins};
@@ -294,10 +296,12 @@ function DbAttendanceObject(courseAssignment, ctx) {
 
 	this.copyFrom = function(srcLr, destLr, cm) {
 		destLr.attendance = angular.copy(srcLr.attendance);
-		destLr.attMarkedOn = angular.copy(srcLr.attMarkedOn);
-		destLr.shiftHrs = angular.copy(srcLr.shiftHrs);
-		destLr.shiftMins = angular.copy(srcLr.shiftMins);
-		destLr.shiftEnd = angular.copy(srcLr.shiftEnd);
+		if (_etmAsd.length > 0 && srcLr.attendance.id != 'notapplicable') {
+			destLr.attMarkedOn = angular.copy(srcLr.attMarkedOn);
+			destLr.shiftHrs = angular.copy(srcLr.shiftHrs);
+			destLr.shiftMins = angular.copy(srcLr.shiftMins);
+			destLr.shiftEnd = angular.copy(srcLr.shiftEnd);	
+		}
 		destLr.remarks = angular.copy(srcLr.remarks);
 		destLr.otherRemarks = angular.copy(srcLr.otherRemarks);
 	};
@@ -334,40 +338,43 @@ function DbAttendanceObject(courseAssignment, ctx) {
 		if (lr.attendance.id) cm.anyMarkingDone = true
 		if (!lr.attendance.id) cm.isMarkingComplete = false;
 		else cm.someAtdFilled = true;
-		if (lr.attendance.id && lr.attendance.id == 'notapplicable') return;
-
+		if (lr.attendance.id && lr.attendance.id == 'notapplicable') {
+			return;
+		}
 		if (!lr.attendance.id) return
-		if (!lr.attMarkedOn) {
-			lr.validationErrorMsg = 'Session date mandatory';
-			if (!lr.validationErrorMsg) lr.validationErrorMsg = nl.fmt2('{}: Session date mandatory for learner {}', nlReportHelper.getItemName(cm), lr.name);
-			if (!cm.validationErrorMsg) cm.validationErrorMsg = lr.validationErrorMsg;
-			return
-		}
-		var myDate = nl.fmt.date2Str(lr.attMarkedOn, 'date');
-		var lastDate = lrBlocker.lastDate || null;
-		if (lastDate && myDate <= lastDate) {
-			lr.validationErrorMsg = nl.fmt2('Date must be later than date specified in earlier sessions: {}', nlReportHelper.getItemName(cm));
-			if (!cm.validationErrorMsg) cm.validationErrorMsg = lr.validationErrorMsg;
-			return;
-		}
-		lrBlocker.lastDate =  nl.fmt.date2Str(lr.attMarkedOn, 'date');
+		if (_etmAsd.length > 0) {
+			if (!lr.attMarkedOn) {
+				lr.validationErrorMsg = 'Session date mandatory';
+				if (!lr.validationErrorMsg) lr.validationErrorMsg = nl.fmt2('{}: Session date mandatory for learner {}', nlReportHelper.getItemName(cm), lr.name);
+				if (!cm.validationErrorMsg) cm.validationErrorMsg = lr.validationErrorMsg;
+				return
+			}
+			var myDate = nl.fmt.date2Str(lr.attMarkedOn, 'date');
+			var lastDate = lrBlocker.lastDate || null;
+			if (lastDate && myDate <= lastDate) {
+				lr.validationErrorMsg = nl.fmt2('Date must be later than date specified in earlier sessions: {}', nlReportHelper.getItemName(cm));
+				if (!cm.validationErrorMsg) cm.validationErrorMsg = lr.validationErrorMsg;
+				return;
+			}
+			lrBlocker.lastDate =  nl.fmt.date2Str(lr.attMarkedOn, 'date');
 
-		if (!lr.shiftHrs.id) {
-			lr.validationErrorMsg = nl.fmt2('Shift time hrs is mandatory: {}', nlReportHelper.getItemName(cm));
-			if (!cm.validationErrorMsg) cm.validationErrorMsg = lr.validationErrorMsg;
-			return;
+			if (!lr.shiftHrs.id) {
+				lr.validationErrorMsg = nl.fmt2('Shift time hrs is mandatory: {}', nlReportHelper.getItemName(cm));
+				if (!cm.validationErrorMsg) cm.validationErrorMsg = lr.validationErrorMsg;
+				return;
+			}
+			if (!lr.shiftMins.id) {
+				lr.validationErrorMsg = nl.fmt2('Shift time minutes is mandatory: {}', nlReportHelper.getItemName(cm));
+				if (!cm.validationErrorMsg) cm.validationErrorMsg = lr.validationErrorMsg;
+				return;
+			}
 		}
-		if (!lr.shiftMins.id) {
-			lr.validationErrorMsg = nl.fmt2('Shift time minutes is mandatory: {}', nlReportHelper.getItemName(cm));
-			if (!cm.validationErrorMsg) cm.validationErrorMsg = lr.validationErrorMsg;
-			return;
-		}	
 
 		if (attendanceConfig.isAttrition || attendanceConfig.id == 'certified') {
 			lr.cantProceedMessage = nl.fmt2('Marked {} at {}', attendanceConfig.name, nlReportHelper.getItemName(cm));
 			if (!lrBlocker.all) lrBlocker.all = lr;
-			return;
 		}
+
 		if (lr.attendance.id && !lr.remarks.id && !attendanceConfig.remarksOptional) {
 			lr.validationErrorMsg = 'Remarks mandatory';
 			if (!cm.validationErrorMsg) cm.validationErrorMsg = nl.fmt2('{}: Remarks mandatory', nlReportHelper.getItemName(cm));
@@ -412,7 +419,7 @@ function DbAttendanceObject(courseAssignment, ctx) {
 			(!_isOtherRemarksOption(lr) || lr.otherRemarks == oldLr.otherRemarks)) return;
 		lr.updated = new Date();
 		if (lr.attendance.id != oldLr.attendance.id) lr.marked = lr.updated;
-		if (lr.attMarkedOn || lr.attMarkedOn != oldLr.attMarkedOn) lr.attMarkedOnStr = nl.fmt.date2Str(lr.attMarkedOn, 'date');
+		if (_etmAsd.length > 0 && (lr.attMarkedOn || lr.attMarkedOn != oldLr.attMarkedOn)) lr.attMarkedOnStr = nl.fmt.date2Str(lr.attMarkedOn, 'date');
 		lrChanges.push({lr: lr});
 	};
 
@@ -453,8 +460,13 @@ function DbAttendanceObject(courseAssignment, ctx) {
 			if (!(lr.id in objToSave)) objToSave[lr.id] = [];
 			var lrInDb = objToSave[lr.id];
 			var dbItem = {id: cm.id, updated: lr.updated || null, marked: lr.marked || null,
-				attId: lr.attendance.id, remarks: lr.remarks.id, otherRemarks: lr.otherRemarks || null,
-				attMarkedOn: lr.attMarkedOn, shiftHrs: lr.shiftHrs.id, shiftMins:lr.shiftMins.id, shiftEnd: lr.shiftEnd};
+				attId: lr.attendance.id, remarks: lr.remarks.id, otherRemarks: lr.otherRemarks || null}
+			if (_etmAsd.length > 0) {
+				dbItem.attMarkedOn = lr.attMarkedOn;
+				dbItem.shiftHrs = lr.shiftHrs.id;
+				dbItem.shiftMins = lr.shiftMins.id; 
+				dbItem.shiftEnd = lr.shiftEnd;
+			}
 			lrInDb.push(dbItem);
 		}
 	}
@@ -747,6 +759,7 @@ function DbMilestoneObject(courseAssignment, ctx) {
 	};
 
 	this.validateCm = function(cm, cmValidationCtx) {
+		return;
 		for (var i=0; i<ctx.lrArray.length; i++) {
 			var itemLr = cm.learningRecords[i];
 			if (itemLr.bulkEntry) continue;
@@ -766,15 +779,15 @@ function DbMilestoneObject(courseAssignment, ctx) {
 			if (!lrBlocker.all) lrBlocker.all = lr;
 			return;
 		}
-		if (lr.milestoneMarked) {
-			cm.anyMarkingDone = true;
-		} else {
-			lr.cantProceedMessage = nl.fmt2('Earlier milestone is not yet achieved');
+		if (lr.milestoneMarked) cm.anyMarkingDone = true;
+
+		if (!lr.milestoneMarked && !lr.lockedMessage) {
+			lr.cantProceedMessage = nl.fmt2('{} is not marked', cm.name);
 			if (!lrBlocker.all) lrBlocker.all = lr;
+			cm.isMarkingComplete = false;
 		}
 		if (!isEtmAsd && lr.milestoneMarked) return;
 		if (!lr.milestoneMarked &&  !lr.reached) return;
-		//if (!cm.isMarkingComplete) return;
 		if (lr.milestoneMarked && !lr.reached) {
 			lr.validationErrorMsg = nl.fmt2('Achieved on date mandatory for {}', lr.learnername);
 			if (!cm.validationErrorMsg) cm.validationErrorMsg = lr.validationErrorMsg || null;
@@ -1252,7 +1265,7 @@ function UpdateTrainingBatchDlg($scope, ctx, resolve) {
 		var bulkItem = cm.learningRecords[0];
 		bulkItem.error = '';
 		var selected = bulkItem[markerType == 'showAttendance' ? 'attendance' : 'rating'].id;
-		if (markerType == 'showAttendance') {
+		if (dlgScope.isEtmAsd && markerType == 'showAttendance' && bulkItem.attendance.id != 'notapplicable') {
 			if (!bulkItem.attMarkedOn) {
 				bulkItem.error = 'Please select a date.';
 				return;	
@@ -1265,7 +1278,6 @@ function UpdateTrainingBatchDlg($scope, ctx, resolve) {
 				bulkItem.error = 'Please select a shift mins.';
 				return;	
 			}
-
 		}
 		if (!selected && selected !== 0) {
 			bulkItem.error = 'Please select a value to mark all.';

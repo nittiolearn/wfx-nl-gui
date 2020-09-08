@@ -61,7 +61,7 @@
 				<div>Learner Name</div> 
 				<div>(Learner Id)</div>
 			</td>
-			<td style='width: 22%;'>
+			<td ng-if='isEtmAsd' style='width: 22%;'>
 				Date
 			</td>
 			<td style='min-width: 150px;'>
@@ -85,7 +85,7 @@
 				<div>{{report.learnername}}</div>
 				<div ng-if='!report.bulkEntry' class="fgrey">({{report.learnerid}})</div>
 			</td>
-			<td ng-if='!report.lockedMessage'>
+			<td  ng-if='isEtmAsd && !report.lockedMessage'>
 				<div ng-show='report.attendance.id == "notapplicable"'>
 					Date is not allowed for this learner.
 				</div>

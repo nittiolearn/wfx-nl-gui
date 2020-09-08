@@ -360,8 +360,8 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
     function _computeCombinedStatusAndTimePerc(cm, itemInfo, earlierTrainerItems) {
         if (!earlierTrainerItems.atdMarkedDates) earlierTrainerItems.atdMarkedDates = {};
         var itemStatus = itemInfo.status;
-        var sessionDate = cm.sessiondate ? nl.fmt.date2Str(
-            nl.fmt.json2Date(cm.sessiondate || ''), 'date') : null;
+        var sessionDate = (cm.sessiondate ||itemInfo.attMarkedOn) ? nl.fmt.date2Str(
+            nl.fmt.json2Date(cm.sessiondate || itemInfo.attMarkedOn || ''), 'date') : null;
         if (sessionDate && (sessionDate in earlierTrainerItems.atdMarkedDates)) {
             itemStatus = 'notapplicable';
         } else if (sessionDate && itemInfo.attId && itemInfo.attId != 'notapplicable') {
@@ -599,10 +599,10 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
         itemInfo.otherRemarks = userCmAttendance.otherRemarks || '';
         itemInfo.marked = nl.fmt.json2Date(userCmAttendance.marked || '');
         itemInfo.updated = nl.fmt.json2Date(userCmAttendance.updated || '');
-        itemInfo.attMarkedOn = nl.fmt.json2Date(userCmAttendance.attMarkedOn || '');
-        itemInfo.shiftHrs = userCmAttendance.shiftHrs || '';
-        itemInfo.shiftMins = userCmAttendance.shiftMins || '';
-        itemInfo.shiftEnd = userCmAttendance.shiftEnd || '';
+        itemInfo.attMarkedOn = userCmAttendance.attMarkedOn || cm.sessiondate || '';
+        itemInfo.shiftHrs = userCmAttendance.shiftHrs || cm.shiftHrs || '';
+        itemInfo.shiftMins = userCmAttendance.shiftMins || cm.shiftMins || '';
+        itemInfo.shiftEnd = userCmAttendance.shiftEnd || cm.shiftEnd || '';
 
         _ctx.unlockNext[cm.id] = itemInfo.marked;
         if (grpAttendanceObj.isAttrition) itemInfo.isAttrition = true;
@@ -932,6 +932,9 @@ function AsdModules() {
             asdAddedModules.push(cm);
             if (cm.type != 'iltsession') continue;
             cm.sessiondate = _sessionInfos && _sessionInfos[cm.id] ? _sessionInfos[cm.id].sessiondate : null;
+            cm.shiftHrs = _sessionInfos && _sessionInfos[cm.id] ? _sessionInfos[cm.id].shiftHrs : null;
+            cm.shiftMins = _sessionInfos && _sessionInfos[cm.id] ? _sessionInfos[cm.id].shiftMins : null;
+            cm.shiftEnd = _sessionInfos && _sessionInfos[cm.id] ? _sessionInfos[cm.id].shiftEnd : null;
             _addAsdItems(asdAddedModules, _sessionInfos[cm.id], cm);
         }
         return asdAddedModules;
@@ -962,7 +965,10 @@ function AsdModules() {
         item.hide_locked = parentFixedSession ? parentFixedSession.hide_locked : false;
         if (parentFixedSession && parentFixedSession.start_after)
             item.start_after = angular.copy(parentFixedSession.start_after);
-            item.sessiondate = item.sessiondate || null;
+        item.sessiondate = item.sessiondate || null;
+        item.shiftHrs = item.shiftHrs || null;
+        item.shiftMins = item.shiftMins || null;
+        item.shiftEnd = item.shiftEnd || null;
         if(parentFixedSession) parentFixedSession.asdChildren.push(item);
         return item;
     }

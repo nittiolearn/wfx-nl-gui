@@ -1490,7 +1490,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			return nl.t('{}: {}', shiftEndHrs, sessionInfo.shiftMins);
 		}
 	}
-
+	//TODO-NOW: Please check root is udpated in asdAddedModules
 	function _updateAsdSessionDates(sessionInfo, sessionDates, uniqueFixedSessionDates) {
 		for(var j=0; j<sessionInfo.asd.length; j++) {
 			var session = sessionInfo.asd[j];
@@ -1521,21 +1521,21 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 				var cm = asdAddedModules[i];
 				if (cm.type != 'iltsession') continue;
 				ilts.push(cm);
-				if(cm.asdSession) continue;
-				var sessionInfo = sessionInfos[cm.id];
-				if (!sessionInfo) continue;
-				if (cm.asdChildren && cm.asdChildren.length > 0)
-					_updateAsdSessionDates(sessionInfo, sessionDates, uniqueFixedSessionDates);
-				sessionInfo.sessionName = sessionInfo.sessionName || cm.name;
-				var sessionDate =  sessionInfo.sessiondate;
-				uniqueFixedSessionDates[sessionDate] = true;
-				_updateSessionDates(sessionInfo, sessionDates);
+				// if(cm.asdSession) continue;
+				// var sessionInfo = sessionInfos[cm.id];
+				// if (!sessionInfo) continue;
+				// if (cm.asdChildren && cm.asdChildren.length > 0)
+				// 	_updateAsdSessionDates(sessionInfo, sessionDates, uniqueFixedSessionDates);
+				// sessionInfo.sessionName = sessionInfo.sessionName || cm.name;
+				// var sessionDate =  sessionInfo.sessiondate;
+				// uniqueFixedSessionDates[sessionDate] = true;
+				// _updateSessionDates(sessionInfo, sessionDates);
 			}
 			assignmentToObj[assignid] = {sessions: ilts};
 		}
 		var records = [];
 		for (var key in tmsRecordsDict) records.push(tmsRecordsDict[key]);
-		_updateNhtAttendanceRows(sessionDates, null, records, assignmentToObj, true);
+		_updateNhtAttendanceRows(null, records, assignmentToObj, true);
 	}
 	
 	function _updateNhtBatchAttendanceTab() {
@@ -1554,24 +1554,15 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			var cm = asdAddedModules[i];
 			if (cm.type != 'iltsession') continue;
 			iltSessions.push(cm);
-			if (cm.asdChildren && cm.asdChildren.length > 0) _updateAsdSessionDates(sessionInfos[cm.id], sessionDates, uniqueFixedSessionDates);
-			if(!cm.asdSession) {
-				var sessionInfo = sessionInfos[cm.id];
-				if(sessionInfo) sessionInfo.sessionName = sessionInfo.sessionName || cm.name;
-				if(sessionInfo) {
-					var sessionDate =  sessionInfo.sessiondate;
-					uniqueFixedSessionDates[sessionDate] = true;
-					_updateSessionDates(sessionInfo, sessionDates);
-				}
-			}
 		}
-		_updateNhtAttendanceRows(sessionDates, iltSessions, records, null, false);
+		_updateNhtAttendanceRows(iltSessions, records, null, false);
 	}
 
-	function _updateNhtAttendanceRows(sessionDates, iltSessions, records, assignmentObj, multipleCourses) {
+	function _updateNhtAttendanceRows(iltSessions, records, assignmentObj, multipleCourses) {
 		var userObj = {};
 		var iltBatchInfoRow = [];
 		var metaHeaders = $scope.metaHeaders;
+		var sessionDates = {};
 		for(var i=0; i<records.length; i++) {
 			userObj = {};
 			var record = records[i];
@@ -1596,10 +1587,15 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 				var sessionInfo = _statusInfos[cm.id];
 				if (isCertified) continue;
 				isCertified = (sessionInfo.attId == 'certified');
-				var sessionDate =  nl.fmt.date2StrDDMMYY(nl.fmt.json2Date(cm.sessiondate || ''), null, 'date');
-				if (!sessionDate) break;
-				if (sessionInfo.stateStr == 'notapplicable' 
-					|| !sessionInfo.state || sessionInfo.status == 'waiting') continue;
+				var sessionDate = sessionInfo.attMarkedOn || "";
+				if (sessionDate && !(sessionDate in sessionDates)) {
+					if (sessionInfo.shiftHrs && sessionInfo.shiftMins)
+						sessionDates[sessionDate] = {start: nl.t('{}:{}', sessionInfo.shiftHrs, sessionInfo.shiftMins), end: _getShiftEnd(sessionInfo), sessionName: cm.name};
+					else 
+						sessionDates[sessionDate] = {name: cm.name};
+				}
+				sessionDate =  nl.fmt.date2StrDDMMYY(nl.fmt.json2Date(sessionDate || ''), null, 'date');
+				if (sessionInfo.stateStr == 'notapplicable' || !sessionInfo.state || sessionInfo.status == 'waiting') continue;
 				if (sessionDate)
 					userObj[sessionDate] = sessionInfo.state || '-';
 			}
