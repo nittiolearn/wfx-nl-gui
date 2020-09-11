@@ -27,7 +27,10 @@ function(nl, nlDlg, nlServerApi, $http) {
     //---------------------------------------------------------------------------------------------
     // Reset the cache on start of a controller
     this.init = function() {
-        _caches = {published_course: {cachetype: 'published_course'}};
+        _caches = {
+                    published_course: {cachetype: 'published_course'},
+                    course_assignment: {cachetype : 'course_assignment'}
+                };
     };
 
     //---------------------------------------------------------------------------------------------
