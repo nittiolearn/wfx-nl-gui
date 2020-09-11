@@ -226,7 +226,7 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
             }
             if (cm.isReattempt && itemInfo.rawStatus != 'pending') ret.reattempt = true;
             _updateStatusToWaitingIfNeeded(cm, itemInfo, itemIdToInfo);
-            _updateItemToLocked(cm, itemInfo, earlierTrainerItems); 
+            if (!(cm.hide_locked && itemInfo.status == 'waiting')) _updateItemToLocked(cm, itemInfo, earlierTrainerItems); 
             if((cm.hide_locked && itemInfo.status == 'waiting') || itemInfo.hideItem) {
                 itemInfo.hideItem = true;
                 if (cm.type != 'module' && cm.type != 'certificate') ret.nhiddencnt++;
@@ -358,15 +358,14 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
     }
 
     function _computeCombinedStatusAndTimePerc(cm, itemInfo, earlierTrainerItems) {
-        if (!earlierTrainerItems.atdMarkedDates) earlierTrainerItems.atdMarkedDates = {};
         var itemStatus = itemInfo.status;
-        var sessionDate = (cm.sessiondate ||itemInfo.attMarkedOn) ? nl.fmt.date2Str(
-            nl.fmt.json2Date(cm.sessiondate || itemInfo.attMarkedOn || ''), 'date') : null;
-        if (sessionDate && (sessionDate in earlierTrainerItems.atdMarkedDates)) {
-            itemStatus = 'notapplicable';
-        } else if (sessionDate && itemInfo.attId && itemInfo.attId != 'notapplicable') {
-            earlierTrainerItems.atdMarkedDates[sessionDate] = true;
-        }
+        // var sessionDate = (cm.sessiondate ||itemInfo.attMarkedOn) ? nl.fmt.date2Str(
+        //     nl.fmt.json2Date(cm.sessiondate || itemInfo.attMarkedOn || ''), 'date') : null;
+        // if (sessionDate && (sessionDate in earlierTrainerItems.atdMarkedDates)) {
+        //     itemStatus = 'notapplicable';
+        // } else if (sessionDate && itemInfo.attId && itemInfo.attId != 'notapplicable') {
+        //     earlierTrainerItems.atdMarkedDates[sessionDate] = true;
+        // }
         if (!cm.asdSession) {
             // Fixed ILT Session
             earlierTrainerItems.asdCombinedStatus = itemStatus;
