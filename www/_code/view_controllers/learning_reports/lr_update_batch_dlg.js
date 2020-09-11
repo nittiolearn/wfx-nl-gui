@@ -335,6 +335,11 @@ function DbAttendanceObject(courseAssignment, ctx) {
 			if (!lrBlocker.all) lrBlocker.all = lr;
 			return;
 		}
+		if (!lr.lockedMessage && !lr.attendance.id) {
+			lr.cantProceedMessage = nl.fmt2('{} is not marked', cm.name);
+			if (!lrBlocker.all) lrBlocker.all = lr;
+			cm.isMarkingComplete = false;
+		}
 		if (lr.attendance.id) cm.anyMarkingDone = true
 		if (!lr.attendance.id) cm.isMarkingComplete = false;
 		else cm.someAtdFilled = true;
