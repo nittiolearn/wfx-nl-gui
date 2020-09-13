@@ -312,14 +312,14 @@ function(nl, nlServerApi, nlDlg, nlProgressFn) {
         Csv: '.csv'
     }; 
     var _restypeToMaxFileSize = {
-        Image: 10*1024*1024, 
-        PDF: 100*1024*1024, 
-        Audio: 100*1024*1024, 
+        Image: 100*1024*1024, // 100 MB
+        PDF: 100*1024*1024, // 100 MB
+        Audio: 100*1024*1024, // 100 MB
         Video: 1024*1024*1024, // 1 GB
-        Attachment: 100*1024*1024,
-        Zip: 300*1024*1024, // 1 GB
-        Xls: 300*1024*1024,
-        Csv: 10*1024*1024
+        Attachment: 100*1024*1024, // 100 MB
+        Zip: 300*1024*1024, // 300 MB
+        Xls: 300*1024*1024, // 300 MB
+        Csv: 100*1024*1024 // 100 MB
     }; 
 
     // Frist in the list is the default restype for the extension
