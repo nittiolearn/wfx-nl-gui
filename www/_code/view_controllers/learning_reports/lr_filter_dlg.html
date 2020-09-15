@@ -17,6 +17,11 @@
             <nl-select fieldmodel='repsubtype'></nl-select>
         </nl-dlg-row>
 
+        <nl-dlg-row ng-if="data.ouTree" attr='ouTree' data='data' help='help'>
+            <nl-tree-select info='data.ouTree' tabindex='0' autofocus='' fieldCls='nl-dlg-field-value'>
+            </nl-tree-select>
+        </nl-dlg-row>
+
         <nl-dlg-row ng-if='showfilterjson' attr='filterjson' data='data' help='help'>
             <nl-textarea fieldmodel='filterjson' fieldCls='nl-dlg-field-value'></nl-textarea>
         </nl-dlg-row>

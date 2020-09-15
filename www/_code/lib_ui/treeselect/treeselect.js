@@ -24,9 +24,9 @@ function(nl) {
         return treeArray;
     };
     
-    this.treeToTreeArray = function(tree) {
+    this.treeToTreeArray = function(tree, maxDepth) {
         var treeArray = [];
-        _treeToTreeArray(tree, treeArray);
+        _treeToTreeArray(tree, treeArray, 0, maxDepth || 0);
         return treeArray;
     };
 
@@ -74,6 +74,7 @@ function(nl) {
         _fillDefaut(treeSelectInfo, 'removeEmptyFolders', false);
         _fillDefaut(treeSelectInfo, 'sortLeafNodes', true);
         _fillDefaut(treeSelectInfo, 'folderType', 'NOT_DEFINED');
+        _fillDefaut(treeSelectInfo, 'canShowClear', false);
 
         treeSelectInfo.selectedIds = {};
         if (selectedIds)
@@ -301,6 +302,16 @@ function(nl) {
         _updateSelectionText(treeSelectInfo);
 	};
 
+    this.clearSelection = function(treeSelectInfo) {
+		for(var i=0; i<treeSelectInfo.data.length; i++) {
+			var item = treeSelectInfo.data[i];
+			item.selected = false;
+        }
+        treeSelectInfo.selectedIds = {};
+        _updateAllFoldersStatusAndCounts(treeSelectInfo.rootItems, treeSelectInfo);
+        _updateSelectionText(treeSelectInfo);
+	};
+
     function _updateVisibleData(treeSelectInfo) {
         treeSelectInfo.visibleData = [];
         for(var i=0; i<treeSelectInfo.data.length; i++) {
@@ -431,12 +442,13 @@ function(nl) {
         return (item.id.indexOf(folder.id) == 0);
     }
     
-    function _treeToTreeArray(tree, treeArray) {
+    function _treeToTreeArray(tree, treeArray, curDepth, maxDepth) {
+        if (maxDepth && curDepth >= maxDepth) return;
         for(var i=0; i<tree.length; i++) {
             var item = tree[i];
             treeArray.push({id: item.id});
             if (!item.children || item.children.length == 0) continue;
-            _treeToTreeArray(item.children, treeArray);
+            _treeToTreeArray(item.children, treeArray, curDepth+1, maxDepth);
         }
     }
     
@@ -528,6 +540,11 @@ function(nl, nlDlg, nlTreeSelect) {
             };
             $scope.selectDeselectAll = function(e, bSelect) {
             	nlTreeSelect.selectDeslectNodes($scope.info, bSelect);
+            };
+            $scope.clearSelection = function(e) {
+                e.stopImmediatePropagation();
+                e.preventDefault();
+                nlTreeSelect.clearSelection($scope.info);
             };
         }
     };

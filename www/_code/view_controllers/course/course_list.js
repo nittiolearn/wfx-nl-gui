@@ -628,7 +628,7 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
 	    			url: url,
 	    			children: []};
 		if(!isReport) card['isAssignment'] = true;
-		if(!isReport && report.updated) card['updated'] = report.updated
+		if(!isReport && report.updated) card['updated'] = report.updated;
 		var descFmt = '';
 		if(report.batchname)
 			descFmt += nl.t("<div><b>{}</b></div>", report.batchname);

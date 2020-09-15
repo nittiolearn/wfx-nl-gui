@@ -14,9 +14,9 @@ var OuUserSelectSrv = ['nl', 'nlDlg', 'nlGroupInfo', 'nlTreeSelect',
 function(nl, nlDlg, nlGroupInfo, nlTreeSelect) {
     // selectedOus is an array of Strings
     var _dontShowUsers = {};
-    this.getOuTree = function(groupInfo, selectedOus, treeIsShown, multiSelect) {
+    this.getOuTree = function(groupInfo, selectedOus, treeIsShown, multiSelect, maxDepth) {
         var ouTree = new OuTree(nl, nlDlg, nlTreeSelect);
-        return ouTree.get(groupInfo, selectedOus, treeIsShown, multiSelect);
+        return ouTree.get(groupInfo, selectedOus, treeIsShown, multiSelect, maxDepth);
     };
 
     this.getMetadataFilterTrees = function(selectedIds, treeIsShown, userListFilter) {
@@ -38,9 +38,9 @@ function(nl, nlDlg, nlGroupInfo, nlTreeSelect) {
 
 //-------------------------------------------------------------------------------------------------
 function OuTree(nl, nlDlg, nlTreeSelect) {
-    this.get = function(groupInfo, selectedOus, treeIsShown, multiSelect) {
+    this.get = function(groupInfo, selectedOus, treeIsShown, multiSelect, maxDepth) {
         var selectedIds = _getIdDict(selectedOus);
-        var treeInfo = {data: nlTreeSelect.treeToTreeArray(groupInfo.outree || [])};
+        var treeInfo = {data: nlTreeSelect.treeToTreeArray(groupInfo.outree || [], maxDepth)};
         nlTreeSelect.updateSelectionTree(treeInfo, selectedIds);
         treeInfo.treeIsShown = treeIsShown;
         treeInfo.multiSelect = multiSelect;

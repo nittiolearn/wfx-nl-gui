@@ -9,6 +9,8 @@
         title='{{info.filterIconTitle}}'	
         class="icon {{info.filterIcon || 'ion-funnel'}} nl-dlg-field-icon"
         ng-click='info.onFilterClick($event)'></i>
+     <i ng-show='info.canShowClear' class="icon ion-ios-close forange2 nl-dlg-field-icon"
+        ng-click='clearSelection($event)'></i>
      <i ng-show='!info.treeIsShown' class="icon ion-arrow-down-b nl-dlg-field-icon"></i>
      <i ng-show='info.treeIsShown' class="icon ion-arrow-up-b nl-dlg-field-icon"></i>
 </div>

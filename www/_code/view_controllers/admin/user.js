@@ -319,7 +319,9 @@ nlAdminUserExport, nlAdminUserImport, nlTreeSelect, nlOuUserSelect, nlServerApi)
 
     function _getOuTree(selectedOus, treeIsShown, multiSelect) {
         var selectedOusArray = selectedOus == '' ? [] : selectedOus.split(',');
-        return nlOuUserSelect.getOuTree(_groupInfo, selectedOusArray, treeIsShown, multiSelect);
+        var ret = nlOuUserSelect.getOuTree(_groupInfo, selectedOusArray, treeIsShown, multiSelect);
+        ret.canSelectFolder = true;
+        return ret;
     }
     
     function _getTreeSelection(treeInfo) {

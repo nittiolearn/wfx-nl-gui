@@ -14,8 +14,8 @@ function($stateProvider, $urlRouterProvider) {
 }];
 
 //-------------------------------------------------------------------------------------------------
-var NlLrFilter = ['nl', 'nlDlg', 'nlRouter', 'nlOuUserSelect', 'nlGroupInfo',
-function(nl, nlDlg, nlRouter, nlOuUserSelect, nlGroupInfo) {
+var NlLrFilter = ['nl', 'nlDlg', 'nlRouter', 'nlOuUserSelect', 'nlGroupInfo', 'nlTreeSelect',
+function(nl, nlDlg, nlRouter, nlOuUserSelect, nlGroupInfo, nlTreeSelect) {
 	var _dataDefaults = {
 		type: 'course',		// all|module|course|trainig_kind|module_assign|course_assign|module_self_assign|training_batch|user
 		mode: null,			// cert_report
@@ -79,7 +79,8 @@ function(nl, nlDlg, nlRouter, nlOuUserSelect, nlGroupInfo) {
 		_toBool(_data, 'custom');
 		_toInt(_data, 'chunksize');
         _toBool(_data, 'dontZip');
-        if (!_data.myou && !nlRouter.isPermitted(userInfo, 'assignment_manage')) _data.assignor = 'me';
+		if (!_data.myou && !nlRouter.isPermitted(userInfo, 'assignment_manage')) _data.assignor = 'me';
+		_data.showOuTree = !_data.myou && (_data.type == 'course' || _data.type == 'module');
     	_initDates();
     };
     
@@ -182,6 +183,7 @@ function(nl, nlDlg, nlRouter, nlOuUserSelect, nlGroupInfo) {
 			createdfrom: {name: 'From', help: 'Select the start of the timerange to fetch reports.'},
 			createdtill: {name: 'Till', help: 'Select the end of the timerange to fetch reports.'},
 			repsubtype: {name: 'Report Type', help: '<div>Select the report type.</div>'},
+			ouTree: {name: 'Organization', help: nl.t('Fetch records only of learners under the selected organization sub tree.')},
 			filterjson: {name: 'Additional filters', help: '<div>Provide additional filters as a json string. For example:</div>'
 					+ '<pre>' +  defaultFilterjson + '</pre>'},
 			ouUserTree: {name: 'Select user', help: nl.t('Select the specific learner to fetch reports.')}
@@ -213,6 +215,9 @@ function(nl, nlDlg, nlRouter, nlOuUserSelect, nlGroupInfo) {
 		if(_ouUserSelector) {
 			dlg.scope.data['ouUserTree'] = _ouUserSelector.getTreeSelect();
 		}
+		if (dataParam.showOuTree) {
+			dlg.scope.data['ouTree'] = _getOuTree(dataParam.ouFilter);
+		}
         var button = {text: nl.t('Fetch'), onTap: function(e){
             if (!_validateInputs(dlg.scope, dataParam)) {
                 if (e) e.preventDefault();
@@ -228,6 +233,8 @@ function(nl, nlDlg, nlRouter, nlOuUserSelect, nlGroupInfo) {
 				dataParam.objid = userObj.username;
 				dataParam.userid = userObj.id;
 			} else {
+				dataParam.ouFilter = sd.ouTree ? Object.keys(nlTreeSelect.getSelectedIds(sd.ouTree)) : null;
+				dataParam.ouFilter = dataParam.ouFilter.length == 1 ? dataParam.ouFilter[0] : '';
 				dataParam.timestamptype = sd.timestamptype.id;
 				dataParam.createdtill = sd.createdtill;
 				dataParam.createdfrom = sd.createdfrom;
@@ -273,16 +280,40 @@ function(nl, nlDlg, nlRouter, nlOuUserSelect, nlGroupInfo) {
             nl.fmt.fmtDateDelta(_data.createdtill));
 	};
 
+    function _getOuTree(selectedOu) {
+		var selectedOusArray = [];
+		if (selectedOu) selectedOusArray.push(selectedOu);
+		var treeIsShown=false;
+		var multiSelect=false;
+		var maxDepth=3;
+		var ret = nlOuUserSelect.getOuTree(_groupInfo, selectedOusArray, treeIsShown, multiSelect, maxDepth);
+		ret.canSelectFolder = true;
+		ret.canShowClear = true;
+		return ret;
+    }
+
 	function _getOusPlusRepSubTypePlusCustomFilters() {
 		var ret = [];
 		var custFilters = _data.filterobj || [];
 		for (var i=0; i<custFilters.length; i++) ret.push(custFilters[i]);
 		if (_data.repsubtype) ret.push({field: 'repsubtype', val: _data.repsubtype});
 		if (_data.mode == 'cert_report') ret.push({field: 'completed', val: true});
-		if (!_data.myou) return ret;
-		var me = nlGroupInfo.getKeyToUsers(_groupInfo)[_userInfo.username];
-		_myou = me.org_unit;
-		var ouParts = (me.org_unit || '').split('.');
+		if (!_data.myou && !_data.showOuTree) return ret;
+		var ouFilter = _data.ouFilter;
+		if (_data.myou) {
+			var me = nlGroupInfo.getKeyToUsers(_groupInfo)[_userInfo.username];
+			var ouFilter = me.org_unit;
+		}
+		var ouParts = _getOuFilterParts(ouFilter);
+		for (var i=0; i<ouParts.length; i++) {
+			ret.push({field: 'ou' + i, val: ouParts[i]});
+		}
+		return ret;
+	}
+
+	function _getOuFilterParts(ouFilter) {
+		if (!ouFilter) return [];
+		var ouParts = ouFilter.split('.');
 		if (_data.myoulevel !== null) {
 			if (_data.myoulevel > ouParts.length) _data.myoulevel = ouParts.length;
 			var ouParts1 = ouParts;
@@ -292,10 +323,8 @@ function(nl, nlDlg, nlRouter, nlOuUserSelect, nlGroupInfo) {
 			if (_data.myoufilter > _data.myoulevel) _data.myoufilter = _data.myoulevel;
 		}
 		if (_data.myoufilter > 3) _data.myoufilter = 3;
-		for (var i=0; i<ouParts.length && i<_data.myoufilter; i++) {
-			ret.push({field: 'ou' + i, val: ouParts[i]});
-		}
-		return ret;
+		if (_data.myoufilter < ouParts.length) return ouParts.slice(0, _data.myoufilter);
+		return ouParts;
 	}
 
 	function _initDates(){
