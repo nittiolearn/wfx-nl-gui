@@ -359,7 +359,7 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
 	}
 
 	function _updateCounts(fs) {
-		fs.count = fs && fs.items ? Object.keys(fs.items).length : 0;
+		if(fs) fs.count = fs.items ? Object.keys(fs.items).length : 0;
 		for(var key in fs.folders) {
 			var child = fs.folders[key];
 			_updateCounts(child);
@@ -628,6 +628,7 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
 	    			url: url,
 	    			children: []};
 		if(!isReport) card['isAssignment'] = true;
+		if(!isReport && report.updated) card['updated'] = report.updated
 		var descFmt = '';
 		if(report.batchname)
 			descFmt += nl.t("<div><b>{}</b></div>", report.batchname);
