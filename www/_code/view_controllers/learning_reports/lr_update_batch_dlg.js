@@ -762,10 +762,11 @@ function DbMilestoneObject(courseAssignment, ctx) {
 		}
 	};
 
-	this.markAll = function(cm, checked, date) {
+	this.markAll = function(cm, checked, date, markSelected) {
 		for (var i=1; i<ctx.lrArray.length; i++) {
 			var itemLr = cm.learningRecords[i];
 			if (itemLr.lockedMessage) continue;
+			if (markSelected && !itemLr.selectedLr) continue;
 			itemLr.milestoneMarked = checked;
 			if (checked && date) itemLr.reached = date;
 		}
@@ -1145,26 +1146,24 @@ function UpdateTrainingBatchDlg($scope, ctx, resolve) {
 		dlgScope.milestoneMarkAll = function(e, selectedModule) {
 			if (dlgScope.isEtmAsd) {
 				var msBulkMarkDlg = nlDlg.create($scope);
+				msBulkMarkDlg.setCssClass('nl-height-max nl-width-max')
 				msBulkMarkDlg.scope.dlgTitle = 'Select date';
 				msBulkMarkDlg.scope.data = {reached: null, showDate: true};
+				msBulkMarkDlg.scope.data.selectedModule = selectedModule;
+				msBulkMarkDlg.scope.showHelp = true;
 				var okButton = {text: nl.t('Mark all'), onTap: function(e) {
 					msBulkMarkDlg.scope.data.errorMsg = null;
-					if (!msBulkMarkDlg.scope.data.reached) {
-						e.preventDefault();
-						msBulkMarkDlg.scope.data.errorMsg = 'Please select the milestone date';
-						return;
-					}
-					if (msBulkMarkDlg.scope.data.reached && msBulkMarkDlg.scope.data.reached > new Date()) {
-						e.preventDefault();
-						msBulkMarkDlg.scope.data.errorMsg = 'Selected date cannot be in future';
-						return;
-					}
+					if (!_validateInputs(e, msBulkMarkDlg)) return;
 					ctx.dbMilestone.markAll(selectedModule, true, msBulkMarkDlg.scope.data.reached);
+				}};
+				var markSelected = {text: nl.t('Mark selected'), onTap: function(e) {
+					if (!_validateInputs(e, msBulkMarkDlg, true)) return;
+					ctx.dbMilestone.markAll(selectedModule, true, msBulkMarkDlg.scope.data.reached, true);
 				}};
 				var cancelButton = {text: nl.t('Cancel'), onTap: function(e) {
 				}};
 				msBulkMarkDlg.show('view_controllers/learning_reports/lr_bulk_marker_dlg.html',
-					[okButton], cancelButton);	
+					[okButton, markSelected], cancelButton);	
 			} else {
 				ctx.dbMilestone.markAll(selectedModule, true);
 			}
@@ -1172,6 +1171,36 @@ function UpdateTrainingBatchDlg($scope, ctx, resolve) {
 		dlgScope.milestoneUnmarkAll = function(e, selectedModule) {
 			ctx.dbMilestone.markAll(selectedModule, false);
 		};
+	}
+
+	function _validateInputs(e, msBulkMarkDlg, markSelected) {
+		if (!msBulkMarkDlg.scope.data.reached) {
+			e.preventDefault();
+			msBulkMarkDlg.scope.data.errorMsg = 'Please select the milestone date';
+			return false;
+		}
+		if (msBulkMarkDlg.scope.data.reached && msBulkMarkDlg.scope.data.reached > new Date()) {
+			e.preventDefault();
+			msBulkMarkDlg.scope.data.errorMsg = 'Selected date cannot be in future';
+			return false;
+		}
+		if (markSelected) {
+			var lrRecords = msBulkMarkDlg.scope.data.selectedModule.learningRecords;
+			var selectedLr = false;
+			msBulkMarkDlg.scope.data.errorMsg = null;
+			for(var i=0; i<lrRecords.length; i++) {
+				if (lrRecords[i].selectedLr) {
+					selectedLr = true;
+					break;
+				}
+			}
+			if (!selectedLr) {
+				e.preventDefault();
+				msBulkMarkDlg.scope.data.errorMsg = 'Please select the users';
+				return;
+			}
+		}
+		return true;
 	}
 
 	function _autoFillAttendance(dlgScope) {

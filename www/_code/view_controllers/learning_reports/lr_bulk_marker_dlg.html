@@ -1,15 +1,76 @@
 <nl-dlg dlgTitle='{{dlgTitle}}' show-help='0'>
 <nl-dlg-content>
-    <div ng-if='data.showDate' class='row row-center row-wrap margin0 padding-mid'>
-        <nl-date-select style='min-width: 300px' fieldmodelbyref='data.reached'></nl-date-select>
-    </div>
+    <nl-inline-help ng-if='showHelp'>
+        <div>
+            You can mark milestone for the learners selecting the date.
+        </div>
+        <div>
+            <ul>
+                <li>Select the date and click <b>"Mark all"</b> button to update milestone status for all learner</li>
+                <li>Choose learners clicking on checkbox and click on <b>"Mark selected"</b> to mark the milestone only selected learners.</li>
+            </ul>
+        </div>
+    </nl-inline-help>
     <div ng-if='data.inputField' class='row row-center row-wrap margin0 padding-mid'>
         <input type='number' ng-model='data.inputval' min='0' max='100'></input>
     </div>
     <div ng-if='data.errorMsg' class='row row-center padding0 margin0'>
-		<div class='nl-dlg-field-errormsg'> 
-			{{data.errorMsg}}
-		</div>
+        <div class='col'></div>
+        <div class='nl-dlg-field-errormsg'> 
+            {{data.errorMsg}}
+        </div>
+    </div>
+    <div ng-if='data.showDate' class='padding-mid'>
+        <div class='row row-center row-wrap margin0 padding0 padding-vertical'>
+            <div class='col'></div>
+            <nl-date-select style='min-width: 300px' fieldmodelbyref='data.reached'></nl-date-select>
+        </div>
+        <table class='nl-table nl-table-styled3'>
+            <tr class='header'>
+                <td style='width: 50px;'>
+                </td>
+                <td>
+                    Learner Name
+                </td>
+                <td>
+                    Acheived on
+                </td>
+                <td>
+                    Status
+                </td>
+            </tr>
+            <tr ng-repeat='report in data.selectedModule.learningRecords'
+                ng-show='!report.bulkEntry'
+                class='{{report.lockedMessage ? "fgrey" : "clickable"}}'
+                ng-click='report.selectedLr = !report.selectedLr;'>
+                <td>
+                    <div class='nl-link-text fsh5' ng-hide='report.lockedMessage'>
+                        <i ng-show='report.selectedLr' class="icon ion-android-checkbox-outline black fsh6"></i>
+                        <i ng-hide='report.selectedLr' class="icon ion-android-checkbox-outline-blank fsh6"></i>
+                    </div>
+                </td>
+                <td>
+                    {{report.learnername}}
+                </td>
+                <td>
+                    <div>
+                        {{report.reached | date: 'dd-MM-yyyy' || ""}}
+                    </div>
+                </td>
+                <td>
+                    <div>
+                        <span ng-if='report.milestoneMarked'>
+                            <i class="icon fsh4 ion-checkmark-circled fgreen"></i>
+                            Marked
+                        </span>
+                        <span ng-if='!report.milestoneMarked'>
+                            <i class="icon fsh4 ion-ios-circle-filled fyellow"></i>
+                            Pending
+                        </span>
+                    </div>
+                </td>
+            </tr>
+        </table>
     </div>
 </nl-dlg-content>
 </nl-dlg>

@@ -140,6 +140,42 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo) {
         if (courseAssign.id in _msInfoCache) return;
         _updateNHTBatchStats.updateBatchInfo(modules, courseAssign);
     };
+
+    this.updateBatchInfoCache = function(batchStatsObj) {
+        //batchStatsObj = {assignid1: {ojt: true, training: true...}, assignid: {assignid2: {ojt: true, training: true...}}
+        var _msInfoCache = _updateNHTBatchStats.getMsInfoCache();
+        var props = nlGroupInfo.get().props || {};
+        var milestones = props.milestones || [];
+        var defaultStatus = [];
+        var _nhtBatchStatus = {};
+        for(var i=0; i<milestones.length; i++) {
+			var item = milestones[i];
+			if (item.batch_status) 
+                defaultStatus.push(item.batch_status);
+		}
+
+        for (var key in _msInfoCache) {
+            var batchStats = batchStatsObj[key];
+            var ret = _msInfoCache[key];
+            var pendingEarlierState = null;
+            if (ret.batchStatus == 'Closed') {
+                for(var i=0; i<defaultStatus.length; i++) {
+                    var state = defaultStatus[i];
+                    if (state == 'Closed') continue;
+                    if (batchStats[state]) 
+                        pendingEarlierState = state;
+                }
+            }
+            if (pendingEarlierState)
+                _msInfoCache[key].batchStatus = pendingEarlierState;
+            if (pendingEarlierState == 'Closed') {
+                _nhtBatchStatus['closed'] = true;
+            } else {
+                _nhtBatchStatus['running'] = true;
+            }
+        }
+        _updateNHTBatchStats.updateNhtBatchStatusObj(_nhtBatchStatus);
+    }
 }];
 
 function UpdateBatch(nl, nlGroupInfo) {
@@ -150,6 +186,9 @@ function UpdateBatch(nl, nlGroupInfo) {
         _msInfoCache = {};
         _nhtBatchStatus = {};
         _groupMsInfo = undefined;
+    };
+    this.updateNhtBatchStatusObj = function(obj) {
+        _nhtBatchStatus = obj;
     };
 
     this.getNhtBatchStates = function() {
@@ -169,7 +208,7 @@ function UpdateBatch(nl, nlGroupInfo) {
         var milestone = courseAssign.milestone ? angular.fromJson(courseAssign.milestone) : null;        
 
         var firstMsItemInCourse = null;
-        var ret = {batchStatus: 'Pending', allMsMarked: true, modules: angular.copy(modules)};
+        var ret = {batchStatus: 'Pending', allMsMarked: true, modules: angular.copy(modules), isUpdated: false};   //isUpdated parameter introduced to make batch status revert if some of the items still not reached the closed state.
         for (var i=0; i<modules.length; i++) {
             var cm = modules[i];
             if (cm.type != 'milestone') continue;

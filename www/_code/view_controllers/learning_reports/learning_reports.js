@@ -724,7 +724,6 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 
 	function _getFilteredRecords(summaryStats) {
 		var records = nlLrReportRecords.getRecords();
-		var batchStatusObj = nlLrReportRecords.getNhtBatchStatus();
 		var tabData = $scope.tabData;
 		var searchInfo = _getSearchInfo(tabData);
 		var filteredRecords  = [];
@@ -861,6 +860,8 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 	}
 	
 	function _updateScope(avoidFlicker) {
+		var batchStatusObj = nlLrReportRecords.getNhtBatchStatus();
+		nlGetManyStore.updateBatchInfoCache(batchStatusObj);
 		nl.pginfo.pageTitle = nlLrFilter.getTitle();	
 		$scope.fetchInProgress = nlLrFetcher.fetchInProgress(true);
 		$scope.canFetchMore = nlLrFetcher.canFetchMore();

@@ -1,3 +1,4 @@
+
 (function() {
 
 //-------------------------------------------------------------------------------------------------
@@ -311,9 +312,10 @@ function(nl, nlRouter, nlDlg, nlGroupInfo, nlLrHelper, nlLrFilter, nlGetManyStor
         stats.status = nlReportHelper.getStatusInfoFromCourseStatsObj(stainf);
         if (report.isNHT) {
             if(!(report.assignment in _batchStatus)) _batchStatus[report.assignment] = {};
+            var statusTxt = stats.status.txt;
             if (stats.isCertified || stats.status.txt == 'failed') 
                 _batchStatus[report.assignment]['Closed'] = true;
-            else
+            else if (statusTxt.indexOf('attrition') != 0)
                 _batchStatus[report.assignment][stats.status.txt] = true;
 
         }
