@@ -746,6 +746,8 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		filteredRecords.sort(function(a, b) {
 			return (b.stats.status.id - a.stats.status.id);
 		});
+		var batchStatusObj = nlLrReportRecords.getNhtBatchStatus();
+		nlGetManyStore.updateBatchInfoCache(batchStatusObj);
 		return filteredRecords;
 	}
 
@@ -860,8 +862,6 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 	}
 	
 	function _updateScope(avoidFlicker) {
-		var batchStatusObj = nlLrReportRecords.getNhtBatchStatus();
-		nlGetManyStore.updateBatchInfoCache(batchStatusObj);
 		nl.pginfo.pageTitle = nlLrFilter.getTitle();	
 		$scope.fetchInProgress = nlLrFetcher.fetchInProgress(true);
 		$scope.canFetchMore = nlLrFetcher.canFetchMore();
@@ -1257,7 +1257,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		columns.push({id: 'certificationThroughput', name: 'Certification Throughput', hidePerc: true, table: true, showAlways: true});
 
 		columns.push({id: 'failed', name: 'Total Not Certified', hidePerc:true, table: false, showAlways: true}); //This is not asked by abrar
-		columns.push({id: 'batchFirstPass', name: 'First Pass Percentage', showIn: 'closed', hidePerc: true, table: true, showAlways: true});
+		columns.push({id: 'batchFirstPass', name: 'First Pass Percentage', hidePerc: true, table: true, showAlways: true});
 		columns.push({id: 'batchThroughput', name: 'E2E Throughput', showIn: 'closed', hidePerc: true, table: true, showAlways: true});
 		columns.push({id: 'runningThroughput', name: 'Running Throughput', showIn: 'running', hidePerc: true, table: true, showAlways: true});
 		// Others - not asked by customer but may be needed
@@ -1573,7 +1573,12 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			userObj.batchname = record.raw_record._batchName;
 			userObj.not_before = nl.fmt.fmtDateDelta(record.repcontent.not_before, null, 'date');
 			userObj.not_after = nl.fmt.fmtDateDelta(record.repcontent.not_after, null, 'date');
-			userObj.learner_status = (record.user.state == 0) ? nl.t('Inactive') : nl.t('Active')
+			var status = record.stats.status;
+			var statusStr = status['txt'];
+			if(statusStr.indexOf('attrition') == 0) userObj.learner_status = nl.t('Attrition');
+			else if (record.user.state == 0) nl.t('Inactive');
+			else nl.t('Active')
+
 			for(var j=0; j<metaHeaders.length; j++) {
 				var metas = metaHeaders[j];
 				userObj[metas.id] = usermd[metas.id] || "";
@@ -1629,7 +1634,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		headerRow.push({id: 'batchname', name: nl.t('Batch name'), table: false, class: 'minw-string'});
 		headerRow.push({id: 'not_before', name: nl.t('Start date'), class: 'minw-number'});
 		headerRow.push({id: 'not_after', name: nl.t('End date'), class: 'minw-number'});
-		headerRow.push({id: 'learner_status', name: nl.t('Status'), class: 'minw-number'});
+		headerRow.push({id: 'learner_status', name: nl.t('Attrition status'), class: 'minw-number'});
 		for(var i=0; i<$scope.metaHeaders.length; i++) {
 			var metas = $scope.metaHeaders[i];
 			headerRow.push({id: metas.id, name: metas.name, class: 'minw-number'});

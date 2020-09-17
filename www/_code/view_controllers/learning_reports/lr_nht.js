@@ -334,7 +334,7 @@ function NhtCounts(nl, nlGetManyStore, nlGroupInfo) {
             updatedStats['batchThroughput'] = '' + Math.round(100*updatedStats['certified']/updatedStats['cntCompletedTotal']) + ' %';
         var reachedCertification = _getReachedCertification(updatedStats);
         var notCertified = reachedCertification - (updatedStats['certifiedFirstAttempt'] + updatedStats['certifiedSecondAttempt']);
-        if (reachedCertification) {
+        if (reachedCertification > 0) {
             updatedStats['batchFirstPass'] = '' + Math.round(100*updatedStats['certifiedFirstAttempt']/reachedCertification) + ' %';
             updatedStats['certificationThroughput'] = '' + Math.round(100*(updatedStats['certifiedFirstAttempt']+updatedStats['certifiedSecondAttempt'])/reachedCertification) + ' %';
             updatedStats['notCertified'] = '' + Math.round(100*notCertified/reachedCertification) + ' %';

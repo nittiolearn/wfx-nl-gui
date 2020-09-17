@@ -281,6 +281,10 @@ function DbAttendanceObject(courseAssignment, ctx) {
 		if (!newAtd) return;
 		for (var i=0; i<cm.learningRecords.length; i++) {
 			var lr = cm.learningRecords[i];
+			if (lr.inactive) {
+				lr.lockedMessage = nl.fmt2('Learner is inactive');
+				continue;
+			}
 			lr.attendance = newAtd;
 		}
 	};
