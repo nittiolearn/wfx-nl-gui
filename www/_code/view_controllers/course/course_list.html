@@ -1,4 +1,10 @@
 <div class="nl-thin-scroll">
+    <div class='padding-mid nl-dlg-field-value' ng-show='folderView.folderViewOptions'>
+        <select ng-model='folderView.folderLabel'
+                ng-change='onSelectFolder()'
+                ng-options="opt as opt.name for opt in folderView.folderViewOptions track by opt.val">
+        </select>
+    </div>
     <div ng-show='folderView.currentFolder' class="padding-mid">
         <div class="padding-mid">
             <span ng-repeat='path in folderView.currentPath track by $index' ng-click="onClickBreadCrumb(path.id)"
