@@ -81,7 +81,6 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
 	 * 'Report of user' : /course_list?type=report
 	 */
 	
-	var courseDict = {};
 	var my = false;
 	var _userInfo = null;
 	var _maxDelete = 50;
@@ -92,7 +91,8 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
 	var _resultList = [];
 	
 	// All Global data needed folder view
-	var _folderView = {
+	var _searchCache = {
+		enabled: false,			// Set to true if url contains folder.
 		folder: null, 			// This is derived from URL and not changed later.
 								// grade|subject|authorname|anythingelse (from URL). If defined, 
 								// searchcache is used to get cached data from server. The folder
@@ -102,12 +102,13 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
 								// display name. For example: grade => gradelabel. Only if this
 								// is set, the folderview is shown.
 		tree: {}, 				// Folder structure
+		itemsDict: {},			// list of course/ course assignmenet items fetched from search cache
 		currentFolder: null,	// Currently displayed folder
 		currentPath: [],		// Path shown in breadcrumps
 		searchStr: '',			// For custom searching in folder view
 		searchCategory: '',			// For custom searching in folder view
 	}; 
-	$scope.folderView = _folderView;
+	$scope.folderView = _searchCache;
 
 	function _onPageEnter(userInfo) {
 		_userInfo = userInfo;
@@ -117,10 +118,10 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
 			nlGetManyStore.init();
 			_initParams();
 			nl.pginfo.pageTitle = _getPageTitle();
-			if(_folderView.folder) nlSearchCacheSrv.init();
+			if(_searchCache.enabled) nlSearchCacheSrv.init();
 			$scope.cards = {
 			    staticlist: _getStaticCards(), 
-				search: {customSearch: _folderView.folderLabel ? _onFolderViewSearch: null,
+				search: {customSearch: _searchCache.folderLabel ? _onFolderViewSearch: null,
 					onSearch: _metadataEnabled ? _onSearch: null, 
                     placeholder: nl.t('Enter course name/description')}
             };
@@ -189,21 +190,21 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
 	};
 
 	function _initParams() {
-		courseDict = {};
         var params = nl.location.search();
-		_folderView.folder = params.folder || null;
-        my = ('my' in params && !_folderView.folder) ? parseInt(params.my) == 1: false;
+		_searchCache.folder = params.folder || null;
+		_searchCache.enabled = _searchCache.folder ? true : false;
+        my = ('my' in params && !_searchCache.enabled) ? parseInt(params.my) == 1: false;
         _metadataEnabled = (type == 'course') && !my;
 		_searchMetadata = nlMetaDlg.getMetadataFromUrl();
 		_maxDelete = params.max_delete || 50;
 		_max2 = ('max2' in params) ? parseInt(params.max2) : 500;
 
-		if (_folderView.folder == 'grade') {
-			_folderView.folderLabel = _userInfo.groupinfo.gradelabel;
-		} else if (_folderView.folder == 'subject') {
-			_folderView.folderLabel = _userInfo.groupinfo.subjectlabel;
-		} else if (_folderView.folder == 'authorname') {
-			_folderView.folderLabel = 'Author:';
+		if (_searchCache.folder == 'grade') {
+			_searchCache.folderLabel = _userInfo.groupinfo.gradelabel;
+		} else if (_searchCache.folder == 'subject') {
+			_searchCache.folderLabel = _userInfo.groupinfo.subjectlabel;
+		} else if (_searchCache.folder == 'authorname') {
+			_searchCache.folderLabel = 'Author:';
 		}
 	}
 
@@ -227,8 +228,6 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
 	}
 
 	function _onSearch(filter, searchCategory, onSearchParamChange) {
-		// TODO-NOW: 2. Test- how does it work in folder view cache mode. Test with metadata
-		// This is not work with filter as of now
         if (!_metadataEnabled) return;
         _searchMetadata.search = filter;
         var cmConfig = {canFetchMore: $scope.cards.canFetchMore,
@@ -247,26 +246,27 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
     }
 	
 	function _getCacheDataFromServer(resolve) {
-        nlSearchCacheSrv.getItems('published_course').then(function(itemsDict, canFetchMore) {
-			_filterOutDisallowedOus(itemsDict);
-            _updateCards();
-            if (resolve) resolve(true);
-        });
-    }
+		var cacheType = type ==='course' ? 'published_course' : 'course_assignment';
+		nlSearchCacheSrv.getItems(cacheType).then(function(itemsDict, canFetchMore) {
+			_filterOutDisallowedItems(itemsDict);
+			_updateSearchCachedCards();
+			if (resolve) resolve(true);
+		});
+		
+	}
 
-    function _filterOutDisallowedOus(itemsDict) {
-		courseDict = {};
+    function _filterOutDisallowedItems(itemsDict) {
+		_searchCache.itemsDict = {};
 		for (var itemId in itemsDict) {
-			var courseItem = itemsDict[itemId];
-			if (!_isOuAllowed(courseItem)) continue;
-			courseDict[courseItem.id] = courseItem;
+			var item = itemsDict[itemId];
+			if (type === 'course' && !_isOuAllowed(item)) continue;
+			if (type === 'assign_my' && _userInfo.userid != itemsDict[itemId]['sender']) continue;
+			_searchCache.itemsDict[item.id] = item;
 		}
 	}
 
 	var _myOus = null;
 	function _isOuAllowed(courseItem) {
-		// TODO-NOW: 0. check for oulist. If oulist is not mine, so ignore that card. Look into ncourse.py
-		// Release the software after this change.
 		var allowedOus = courseItem['oulist'] || [];
 		if (allowedOus.length == 0 || _userInfo.permissions.nittio_support) return true;
 		if (!_myOus) {
@@ -287,14 +287,17 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
 		return false;
 	}
 
-    function _updateCards() {
-		if (_folderView.folderLabel) return _updateCardsInFolderView();
+    function _updateSearchCachedCards() {
+		if (_searchCache.folderLabel) return _updateCardsInFolderView();
 		var cards = [];
-		for (var itemId in courseDict) {
-			var card = _createCard(courseDict[itemId]);
+		for (var itemId in _searchCache.itemsDict) {
+			var card = _createCard(_searchCache.itemsDict[itemId]);
 			if (!card) continue;
 			cards.push(card);
 		}
+		cards.sort(function(a, b) {
+			return ((b.updated || 0) - (a.updated || 0));
+		});
 		nlCardsSrv.updateCards($scope.cards, {
 			cardlist: cards,
 			canFetchMore: nlSearchCacheSrv.canFetchMore()
@@ -302,32 +305,43 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
 	}
 
     function _updateCardsInFolderView() {
-		_folderView.tree = {};
-		for (var itemId in courseDict) {
-			var courseItem = courseDict[itemId];
-			var card = _createCard(courseItem);
-			var result = $filter('nlFilter')([card], _folderView.searchStr, _folderView.searchCategory);
-			var itemVisible = result.length > 0 ? true : false;
+		_searchCache.tree = {};
+		for (var itemId in _searchCache.itemsDict) {
+			var courseItem = _searchCache.itemsDict[itemId];
+			var itemVisible = _isMetadataPresent(courseItem);
+			if (itemVisible) {
+				var card = _createCard(courseItem);
+				var result = $filter('nlFilter')([card], _searchCache.searchStr, _searchCache.searchCategory);
+				itemVisible = result.length > 0 ? true : false;
+			}
 			_addToFolders(courseItem, itemVisible);
 		}
-		_updateCounts(_folderView.tree['_root']);
+		_updateCounts(_searchCache.tree['_root']);
 		_addCurrentFolderCards();
 	}
 
+	function _isMetadataPresent(courseItem) {
+		for(var key in _searchMetadata) {
+			var contentmetadata = courseItem.contentmetadata || {};
+			if (_searchMetadata[key] != contentmetadata[key]) return false;
+		}
+		return true;
+	}
+
 	function _onFolderViewSearch(searchStr, searchCategory) {
-		_folderView.searchStr = searchStr;
-		_folderView.searchCategory = searchCategory;
+		_searchCache.searchStr = searchStr;
+		_searchCache.searchCategory = searchCategory;
 		_updateCardsInFolderView();
 	}
 
 	function _addToFolders(courseItem, itemVisible) {
-		var folder = courseItem[_folderView.folder] || 'Others';
+		var folder = courseItem[_searchCache.folder] || 'Others';
 		_addItemToParentFolder(folder, courseItem, itemVisible ? 'item' : 'ignore');
 	}
 
 	function _addItemToParentFolder(folder, item, itemType) {
-		if (!_folderView.tree[folder]) _folderView.tree[folder] = {folders: {}, items: {}, folderName: folder, count: 0};
-		var fs = _folderView.tree[folder];
+		if (!_searchCache.tree[folder]) _searchCache.tree[folder] = {folders: {}, items: {}, folderName: folder, count: 0};
+		var fs = _searchCache.tree[folder];
 		if (itemType == 'folder') {
 			fs.folders[item.folderName] = item;
 		} else if (itemType == 'item') {
@@ -345,7 +359,7 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
 	}
 
 	function _updateCounts(fs) {
-		fs.count = fs && fs.items ? Object.keys(fs.items).length : 0;
+		if(fs) fs.count = fs.items ? Object.keys(fs.items).length : 0;
 		for(var key in fs.folders) {
 			var child = fs.folders[key];
 			_updateCounts(child);
@@ -354,8 +368,8 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
 	}
 
 	function _createFolderCard(fs) {
-		var icon2 = fs.count ? 'ion-ios-folder fblue' : 'ion-ios-folder fgrey';
-		var cardStyle = fs.count ? '' : 'nl-opacity-6';
+		var icon2 = fs.count ? 'ion-ios-folder forange3' : 'ion-ios-folder fgrey';
+		var cardStyle = fs.count ? 'bgblue3' : 'bgdefault nl-opacity-5';
 		var card = {title: nl.fmt2('{} ({})', fs.folderName, fs.count),
 					icon2: icon2,
 					fs: fs, 
@@ -370,62 +384,59 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
 		_addCurrentFolderCards();
 	}
 
-	$scope.onClickBreadCrumb = function(folderName) {
-		_updateFolderPath(folderName);
+	$scope.onClickBreadCrumb = function(pathId) {
+		_updateFolderPath(pathId);
 		_addCurrentFolderCards();
 	};
 
-	function _updateFolderPath(folderName) {
-		if(!folderName) return;
-		if (_folderView.currentFolder == folderName) return;
-		if(_folderView.folderLabel == folderName) {
-			_folderView.currentFolder = null; 
+	function _updateFolderPath(pathId) {
+		if (_searchCache.currentFolder == pathId) return;
+		if(!pathId) {
+			_searchCache.currentFolder = null; 
 			return;
 		}
-		_folderView.currentFolder = folderName;
-		_folderView.currentPath = [{name: _folderView.folderLabel, value: '_root'}];
-		var parts = folderName.split('.');
+		_searchCache.currentFolder = pathId;
+		_searchCache.currentPath = [{name: _searchCache.folderLabel, id: null}];
+		var parts = pathId.split('.');
 		for(var i=0; i<parts.length; i++) {
-			_folderView.currentPath.push({ name: parts[i], value:parts.slice(0,i+1).join('.') });
+			_searchCache.currentPath.push({ name: parts[i], id:parts.slice(0,i+1).join('.') });
 		}
 	}
 	
 	function _addCurrentFolderCards() {
 		var cards = [];
 
-		var folderKey = _folderView.currentFolder || '_root';
-		var fs = _folderView.tree[folderKey];
-		if (!fs) fs = _folderView.tree['_root'];
+		var folderKey = _searchCache.currentFolder || '_root';
+		var fs = _searchCache.tree[folderKey];
+		if (!fs) fs = _searchCache.tree['_root'];
 		for(var key in fs.folders) {
 			var card = _createFolderCard(fs.folders[key]);
 			cards.push(card);
 		}
-		sortCards(cards, 0);
+		cards.sort(function(a, b) {
+			if(b.title.toLowerCase() < a.title.toLowerCase()) return 1;
+			if(b.title.toLowerCase() > a.title.toLowerCase()) return -1;
+			return 0;
+		});
+
 		for(var key in fs.items) {
 			var card = _createCard(fs.items[key]);
 			cards.push(card);
 		}
-		var startSortPosForItems = fs.folders ? Object.keys(fs.folders).length : 0;
-		sortCards(cards, startSortPosForItems);
+		cards.sort(function(a, b) {
+			if (a.fs || b.fs) return 0;
+			return ((b.updated || 0) - (a.updated || 0));
+		});
+
 		nlCardsSrv.updateCards($scope.cards, {
 			cardlist: cards,
 			canFetchMore: nlSearchCacheSrv.canFetchMore()
 		});
 	}
 
-	function sortCards(cards, start) {
-		if(cards.length < 2 || cards.length <= start) return;
-		cards.sort(function(a, b) {
-			if (cards.indexOf(a) < start) return 0;
-			if(b.title.toLowerCase() < a.title.toLowerCase()) return 1;
-			if(b.title.toLowerCase() > a.title.toLowerCase()) return -1;
-			if(b.title.toLowerCase() == a.title.toLowerCase()) return 0;
-		});
-	}
-
     var _pageFetcher = nlServerApi.getPageFetcher();
 	function _getDataFromServer(resolve, fetchMore) {
-		if(_folderView.folder) return _getCacheDataFromServer(resolve);
+		if(_searchCache.enabled) return _getCacheDataFromServer(resolve);
         if (!fetchMore) _resultList = [];
         var params = {metadata: _searchMetadata};
 		if(fetchMore) params['max'] = _max2;
@@ -521,7 +532,6 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
 	}
 	
 	function _createCourseCard(course) {
-		courseDict[course.id] = course;
 		var mode = my ? 'edit' : 'published';
 		var url = nl.fmt2('#/course_view?id={}&mode={}', course.id, mode);
 	    var card = {courseId: course.id,
@@ -532,6 +542,7 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
 					help: course.description,
 					json: angular.toJson(course, 0),
 					grp: course.grp,
+					updated: nl.fmt.json2Date(course.updated),
 					children: []};
 		if (course.icon && course.icon.indexOf('icon:') == 0) {
 			var icon2 = course.icon.substring(5);
@@ -617,6 +628,7 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
 	    			url: url,
 	    			children: []};
 		if(!isReport) card['isAssignment'] = true;
+		if(!isReport && report.updated) card['updated'] = report.updated;
 		var descFmt = '';
 		if(report.batchname)
 			descFmt += nl.t("<div><b>{}</b></div>", report.batchname);
@@ -690,9 +702,10 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
 			nlDlg.showLoadingScreen();
 			nlServerApi.courseDelete(courseId).then(function(status) {
 				nlDlg.hideLoadingScreen();
-				if (courseId in courseDict) delete courseDict[courseId];
-				// TODO-NOW: 1. Do other tests mentioned your todo-list
-				// TODO-NOW: 1. May not work in folder view
+				if (_searchCache.enabled) {
+					if(courseId in _searchCache.itemsDict) delete _searchCache.itemsDict[courseId];
+					return _updateSearchCachedCards();
+				}
 				for (var i in $scope.cards.cardlist) {
 					var card = $scope.cards.cardlist[i];
 					if (card.courseId !== courseId) continue;
@@ -702,7 +715,7 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
 			});	
 		});
 	}
-	
+
 	function _deleteAssignment($scope, assignId) {
 		var msg = {title: 'Please confirm', 
 				   template: 'Are you sure you want to delete? This cannot be undone.',
@@ -713,7 +726,10 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
 			nlDlg.showLoadingScreen();
 			_deleteAssignmentInLoop(assignId, 0, function() {
 				nlDlg.hideLoadingScreen();
-				// TODO-NOW: 1. May not work in folder view
+				if (_searchCache.enabled) {
+					if(assignId in _searchCache.itemsDict) delete _searchCache.itemsDict[assignId];
+					return _updateSearchCachedCards();
+				}
 				for (var i in $scope.cards.cardlist) {
 					var card = $scope.cards.cardlist[i];
 					if (card.reportId !== assignId) continue;
@@ -776,14 +792,8 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
 		nlDlg.popupConfirm(msg).then(function(result) {
 			if (!result) return;
 			nlDlg.showLoadingScreen();
-			var courseData = courseDict[courseId]; 
-			var modifiedData = {
-				name: courseData.name, 
-				icon: courseData.icon, 
-				description: courseData.description
-			};
 			nlServerApi.courseUnpublish(courseId).then(function(course) {
-				_onModifyDone(course, courseId, modifiedData, $scope);
+				_onModifyDone(course, courseId, $scope);
 			});	
 		});
 	}
@@ -842,14 +852,13 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
 		if (bPublish) modifiedData.publish = true;
 		var crModFn = (courseId != null) ? nlServerApi.courseModify: nlServerApi.courseCreate;
 		return crModFn(modifiedData).then(function(course) {
-			_onModifyDone(course, courseId, modifiedData, $scope, isCopy);
+			_onModifyDone(course, courseId, $scope, isCopy);
 			return course.id;
 		});
 	}
 
-    function _onModifyDone(course, courseId, modifiedData, $scope, isCopy) {
+    function _onModifyDone(course, courseId, $scope, isCopy) {
 		nlDlg.hideLoadingScreen();
-		_updateCourseForTesting(course, modifiedData);
 		if(isCopy) {
 			var copyCourseDlg = nlDlg.create($scope);
 			copyCourseDlg.scope.error = {};
@@ -871,7 +880,6 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
 			copyCourseDlg.show('view_controllers/course/course_copy.html', [], closeButton, true);	
 		}
 		if(isCopy && !my) return;
-		// TODO-NOW: 1. May not work in folder view
 		var card = _createCourseCard(course);
 		if (courseId !== null) {
 			var pos = _getCardPosition(course.id);
@@ -1066,22 +1074,7 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
     function _validateFail(scope, attr, errMsg) {
     	return nlDlg.setFieldError(scope, attr,
         	nl.t(errMsg));
-    }
-    
-	var uniqueId = 100;
-	function _updateCourseForTesting(course, modifiedData) {
-		if (NL_SERVER_INFO.serverType !== 'local') return;
-		if ('courseid' in modifiedData) {
-			course.id = modifiedData.courseid;
-		} else {
-			course.id = uniqueId++;
-		}
-		course.name  = modifiedData.name;
-		course.icon  = modifiedData.icon;
-		course.description  = modifiedData.description;
-		if ('content' in modifiedData)
-			course.content  = angular.fromJson(modifiedData.content);
-	}
+    }	
 
 	function _getCardPosition(courseId) {
 		for(var i in $scope.cards.cardlist) {

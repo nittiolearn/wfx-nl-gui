@@ -347,7 +347,7 @@ function ScoExporter(scoType, nl, nlServerApi, $templateCache, pl, nlExporter) {
         
         var template = $templateCache.get('view_controllers/sco/' + _metadataXmlTemplate[self.version]);
         var content = nl.fmt.fmt1(template, scope);
-        if (scoType == 'scorm') {
+        if (scoType == 'sco') {
             self.zip.file('imsmanifest.xml', content);
             pl.imp('Generated metadata xml', content);
         } else {

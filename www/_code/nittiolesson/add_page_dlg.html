@@ -66,7 +66,10 @@
       max-width: 240px;
 	  height: 42px;
 	  font-size: 90%;
-    }
+	}
+	.nl-pagetype-preview-title.show-all {
+		height: auto;
+	}
 </style>
 
 <nl-dlg dlgtitle='{{dlgTitle}}'
@@ -96,13 +99,13 @@ show-close='{{showClose}}'>
 				</div>
 				<div class='padding-mid text-center fsh4'>Layouts</div>
 				<div class='row row-center row-wrap row-justify-evenly padding-mid margin0'>
-			        <div ng-repeat='layout in options.layouts track by layout.id'>
+					<div ng-repeat='layout in options.layouts track by layout.id'
+						 ng-click='onClick("layout", layout)'>
 			        	<div class='padding'>
 					        <div class='padding-mid  nl-link-img {{layout.id == data.layout.id ? "nl-layout-selected" : ""}}'>
 							    <div class='row margin0 padding0'>
 							        <div class='col padding0'></div>
-			                        <div class='nl-pagetype-preview page_format_preview {{bginfos[layout.id].imgtype == "default_popup_bg" ? "module_popup_img" : ""}}'
-			                        	ng-click='onClick("layout", layout)'>
+			                        <div class='nl-pagetype-preview page_format_preview {{bginfos[layout.id].imgtype == "default_popup_bg" ? "module_popup_img" : ""}}'>
 										<img ng-if='bginfos[layout.id].imgtype != "default_popup_bg"' ng-src='{{bginfos[layout.id].bgimg}}' class='bgimg'>
 			                            <div class='page_format_preview2'>
 			                                <div class='njsSlides'>
@@ -122,8 +125,9 @@ show-close='{{showClose}}'>
 			                        </div>
 			                        <div class='col padding0'></div>
 							    </div>
-		                        <div class='nl-pagetype-preview-title text-center padding-mid'>
-									{{layout.layoutName}}
+								<div class='nl-pagetype-preview-title text-center padding-mid {{data.layout.id == layout.id ? "show-all" : ""}}'>
+									<div>{{layout.layoutName}}</div> 
+									<div class='padding-small {{data.layout.id == layout.id ? "" : "fgrey fsmall2"}}'>(code: {{layout.id}})</div>
 								</div>
 							</div>
 						</div>
