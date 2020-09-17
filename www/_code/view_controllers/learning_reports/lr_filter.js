@@ -233,7 +233,7 @@ function(nl, nlDlg, nlRouter, nlOuUserSelect, nlGroupInfo, nlTreeSelect) {
 				dataParam.objid = userObj.username;
 				dataParam.userid = userObj.id;
 			} else {
-				dataParam.ouFilter = sd.ouTree ? Object.keys(nlTreeSelect.getSelectedIds(sd.ouTree)) : null;
+				dataParam.ouFilter = sd.ouTree ? Object.keys(nlTreeSelect.getSelectedIds(sd.ouTree)) : [];
 				dataParam.ouFilter = dataParam.ouFilter.length == 1 ? dataParam.ouFilter[0] : '';
 				dataParam.timestamptype = sd.timestamptype.id;
 				dataParam.createdtill = sd.createdtill;
