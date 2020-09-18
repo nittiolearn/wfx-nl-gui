@@ -98,8 +98,8 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
 								// searchcache is used to get cached data from server. The folder
 					  			// view itself is shown only when folderLabel is not null
 		folderLabel: null,		// This is initialzed on startup.
-								// If folder is a supported attribute, folderLabel is set to object
-								// which display name. For example: grade => gradelabel. Only if this
+								// If folder is a supported attribute, folderLabel is set to the
+								// display name. For example: grade => gradelabel. Only if this
 								// is set, the folderview is shown.
 		tree: {}, 				// Folder structure
 		itemsDict: {},			// list of course/ course assignmenet items fetched from search cache
@@ -107,7 +107,6 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
 		currentPath: [],		// Path shown in breadcrumps
 		searchStr: '',			// For custom searching in folder view
 		searchCategory: '',			// For custom searching in folder view
-		folderViewOptions: null
 	}; 
 	$scope.folderView = _searchCache;
 
@@ -199,14 +198,13 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
 		_searchMetadata = nlMetaDlg.getMetadataFromUrl();
 		_maxDelete = params.max_delete || 50;
 		_max2 = ('max2' in params) ? parseInt(params.max2) : 500;
-		if((_searchCache.enabled) && (type == 'course') && !my) {
-			_searchCache.folderViewOptions = [
-				{'id': 'None', 'val': 'None', 'name': 'None'},
-				{'id': 'grade', 'val': 'grade', 'name': _userInfo.groupinfo.gradelabel},
-				{'id': 'subject', 'val': 'subject', 'name': _userInfo.groupinfo.subjectlabel},
-				{'id': 'authorname', 'val': 'authorname', 'name': 'Author'}
-			];
-			_searchCache.folderLabel = _searchCache.folderViewOptions[0];
+
+		if (_searchCache.folder == 'grade') {
+			_searchCache.folderLabel = _userInfo.groupinfo.gradelabel;
+		} else if (_searchCache.folder == 'subject') {
+			_searchCache.folderLabel = _userInfo.groupinfo.subjectlabel;
+		} else if (_searchCache.folder == 'authorname') {
+			_searchCache.folderLabel = 'Author:';
 		}
 	}
 
@@ -290,7 +288,7 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
 	}
 
     function _updateSearchCachedCards() {
-		if (_searchCache.folderLabel && _searchCache.folderLabel.val && _searchCache.folderLabel.val != 'None') return _updateCardsInFolderView();
+		if (_searchCache.folderLabel) return _updateCardsInFolderView();
 		var cards = [];
 		for (var itemId in _searchCache.itemsDict) {
 			var card = _createCard(_searchCache.itemsDict[itemId]);
@@ -391,12 +389,6 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
 		_addCurrentFolderCards();
 	};
 
-	$scope.onSelectFolder = function() {
-		_searchCache.currentFolder = null;
-		_searchCache.folder = _searchCache.folderLabel.val;
-		_updateSearchCachedCards();
-	}
-
 	function _updateFolderPath(pathId) {
 		if (_searchCache.currentFolder == pathId) return;
 		if(!pathId) {
@@ -404,7 +396,7 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
 			return;
 		}
 		_searchCache.currentFolder = pathId;
-		_searchCache.currentPath = [{name: _searchCache.folderLabel.name, id: null}];
+		_searchCache.currentPath = [{name: _searchCache.folderLabel, id: null}];
 		var parts = pathId.split('.');
 		for(var i=0; i<parts.length; i++) {
 			_searchCache.currentPath.push({ name: parts[i], id:parts.slice(0,i+1).join('.') });
