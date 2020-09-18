@@ -23,42 +23,7 @@
 		<div ng-if='isEtmAsd' class='padding-small'></div>		
 		<div ng-if='selectedModule.canShowAutoFillButton' class='nl-link-text nl-button-highlight' ng-click='onAutoFillAttendance(selectedModule)'>Autofill</div>	
 		<div ng-if='selectedModule.canShowAutoFillButton' class='padding-small'></div>
-		<div class='nl-link-text nl-button-highlight' ng-click='showBulkAttendanceMarker($event)'>Mark all</div>
-	</div>
-	<div ng-if='isEtmAsd' class='padding-small'></div>
-	<div ng-if='isEtmAsd' class='row row-center padding0 margin0'>
-		<div class='col padding0'></div>
-		<div class='nl-min-200'>
-			<nl-date-select fieldmodelbyref='selectedModule.sessiondate'></nl-date-select>
-		</div>
-		<div class='padding-small'></div>
-		<div class='padding-small'></div>
-		<div class='padding-small'>Shift: </div>
-		<div class='nl-dlg-field-value'>
-			<select ng-model='selectedModule.shiftHrs' 
-					ng-options='opt as opt.id for opt in options.shiftHrs track by opt.id'
-					ng-change='changeSessionShiftTime($event, selectedModule)'
-					class='w100'
-					autofocus=''
-					tabindex=""
-					style='min-height: 34px'>
-			</select>
-		</div>
-		<div class='padding-small'>:</div>
-		<div class='nl-dlg-field-value'>
-			<select ng-model='selectedModule.shiftMins' 
-					ng-options='opt as opt.id for opt in options.shiftMins track by opt.id'
-					ng-change='changeSessionShiftTime($event, selectedModule)'
-					class='w100'
-					autofocus=''
-					tabindex=""
-					style='min-height: 34px'>
-			</select>
-		</div>
-		<div class='padding-small'></div>
-		<div class='padding-small'>-</div>
-		<div class='padding-small'></div>
-		<div class='nl-xxx-select nl-dlg-field-value padding-mid' style='min-width:50px'>{{selectedModule.shiftEnd}}</div>
+		<div class='nl-link-text nl-button-highlight' ng-click='attendanceMarkAll($event, selectedModule)'>Bulk update</div>
 	</div>
 
 	<div ng-if='selectedModule.validationErrorMsg' class='row row-center padding0 margin0'>
@@ -91,15 +56,19 @@
 	<table class='nl-table nl-table-styled3'>
 		<tr class='header'>
 			<td style='width: 20%;'>
-				Learner Name
+				<div>Learner Name</div> 
+				<div ng-if='isEtmAsd'>(Learner Id)</div>
 			</td>
-			<td style='width: 20%;'>
+			<td ng-if='!isEtmAsd' style='width: 20%;'>
 				Learner Id
 			</td>
-			<td style='width: 20%;'>
+			<td ng-if='isEtmAsd' style='width: 22%;'>
+				Date
+			</td>
+			<td style='width:20%; min-width: {{isEtmAsd ? "150px" : none}};'>
 				Attendance Status
 			</td>
-			<td>
+			<td style='min-width: {{isEtmAsd ? "250px" : none}};'>
 				Remarks
 			</td>
 		</tr>
@@ -107,10 +76,51 @@
 			ng-show='bulkMarker.showAttendance || !report.bulkEntry'
             class='{{report.bulkEntry ? "alternate" : report.lockedMessage ? "fgrey" : ""}}'>
 			<td>
-				{{report.learnername}}
+				<div>{{report.learnername}}</div>
+				<div ng-if='isEtmAsd && !report.bulkEntry' class="fgrey">({{report.learnerid}})</div>
 			</td>
-			<td>
+			<td ng-if='!isEtmAsd'>
 				{{report.learnerid}}
+			</td>
+			<td  ng-if='isEtmAsd && !report.lockedMessage'>
+				<div ng-show='report.attendance.id == "notapplicable"'>
+					Date is not allowed for this learner.
+				</div>
+				<div ng-hide='report.attendance.id == "notapplicable"' style='border: {{report.bulkEntry ? "1px solid #ffffff" : ""}}; box-shadow: {{report.bulkEntry ? "2px 4px 5px 0 rgba(0,0,0,.06)" : ""}}'>
+					<nl-date-select fieldmodelbyref='report.attMarkedOn'></nl-date-select>
+				</div>
+				<div ng-hide='report.attendance.id == "notapplicable"' class='row row-center padding0 margin0'>
+					<div class='padding-small'>Shift: </div>
+					<div class='nl-dlg-field-value'
+						style='min-width:50px'>
+						<select ng-model='report.shiftHrs' 
+								ng-options='opt as opt.id for opt in options.shiftHrs track by opt.id'
+								ng-change='changeSessionShiftTime($event, report)'
+								class='w100'
+								autofocus=''
+								tabindex=""
+								style='min-height: 34px'>
+						</select>
+					</div>
+					<div class='padding-small'>:</div>
+					<div class='nl-dlg-field-value'
+						style='min-width:50px'>
+						<select ng-model='report.shiftMins' 
+								ng-options='opt as opt.id for opt in options.shiftMins track by opt.id'
+								ng-change='changeSessionShiftTime($event, report)'
+								class='w100'
+								autofocus=''
+								tabindex=""
+								style='min-height: 34px'>
+						</select>
+					</div>
+					<div class='padding-small'></div>
+					<div class='padding-small'>-</div>
+					<div class='padding-small'></div>
+					<div class='nl-xxx-select nl-dlg-field-value padding-mid' style='min-width:60px;border: {{report.bulkEntry ? "1px solid #ffffff" : ""}}; box-shadow: {{report.bulkEntry ? "2px 4px 5px 0 rgba(0,0,0,.06)" : ""}}'>
+						{{report.shiftEnd}}
+					</div>
+				</div>
 			</td>
 			<td class='nl-dlg-field-value'>
 				<select ng-model='report.attendance' 
@@ -147,7 +157,6 @@
                         tabindex='0'
                         placeholder='Provide additional remarks'>
                 </div>
-			</div>
 				<div ng-if='!report.lockedMessage && !selectedModule.attendanceRemarksOptions'
 					 class='nl-dlg-field-value'>
 					 <input ng-model='report.remarks.id' 
@@ -157,15 +166,6 @@
 				</div>
 				<div ng-if='!report.lockedMessage && report.validationErrorMsg' class='nl-dlg-field-errormsg'>
 					{{report.validationErrorMsg}}
-				</div>
-				<div ng-if='report.bulkEntry' class='row row-center padding-mid margin0'>
-						<div class='col padding0'></div>
-					
-						<div class='nl-link-text nl-button-lowlight padding-small'
-							 ng-click='hideBulkAttendanceMarker($event)'>Cancel</div>
-						<div class='padding-small'></div>
-						<div class='nl-link-text nl-button-highlight padding-small'
-							 ng-click='bulkAttendanceMarker($event)'>Mark All</div>
 				</div>
 			</td>
 		</tr>

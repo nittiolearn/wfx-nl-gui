@@ -43,10 +43,20 @@
                     tabindex='0'>
                 </select>
                 <input ng-if='!report.lockedMessage && selectedModule.ratingType === "input"'
-                       type='number' ng-model='report.rating.id' min='0' max='100'></input>
+                    type='number' ng-model='report.rating.id' min='0' max='100'></input>
+                <div ng-if='!report.bulkEntry && report.lockedMessage'> {{report.lockedMessage}} </div>
                 <div ng-if='report.bulkEntry && report.error' class='nl-dlg-field-errormsg'>
                     {{report.error}}
                 </div>
+                <div ng-if='selectedModule.hideRemarks && report.bulkEntry' class='row row-center padding-mid margin0'>
+                    <div class='col padding0'></div>                    
+                    <div class='nl-link-text nl-button-lowlight padding-small'
+                        ng-click='hideBulkRatingMarker($event)'>Cancel</div>
+                    <div class='padding-small'></div>
+                    <div class='nl-link-text nl-button-highlight padding-small'
+                        ng-click='bulkRatingMarker($event)'>Mark All</div>
+                </div>
+
             </td>
             <td ng-hide='selectedModule.hideRemarks'>
                 <div ng-if='report.lockedMessage'
