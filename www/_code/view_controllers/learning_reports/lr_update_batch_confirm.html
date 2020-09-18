@@ -23,7 +23,7 @@
             <td style='width: 20%;'>
                 Learner Id
             </td>
-            <td ng-if='change.cm.type == "iltsession"'>
+            <td ng-if='change.cm.etmAsd && change.cm.type == "iltsession"'>
                 Marked on
             </td>
             <td style='width: 20%;'>
@@ -45,7 +45,7 @@
             <td>
                 {{lrChange.lr.learnerid}}
             </td>
-            <td ng-if='change.cm.type == "iltsession"'>
+            <td ng-if='change.cm.etmAsd && change.cm.type == "iltsession"'>
                 {{lrChange.lr.attMarkedOnStr}}
             </td>
             <td>

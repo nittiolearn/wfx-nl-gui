@@ -1576,8 +1576,8 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			var status = record.stats.status;
 			var statusStr = status['txt'];
 			if(statusStr.indexOf('attrition') == 0) userObj.learner_status = nl.t('Attrition');
-			else if (record.user.state == 0) nl.t('Inactive');
-			else nl.t('Active')
+			else if (record.user.state == 0) userObj.learner_status = nl.t('Inactive');
+			else userObj.learner_status = nl.t('Active');
 
 			for(var j=0; j<metaHeaders.length; j++) {
 				var metas = metaHeaders[j];

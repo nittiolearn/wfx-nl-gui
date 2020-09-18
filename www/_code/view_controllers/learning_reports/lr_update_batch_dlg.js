@@ -182,6 +182,10 @@ function _getContext(courseAssignment, modules, learningRecords, groupInfo) {
 //-------------------------------------------------------------------------------------------------
 function DbAttendanceObject(courseAssignment, ctx) {
 
+	this.getAttendanceOptions = function() {
+		return _attendanceOptionsDict;
+	};
+
 	this.getEtmAsd = function() {
 		return _etmAsd;
 	};
@@ -298,7 +302,7 @@ function DbAttendanceObject(courseAssignment, ctx) {
 		lr.shiftEnd = nl.t('{}:{}', shiftEndHrs, lr.shiftMins.id ? lr.shiftMins.id : "");
 	};
 
-	this.copyFrom = function(srcLr, destLr, cm) {
+	this.copyFrom = function(srcLr, destLr) {
 		destLr.attendance = angular.copy(srcLr.attendance);
 		if (_etmAsd.length > 0 && srcLr.attendance.id != 'notapplicable') {
 			destLr.attMarkedOn = angular.copy(srcLr.attMarkedOn);
@@ -415,6 +419,7 @@ function DbAttendanceObject(courseAssignment, ctx) {
 	
 	this.updateCmChanges = function(cm, oldCm, cmChanges) {
 		if (cm.lockedOnItem) return;
+		cm.etmAsd = _etmAsd.length > 0;
 		if (_etmAsd.length == 0) return null;
 		if (!cm.asdSession) return;
 		if (cm.reason.id != oldCm.reason.id) {
@@ -766,11 +771,10 @@ function DbMilestoneObject(courseAssignment, ctx) {
 		}
 	};
 
-	this.markAll = function(cm, checked, date, markSelected) {
+	this.markAll = function(cm, checked, date) {
 		for (var i=1; i<ctx.lrArray.length; i++) {
 			var itemLr = cm.learningRecords[i];
-			if (itemLr.lockedMessage) continue;
-			if (markSelected && !itemLr.selectedLr) continue;
+			if (itemLr.lockedMessage || !itemLr.selectedLr) continue;
 			itemLr.milestoneMarked = checked;
 			if (checked && date) itemLr.reached = date;
 		}
@@ -1084,24 +1088,144 @@ function UpdateTrainingBatchDlg($scope, ctx, resolve) {
 		dlgScope.changeSessionShiftTime = function(e, lr) {
 			ctx.dbAttendance.changeSessionShiftTime(lr);
 		};
-		dlgScope.showBulkAttendanceMarker = function(e) {
-			_showBulkMarker(dlgScope, 'showAttendance');
-		};
-		dlgScope.hideBulkAttendanceMarker = function(e) {
-			_hideBulkMarker(dlgScope, 'showAttendance');
-		};
-		dlgScope.bulkAttendanceMarker = function(e) {
-			_bulkMarker(dlgScope, 'showAttendance');
-		};
-		dlgScope.canShowMarkSelected = function(selectedModule) {
-			for(var i=0; i<selectedModule.learningRecords.length; i++) {
-				if(selectedModule.learningRecords[i].selectedLr) return true;
+
+		dlgScope.attendanceMarkAll = function(e, selectedModule) {
+			var attBulkMarkDlg = nlDlg.create($scope);
+			attBulkMarkDlg.setCssClass('nl-height-max nl-width-max')
+			attBulkMarkDlg.scope.dlgTitle = 'Update attendance';
+			var bulkItem = selectedModule.learningRecords[0];
+			attBulkMarkDlg.scope.data = {attMarkedOn: bulkItem.attMarkedOn || '', attendance: bulkItem.attendance || {id: ''}, shiftHrs: bulkItem.shiftHrs || {id: ''}, 
+										 shiftMins: bulkItem.shiftMins || {id: ''}, shiftEnd: bulkItem.shiftEnd || '', remarks: bulkItem.remarks || {id: ''}, 
+										 otherRemarks: bulkItem.otherRemarks || ''};
+			if (dlgScope.isEtmAsd) {
+				attBulkMarkDlg.scope.data.attMarkedOn = bulkItem.attMarkedOn || ''; 
+				attBulkMarkDlg.scope.data.shiftHrs = bulkItem.shiftHrs || {id: ''};
+				attBulkMarkDlg.scope.data.shiftMins = bulkItem.shiftMins || {id: ''};
+				attBulkMarkDlg.scope.data.shiftEnd = bulkItem.shiftEnd || '';
 			}
-			return false;
-		};
-		dlgScope.markSelectedAttendance = function(e) {
-			_bulkMarker(dlgScope, 'showAttendance', true);
-		};
+
+			attBulkMarkDlg.scope.options = {shiftHrs: angular.copy(dlgScope.options.shiftHrs),
+											shiftMins: angular.copy(dlgScope.options.shiftMins),
+											attendanceOptions: angular.copy(selectedModule.attendanceOptions),
+											attendanceRemarksOptions: angular.copy(selectedModule.attendanceRemarksOptions)};
+
+			attBulkMarkDlg.scope.data.selectedModule = selectedModule;
+			attBulkMarkDlg.scope.isEtmAsd = dlgScope.isEtmAsd;
+			attBulkMarkDlg.scope.help = 'Please choose the learners and update attendance status for selected learners.';
+
+			attBulkMarkDlg.scope.onChangeTime = function (data) {
+				if (!data.shiftHrs || !data.shiftHrs.id || !data.shiftMins) return;
+				var shiftEndHrs = parseInt(data.shiftHrs.id) + 9;
+				if (shiftEndHrs && shiftEndHrs > 23) {
+					shiftEndHrs = shiftEndHrs % 24;
+				}
+				data.shiftEnd = nl.t('{}:{}', shiftEndHrs, data.shiftMins.id ? data.shiftMins.id : "");		
+			};
+			
+			attBulkMarkDlg.scope.selectOn = function(e, selectedModule, type) {
+				var lrRecords = selectedModule.learningRecords;
+				for(var i=0; i<lrRecords.length; i++) {
+					var lr = lrRecords[i];
+					if (lr.lockedMessage) continue;
+					if (type == 'selectall') 
+						lr.selectedLr = true;
+					else if (type == 'pending' && !lr.attendance.id) 
+						lr.selectedLr = true;
+					else 
+						lr.selectedLr = false;
+				}
+		
+			}
+			var okButton = {text: nl.t('Update'), onTap: function(e) {
+				attBulkMarkDlg.scope.data.errorMsg = null;
+				if (!_validateInputsAttd(e, attBulkMarkDlg)) return;
+				var srcData = attBulkMarkDlg.scope.data;
+				var sourceLr = {attMarkedOn: srcData.attMarkedOn, attendance: srcData.attendance, 
+								shiftHrs: srcData.shiftHrs, shiftMins: srcData.shiftMins,
+								shiftEnd: srcData.shiftEnd, remarks: srcData.remarks, otherRemarks: srcData.otherRemarks}
+				_copyFrom(selectedModule.learningRecords[0], sourceLr);
+				_bulkMarkAttendance(selectedModule);	
+			}};
+			var cancelButton = {text: nl.t('Cancel'), onTap: function(e) {
+			}};
+			attBulkMarkDlg.show('view_controllers/learning_reports/lr_bulk_marker_dlg.html',
+				[okButton], cancelButton);
+		}
+		function _copyFrom(src, dst) {
+			for (var key in dst) src[key] = dst[key];
+		}
+
+		function _validateInputsAttd(e, attBulkMarkDlg) {
+			var data = attBulkMarkDlg.scope.data;
+			if (!data.attMarkedOn) {
+				e.preventDefault();
+				attBulkMarkDlg.scope.data.errorMsg = 'Please select the date';
+				return false;
+			}
+			if (data.attMarkedOn && data.attMarkedOn > new Date()) {
+				e.preventDefault();
+				attBulkMarkDlg.scope.data.errorMsg = 'Selected date cannot be in future';
+				return false;
+			}
+			if (!data.shiftHrs.id) {
+				e.preventDefault();
+				attBulkMarkDlg.scope.data.errorMsg = 'Shift Hrs is mandatory';
+				return false;
+			}
+			if (!data.shiftMins.id) {
+				e.preventDefault();
+				attBulkMarkDlg.scope.data.errorMsg = 'Shift Mins is mandatory';
+				return false;
+			}
+			var attendanceOption = ctx.dbAttendance.getAttendanceOptions();
+			var attendanceConfig = attendanceOption[data.attendance.id] || {};
+
+			if (!data.attendance.id) {
+				e.preventDefault();
+				attBulkMarkDlg.scope.data.errorMsg = 'Please select attendance status to update';
+				return false;
+			}
+
+			if (data.attendance.id && !data.remarks.id && !attendanceConfig.remarksOptional) {
+				e.preventDefault();
+				attBulkMarkDlg.scope.data.errorMsg = 'Remarks mandatory';
+				return false;
+			}
+			var lrRecords = data.selectedModule.learningRecords;
+			var selectedLr = false;
+			attBulkMarkDlg.scope.data.errorMsg = null;
+			for(var i=0; i<lrRecords.length; i++) {
+				if (lrRecords[i].selectedLr) {
+					selectedLr = true;
+					break;
+				}
+			}
+			if (!selectedLr) {
+				e.preventDefault();
+				attBulkMarkDlg.scope.data.errorMsg = 'Please select the learners to update the attendance for';
+				return false;
+			}
+			return true;
+		}
+		//TODO-NOW:Naveen remove this code later
+		// dlgScope.showBulkAttendanceMarker = function(e) {
+		// 	_showBulkMarker(dlgScope, 'showAttendance');
+		// };
+		// dlgScope.hideBulkAttendanceMarker = function(e) {
+		// 	_hideBulkMarker(dlgScope, 'showAttendance');
+		// };
+		// dlgScope.bulkAttendanceMarker = function(e) {
+		// 	_bulkMarker(dlgScope, 'showAttendance');
+		// };
+		// dlgScope.canShowMarkSelected = function(selectedModule) {
+		// 	for(var i=0; i<selectedModule.learningRecords.length; i++) {
+		// 		if(selectedModule.learningRecords[i].selectedLr) return true;
+		// 	}
+		// 	return false;
+		// };
+		// dlgScope.markSelectedAttendance = function(e) {
+		// 	_bulkMarker(dlgScope, 'showAttendance', true);
+		// };
 
 		// Auto fill attendance based on the joinTime for online sessions
 		dlgScope.onAutoFillAttendance = function(cm) {
@@ -1152,22 +1276,32 @@ function UpdateTrainingBatchDlg($scope, ctx, resolve) {
 				var msBulkMarkDlg = nlDlg.create($scope);
 				msBulkMarkDlg.setCssClass('nl-height-max nl-width-max')
 				msBulkMarkDlg.scope.dlgTitle = 'Select date';
-				msBulkMarkDlg.scope.data = {reached: null, showDate: true};
+				msBulkMarkDlg.scope.data = {reached: null, milestone: true};
 				msBulkMarkDlg.scope.data.selectedModule = selectedModule;
-				msBulkMarkDlg.scope.showHelp = true;
-				var okButton = {text: nl.t('Mark all'), onTap: function(e) {
+				msBulkMarkDlg.scope.help = 'Please choose the learners and update milestone status for selected learners.';
+				msBulkMarkDlg.scope.selectOn = function(e, selectedModule, type) {
+					var lrRecords = selectedModule.learningRecords;
+					for(var i=0; i<lrRecords.length; i++) {
+						var lr = lrRecords[i];
+						if (lr.lockedMessage) continue;
+						if (type == 'selectall') 
+							lr.selectedLr = true;
+						else if (type == 'pending' && !lr.milestoneMarked) 
+							lr.selectedLr = true;
+						else 
+							lr.selectedLr = false;
+					}
+			
+				}
+				var okButton = {text: nl.t('Update'), onTap: function(e) {
 					msBulkMarkDlg.scope.data.errorMsg = null;
 					if (!_validateInputs(e, msBulkMarkDlg)) return;
 					ctx.dbMilestone.markAll(selectedModule, true, msBulkMarkDlg.scope.data.reached);
 				}};
-				var markSelected = {text: nl.t('Mark selected'), onTap: function(e) {
-					if (!_validateInputs(e, msBulkMarkDlg, true)) return;
-					ctx.dbMilestone.markAll(selectedModule, true, msBulkMarkDlg.scope.data.reached, true);
-				}};
 				var cancelButton = {text: nl.t('Cancel'), onTap: function(e) {
 				}};
 				msBulkMarkDlg.show('view_controllers/learning_reports/lr_bulk_marker_dlg.html',
-					[okButton, markSelected], cancelButton);	
+					[okButton], cancelButton);	
 			} else {
 				ctx.dbMilestone.markAll(selectedModule, true);
 			}
@@ -1177,7 +1311,7 @@ function UpdateTrainingBatchDlg($scope, ctx, resolve) {
 		};
 	}
 
-	function _validateInputs(e, msBulkMarkDlg, markSelected) {
+	function _validateInputs(e, msBulkMarkDlg) {
 		if (!msBulkMarkDlg.scope.data.reached) {
 			e.preventDefault();
 			msBulkMarkDlg.scope.data.errorMsg = 'Please select the milestone date';
@@ -1188,21 +1322,19 @@ function UpdateTrainingBatchDlg($scope, ctx, resolve) {
 			msBulkMarkDlg.scope.data.errorMsg = 'Selected date cannot be in future';
 			return false;
 		}
-		if (markSelected) {
-			var lrRecords = msBulkMarkDlg.scope.data.selectedModule.learningRecords;
-			var selectedLr = false;
-			msBulkMarkDlg.scope.data.errorMsg = null;
-			for(var i=0; i<lrRecords.length; i++) {
-				if (lrRecords[i].selectedLr) {
-					selectedLr = true;
-					break;
-				}
+		var lrRecords = msBulkMarkDlg.scope.data.selectedModule.learningRecords;
+		var selectedLr = false;
+		msBulkMarkDlg.scope.data.errorMsg = null;
+		for(var i=0; i<lrRecords.length; i++) {
+			if (lrRecords[i].selectedLr) {
+				selectedLr = true;
+				break;
 			}
-			if (!selectedLr) {
-				e.preventDefault();
-				msBulkMarkDlg.scope.data.errorMsg = 'Please select the users';
-				return;
-			}
+		}
+		if (!selectedLr) {
+			e.preventDefault();
+			msBulkMarkDlg.scope.data.errorMsg = 'Please select the learners to update the milestone for';
+			return false;
 		}
 		return true;
 	}
@@ -1313,31 +1445,22 @@ function UpdateTrainingBatchDlg($scope, ctx, resolve) {
 		dlgScope.bulkMarker[markerType] = false;
 	}
 
+	function _bulkMarkAttendance(selectedModule) {
+		var cm = selectedModule;
+		var sourceLr = selectedModule.learningRecords[0];
+		for(var i=0; i<cm.learningRecords.length; i++) {
+			var lr = cm.learningRecords[i];
+			if (lr.bulkEntry || lr.lockedMessage || !lr.selectedLr) continue;
+			ctx['dbAttendance'].copyFrom(sourceLr, lr);
+		}
+	}
+
 	function _bulkMarker(dlgScope, markerType, markSelected) {
 		var cm = dlgScope.selectedModule;
 		if (!cm) return;
 		var bulkItem = cm.learningRecords[0];
 		bulkItem.error = '';
 		var selected = bulkItem[markerType == 'showAttendance' ? 'attendance' : 'rating'].id;
-		if (dlgScope.isEtmAsd && markerType == 'showAttendance' && bulkItem.attendance.id != 'notapplicable') {
-			if (!bulkItem.attMarkedOn) {
-				bulkItem.error = 'Please select a date.';
-				return;	
-			}
-			var newDate = new Date()
-			if (bulkItem.attMarkedOn > newDate) {
-				bulkItem.error = 'Date cannot be in future';
-				return;	
-			}
-			if (!bulkItem.shiftHrs.id) {
-				bulkItem.error = 'Please select a shift Hrs.';
-				return;	
-			}
-			if (!bulkItem.shiftMins.id) {
-				bulkItem.error = 'Please select a shift mins.';
-				return;	
-			}
-		}
 		if (!selected && selected !== 0) {
 			bulkItem.error = 'Please select a value to mark all.';
 			return;
@@ -1345,7 +1468,6 @@ function UpdateTrainingBatchDlg($scope, ctx, resolve) {
 		for(var i=0; i<cm.learningRecords.length; i++) {
 			var lr = cm.learningRecords[i];
 			if (lr.bulkEntry || lr.lockedMessage) continue;
-			if (markSelected && !lr.selectedLr) continue;
 			ctx[markerType == 'showAttendance' ? 'dbAttendance' : 'dbRating'].copyFrom(bulkItem, lr, cm);
 		}
 		dlgScope.bulkMarker[markerType] = false;

@@ -23,7 +23,7 @@
 		<div ng-if='isEtmAsd' class='padding-small'></div>		
 		<div ng-if='selectedModule.canShowAutoFillButton' class='nl-link-text nl-button-highlight' ng-click='onAutoFillAttendance(selectedModule)'>Autofill</div>	
 		<div ng-if='selectedModule.canShowAutoFillButton' class='padding-small'></div>
-		<div class='nl-link-text nl-button-highlight' ng-click='showBulkAttendanceMarker($event)'>Mark all</div>
+		<div class='nl-link-text nl-button-highlight' ng-click='attendanceMarkAll($event, selectedModule)'>Bulk update</div>
 	</div>
 
 	<div ng-if='selectedModule.validationErrorMsg' class='row row-center padding0 margin0'>
@@ -55,8 +55,6 @@
 	</div>
 	<table class='nl-table nl-table-styled3'>
 		<tr class='header'>
-            <td ng-if='isEtmAsd' style='width: 50px;'>
-            </td>
 			<td style='width: 20%;'>
 				<div>Learner Name</div> 
 				<div ng-if='isEtmAsd'>(Learner Id)</div>
@@ -77,13 +75,6 @@
 		<tr ng-repeat='report in selectedModule.learningRecords'
 			ng-show='bulkMarker.showAttendance || !report.bulkEntry'
             class='{{report.bulkEntry ? "alternate" : report.lockedMessage ? "fgrey" : ""}}'>
-            <td ng-if='isEtmAsd'>
-                <div class='nl-link-text fsh5' style='padding:10px' ng-if='bulkMarker.showAttendance && !report.bulkEntry && !report.lockedMessage'
-					ng-click='report.selectedLr = !report.selectedLr'>
-                    <i ng-show='report.selectedLr' class="icon ion-android-checkbox-outline black fsh6"></i>
-                    <i ng-hide='report.selectedLr' class="icon ion-android-checkbox-outline-blank fsh6"></i>
-                </div>
-            </td>
 			<td>
 				<div>{{report.learnername}}</div>
 				<div ng-if='isEtmAsd && !report.bulkEntry' class="fgrey">({{report.learnerid}})</div>
@@ -175,18 +166,6 @@
 				</div>
 				<div ng-if='!report.lockedMessage && report.validationErrorMsg' class='nl-dlg-field-errormsg'>
 					{{report.validationErrorMsg}}
-				</div>
-				<div ng-if='report.bulkEntry' class='row row-center padding-mid margin0'>
-						<div class='col padding0'></div>
-						<div class='nl-link-text nl-button-lowlight padding-small'
-							 ng-click='hideBulkAttendanceMarker($event)'>Cancel</div>
-						<div class='padding-small'></div>
-						<div class='nl-link-text nl-button-highlight padding-small'
-							 ng-click='bulkAttendanceMarker($event)'>Mark All</div>
-						<div class='padding-small'></div>
-						<div ng-if='canShowMarkSelected(selectedModule)' class='nl-link-text nl-button-highlight padding-small'
-							 style='width:150px'
-							 ng-click='markSelectedAttendance($event)'>Mark Selected</div>
 				</div>
 			</td>
 		</tr>
