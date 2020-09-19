@@ -60,65 +60,87 @@ function(nl, nlDlg, nlServerApi, $http) {
         if (cache.fetchDone) return resolve(cache.itemsDict, false);
         nlDlg.popupStatus('Fetching data from server ...', false);
         nlDlg.showLoadingScreen();
-        _getCacheInfoFromServer(cache, function(status, searchCacheInfo) {
+        _getCacheInfoFromServer(cache, function(status) {
             if (!status) return _ret(cache, resolve);
-            _getCacheJsonFromServer(cache, searchCacheInfo, function(status, jsonContent) {
-                if (!status) return _ret(cache, resolve);
-                if (jsonContent.deleted_ids) cache.deleted_ids = jsonContent.deleted_ids;
-                _updateItemsDict(cache, jsonContent.items || {});
-                return _ret(cache, resolve);
-            });
+            _processNextCacheJson(cache, resolve);
         });
     }
+
     function _ret(cache, resolve) {
         nlDlg.popdownStatus(0);
         nlDlg.hideLoadingScreen();
         return resolve(cache.itemsDict, !cache.fetchDone);
-}
+    }
 
     function _initCache(cache) {
         if (cache.itemsDict) return;
         cache.itemsDict = {};
+        cache.searchCacheInfo = null;
         cache.fetchDone = false;
         cache.jsonsFetched = {};
         cache.deleted_ids = {};
     }
 
     function _getCacheInfoFromServer(cache, onDone) {
+        if (cache.searchCacheInfo && !cache.searchCacheInfo.dirty && !cache.searchCacheInfo.tryAfterDelay) return onDone(true);
         nlServerApi.searchCacheGetInfo({cachetype: cache.cachetype}).then(function(data) {
+            cache.searchCacheInfo = data;
             if (data.tryAfterDelay) {
                 nl.timeout(function() {
-                    _getCacheInfoFromServer(cache, resolve);
+                    _getCacheInfoFromServer(cache, onDone);
                 }, 5000);
+                return;
             }
-            cache.fetchDone = data.dirty ? false : true;
-            onDone(true, data);
+            onDone(true);
         }, function(err) {
-            onDone(false, {});
+            cache.searchCacheInfo = {};
+            onDone(false);
         });
     }
 
-    function _getCacheJsonFromServer(cache, searchCacheInfo, onDone) {
-        var fileInfos = (searchCacheInfo.info || {}).file_infos || [];
-        for (var i=0; i<fileInfos.length; i++) {
+    function _processNextCacheJson(cache, resolve) {
+        _getNextCacheJsonFromServer(cache, function(status, jsonContent, fileInfoId) {
+            if (!status) return _ret(cache, resolve);
+            cache.fetchDone = !cache.searchCacheInfo.dirty && !cache.searchCacheInfo.tryAfterDelay && !_getNextFileInfo(cache);
+            _updatedDeletedIds(cache, jsonContent, fileInfoId);
+            _updateItemsDict(cache, jsonContent.items || {}, fileInfoId);
+            var fileInfos = ((cache.searchCacheInfo || {}).info || {}).file_infos || [];
+            if (fileInfos.length > 1 && Object.keys(cache.jsonsFetched).length < 2) { 
+                // Initially fecth upto 2 files
+                return _processNextCacheJson(cache, resolve);
+            }
+            return _ret(cache, resolve);
+        });
+    }
+
+    function _getNextCacheJsonFromServer(cache, onDone) {
+        var fileInfo = _getNextFileInfo(cache);
+        if (!fileInfo) {
+            return onDone(true, {});
+        }
+        nlServerApi.searchCacheGetJson(cache.cachetype, fileInfo.id).then(function(data) {
+            cache.jsonsFetched[fileInfo.id] = fileInfo.versionstamp;
+            onDone(true, (data || {}).data, fileInfo.id);
+        }, function() {
+            onDone(false, {}, fileInfo.id);
+        });
+    }
+
+    function _getNextFileInfo(cache) {
+        var fileInfos = ((cache.searchCacheInfo || {}).info || {}).file_infos || [];
+        for (var i=0; i<cache.fileInfos.length; i++) {
             var fileInfo = fileInfos[i];
             if (fileInfo.id in cache.jsonsFetched && 
                 cache.jsonsFetched[fileInfo.id] == fileInfo.versionstamp) continue;
-            nlServerApi.searchCacheGetJson(cache.cachetype, fileInfo.id)
-            .then(function(data) {
-                onDone(true, (data || {}).data);
-            }, function() {
-                onDone(false, {});
-            });
-            return;
+            return fileInfo;
         }
-        // Checked all the items and nothing more to fetch!
-        onDone(false, {});
+        return null;
     }
 
-    function _updateItemsDict(cache, itemsInJson) {
+    function _updateItemsDict(cache, itemsInJson, fileInfoId) {
         for(var itemId in itemsInJson) {
             var item = itemsInJson[itemId];
+            item.fileInfoId = fileInfoId;
             var itemInCache = cache.itemsDict[itemId] || {};
             if (!itemInCache) {
                 cache.itemsDict[itemId] = item;
@@ -130,7 +152,22 @@ function(nl, nlDlg, nlServerApi, $http) {
             cache.itemsDict[itemId] = item;
         }
         for(var itemId in cache.deleted_ids) {
-            if(itemId in cache.itemsDict) delete cache.itemsDict[itemId];
+            if(!(itemId in cache.itemsDict)) continue;
+            var fileInfoId = cache.deleted_ids[itemId];
+            if (cache.itemsDict[itemId].fileInfoId > fileInfoId) continue;
+            delete cache.itemsDict[itemId];
+        }
+    }
+
+    function _updatedDeletedIds(cache, jsonContent, fileInfoId) {
+        var deletedIds = cache.deleted_ids;
+        cache.deleted_ids = {};
+        for (var objid in deletedIds) {
+            if (deletedIds[objid] != fileInfoId) cache.deleted_ids[objid] = deletedIds[objid];
+        }
+        deletedIds = jsonContent.deleted_ids || {};
+        for (var objid in deletedIds) {
+            cache.deleted_ids[objid] = fileInfoId;
         }
     }
 
