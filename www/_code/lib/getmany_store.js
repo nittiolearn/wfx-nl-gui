@@ -165,6 +165,8 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo) {
                     if (batchStats[state]) 
                         pendingEarlierState = state;
                 }
+            } else {
+                pendingEarlierState = ret.batchStatus;
             }
             if (pendingEarlierState)
                 _msInfoCache[key].batchStatus = pendingEarlierState;
