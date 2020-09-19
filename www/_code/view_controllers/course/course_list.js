@@ -193,6 +193,7 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
         var params = nl.location.search();
 		_searchCache.folder = params.folder || null;
 		_searchCache.enabled = _searchCache.folder ? true : false;
+		_searchCache.cacheType = type ==='course' ? 'published_course' : 'course_assignment';
         my = ('my' in params && !_searchCache.enabled) ? parseInt(params.my) == 1: false;
         _metadataEnabled = (type == 'course') && !my;
 		_searchMetadata = nlMetaDlg.getMetadataFromUrl();
@@ -246,8 +247,7 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
     }
 	
 	function _getCacheDataFromServer(resolve) {
-		var cacheType = type ==='course' ? 'published_course' : 'course_assignment';
-		nlSearchCacheSrv.getItems(cacheType).then(function(itemsDict, canFetchMore) {
+		nlSearchCacheSrv.getItems(_searchCache.cacheType).then(function(itemsDict, canFetchMore) {
 			_filterOutDisallowedItems(itemsDict);
 			_updateSearchCachedCards();
 			if (resolve) resolve(true);
@@ -300,7 +300,7 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
 		});
 		nlCardsSrv.updateCards($scope.cards, {
 			cardlist: cards,
-			canFetchMore: nlSearchCacheSrv.canFetchMore()
+			canFetchMore: nlSearchCacheSrv.canFetchMore(_searchCache.cacheType)
 		});
 	}
 
@@ -430,7 +430,7 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
 
 		nlCardsSrv.updateCards($scope.cards, {
 			cardlist: cards,
-			canFetchMore: nlSearchCacheSrv.canFetchMore()
+			canFetchMore: nlSearchCacheSrv.canFetchMore(_searchCache.cacheType)
 		});
 	}
 
@@ -628,7 +628,7 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
 	    			url: url,
 	    			children: []};
 		if(!isReport) card['isAssignment'] = true;
-		if(!isReport && report.updated) card['updated'] = report.updated;
+		if(!isReport && report.updated) card['updated'] = nl.fmt.json2Date(report.updated);
 		var descFmt = '';
 		if(report.batchname)
 			descFmt += nl.t("<div><b>{}</b></div>", report.batchname);

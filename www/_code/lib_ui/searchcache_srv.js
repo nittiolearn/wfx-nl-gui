@@ -128,7 +128,7 @@ function(nl, nlDlg, nlServerApi, $http) {
 
     function _getNextFileInfo(cache) {
         var fileInfos = ((cache.searchCacheInfo || {}).info || {}).file_infos || [];
-        for (var i=0; i<cache.fileInfos.length; i++) {
+        for (var i=0; i< fileInfos.length; i++) {
             var fileInfo = fileInfos[i];
             if (fileInfo.id in cache.jsonsFetched && 
                 cache.jsonsFetched[fileInfo.id] == fileInfo.versionstamp) continue;

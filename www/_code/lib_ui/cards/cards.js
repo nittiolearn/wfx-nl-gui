@@ -104,15 +104,11 @@ function(nl, $filter) {
         var msg1 = nl.t('There are no items to display.');
         cards._internal.search.cls = 'fgrey';
         cards._internal.search.showDetails = false;
-        if (total == 0) {
-            cards._internal.search.infotxt = nl.fmt2('<i class="padding-mid icon ion-alert-circled"></i>{}', 
-                msg1);
-            cards._internal.search.infotxt2 = msg1;
-            cards._internal.search.cls = 'forange fsh4 nl-link-text';
-            return _animateInfotext(cards, oldInfotxt);
-        }
         var item = (total == 1) ? 'item' : 'items';
-        if (!cards._internal.search.filter) {
+        if (total == 0) {
+            msg1 = nl.fmt2('<i class="padding-mid icon ion-alert-circled"></i>{}', msg1);
+            cards._internal.search.cls = 'forange fsh4';
+        } else if (!cards._internal.search.filter) {
             if (visible < total) {
                 msg1 = nl.t('Showing <b>{}</b> of <b>{}</b> {}.', visible, total, item);
             } else {
@@ -131,7 +127,7 @@ function(nl, $filter) {
             cards._internal.search.infotxt2 = msg1;
             return _animateInfotext(cards, oldInfotxt);
         }
-        cards._internal.search.cls = 'fgrey nl-link-text';
+        cards._internal.search.cls += ' nl-link-text';
         cards._internal.search.showDetails = true;
         if(cards._internal.search.filter) 
             cards._internal.search.infotxt = nl.t('{} <b>Search more <i class="icon ion-refresh"></i></b>.', msg1);
