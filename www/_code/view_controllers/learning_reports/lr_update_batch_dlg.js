@@ -165,7 +165,7 @@ function _getContext(courseAssignment, modules, learningRecords, groupInfo) {
 			} else {
 				var itemInfo = lr.bulkEntry ? {} : lr.repcontent.statusinfo[cm.id] || {};
 				if (cm.type == 'iltsession' && itemInfo.joinTime) report.joinTime = itemInfo.joinTime;
-				if(cm.hide_locked && itemInfo.status == 'waiting') report.locked_waiting = true;
+				if (itemInfo.status == 'waiting') report.locked_waiting = true;
 			}
 			if (lr.bulkEntry) report.bulkEntry = true;
 			cm.learningRecords.push(report);
@@ -263,7 +263,7 @@ function DbAttendanceObject(courseAssignment, ctx) {
 			: !addAfterCm.asdSession ? addAfterCm.id : addAfterCm.parentFixedSessionId;
 		ctx.addModule(item, addAfterCm);
 		this.updateItem(item);
-		this.changeSessionReason(item);
+		this.changeSessionReason(item, addAfterCm);
 		return item;
 	};
 
@@ -272,7 +272,7 @@ function DbAttendanceObject(courseAssignment, ctx) {
 		ctx.deleteModule(cm);
 	};
 
-	this.changeSessionReason = function(cm) {
+	this.changeSessionReason = function(cm, previousIlt) {
 		if (_etmAsd.length == 0 || !cm.reason.id) return;
 		var reasonInfo = null;
 		for (var i=0; i<_etmAsd.length; i++) {
@@ -283,8 +283,14 @@ function DbAttendanceObject(courseAssignment, ctx) {
 		if (!reasonInfo || !reasonInfo.defaultAttendance) return;
 		var newAtd = _attendanceOptionsDict[reasonInfo.defaultAttendance];
 		if (!newAtd) return;
+		var previousItemLrRecords = previousIlt ? previousIlt.learningRecords : [];
 		for (var i=0; i<cm.learningRecords.length; i++) {
 			var lr = cm.learningRecords[i];
+			var oldLr = previousItemLrRecords[i];
+			if (oldLr && oldLr.lockedMessage) {
+				lr.lockedMessage = oldLr.lockedMessage;
+				continue;
+			}
 			if (lr.inactive) {
 				lr.lockedMessage = nl.fmt2('Learner is inactive');
 				continue;
@@ -1092,7 +1098,7 @@ function UpdateTrainingBatchDlg($scope, ctx, resolve) {
 		dlgScope.attendanceMarkAll = function(e, selectedModule) {
 			var attBulkMarkDlg = nlDlg.create($scope);
 			attBulkMarkDlg.setCssClass('nl-height-max nl-width-max')
-			attBulkMarkDlg.scope.dlgTitle = 'Update attendance';
+			attBulkMarkDlg.scope.dlgTitle = 'Bulk update attendance';
 			var bulkItem = selectedModule.learningRecords[0];
 			attBulkMarkDlg.scope.data = {attMarkedOn: bulkItem.attMarkedOn || '', attendance: bulkItem.attendance || {id: ''}, shiftHrs: bulkItem.shiftHrs || {id: ''}, 
 										 shiftMins: bulkItem.shiftMins || {id: ''}, shiftEnd: bulkItem.shiftEnd || '', remarks: bulkItem.remarks || {id: ''}, 
@@ -1111,7 +1117,6 @@ function UpdateTrainingBatchDlg($scope, ctx, resolve) {
 
 			attBulkMarkDlg.scope.data.selectedModule = selectedModule;
 			attBulkMarkDlg.scope.isEtmAsd = dlgScope.isEtmAsd;
-			attBulkMarkDlg.scope.help = 'Please choose the learners and update attendance status for selected learners.';
 
 			attBulkMarkDlg.scope.onChangeTime = function (data) {
 				if (!data.shiftHrs || !data.shiftHrs.id || !data.shiftMins) return;
@@ -1136,6 +1141,11 @@ function UpdateTrainingBatchDlg($scope, ctx, resolve) {
 				}
 		
 			}
+			attBulkMarkDlg.scope.getFormattedDate = function(date) {
+				if (!date) return "";
+				return nl.fmt.date2StrDDMMYY(nl.fmt.json2Date(date) || '', null, 'date');
+			}
+
 			var okButton = {text: nl.t('Update'), onTap: function(e) {
 				attBulkMarkDlg.scope.data.errorMsg = null;
 				if (!_validateInputsAttd(e, attBulkMarkDlg)) return;
@@ -1275,10 +1285,9 @@ function UpdateTrainingBatchDlg($scope, ctx, resolve) {
 			if (dlgScope.isEtmAsd) {
 				var msBulkMarkDlg = nlDlg.create($scope);
 				msBulkMarkDlg.setCssClass('nl-height-max nl-width-max')
-				msBulkMarkDlg.scope.dlgTitle = 'Select date';
+				msBulkMarkDlg.scope.dlgTitle = 'Bulk update milestone';
 				msBulkMarkDlg.scope.data = {reached: null, milestone: true};
 				msBulkMarkDlg.scope.data.selectedModule = selectedModule;
-				msBulkMarkDlg.scope.help = 'Please choose the learners and update milestone status for selected learners.';
 				msBulkMarkDlg.scope.selectOn = function(e, selectedModule, type) {
 					var lrRecords = selectedModule.learningRecords;
 					for(var i=0; i<lrRecords.length; i++) {
@@ -1292,6 +1301,10 @@ function UpdateTrainingBatchDlg($scope, ctx, resolve) {
 							lr.selectedLr = false;
 					}
 			
+				}
+				msBulkMarkDlg.scope.getFormattedDate = function(date) {
+					if (!date) return "";
+					return nl.fmt.date2StrDDMMYY(nl.fmt.json2Date(date) || '', null, 'date');
 				}
 				var okButton = {text: nl.t('Update'), onTap: function(e) {
 					msBulkMarkDlg.scope.data.errorMsg = null;

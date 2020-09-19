@@ -1,12 +1,5 @@
 <nl-dlg dlgTitle='{{dlgTitle}}' show-help='0'>
 <nl-dlg-content>
-    <div ng-if='help' class='padding-mid'>
-        <nl-inline-help>
-            <div>
-                {{help}}
-            </div>
-        </nl-inline-help>
-    </div>
     <div ng-if='data.inputField' class='row row-center row-wrap margin0 padding-mid'>
         <input type='number' ng-model='data.inputval' min='0' max='100'></input>
     </div>
@@ -51,6 +44,9 @@
                         Learner Name
                     </td>
                     <td>
+                        Learner Id
+                    </td>
+                    <td>
                         Milestone reached on
                     </td>
                     <td>
@@ -71,9 +67,10 @@
                         {{report.learnername}}
                     </td>
                     <td>
-                        <div>
-                            {{report.reached | date: 'dd-MM-yyyy' || ""}}
-                        </div>
+                        {{report.learnerid}}
+                    </td>
+                    <td>
+                        {{report.reached ? getFormattedDate(report.reached) : ""}}
                     </td>
                     <td>
                         <div>
@@ -254,25 +251,13 @@
                         {{report.learnerid}}
                     </td>
                     <td ng-if='isEtmAsd'>
-                        <div ng-if='!report.lockedMessage'>{{report.attMarkedOn | date: 'dd-MM-yyyy' || ""}}</div>
+                        <div ng-if='!report.lockedMessage'>{{report.attMarkedOn ? getFormattedDate(report.attMarkedOn) : ""}}</div>                        
                     </td>
                     <td ng-if='isEtmAsd'>
                         <div ng-if='!report.lockedMessage' 
                             class='row row-center padding0 margin0'>
                             <div class='nl-dlg-field-value'>
-                                {{report.shiftHrs.id}}
-                            </div>
-                            <div class='padding-small'></diV>
-                            <div class='padding-small'>:</diV>
-                            <div class='padding-small'></diV>
-                            <div class='nl-dlg-field-value'>
-                                {{report.shiftMins.id}}
-                            </div>
-                            <div class='padding-small'></div>
-                            <div class='padding-small'>-</div>
-                            <div class='padding-small'></div>
-                            <div class='nl-xxx-select nl-dlg-field-value padding-mid' style='min-width:60px;'>
-                                {{report.shiftEnd}}
+                                {{report.shiftHrs.id}}:{{report.shiftMins.id}}-{{report.shiftEnd}}
                             </div>
                         </div>
                     </td>
