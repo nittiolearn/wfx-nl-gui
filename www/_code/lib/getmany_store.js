@@ -168,7 +168,7 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo) {
             }
             if (pendingEarlierState)
                 _msInfoCache[key].batchStatus = pendingEarlierState;
-            if (pendingEarlierState == 'Closed') {
+            if (!pendingEarlierState && batchStats['Closed']) {
                 _nhtBatchStatus['closed'] = true;
             } else {
                 _nhtBatchStatus['running'] = true;

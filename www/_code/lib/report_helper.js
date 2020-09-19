@@ -174,7 +174,7 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
     function _getCourseStatus() {
         _ctx = {unlockNext: {}};
         msInfoDict = {latestMarkedMilestone: null, firstPendingMs: null}
-        var ret = {status: 'pending', itemIdToInfo: {}, delayDays: 0,
+        var ret = {status: 'pending', itemIdToInfo: {asdAddedSessions: {}}, delayDays: 0,
             nCompletedItems: 0,
             nQuizes: 0, nQuizAttempts: 0, nPassedQuizes: 0, nFailedQuizes: 0, 
             nTotalQuizScore: 0, nTotalQuizMaxScore: 0,
@@ -450,6 +450,10 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
             _getRawStatusOfLesson(cm, itemInfo);
         } else if (cm.type == 'iltsession') {
             _getRawStatusOfIltSession(cm, itemInfo);
+            if (cm.asdSession) {
+                if (!(cm.parentFixedSessionId in itemIdToInfo.asdAddedSessions)) itemIdToInfo.asdAddedSessions[cm.parentFixedSessionId] = [];
+                itemIdToInfo.asdAddedSessions[cm.parentFixedSessionId].push(itemInfo);
+        }
         } else if (cm.type == 'rating') {
             _getRawStatusOfRating(cm, itemInfo);
         } else if (cm.type == 'milestone') {
@@ -740,6 +744,24 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
                 isConditionFailed = true;
             } else if (p.max_score && preItem.score >= p.max_score) {
                 isConditionFailed = true;
+            }
+            if (preItem.type == "iltsession" && isConditionFailed) {
+                var asdSessions = itemIdToInfo.asdAddedSessions[p.module] || [];
+                var condPassedInAsd = false;
+                for (var j=0; j<asdSessions.length; j++) {
+                    preItem = asdSessions[j];
+                    if (p.iltCondition == 'marked') {
+                        if (_isEndItemState(preItem.status))  condPassedInAsd = true;
+                    } else if (p.iltCondition == 'attended') {
+                        if (preItem.status == 'success') condPassedInAsd = true;
+                    } else if (p.iltCondition == 'not_attended') {
+                        if (preItem.status != 'success') condPassedInAsd = true;
+                    }
+                    if (condPassedInAsd) {
+                        isConditionFailed = false;
+                        break;
+                    }
+                }    
             }
             if (isConditionFailed) failCnt++;
         }
