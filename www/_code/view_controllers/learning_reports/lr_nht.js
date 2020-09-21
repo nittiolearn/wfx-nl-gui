@@ -319,7 +319,7 @@ function NhtCounts(nl, nlGetManyStore, nlGroupInfo) {
     function _getReachedCertification(updatedStats) {
         var ret = 0;
         // TODO: hardcoding in the state names!!!
-        var attrs = ['certified', 'failed', 'attrition-certification', 'attrition-recertification'];
+        var attrs = ['certified', 'failed', 'attrition-Certification', 'attrition-recertification'];
         for(var i=0; i<attrs.length; i++) {
             if (!(attrs[i] in updatedStats)) continue;
             ret += updatedStats[attrs[i]];

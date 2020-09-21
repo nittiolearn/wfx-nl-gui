@@ -289,6 +289,7 @@ function DbAttendanceObject(courseAssignment, ctx) {
 			var oldLr = previousItemLrRecords[i];
 			if (oldLr && oldLr.lockedMessage) {
 				lr.lockedMessage = oldLr.lockedMessage;
+				if (oldLr.locked_waiting) lr.locked_waiting = true;
 				continue;
 			}
 			if (lr.inactive) {
@@ -343,7 +344,10 @@ function DbAttendanceObject(courseAssignment, ctx) {
 
 	this.validateLr = function(lr, cm, lrBlocker) {
 		var attendanceConfig = _attendanceOptionsDict[lr.attendance.id] || {};
-		if (!cm.asdSession) lrBlocker.lastSessionAttended = false;
+		if (!cm.asdSession) {
+			lrBlocker.lastFixedSessionAttended = false;
+			lrBlocker.lastSessionAttended = false;
+		}
 		if (lr.inactive && !lr.attendance.id) {
 			lr.lockedMessage = nl.fmt2('Learner is inactive');
 			if (!lrBlocker.all) lrBlocker.all = lr;
@@ -982,13 +986,13 @@ function Validator(ctx) {
 			if (!lrBlockers[lr.id]) lrBlockers[lr.id] = {all: null, ms: null,
 				lastSessionAttended: null, atdMarkedDates: {}, lastDate: null};
 			var lrBlocker = lrBlockers[lr.id];
-			if (lrBlocker.all) {
+			if (lrBlocker.all && (cm.type != 'rating' || lrBlocker.lastSessionAttended === false)) {
 				lr.lockedMessage = lrBlocker.all.cantProceedMessage;
 			} else if (cm.type == 'milestone' && lrBlocker.ms) {
 				lr.lockedMessage = lrBlocker.ms.cantProceedMessage;
 				if (!lrBlocker.all) lrBlocker.all = lrBlocker.ms;
 			}
-			if (!lr.lockedMessage && lr.locked_waiting) {
+			if (!lr.lockedMessage && lr.locked_waiting && (cm.type != 'rating' || lrBlocker.lastSessionAttended === false)) {
 				lr.lockedMessage = 'Not applicable';
 				cm.anyMarkingDone = true;
 			}

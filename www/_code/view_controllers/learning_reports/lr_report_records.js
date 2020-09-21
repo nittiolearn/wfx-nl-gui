@@ -306,6 +306,7 @@ function(nl, nlRouter, nlDlg, nlGroupInfo, nlLrHelper, nlLrFilter, nlGetManyStor
         
         report.url = nl.fmt2('#/course_view?id={}&mode=report_view', report.id);
         report.urlTitle = nl.t('View report');
+        stats._origstatus = stainf.status;
         if (report.isNHT && user.state == 0 && stainf.status.indexOf('attrition') != 0) {
             if (!nlReportHelper.isCourseCompleted(stainf)) stainf.status = nl.t('attrition-{}', stainf.status);   
         }

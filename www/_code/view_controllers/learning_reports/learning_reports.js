@@ -1573,8 +1573,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			userObj.batchname = record.raw_record._batchName;
 			userObj.not_before = nl.fmt.fmtDateDelta(record.repcontent.not_before, null, 'date');
 			userObj.not_after = nl.fmt.fmtDateDelta(record.repcontent.not_after, null, 'date');
-			var status = record.stats.status;
-			var statusStr = status['txt'];
+			var statusStr = record.stats._origstatus;
 			if(statusStr.indexOf('attrition') == 0) userObj.learner_status = nl.t('Attrition');
 			else if (record.user.state == 0) userObj.learner_status = nl.t('Inactive');
 			else userObj.learner_status = nl.t('Active');
