@@ -684,7 +684,7 @@ function DbRatingObject(courseAssignment, ctx) {
 		}
 
 		if (lr.locked_waiting) {
-			if (lr.canshowNextRating === true) return;
+			if (lrBlocker.canshowNextRating === true) return;
 			lr.lockedMessage = nl.fmt2('Not applicable');
 			cm.anyMarkingDone = true;
 			return;
@@ -1003,7 +1003,7 @@ function Validator(ctx) {
 				if (!lrBlocker.all) lrBlocker.all = lrBlocker.ms;
 			}
 			if (!lr.lockedMessage && lr.locked_waiting && (cm.type != 'rating' || lrBlocker.lastSessionAttended === false)) {
-				if (cm.type == 'iltsession') lr.canshowNextRating = false;
+				if (cm.type == 'iltsession') lrBlocker.canshowNextRating = false;
 				lr.lockedMessage = 'Not applicable';
 				cm.anyMarkingDone = true;
 			}
