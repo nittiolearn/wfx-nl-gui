@@ -119,7 +119,7 @@ function(nl, nlReportHelper, nlGetManyStore) {
             }
         }
         if (stats.isCertified) {
-            statsCountObj['certified'] = 1;
+            if (!statsCountObj['dontCountAttrition']) statsCountObj['certified'] = 1;
             if (stats.reattempt) statsCountObj['certifiedSecondAttempt'] = 1;
             else statsCountObj['certifiedFirstAttempt'] = 1;
             statsCountObj[statusStr] = 1;
@@ -237,9 +237,18 @@ function NhtCounts(nl, nlGetManyStore, nlGroupInfo) {
     this.updateBatchCount = function(batchInfo, statusCnt) {
         var updatedStats = self.getBatch(batchInfo);
         _updateBatchInfo(updatedStats, batchInfo.batchId, statusCnt);
-        if (updatedStats.batchStatus == 'Closed' && !statusCnt.dontCountAttrition) statusCnt['cntCompletedTotal'] = 1;
+        if (!statusCnt.dontCountAttrition && _isReportCompleted(statusCnt)) statusCnt['cntCompletedTotal'] = 1;
         _updateStatsCount(updatedStats, statusCnt);
     };
+
+    function _isReportCompleted(updatedStats) {
+        var attrs = ['certified', 'failed', 'Re-certification', 'attrition-Re-certification'];
+        for(var i=0; i<attrs.length; i++) {
+            if (!(attrs[i] in updatedStats)) continue;
+            return true;
+        }
+        return false;
+    }
 
     function _updateBatchInfo(updatedStats, batchid) { 
         if (updatedStats.propertiesUpdated) return;
