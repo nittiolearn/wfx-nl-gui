@@ -316,10 +316,15 @@ function NhtCounts(nl, nlGetManyStore, nlGroupInfo) {
         }
     }
 
-    function _getReachedCertification(updatedStats) {
+    function _getReachedCertification(updatedStats, addArray) {
         var ret = 0;
         // TODO: hardcoding in the state names!!!
-        var attrs = ['certified', 'failed', 'attrition-Certification', 'attrition-recertification'];
+        //certified = people certified in first or second attempt
+        //failed = people failed in recertification
+        //Re-cetification = failed in certification gate going through recertification
+        //attrition-certification|attrition-Re-certification = attrited during certifcation and recertification phases.
+        var attrs = ['certified', 'failed', 'Re-certification', 'attrition-Re-certification', ];
+        attrs = attrs.concat(addArray);
         for(var i=0; i<attrs.length; i++) {
             if (!(attrs[i] in updatedStats)) continue;
             ret += updatedStats[attrs[i]];
@@ -332,12 +337,13 @@ function NhtCounts(nl, nlGetManyStore, nlGroupInfo) {
 
         if (updatedStats['cntCompletedTotal'])
             updatedStats['batchThroughput'] = '' + Math.round(100*updatedStats['certified']/updatedStats['cntCompletedTotal']) + ' %';
-        var reachedCertification = _getReachedCertification(updatedStats);
-        var notCertified = reachedCertification - (updatedStats['certifiedFirstAttempt'] + updatedStats['certifiedSecondAttempt']);
-        if (reachedCertification > 0) {
-            updatedStats['batchFirstPass'] = '' + Math.round(100*updatedStats['certifiedFirstAttempt']/reachedCertification) + ' %';
+        var attemptedCertification = _getReachedCertification(updatedStats, []);
+        var notCertified = attemptedCertification - (updatedStats['certifiedFirstAttempt'] + updatedStats['certifiedSecondAttempt']);
+        if (attemptedCertification > 0) {
+            updatedStats['batchFirstPass'] = '' + Math.round(100*updatedStats['certifiedFirstAttempt']/attemptedCertification) + ' %';
+            var reachedCertification = _getReachedCertification(updatedStats, ['Certification', 'attrition-Certifiation']);
             updatedStats['certificationThroughput'] = '' + Math.round(100*(updatedStats['certifiedFirstAttempt']+updatedStats['certifiedSecondAttempt'])/reachedCertification) + ' %';
-            updatedStats['notCertified'] = '' + Math.round(100*notCertified/reachedCertification) + ' %';
+            updatedStats['notCertified'] = '' + Math.round(100*notCertified/attemptedCertification) + ' %';
         }
 
         if(updatedStats.cntTotal > 0) {

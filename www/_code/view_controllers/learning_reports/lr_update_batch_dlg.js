@@ -345,7 +345,7 @@ function DbAttendanceObject(courseAssignment, ctx) {
 	this.validateLr = function(lr, cm, lrBlocker) {
 		var attendanceConfig = _attendanceOptionsDict[lr.attendance.id] || {};
 		if (!cm.asdSession) {
-			lrBlocker.lastFixedSessionAttended = false;
+			lrBlocker.canshowNextRating = false;
 			lrBlocker.lastSessionAttended = false;
 		}
 		if (lr.inactive && !lr.attendance.id) {
@@ -412,8 +412,10 @@ function DbAttendanceObject(courseAssignment, ctx) {
 				nlReportHelper.getItemName(cm), lr.validationErrorMsg);
 		}
 
-		if (!lrBlocker.lastSessionAttended)
+		if (!lrBlocker.lastSessionAttended) {
 			lrBlocker.lastSessionAttended = (attendanceConfig.timePerc || 0) > 0;
+			lrBlocker.canshowNextRating = (attendanceConfig.timePerc || 0) > 0;
+		}
 	};
 
 	function _isOtherRemarksOption(lr) {
@@ -678,6 +680,13 @@ function DbRatingObject(courseAssignment, ctx) {
 				lr.lockedMessage = nl.fmt2('Learner is inactive');
 				if (!lrBlocker.ms) lrBlocker.ms = lr;
 			}
+			return;
+		}
+
+		if (lr.locked_waiting) {
+			if (lr.canshowNextRating === true) return;
+			lr.lockedMessage = nl.fmt2('Not applicable');
+			cm.anyMarkingDone = true;
 			return;
 		}
 
@@ -984,7 +993,8 @@ function Validator(ctx) {
 			lr.validationErrorMsg = null;
 
 			if (!lrBlockers[lr.id]) lrBlockers[lr.id] = {all: null, ms: null,
-				lastSessionAttended: null, atdMarkedDates: {}, lastDate: null};
+				lastSessionAttended: null, atdMarkedDates: {}, lastDate: null,
+				canshowNextRating: null};
 			var lrBlocker = lrBlockers[lr.id];
 			if (lrBlocker.all && (cm.type != 'rating' || lrBlocker.lastSessionAttended === false)) {
 				lr.lockedMessage = lrBlocker.all.cantProceedMessage;
@@ -993,6 +1003,7 @@ function Validator(ctx) {
 				if (!lrBlocker.all) lrBlocker.all = lrBlocker.ms;
 			}
 			if (!lr.lockedMessage && lr.locked_waiting && (cm.type != 'rating' || lrBlocker.lastSessionAttended === false)) {
+				if (cm.type == 'iltsession') lr.canshowNextRating = false;
 				lr.lockedMessage = 'Not applicable';
 				cm.anyMarkingDone = true;
 			}
