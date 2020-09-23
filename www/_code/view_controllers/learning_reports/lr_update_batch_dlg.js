@@ -1182,25 +1182,27 @@ function UpdateTrainingBatchDlg($scope, ctx, resolve) {
 
 		function _validateInputsAttd(e, attBulkMarkDlg) {
 			var data = attBulkMarkDlg.scope.data;
-			if (!data.attMarkedOn) {
-				e.preventDefault();
-				attBulkMarkDlg.scope.data.errorMsg = 'Please select the date';
-				return false;
-			}
-			if (data.attMarkedOn && data.attMarkedOn > new Date()) {
-				e.preventDefault();
-				attBulkMarkDlg.scope.data.errorMsg = 'Selected date cannot be in future';
-				return false;
-			}
-			if (!data.shiftHrs.id) {
-				e.preventDefault();
-				attBulkMarkDlg.scope.data.errorMsg = 'Shift Hrs is mandatory';
-				return false;
-			}
-			if (!data.shiftMins.id) {
-				e.preventDefault();
-				attBulkMarkDlg.scope.data.errorMsg = 'Shift Mins is mandatory';
-				return false;
+			if (attBulkMarkDlg.scope.isEtmAsd) {
+				if (!data.attMarkedOn) {
+					e.preventDefault();
+					attBulkMarkDlg.scope.data.errorMsg = 'Please select the date';
+					return false;
+				}
+				if (data.attMarkedOn && data.attMarkedOn > new Date()) {
+					e.preventDefault();
+					attBulkMarkDlg.scope.data.errorMsg = 'Selected date cannot be in future';
+					return false;
+				}
+				if (!data.shiftHrs.id) {
+					e.preventDefault();
+					attBulkMarkDlg.scope.data.errorMsg = 'Shift Hrs is mandatory';
+					return false;
+				}
+				if (!data.shiftMins.id) {
+					e.preventDefault();
+					attBulkMarkDlg.scope.data.errorMsg = 'Shift Mins is mandatory';
+					return false;
+				}
 			}
 			var attendanceOption = ctx.dbAttendance.getAttendanceOptions();
 			var attendanceConfig = attendanceOption[data.attendance.id] || {};
