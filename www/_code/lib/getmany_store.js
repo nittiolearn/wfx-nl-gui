@@ -162,7 +162,7 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo) {
             if (ret.batchStatus == 'Closed') {
                 for(var i=0; i<defaultStatus.length; i++) {
                     var state = defaultStatus[i];
-                    if (state == 'Closed') continue;
+                    if (state == 'Closed' || state == 'Re-certification') continue;
                     if (batchStats[state]) 
                         pendingEarlierState = state;
                 }
