@@ -136,6 +136,7 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo) {
     };
 
     this.updateMilestoneBatchInfo = function(courseAssign, modules) {
+        if (!courseAssign) return;
         var _msInfoCache = _updateNHTBatchStats.getMsInfoCache();
         if (courseAssign.id in _msInfoCache) return;
         _updateNHTBatchStats.updateBatchInfo(modules, courseAssign);
