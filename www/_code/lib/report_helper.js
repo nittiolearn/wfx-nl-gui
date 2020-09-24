@@ -212,6 +212,12 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
             _getRawStatusOfItem(cm, itemInfo, itemIdToInfo);
             if (cm.type == 'lesson' && cm.isQuiz) _updateQuizScore(ret, cm, itemInfo);
             itemInfo.status = itemInfo.rawStatus;
+            if (cm.type == 'iltsession') {
+                if(itemInfo.stateStr == 'certified') {
+                    ret.isCertified = true;
+                    latestCustomStatus = 'certified';
+                }
+            }
             if (isAttrition) {
                 itemInfo.status = 'waiting';
                 // TODO-LATER: try using this across every place (course_view and course assign view - eye icon)

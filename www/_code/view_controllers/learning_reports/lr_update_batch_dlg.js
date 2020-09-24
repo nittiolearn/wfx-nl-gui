@@ -414,7 +414,10 @@ function DbAttendanceObject(courseAssignment, ctx) {
 
 		if (!lrBlocker.lastSessionAttended) {
 			lrBlocker.lastSessionAttended = (attendanceConfig.timePerc || 0) > 0;
-			lrBlocker.canshowNextRating = (attendanceConfig.timePerc || 0) > 0;
+			if (attendanceConfig.id == 'certified') 
+				lrBlocker.canshowNextRating = false;
+			else 
+				lrBlocker.canshowNextRating = (attendanceConfig.timePerc || 0) > 0;
 		}
 	};
 
@@ -685,8 +688,13 @@ function DbRatingObject(courseAssignment, ctx) {
 
 		if (lr.locked_waiting) {
 			if (lrBlocker.canshowNextRating === true) return;
-			lr.lockedMessage = nl.fmt2('Not applicable');
+			lr.lockedMessage = lrBlocker.all ? lrBlocker.all.cantProceedMessage : nl.fmt2('Not applicable');
 			cm.anyMarkingDone = true;
+			return;
+		}
+
+		if (lrBlocker.all && lrBlocker.canshowNextRating === false) {
+			lr.cantProceedMessage = lrBlocker.all.cantProceedMessage;
 			return;
 		}
 
@@ -996,18 +1004,21 @@ function Validator(ctx) {
 				lastSessionAttended: null, atdMarkedDates: {}, lastDate: null,
 				canshowNextRating: null};
 			var lrBlocker = lrBlockers[lr.id];
-			if (lrBlocker.all && (cm.type != 'rating' || lrBlocker.lastSessionAttended === false)) {
+			if (lrBlocker.all && (cm.type != 'rating' || lrBlocker.canshowNextRating === false)) {
 				lr.lockedMessage = lrBlocker.all.cantProceedMessage;
 			} else if (cm.type == 'milestone' && lrBlocker.ms) {
 				lr.lockedMessage = lrBlocker.ms.cantProceedMessage;
 				if (!lrBlocker.all) lrBlocker.all = lrBlocker.ms;
 			}
-			if (!lr.lockedMessage && lr.locked_waiting && (cm.type != 'rating' || lrBlocker.lastSessionAttended === false)) {
+			if (!lr.lockedMessage && lr.locked_waiting && (cm.type != 'rating' || lrBlocker.canshowNextRating === false)) {
 				if (cm.type == 'iltsession') lrBlocker.canshowNextRating = false;
 				lr.lockedMessage = 'Not applicable';
 				cm.anyMarkingDone = true;
 			}
-			if (lr.lockedMessage) continue;
+			if (lr.lockedMessage) {
+				if (cm.type == 'iltsession' && !cm.asdSession) lrBlocker.canshowNextRating = false;
+				continue;
+			}
 			cm.allLrsLocked = false;
 
 			if (cm.type == 'iltsession') ctx.dbAttendance.validateLr(lr, cm, lrBlocker);
