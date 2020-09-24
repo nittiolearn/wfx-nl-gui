@@ -159,20 +159,17 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo) {
             var batchStats = batchStatsObj[key];
             var ret = _msInfoCache[key];
             var pendingEarlierState = null;
-            if (ret.batchStatus == 'Closed') {
-                for(var i=0; i<defaultStatus.length; i++) {
-                    var state = defaultStatus[i];
-                    if (state == 'Closed') continue;
-                    if (batchStats[state]) 
-                        pendingEarlierState = state;
-                }
-            } else {
-                pendingEarlierState = ret.batchStatus;
+            for(var i=0; i<defaultStatus.length; i++) {
+                var state = defaultStatus[i];
+                if (state == 'Closed') continue;
+                if (batchStats[state]) 
+                    pendingEarlierState = state;
             }
             if (pendingEarlierState)
                 _msInfoCache[key].batchStatus = pendingEarlierState;
             if (!pendingEarlierState && batchStats['Closed']) {
                 _nhtBatchStatus['closed'] = true;
+                _msInfoCache[key].batchStatus = 'Closed';
             } else {
                 _nhtBatchStatus['running'] = true;
             }

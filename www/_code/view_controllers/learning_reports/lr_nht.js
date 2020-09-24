@@ -40,31 +40,32 @@ function(nl, nlReportHelper, nlGetManyStore) {
         if (getNhtRecords) return reportDict;
         nhtCounts.clear();
         for(var key in reportDict) {
+            var msInfo = nlGetManyStore.getBatchInfo(reportDict[key].raw_record) || {};
             if (batchType) {
-                var msInfo = nlGetManyStore.getBatchInfo(reportDict[key].raw_record) || {};
                 if(batchType == 'nhtrunning' && msInfo.batchStatus == 'Closed' ||
                     batchType == 'nhtclosed' && msInfo.batchStatus != 'Closed') {
                     continue;
                 }
             }
-            _addNhtRecord(reportDict[key]);
+            _addNhtRecord(reportDict[key], msInfo);
         }
         return nhtCounts.statsCountDict();
     };
         
-    function _addNhtRecord(record) {
+    function _addNhtRecord(record, msInfo) {
         var assignment = record.raw_record.assignment;
-        var batchInfo = _getNhtBatchInfo(record);
+        var batchInfo = _getNhtBatchInfo(record, msInfo);
         var statusCntObj = _getStatusCountObj(record);
         nhtCounts.updateBatch(assignment, record);
         _addCount(batchInfo, statusCntObj);
     }
 
-    function _getNhtBatchInfo(record) {
+    function _getNhtBatchInfo(record, msInfo) {
         return {suborg: record.user.suborg, subject: record.raw_record.subject,
             batchName: record.raw_record._batchName || record.repcontent.name,
             batchType: record.repcontent.batchtype || '',
-            batchId: record.raw_record.assignment};
+            batchId: record.raw_record.assignment, 
+            batchStatus: msInfo.batchStatus};
     }
 
     function _addCount(batchInfo, statusObj) {
@@ -172,7 +173,7 @@ function NhtCounts(nl, nlGetManyStore, nlGroupInfo) {
     var self = this;
 
     var statsCountItem = {cntTotal: 0, cntCompletedTotal: 0, batchIdDict: {}, batchTotal:0, delayDays: 0, pending:0, failed: 0,
-        completed: 0, certifiedFirstAttempt: 0, certifiedSecondAttempt: 0, certified: 0, 
+        completed: 0, certifiedFirstAttempt: 0, certifiedSecondAttempt: 0, certified: 0, certifiedInClosed: 0, 
         percScore: 0, isOpen: false, cntTotalAttrition: 0, attritionInvoluntary: 0, transferOut: 0, inductionDropOut:0};
     var _customScores = {};
     var _customScoresArray = [];
@@ -237,11 +238,14 @@ function NhtCounts(nl, nlGetManyStore, nlGroupInfo) {
     this.updateBatchCount = function(batchInfo, statusCnt) {
         var updatedStats = self.getBatch(batchInfo);
         _updateBatchInfo(updatedStats, batchInfo.batchId, statusCnt);
-        if (updatedStats.batchStatus == 'Closed' && _isReportCounted(statusCnt)) statusCnt['cntCompletedTotal'] = 1;
+        if (batchInfo.batchStatus == 'Closed' && _isReportCompleted(statusCnt)) {
+            if (statusCnt['certified'] > 0) statusCnt['certifiedInClosed'] = 1;
+            statusCnt['cntCompletedTotal'] = 1;
+        }
         _updateStatsCount(updatedStats, statusCnt);
     };
 
-    function _isReportCounted(stats) {
+    function _isReportCompleted(stats) {
         if (stats.dontCountAttrition) return false;
         if (stats['attrition'] > 0) return true;
         if (stats['certified'] > 0) return true;
@@ -343,9 +347,9 @@ function NhtCounts(nl, nlGetManyStore, nlGroupInfo) {
     function _updateStatsPercs(updatedStats) {
         if (!updatedStats.batchName) updatedStats.batchName = updatedStats.batchTotal;
 
-        if (updatedStats['cntCompletedTotal'] > 0) {
-            updatedStats['batchThroughput'] = '' + Math.round(100*updatedStats['certified']/updatedStats['cntCompletedTotal']) + ' %';
-        }
+        if (updatedStats['cntCompletedTotal'] > 0) 
+            updatedStats['batchThroughput'] = '' + Math.round(100*updatedStats['certifiedInClosed']/updatedStats['cntCompletedTotal']) + ' %';
+
         var attemptedCertification = _getReachedCertification(updatedStats);
         var notCertified = attemptedCertification - (updatedStats['certifiedFirstAttempt'] + updatedStats['certifiedSecondAttempt']);
         if (attemptedCertification > 0) {
