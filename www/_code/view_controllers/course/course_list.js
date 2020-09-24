@@ -120,7 +120,8 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
 			nl.pginfo.pageTitle = _getPageTitle();
 			if(_searchCache.enabled) nlSearchCacheSrv.init();
 			$scope.cards = {
-			    staticlist: _getStaticCards(), 
+				staticlist: _getStaticCards(), 
+				largeData: _searchCache.enabled,
 				search: {customSearch: _searchCache.folderLabel ? _onFolderViewSearch: null,
 					onSearch: _metadataEnabled ? _onSearch: null, 
                     placeholder: nl.t('Enter course name/description')}

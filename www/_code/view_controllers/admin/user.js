@@ -49,6 +49,7 @@ nlAdminUserExport, nlAdminUserImport, nlTreeSelect, nlOuUserSelect, nlServerApi)
 		return nl.q(function(resolve, reject) {
 
             $scope.cards = {staticlist: _getStaticCards(), 
+                largeData: true,
                 search:{placeholder: nl.t('Search user name/email/loginid')}};
             nlCardsSrv.initCards($scope.cards);
 

@@ -31,16 +31,23 @@
            tabindex="0" ng-click='onSearchButton()'></i>
     </div>
     <div class='padding-small'></div>
-    <div class='{{cards._internal.search.cls}} anim-highlight-off {{cards._internal.search.clsAnimate}}'
-         ng-click='showResultDetails()'>
-         <div class='padding-mid' ng-bind-html='cards._internal.search.infotxt'></div>
+    <div class='row row-center padding0 margin0'>
+        <div ng-show='cards._internal.search.usageHint' class='padding-small'>
+        </div>
+        <div ng-show='cards._internal.search.usageHint' class='fgrey'>
+            {{cards._internal.search.usageHint}}
+        </div>
+        <div class='col padding0 {{cards._internal.search.cls}} anim-highlight-off {{cards._internal.search.clsAnimate}}'
+            ng-click='showResultDetails()'>
+            <div class='padding-mid' ng-bind-html='cards._internal.search.infotxt'></div>
+        </div>
     </div>
 </div>
 <div ng-hide='cards.search' class='padding-mid'>
 </div>
 
 <div ng-if='!cards.listConfig'
-     class='nl-card nl-link-text-container anim fade' 
+     class='nl-card nl-link-text-container {{cards.largeData ? "" : "anim fade"' 
 	 ng-repeat="card in cards._internal.visibleCards" 
      nlta='{{card.title}}'
 	 ng-style="{height: h + 'px', width: w + 'px', 'font-size': fs + '%', 'margin-left': ml + 'px'}">
@@ -59,7 +66,7 @@
 </div>
 
 <div ng-if='cards.listConfig'
-     class='padding-mid anim-enter fade'>
+     class='padding-mid {{cards.largeData ? "" : "anim-enter fade"'>
 	<nl-listview cards='cards'></nl-listview>
 </div>
 </div> <!-- Dummy div to solve scrolled view disappears with popup issue #701 -->

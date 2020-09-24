@@ -65,14 +65,22 @@ function(nl, $filter) {
         _updateInternal2(cards);
     };
     
-    this.updateInternal = function(cards, timeout) {
-        cards._internal.clickDebouncer.debounce(timeout, _updateInternal)(cards);
+    this.updateInternal = function(cards, timeout, justShowHint) {
+        cards._internal.clickDebouncer.debounce(timeout, _updateInternal)(cards, justShowHint);
     };
 
-    function _updateInternal(cards) {
-        if (!cards.search || !cards.search.customSearch) return _updateInternal2(cards);
+    function _updateInternal(cards, justShowHint) {
         var search = cards._internal.search;
-        cards.search.customSearch(search.filter, search.category);
+        if (justShowHint && search.filter) {
+            cards._internal.search.usageHint = 'Press enter to search.';
+            return;
+        }
+        cards._internal.search.usageHint = '';
+        cards._internal.search.infotxt = 'Searching ...';
+        nl.timeout(function() {
+            if (!cards.search || !cards.search.customSearch) return _updateInternal2(cards);
+            cards.search.customSearch(search.filter, search.category);
+        }, 100);
     }
 
     var _MAX_VISIBLE = 500;
@@ -96,7 +104,7 @@ function(nl, $filter) {
         cards._internal.search.clsAnimate = 'anim-highlight-on';
         nl.timeout(function() {
             cards._internal.search.clsAnimate = '';
-        }, 800);
+        }, cards.largeData ? 10: 800);
     }
     
     function _updateInfotext(total, matched, visible, cards) {
@@ -104,6 +112,7 @@ function(nl, $filter) {
         var msg1 = nl.t('There are no items to display.');
         cards._internal.search.cls = 'fgrey';
         cards._internal.search.showDetails = false;
+        cards._internal.search.usageHint = '';
         var item = (total == 1) ? 'item' : 'items';
         if (total == 0) {
             msg1 = nl.fmt2('<i class="padding-mid icon ion-alert-circled"></i>{}', msg1);
@@ -229,12 +238,13 @@ function(nl, nlDlg, $filter, nlCardsSrv) {
             };
 
 			$scope.searchKeyHandler = function(event) {
-                var MAX_KEYSEARCH_DELAY = 200;
-                if (event.which === 13) {
+                if (!$scope.cards.largeData && event.which === 13) {
                     $scope.showResultDetails();
                     return;
                 }
-                nlCardsSrv.updateInternal($scope.cards, MAX_KEYSEARCH_DELAY);
+                var MAX_KEYSEARCH_DELAY = 200;
+                var justShowHint = $scope.cards.largeData && event.which !== 13;
+                nlCardsSrv.updateInternal($scope.cards, MAX_KEYSEARCH_DELAY, justShowHint);
 			};
 
 			function _onSearchParamChange(filter, category) {

@@ -31,6 +31,9 @@ function(nl, nlDlg, nlServerApi, $http) {
                     published_course: {cachetype: 'published_course'},
                     course_assignment: {cachetype : 'course_assignment'}
                 };
+        var params = nl.location.search();
+        _rebuild = (params.rebuild == '1'); 
+
     };
 
     //---------------------------------------------------------------------------------------------
@@ -48,17 +51,19 @@ function(nl, nlDlg, nlServerApi, $http) {
     };
 
     var _caches = null;
+    var _rebuild = false;
     function _getCache(cachetype) {
         if (!_caches) return null;
         return _caches[cachetype] || null;
     }
 
-    function _getItems(cachetype, resolve) {
+    function _getItems(cachetype, resolve, statusMsg) {
+        if (!statusMsg) statusMsg = 'Fetching data from server ...';
         var cache = _getCache(cachetype);
         if (!cache) return resolve({}, false);
         _initCache(cache);
         if (cache.fetchDone) return resolve(cache.itemsDict, false);
-        nlDlg.popupStatus('Fetching data from server ...', false);
+        nlDlg.popupStatus(statusMsg, false);
         nlDlg.showLoadingScreen();
         _getCacheInfoFromServer(cache, function(status) {
             if (!status) return _ret(cache, resolve);
@@ -66,10 +71,24 @@ function(nl, nlDlg, nlServerApi, $http) {
         });
     }
 
+    var _rebuildCount = 0;
     function _ret(cache, resolve) {
         nlDlg.popdownStatus(0);
         nlDlg.hideLoadingScreen();
-        return resolve(cache.itemsDict, !cache.fetchDone);
+        var dirty = cache.searchCacheInfo.dirty;
+        if (!_rebuild || !dirty) return resolve(cache.itemsDict, !cache.fetchDone);
+        // cache is not fully built and we need to rebuild
+        _rebuildCount++;
+        var scInfo = (cache.searchCacheInfo || {}).info || {};
+        var fileInfos = scInfo.file_infos || [];
+        var debugInfo = (scInfo.internal || {}).debug || {};
+        var itemsProcessed = debugInfo.objReadFromDb || 0;
+        var itemsCached = 0;
+        for (var i=0; i<fileInfos.length; i++) itemsCached += (fileInfos[i].count || 0);
+        var statusMsg = nl.fmt2('Rebuilding cache: {} scanned and {} cached in {} calls ...', 
+            itemsProcessed, itemsCached, _rebuildCount);
+        console.log('Rebuilding cache', debugInfo);
+        _getItems(cache.cachetype, resolve, statusMsg);
     }
 
     function _initCache(cache) {
