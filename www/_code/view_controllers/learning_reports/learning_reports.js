@@ -1631,12 +1631,12 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		}
 		var sessionDatesArray = [];
 		for(var key in sessionDates) {
-			var dateObj = sessionDates[key];
+			var dateObj = sessionDates[key] || {};
 			var	date = dateObj.date;
 			if (isCourses)
 				sessionDatesArray.push({date: nl.fmt.json2Date(date) || ''});
 			else
-				sessionDatesArray.push({date: nl.fmt.json2Date(date) || '', start: sessionDates[date].start, end: sessionDates[date].end , sessionName: sessionDates[date].sessionName});
+				sessionDatesArray.push({date: nl.fmt.json2Date(date) || '', start: dateObj.start, end: dateObj.end , sessionName: dateObj.sessionName});
 		}
 		sessionDatesArray.sort(function(a, b) {
 			var key1 = new Date(a.date);
