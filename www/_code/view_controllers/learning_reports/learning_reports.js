@@ -1522,15 +1522,6 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 				var cm = asdAddedModules[i];
 				if (cm.type != 'iltsession') continue;
 				ilts.push(cm);
-				// if(cm.asdSession) continue;
-				// var sessionInfo = sessionInfos[cm.id];
-				// if (!sessionInfo) continue;
-				// if (cm.asdChildren && cm.asdChildren.length > 0)
-				// 	_updateAsdSessionDates(sessionInfo, sessionDates, uniqueFixedSessionDates);
-				// sessionInfo.sessionName = sessionInfo.sessionName || cm.name;
-				// var sessionDate =  sessionInfo.sessiondate;
-				// uniqueFixedSessionDates[sessionDate] = true;
-				// _updateSessionDates(sessionInfo, sessionDates);
 			}
 			assignmentToObj[assignid] = {sessions: ilts};
 		}
@@ -1596,9 +1587,9 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 				var fmtSessionDate = nl.fmt.date2StrDDMMYY(nl.fmt.json2Date(sessionDate || ''), null, 'date');
 				if (fmtSessionDate && !(fmtSessionDate in sessionDates)) {
 					if (sessionInfo.shiftHrs && sessionInfo.shiftMins)
-						sessionDates[sessionDate] = {start: nl.t('{}:{}', sessionInfo.shiftHrs, sessionInfo.shiftMins), end: _getShiftEnd(sessionInfo), sessionName: cm.name};
+						sessionDates[fmtSessionDate] = {date: sessionDate, start: nl.t('{}:{}', sessionInfo.shiftHrs, sessionInfo.shiftMins), end: _getShiftEnd(sessionInfo), sessionName: cm.name};
 					else 
-						sessionDates[sessionDate] = {name: cm.name};
+						sessionDates[fmtSessionDate] = {date: sessionDate, name: cm.name};
 				}
 				if (sessionInfo.stateStr == 'notapplicable' || !sessionInfo.state || sessionInfo.status == 'waiting') continue;
 				if (fmtSessionDate)
@@ -1639,7 +1630,9 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			headerRow.push({id: metas.id, name: metas.name, class: 'minw-number'});
 		}
 		var sessionDatesArray = [];
-		for(var date in sessionDates) {
+		for(var key in sessionDates) {
+			var dateObj = sessionDates[key];
+			var	date = dateObj.date;
 			if (isCourses)
 				sessionDatesArray.push({date: nl.fmt.json2Date(date) || ''});
 			else
