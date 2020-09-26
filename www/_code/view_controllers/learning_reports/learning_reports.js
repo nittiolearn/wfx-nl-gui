@@ -1584,7 +1584,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			}
 			var _statusInfos = record.repcontent.statusinfo;
 			userObj.subject = record.raw_record.subject;
-			var isCertified = false;
+			var isCertifiedOrAttrition = false;
 			if (multipleCourses) 
 				iltSessions = assignmentObj[record.raw_record.assignment].sessions;
 			for(var j=0; j<iltSessions.length; j++) {
