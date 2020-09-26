@@ -1590,19 +1590,19 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			for(var j=0; j<iltSessions.length; j++) {
 				var cm = iltSessions[j];
 				var sessionInfo = _statusInfos[cm.id];
-				if (isCertified) continue;
-				isCertified = (sessionInfo.attId == 'certified');
+				if (isCertifiedOrAttrition) continue;
+				isCertifiedOrAttrition = (sessionInfo.attId == 'certified') || sessionInfo.isAttrition;
 				var sessionDate = sessionInfo.attMarkedOn || "";
-				if (sessionDate && !(sessionDate in sessionDates)) {
+				var fmtSessionDate = nl.fmt.date2StrDDMMYY(nl.fmt.json2Date(sessionDate || ''), null, 'date');
+				if (fmtSessionDate && !(fmtSessionDate in sessionDates)) {
 					if (sessionInfo.shiftHrs && sessionInfo.shiftMins)
 						sessionDates[sessionDate] = {start: nl.t('{}:{}', sessionInfo.shiftHrs, sessionInfo.shiftMins), end: _getShiftEnd(sessionInfo), sessionName: cm.name};
 					else 
 						sessionDates[sessionDate] = {name: cm.name};
 				}
-				sessionDate =  nl.fmt.date2StrDDMMYY(nl.fmt.json2Date(sessionDate || ''), null, 'date');
 				if (sessionInfo.stateStr == 'notapplicable' || !sessionInfo.state || sessionInfo.status == 'waiting') continue;
-				if (sessionDate)
-					userObj[sessionDate] = sessionInfo.state || '-';
+				if (fmtSessionDate)
+					userObj[fmtSessionDate] = sessionInfo.state || '-';
 			}
 			iltBatchInfoRow.push(userObj);
 		};
