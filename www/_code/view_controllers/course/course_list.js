@@ -154,7 +154,7 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
 		} else if (linkid === 'course_assign'){
 			var assignInfo = {assigntype: 'course', id: card.courseId, icon : card.icon2 ? 'icon:' : card.icon, 
 				title: card.title, authorName: card.authorName, description: card.help,
-				showDateField: true, enableSubmissionAfterEndtime: false, blended: card.blended};
+				showDateField: true, enableSubmissionAfterEndtime: true, blended: card.blended};
 				nlDlg.showLoadingScreen();
 				nlServerApi.courseGet(card.courseId, true).then(function(course) {
 					nlDlg.hideLoadingScreen();

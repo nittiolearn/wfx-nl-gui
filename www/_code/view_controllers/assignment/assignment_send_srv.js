@@ -61,7 +61,7 @@ function(nl, nlRouter, $scope, nlDlg, nlServerApi, nlSendAssignmentSrv) {
     }
 
     function _showAssignmentDlg(result) {
-        var assignInfo = {assigntype: _type, id: _dbid};
+        var assignInfo = {assigntype: _type, id: _dbid, enableSubmissionAfterEndtime: true};
         if (_type == 'lesson') {
             var lesson = result.lesson;
             assignInfo.icon = nl.url.lessonIconUrl(lesson.image);
@@ -71,7 +71,6 @@ function(nl, nlRouter, $scope, nlDlg, nlServerApi, nlSendAssignmentSrv) {
             assignInfo.description = lesson.description;
             assignInfo.esttime = lesson.esttime ? lesson.esttime : '';
             assignInfo.showDateField = true;
-            assignInfo.enableSubmissionAfterEndtime = true;
         } else {
             assignInfo.icon = result.icon;
             assignInfo.title = result.name;

@@ -2019,10 +2019,8 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		var nominatedUsers = nlLrReportRecords.getNominatedUserDict();
 		var record = nlLrReportRecords.getAnyRecord();
 		var key = '';
-		var enableSubmissionAfterEndtime = false;
 		if (launchType == 'module_assign') {
 			key = 'assignment';
-			enableSubmissionAfterEndtime = true;
 		} else if (launchType == 'course_assign') {
 			key = 'course_assignment';
 		}
@@ -2041,7 +2039,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			icon: launchType == 'module_assign' ? nl.url.lessonIconUrl(assignContent.image) : assignContent.icon,
 			showDateField: true,
 			hideEmailNotifications: false,
-			enableSubmissionAfterEndtime: enableSubmissionAfterEndtime,
+			enableSubmissionAfterEndtime: true,
 			
 			batchname: assignContent.batchname,
 			remarks: launchType == 'module_assign' ? assignContent.assign_remarks : assignContent.remarks,
@@ -2064,6 +2062,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 				assignInfo[param.id] = assignContent[param.id] || '';	
 			}
 			assignInfo.course = nlGetManyStore.getRecord(nlGetManyStore.key('course', assignContent.courseid));
+			assignInfo.submissionAfterEndtime = assignContent.submissionAfterEndtime || false
 		}
 		nlSendAssignmentSrv.show($scope, assignInfo, _userInfo).then(function(result) {
 			if (!result) return;

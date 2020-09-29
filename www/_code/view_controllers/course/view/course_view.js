@@ -1211,7 +1211,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlCourseEditor, nlC
         var c = modeHandler.course;
         var assignInfo = {assigntype: 'course', id: c.id, icon: c.icon, 
             title: c.name, authorName: c.authorname, description: c.description, 
-            showDateField: true, enableSubmissionAfterEndtime: false, blended: c.content.blended, course: c};
+            showDateField: true, enableSubmissionAfterEndtime: true, blended: c.content.blended, course: c};
         var features = _userInfo.groupinfo.features;
         var grpChecklist = features.courses && features.courses.coursePublishChecklist ? features.courses.coursePublishChecklist : [];
         if (grpChecklist && grpChecklist.length > 0) {
