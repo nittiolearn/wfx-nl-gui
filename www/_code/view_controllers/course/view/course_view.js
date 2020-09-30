@@ -1088,7 +1088,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlCourseEditor, nlC
         if ((stainf.status == 'certified' || stainf.isCertified) && stainf.certid) {
             var certInfo = stainf.itemIdToInfo[stainf.certid];
             cm.certifiedOn = nl.fmt.fmtDateDelta(nl.fmt.json2Date(certInfo.updated), null, 'minute');
-            if (certInfo.expire_after) {
+            if (certInfo.expire_after && cm.certifiedOn) {
                 var expireDays = parseInt(certInfo.expire_after);
                 var expireOn = new Date(certInfo.updated);
                 expireOn.setDate(expireOn.getDate() + expireDays);

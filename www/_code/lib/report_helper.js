@@ -243,6 +243,7 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
             if (cm.type == 'milestone' && _isNHT) _updateDelayDaysForMs(cm, itemInfo, itemIdToInfo, ret);
             if (cm.type != 'module' && cm.type != 'certificate') _updateStatistics(itemInfo, cm, ret);
             if (cm.type == 'certificate') {
+                cm.updated = itemInfo.updated || null;
                 ret['certid'] = cm.id;
             }
             latestCustomStatus =  _updateCustomStatus(itemInfo, latestCustomStatus);
@@ -259,7 +260,6 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
                     defaultCourseStatus ='started';
                 }
                 if (itemInfo.customStatus) defaultCourseStatus = itemInfo.customStatus;
-                if (itemInfo.isModuleCompleted) defaultCourseStatus = itemInfo.isModuleCompleted;
             }
             if (cm.showInReport && _isEndItemState(itemInfo.status)) {
                 var isCustomScoreNameUnique = true;
@@ -493,10 +493,10 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
             var pastRep= pastInfo[i];
             var score = 100*pastRep.score/pastRep.maxScore;
             if(score >= pastRep.passScore || pastRep.selfLearningMode) {
-                itemInfo.isModuleCompleted = 'success';
+                itemInfo.isModuleCompleted = {status: 'success', updated: pastRep.ended};
                 break;
             } else {
-                itemInfo.isModuleCompleted = 'failed';
+                itemInfo.isModuleCompleted = {status: 'failed'};
             }
         }
     }
@@ -726,7 +726,7 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
         var condCnt = 0;
         var failCnt = 0;
         var pendCnt = 0;
-
+        var isFailed = false;
         // We need to go through all elements in list to calculate pendCnt
         for(var i=0; i<prereqs.length; i++){
             var p = prereqs[i];
@@ -734,7 +734,11 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
             if (!preItem) continue;
             condCnt++;
             if (!_isEndItemState(preItem.status)) {
-                if(preItem.isModuleCompleted == 'success') continue;
+                if (preItem.isModuleCompleted && preItem.isModuleCompleted.status == 'success') {
+                    itemInfo.unlockedOn = preItem.isModuleCompleted.updated;
+                    continue;
+                }
+                if (cm.type == 'certificate' && preItem.isModuleCompleted && preItem.isModuleCompleted.status == 'failed') isFailed = true;
                 pendCnt++;
                 continue;
             }
@@ -776,7 +780,11 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
         var errCnt = failCnt + pendCnt;
         var isAndCondition = (cm.dependencyType == 'all');
         if ((isAndCondition && errCnt == 0) || (!isAndCondition && errCnt < condCnt)) return;
-        if (pendCnt > 0) itemInfo.prereqPending = true;
+        if (isFailed) {
+            itemInfo.prereqPending = false;
+        } else if (pendCnt > 0) {
+            itemInfo.prereqPending = true;
+        }
         itemInfo.status = 'waiting';
         itemInfo.score = null;
     }
