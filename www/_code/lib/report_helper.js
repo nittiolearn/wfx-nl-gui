@@ -494,14 +494,15 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
         for(var i=0; i< pastInfo.length; i++) {
             var pastRep= pastInfo[i];
             var score = 100*pastRep.score/pastRep.maxScore;
+            itemInfo.maxScore = pastRep.maxScore;
             if(score >= pastRep.passScore || pastRep.selfLearningMode) {
                 failed = false;
                 if (maxScoredOfAttempts < score) {
                     maxScoredOfAttempts = score;
-                    itemInfo.isModuleCompleted = {status: 'success', updated: pastRep.ended, score: maxScoredOfAttempts};
+                    itemInfo.isModuleCompleted = {status: 'success', updated: pastRep.ended, score: maxScoredOfAttempts, nScore: pastRep.score, nMaxScore: pastRep.maxScore};
                 }
             } else if (failed){
-                itemInfo.isModuleCompleted = {status: 'failed'};
+                itemInfo.isModuleCompleted = {status: 'failed', updated: pastRep.ended, score: maxScoredOfAttempts, nScore: pastRep.score, nMaxScore: pastRep.maxScore};
             }
         }
     }
@@ -520,7 +521,7 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
         itemInfo.moduleRepId = linfo.reportId || null;
         itemInfo.selfLearningMode = linfo.selfLearningMode || false;
         if (!linfo.completed) {
-            _checkStatusPastLessonReports(cm.id,itemInfo);
+            _checkStatusPastLessonReports(cm.id, itemInfo);
             itemInfo.rawStatus = 'started';
             itemInfo.score = null;
             return;
@@ -876,9 +877,14 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
         if (cm.exclude_quiz) return;
         ret.nQuizes++;
         if (itemInfo.nAttempts) ret.nQuizAttempts += itemInfo.nAttempts;
-        if (!isEnded) return;
+        if (!isEnded && !itemInfo.isModuleCompleted) return;
         if (itemInfo.status == 'failed') ret.nFailedQuizes++;
-        else ret.nPassedQuizes++;
+        if (itemInfo.status == 'success') ret.nPassedQuizes++;
+        if (itemInfo.isModuleCompleted) {
+            ret.nTotalQuizScore += itemInfo.isModuleCompleted.nScore;
+            ret.nTotalQuizMaxScore += itemInfo.isModuleCompleted.nMaxScore;    
+            return;
+        }
         ret.nTotalQuizScore += itemInfo.rawScore;
         ret.nTotalQuizMaxScore += itemInfo.maxScore;
     }
