@@ -108,10 +108,11 @@ function(nl, nlRouter, $scope, nlDlg, nlLogViewer, nlServerApi, nlCardsSrv, nlEx
     };
 }];
 
-function _createDlgAndShow(nl, nlDlg, $scope, data, template, buttonName, onButtonFn) {
+function _createDlgAndShow(nl, nlDlg, $scope, data, options, template, buttonName, onButtonFn) {
     var dlg = nlDlg.create($scope);
     dlg.setCssClass('nl-height-max nl-width-max');
     dlg.scope.data = data;
+    dlg.scope.options = options;
     dlg.scope.data.paused = false;
     dlg.scope.error = {};
     var dlgButton = {text: nl.t(buttonName), onTap: function(e) {
@@ -124,9 +125,10 @@ function _createDlgAndShow(nl, nlDlg, $scope, data, template, buttonName, onButt
 
 function RestApi(nl, nlDlg, nlServerApi, nlExporter) {
     this.showDlg = function($scope) {
-        var data = {url: '_serverapi/course_get_list.json', params: '{}', loop: false};
+        var data = {url: '_serverapi/course_get_list.json', params: '{}', loop: false, serverType: {id: 'default'}};
+        var options = {serverType: [{id: 'default', name: 'Default'}, {id: 'api3', name: 'API 3'}]};
         var template = 'view_controllers/debug/restapi_dlg.html';
-        var dlg = _createDlgAndShow(nl, nlDlg, $scope, data, template, 'Execute', function(e, scope) {
+        var dlg = _createDlgAndShow(nl, nlDlg, $scope, data, options, template, 'Execute', function(e, scope) {
             _onExecute(e, scope);
         });
         dlg.scope.view = 'req';
@@ -195,7 +197,7 @@ function RestApi(nl, nlDlg, nlServerApi, nlExporter) {
             return;
         }
         nlDlg.showLoadingScreen();
-        nlServerApi.executeRestApi(scope.data.url, params).then(function(result) {
+        _executeRestApi(scope, params).then(function(result) {
             nlDlg.hideLoadingScreen();
             scope.view = 'fmt_res';
             scope.result.json = angular.toJson(result, 2);
@@ -204,6 +206,13 @@ function RestApi(nl, nlDlg, nlServerApi, nlExporter) {
                 scope.view = 'json_res';
             }
         });
+    }
+
+    function _executeRestApi(scope, params) {
+        var reloadUserInfo = false;
+        var noPopup = false;
+        var serverType = scope.data.serverType.id;
+        return nlServerApi.executeRestApi(scope.data.url, params, reloadUserInfo, noPopup, serverType);
     }
 
     function _statusMsg(scope, msg, param) {
@@ -220,8 +229,7 @@ function RestApi(nl, nlDlg, nlServerApi, nlExporter) {
         }
         chunk++;
         _statusMsg(scope, 'Executing chunk: ', chunk);
-        nlServerApi.executeRestApi(scope.data.url, params)
-        .then(function(result) {
+        _executeRestApi(scope, params).then(function(result) {
         	_saveAsCsvIfNeeded(scope).then(function() {
 	            scope.result.fmt = _formatResult(result.resultset, scope.result.fmt.header, scope.result.fmt.rows);
 	            _statusMsg(scope, angular.toJson(result, 2), '\n');

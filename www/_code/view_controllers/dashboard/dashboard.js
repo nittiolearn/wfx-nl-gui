@@ -174,7 +174,6 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv) {
 		var crModFn = (dashboardId != null) ? nlServerApi.dashboardModify: nlServerApi.dashboardCreate;
 		crModFn(modifiedData).then(function(dashboard) {
 			nlDlg.hideLoadingScreen();
-		    _updateDashboardForTesting(dashboard, modifiedData);
 		    var card = _createCustomDashboardCard(dashboard);
 		    if (dashboardId !== null) {
                 var pos = _getCardPosition(dashboardId);
@@ -250,26 +249,6 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv) {
 		return 0;
 	}
 	
-	var uniqueId = 100;
-	function _updateDashboardForTesting(dashboard, modifiedData) {
-		if (NL_SERVER_INFO.serverType !== 'local') return;
-		if ('dbid' in modifiedData) {
-			dashboard.id = modifiedData.dbid;
-		} else {
-			dashboard.id = uniqueId++;
-		}
-		dashboard.updated = (new Date()).toJSON();
-		if (modifiedData.publish) {
-			dashboard.is_published = true;
-			dashboard.published = dashboard.updated;
-		} else {
-			dashboard.is_published = false;
-			dashboard.published = null;
-		}
-		dashboard.description  = modifiedData.description;
-		dashboard.content  = angular.fromJson(modifiedData.content);
-	}
-
 	function _deleteDashboard($scope, dashboardId) {
 		var msg = {title: 'Please confirm', 
 				   template: 'Are you sure you want to delete? This cannot be undone.',

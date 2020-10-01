@@ -24,6 +24,7 @@
                 <button ng-show='data.paused' ng-click='data.paused = false'>Resume</button>
                 <button ng-hide='data.paused' ng-click='data.paused = true'>Pause</button>
             </td></tr>
+            <tr nl-form-select fieldname='Server Type' fieldmodel='serverType'></tr>
             <tr nl-form-input fieldname='URL' fieldmodel='url' fieldtype='text' ng-keypress='onUrlEnter($event)'></tr>
             <tr nl-form-textarea fieldname='Params' fieldmodel='params' fieldcls='nl-fixed-width'></tr>
         </table>

@@ -188,10 +188,8 @@ gulp.task('nl_generate_index_min', function(done) {
 });
 
 function _generateIndex(done, bMinified) {
-    var includeCordova = false;
     var prefix = SERVER_URL + outPaths.scriptUrl;
 
-    var serverType = includeCordova ? 'local' : 'nittio';
     var jsFiles = null;
     var cssFiles = null;
     var destFileName = null;
@@ -209,15 +207,14 @@ function _generateIndex(done, bMinified) {
 
     var jsList = [];
     for (var i=0; i<jsFiles.length; i++) jsList.push(prefix + jsFiles[i] + searchParam);
-    if (includeCordova) jsList.push('cordova.js');
 
     var cssList = [];
     for (var i=0; i<cssFiles.length; i++) cssList.push(prefix + cssFiles[i] + searchParam);
     
     gulp.src(inPaths.htmlTemplate + 'index_templ.html')
     .pipe(htmlreplace({nl_server_info: {
-                           src: [[serverType, SERVER_URL, VERSIONS.script, VERSIONS.res, VERSIONS.icon, VERSIONS.template]], 
-                           tpl: "<script>var NL_SERVER_INFO = {serverType: '%s', url: '%s', versions: {script:'%s', res:'%s', icon:'%s', template:'%s'}};</script>"},
+                           src: [[SERVER_URL, VERSIONS.script, VERSIONS.res, VERSIONS.icon, VERSIONS.template]], 
+                           tpl: "<script>var NL_SERVER_INFO = {url: '%s', versions: {script:'%s', res:'%s', icon:'%s', template:'%s'}};</script>"},
                        css: {
                            src: cssList,
                            tpl: '<link rel="stylesheet" href="%s">'},
@@ -230,8 +227,8 @@ function _generateIndex(done, bMinified) {
     .on('end', function() {
         gulp.src(inPaths.htmlTemplate + 'index_templ.js')
         .pipe(htmlreplace({nl_server_info: {
-                               src: [[serverType, SERVER_URL, VERSIONS.script, VERSIONS.res, VERSIONS.icon, VERSIONS.template]], 
-                               tpl: "var NL_SERVER_INFO = {serverType: '%s', url: '%s', versions: {script:'%s', res:'%s', icon:'%s', template:'%s'}};"},
+                               src: [[SERVER_URL, VERSIONS.script, VERSIONS.res, VERSIONS.icon, VERSIONS.template]], 
+                               tpl: "var NL_SERVER_INFO = {url: '%s', versions: {script:'%s', res:'%s', icon:'%s', template:'%s'}};"},
                            }))
         .pipe(rename('index_html.js'))
         .pipe(gulp.dest('./www/_test_dependencies'))

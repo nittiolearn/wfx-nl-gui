@@ -44,10 +44,11 @@ function(nl, nlDlg, nlConfig, Upload) {
         return _getUserInfoFromCacheOrServer(this);
     };
     
-    this.executeRestApi = function(url, data, reloadUserInfo, noPopup) {
+    this.executeRestApi = function(url, data, reloadUserInfo, noPopup, serverType) {
         // open API to execute any REST API (used from debug.js)
         // return: result of REST API
-        return server.post(url, data, reloadUserInfo, noPopup);
+        var config = {reloadUserInfo: reloadUserInfo, noPopup: noPopup, serverType: serverType};
+        return server.post(url, data, config);
     };
     
     this.getBrandingInfo = function() {
@@ -66,7 +67,8 @@ function(nl, nlDlg, nlConfig, Upload) {
     };
 
     this.authLogout = function() {
-        return server.post('_serverapi/auth_logout.json', {}, true, true);
+        var config = {reloadUserInfo: true, noPopup: true};
+        return server.post('_serverapi/auth_logout.json', {}, config);
     };
 
     this.authUpdateSettings = function(settings) {
@@ -170,7 +172,8 @@ function(nl, nlDlg, nlConfig, Upload) {
     
     this.courseReportUpdateStatus = function(repid, statusinfo, completed) {
         // returns the updated course report object
-        return server.post('_serverapi/course_report_update_status.json', {repid: repid, statusinfo: statusinfo, completed: completed});
+        var data = {repid: repid, statusinfo: statusinfo, completed: completed};
+        return server.post('_serverapi/course_report_update_status.json', data);
     };
 
     this.courseCreateLessonReport = function(repid, refid, moduleid, attempt, maxDuration, starttime, endtime, updateStartTime, targetLang) {
@@ -642,11 +645,8 @@ function(nl, nlDlg, nlConfig, Upload) {
         return nl.q(function(resolve, reject) {
             server.post('_serverapi/resource_get_upload_url.json', {urltype: urltype})
             .then(function(uploadUrl) {
-                var reloadUserInfo = false;
-                var noPopup = false;
-                var upload = true;
-                server.post(uploadUrl, data, reloadUserInfo, noPopup, upload)
-                .then(resolve, reject);
+                var config = {upload: true};
+                server.post(uploadUrl, data, config).then(resolve, reject);
             }, reject);
         });
     };
@@ -738,13 +738,13 @@ function(nl, nlDlg, nlConfig, Upload) {
     }
 
     function _postWithReoadUserData(url, data, noPopup) {
-        var reloadUserInfo = true;
-        return server.post(url, data, reloadUserInfo, noPopup);
+        var config = {reloadUserInfo: true, noPopup: noPopup};
+        return server.post(url, data, config);
     }
 
-    function _cachedPost(cacheKey, addTimestamp, url, data, reloadUserInfo, noPopup, upload, cachedValue) {
+    function _cachedPost(cacheKey, addTimestamp, url, data, cachedValue) {
         return nl.q(function(resolve, reject) {
-            server.post(url, data, reloadUserInfo, noPopup, upload)
+            server.post(url, data)
             .then(function(result) {
                 if (result && result.reuse_cache && cachedValue !== undefined) {
                     resolve(cachedValue);
@@ -776,7 +776,7 @@ function(nl, nlDlg, nlConfig, Upload) {
                     if (cachedValue.versionstamp) data.versionstamp = cachedValue.versionstamp;
                     nl.log.info('server_api.cached: Cache might be stale', cacheKey);
                 }
-                _cachedPost(cacheKey, true, url, data, false, false, false, cachedValue)
+                _cachedPost(cacheKey, true, url, data, cachedValue)
                 .then(function(result) {
                     nl.log.info('server_api.cached: Data fetched from server', cacheKey);
                     resolve(result);
@@ -817,10 +817,13 @@ function NlServerInterface(nl, nlDlg, nlConfig, Upload, brandingInfoHandler) {
         _initUserInfo(this);
     };
     
-    this.post = function(url, data, reloadUserInfo, noPopup, upload) {
-        reloadUserInfo = (reloadUserInfo == true);
-        noPopup = (noPopup == true || g_noPopup == true || data._jsMaxRetries);
-        upload = (upload == true);
+    this.post = function(url, data, config) {
+        if (!config) config = {};
+        var reloadUserInfo = (config.reloadUserInfo == true);
+        var noPopup = (config.noPopup == true || g_noPopup == true || data._jsMaxRetries);
+        var upload = (config.upload == true);
+        var serverType = config.serverType || 'default';
+
         var self = this;
         var progressFn = null;
         if ('progressFn' in data) {
@@ -832,7 +835,8 @@ function NlServerInterface(nl, nlDlg, nlConfig, Upload, brandingInfoHandler) {
                 data._u = reloadUserInfo ? 'NOT_DEFINED' : userInfo.username;
                 data._v = NL_SERVER_INFO.versions.script;
                 if ('updated' in userInfo) data._ts = nl.fmt.json2Date(userInfo.updated);
-                if (!upload) url = NL_SERVER_INFO.url + url;
+                if (serverType == 'api3' && userInfo.api3) data._token = userInfo.api3.token;
+                if (!upload) url = _getBaseUrl(serverType, userInfo) + url;
                 _postImpl(url, data, upload).then(
                 function success(data) {
                     _processResponse(self, data.data, data.status, resolve, reject, noPopup);
@@ -853,11 +857,15 @@ function NlServerInterface(nl, nlDlg, nlConfig, Upload, brandingInfoHandler) {
     function _defaultUserInfo() {
         return {username: '', lastupdated: null, groupicon: nl.url.resUrl('general/top-logo2.png'), dashboard: []};
     }
+
+    function _getBaseUrl(serverType, userInfo) {
+        if (serverType == 'api3' && userInfo.api3 && userInfo.api3.url) return userInfo.api3.url + '/';
+        return NL_SERVER_INFO.url;
+    }
     
     var AJAX_TIMEOUT = 3*60*1000; // 3 mins timeout
     function _postImpl(url, data, upload) {
         nl.log.info('server_api: posting: ', url);
-        if (NL_SERVER_INFO.serverType == 'local') return nl.http.get(url); // For local testing
         if (upload) return Upload.upload({url: url, data: data, timeout: AJAX_TIMEOUT});
         return nl.http.post(url, data, {timeout: AJAX_TIMEOUT});
     }

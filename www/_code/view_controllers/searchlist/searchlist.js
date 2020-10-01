@@ -244,21 +244,6 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv) {
 		nl.log.error('Cannot find modified card', searchlistId);
 		return 0;
 	}
-	var uniqueId = 100;
-
-	function _updateForTesting(searchlist, modifiedData) {
-		if (NL_SERVER_INFO.serverType !== 'local') return;
-		if ('id' in modifiedData) {
-			searchlist.id = modifiedData.id;
-		} else {
-			searchlist.id = uniqueId++;
-		}
-		searchlist.name  = modifiedData.name;
-		searchlist.description  = modifiedData.description;
-		if ('config' in modifiedData) searchlist.config  = angular.fromJson(modifiedData.config);
-	    
-	}
-
 	function _deleteSearchlist($scope, searchlistId) {
 		var msg = {title: 'Please confirm', 
 				   template: 'Are you sure you want to delete? This cannot be undone.',
