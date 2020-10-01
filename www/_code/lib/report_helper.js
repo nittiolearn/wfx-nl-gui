@@ -488,14 +488,19 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
     
     function _checkStatusPastLessonReports(id, itemInfo) {
         var pastInfo = _pastLessonReports[id] || [];
+        var failed = true;
+        var maxScoredOfAttempts = 0;
         if(pastInfo.length == 0) return;
         for(var i=0; i< pastInfo.length; i++) {
             var pastRep= pastInfo[i];
             var score = 100*pastRep.score/pastRep.maxScore;
             if(score >= pastRep.passScore || pastRep.selfLearningMode) {
-                itemInfo.isModuleCompleted = {status: 'success', updated: pastRep.ended};
-                break;
-            } else {
+                failed = false;
+                if (maxScoredOfAttempts < score) {
+                    maxScoredOfAttempts = score;
+                    itemInfo.isModuleCompleted = {status: 'success', updated: pastRep.ended, score: maxScoredOfAttempts};
+                }
+            } else if (failed){
                 itemInfo.isModuleCompleted = {status: 'failed'};
             }
         }
@@ -735,8 +740,19 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
             condCnt++;
             if (!_isEndItemState(preItem.status)) {
                 if (preItem.isModuleCompleted && preItem.isModuleCompleted.status == 'success') {
-                    itemInfo.unlockedOn = preItem.isModuleCompleted.updated;
-                    continue;
+                    var condTotal = 0;
+                    var condSatisfied = 0;
+                    if (p.min_score) condTotal += 1;
+                    if (p.max_score) condTotal += 1;
+                    if (p.min_score && preItem.isModuleCompleted.score >= p.min_score) {
+                        itemInfo.unlockedOn = preItem.isModuleCompleted.updated;
+                        condSatisfied += 1;
+                    }
+                    if (p.max_score && preItem.isModuleCompleted.score < p.max_score) {
+                        itemInfo.unlockedOn = preItem.isModuleCompleted.updated;  
+                        condSatisfied += 1;
+                    }
+                    if (condTotal == condSatisfied) continue;
                 }
                 if (cm.type == 'certificate' && preItem.isModuleCompleted && preItem.isModuleCompleted.status == 'failed') isFailed = true;
                 pendCnt++;
