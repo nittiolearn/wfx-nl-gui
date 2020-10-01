@@ -125,8 +125,6 @@
             <tr><td>course.do</td><td>/#/course_report_list?my=1&{}</td><td> course_do</td><td>urlParams="search=xyz&custtype=101". Accessible from restricted terminals as well</td></tr>
             <tr><td>learner.do</td><td>/#/learner_view</td><td> basic_access</td><td>urlParams="". Accessible from restricted terminals as well</td></tr>
             <tr><td>learning_reports.user</td><td>/#/learning_reports?type=user&{}</td><td> assignment_send</td><td>urlParams="objid=(username eg: admin.nittio)". Accessible from restricted terminals as well</td></tr>
-            <tr><td>rno.list</td><td>/#/rno_list?{}</td><td> basic_access</td><td>urlParams must contain role and metadata: "role=observe&metadata=12345678". Role could be observe, review or admin</td></tr>
-            <tr><td>rno.view</td><td>/#/rno_view?{}</td><td> None</td><td>urlParams may contain hashkey: "hashkey=xxxx". Usually this is not customized.</td></tr>
             <tr><td>sco.export</td><td>/#/sco_export?{}</td><td> sco_export</td><td>urlParams may contain: "lessonid=3619" or "courseid=1234".</td></tr>
             <tr><td>sco.offline_export</td><td>/#/offline_export?{}</td><td> sco_export</td><td>Creates similar SCO zip file without the scorm xml files. For offline usage only. urlParams may contain: "lessonid=3619" or "courseid=1234".</td></tr>
             <tr><td>sco.import</td><td>/#/sco_import_list?{}</td><td> sco_import</td><td>urlParams may contain: "template=1234&search=xxx".</td></tr>

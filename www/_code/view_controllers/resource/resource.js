@@ -294,9 +294,8 @@ function(nl, nlServerApi, nlDlg, nlProgressFn) {
     // TODO-LATER: Remove 'old_upload' code after Feb 2020.
     // prerequisites for removal: 
     // a. handling upload from local machine
-    // b. remove all rno code
-    // c. refactor pdf upload
-    // d. refactor polly autovoice
+    // b. refactor pdf upload
+    // c. refactor polly autovoice
     var localHost = nl.window.location.protocol.toLowerCase() == 'http:';
     var oldUpload = ('old_upload' in nl.location.search());
     var _resumableUploader = localHost || oldUpload ? nlServerApi : new ResumableUploader(nl, nlServerApi, nlDlg);

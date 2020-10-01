@@ -2253,59 +2253,6 @@ nl-course-canvas-view .holder1 {
   }
 }
 
-/*-----------------------------------------------------------------------------------------*
- * rno elements
- *-----------------------------------------------------------------------------------------*/
-.nl-rno-table {
-  width: 100%;
-  border: 1px solid #CCCCDD;
-  td, th {
-    padding: 4px;
-  }
-  td *, th * {
-    vertical-align: middle;
-  }
-  th {
-    font-weight: bold; 
-  }
-}
-
-.nl-rno-0 {
-  background-color: #AAAAAA;
-}
-
-.nl-rno-1 {
-  background-color: #BBBBFF;
-}
-
-.nl-rno-2 {
-  background-color: #CCCCFF;
-}
-
-.nl-rno-size-0 {
-  font-size: 140%;
-  font-weight: 900;
-}
-
-.nl-rno-size-1 {
-  font-size: 140%;
-}
-
-.nl-rno-size-2 {
-  font-size: 120%;
-}
-
-.nl-rno-list-item {
-  background-color: $nlGrey3;
-  border: 1px solid $nlGrey2;
-  border-radius: 4px; 
-  border-top-left-radius: 0;
-}
-
-.nl-rno-list-item.select {
-  background-color: $nlGreen3;
-}
-
 .nl-hover {
   &:hover, &:focus, &:active {
     border: 1px solid black;

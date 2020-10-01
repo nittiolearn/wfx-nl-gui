@@ -298,65 +298,6 @@ function(nl, nlDlg, nlConfig, Upload) {
     };
 
     //---------------------------------------------------------------------------------------------
-    // Rno (Rating and observation) Module
-    //---------------------------------------------------------------------------------------------
-    this.rnoGetMetadata = function(metadataid) {
-        return server.post('_serverapi/rno_meta_get.json', {id:metadataid});
-    };
-
-    this.rnoGetList = function(data) {
-        // data: metadata, role, search, centre, user_type, section
-        return server.post('_serverapi/rno_get_list.json', data);
-    };
-
-    this.rnoCreate = function(data) {
-        // data: metadata, config (first_name, last_name, email, user_type, image, ...), observer, reviewer
-        // return: rno object
-        return server.post('_serverapi/rno_create.json', data);
-    };
-
-    this.rnoModify = function(data) {
-        // data: id, metadata, config (first_name, last_name, email, user_type, image, ...), observer, reviewer
-        // return: modified rno object
-        return server.post('_serverapi/rno_modify.json', data);
-    };
-
-    this.rnoDelete = function(role, rnoId) {
-        // return: true/false
-        return server.post('_serverapi/rno_delete.json', {role: role, id: rnoId});
-    };
-
-    this.rnoGetData = function(rnoId, reportKey, metadata2) {
-        // return: rno data JSON
-        var data = {id: rnoId, report_key: reportKey};
-        if (metadata2) data.metadata2 = metadata2;
-        return server.post('_serverapi/rno_get_data.json', data);
-    };
-
-    this.rnoGetDataList = function(data) {
-        // data: metadata, role, search, centre, user_type, section
-        return server.post('_serverapi/rno_get_data_list.json', data);
-    };
-
-    this.rnoGetData2 = function(rnoId, reportKey) {
-        // return: rno data JSON: (same as rnoGEtData except permission check at server side)
-        // This is used in parent view.
-        return server.post('_serverapi/rno_get_data2.json', {id: rnoId, report_key: reportKey});
-    };
-
-    this.rnoGetDataEx = function(hashKey) {
-        // return: dict with metadata, rno and rno data JSON
-        return server.post('_serverapi/rno_get_data_ex.json', {hashkey: hashKey});
-    };
-
-    this.rnoUpdateData = function(rnoId, data, send, mailData, metadata2) {
-        // return: updated rno data JSON
-        var data = {id: rnoId, data:data, send:send, mail_data: mailData};
-        if (metadata2) data.metadata2 = metadata2;
-        return server.post('_serverapi/rno_update_data.json', data);
-    };
-
-    //---------------------------------------------------------------------------------------------
     // SCO Module (SCORM)
     //---------------------------------------------------------------------------------------------
     this.scoExport = function(data) {
