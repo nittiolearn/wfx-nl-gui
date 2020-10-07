@@ -122,8 +122,8 @@ function(nl, nlDlg, nlGroupInfo, nlImporter, nlProgressLog, nlRouter, nlServerAp
         _pastUserInfosFetcher.init(_groupInfo, true);
         _updateOuDict();
         _updateSecLoginDict();
-        return _pastUserInfosFetcher.fetchAllPastUsersFiles(true).then(function() {
-            return true;
+        return _pastUserInfosFetcher.fetchAllPastUsersFiles(true).then(function() {   
+            return _pastUserInfosFetcher.isArchivedUserExist();
         });
     };
 

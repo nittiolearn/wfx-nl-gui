@@ -76,7 +76,8 @@ nlAdminUserExport, nlAdminUserImport, nlTreeSelect, nlOuUserSelect, nlServerApi)
 		            msg += 'Currently <b>{}</b> users are loaded.';
 		            nlDlg.popupAlert({title: 'Warning', template: nl.fmt2(msg, userCnt)});
 		        }
-                nlAdminUserImport.init(_groupInfo, _userInfo, _grpid).then(function() {
+                nlAdminUserImport.init(_groupInfo, _userInfo, _grpid).then(function(doesPastUserExist){
+                    if(doesPastUserExist) _updateStaticCards();
                     nl.pginfo.pageTitle = nl.t('User administration: {}', _groupInfo.name);
                     _updateCards();
                     resolve(true);
@@ -86,6 +87,12 @@ nlAdminUserExport, nlAdminUserImport, nlTreeSelect, nlOuUserSelect, nlServerApi)
             });
 		});
 	}
+
+    function _updateStaticCards() {
+        var card = $scope.cards.staticlist[0];
+        card.children.push({title: nl.t('Unarchive'), internalUrl: 'adminuser_unarchive',
+            children: [], link: [], style: 'nl-bg-blue'});
+    }
 
 	nlRouter.initContoller($scope, '', _onPageEnter);
 
@@ -106,6 +113,8 @@ nlAdminUserExport, nlAdminUserImport, nlTreeSelect, nlOuUserSelect, nlServerApi)
             _resetPw(card);
         } else if (linkid === 'adminuser_advancedProp') {
             advancedProp(card);
+        } else if (linkid === 'adminuser_unarchive') {
+            _unarchive();
         }
     };
 
@@ -250,6 +259,87 @@ nlAdminUserExport, nlAdminUserImport, nlTreeSelect, nlOuUserSelect, nlServerApi)
         nl.fmt.addLinkToAvp(linkAvp, 'advanced properties', null, 'adminuser_advancedProp');
     }
 
+
+    function _unarchive() {
+        var dlg = nlDlg.create($scope);
+        dlg.setCssClass('nl-height-max nl-width-max');
+        dlg.scope.error = {};
+        dlg.scope.dlgTitle = nl.t('Unarchive the users');
+        var selectedUserIds = [];
+        dlg.scope.data = {
+            selectedIds : ''
+        };
+        var unarchiveButton = {text : 'Unarchive', onTap : function(e) {
+            e.stopImmediatePropagation();
+            e.preventDefault();
+            selectedUserIds = getSelectedIdsObj(dlg.scope.data.selectedIds);
+            if(!selectedUserIds) return;
+            nlDlg.showLoadingScreen();
+            return nl.q(function(resolve, reject) {
+                _onUnarchive(selectedUserIds, resolve, reject);
+            });
+        }};
+        var cancelButton = {text : nl.t('Cancel')};
+        dlg.show('view_controllers/admin/user_unarchive.html',
+            [unarchiveButton], cancelButton, false);
+    }
+
+    function getSelectedIdsObj(selectedIds) {
+        var selectedIdTemp = angular.copy(selectedIds.replace(/[\s\n\r]+/g, ","));
+        selectedIdTemp = selectedIdTemp.split(',');
+        var finalSelectedIds = {};
+        var errorArray = [];
+        var limitError = false;
+        var usersIds = [];
+        for(var i=0; i<selectedIdTemp.length; i++) {
+            var selectedId = selectedIdTemp[i].trim();
+            if(!selectedId) continue;
+            selectedId = selectedId.split('.')[0];
+            if(selectedId in finalSelectedIds) errorArray.push({id:selectedIdTemp[i].trim(), msg:'This userid is repeated.'})
+            if (selectedId) finalSelectedIds[selectedId] = true;
+            usersIds.push(selectedId + '.' + _groupInfo.grpid);
+        }
+        if(usersIds.length > 100) limitError = true;
+        if(errorArray.length == 0 && !limitError) return usersIds;
+        
+        var msg = '<div class="fsh6" style="min-width: 40vw">Error in provided userids string</div><div><ul>';
+        for(var i=0; i<errorArray.length; i++) msg += nl.t('<li class="padding-mid"><span style="font-weight:bold">{} : </span><span>{}</span>', errorArray[i].id, errorArray[i].msg); 
+        msg += '</ul></div>';
+        if(limitError) msg += nl.t('<div class="fsh6">Maximum number of user_id\'s can be 100 for unarchiving. {} given. </div>', usersIds.length);
+        nlDlg.popupAlert({title: 'Error message', template: msg});        
+        return false;
+    }
+
+    function _onUnarchive(selectedUserIds, resolve, reject) {
+        var data = {"deleted": false, "max": 100, "update_cache": true, "users" : selectedUserIds || []};
+        nlServerApi.groupUpdateDeletedAttrOfUsers(data).then(function(result) {
+            nlDlg.hideLoadingScreen();
+            _updateStatusMessage(selectedUserIds, result.resultset, resolve);
+        }, function(err) {
+            nlDlg.hideLoadingScreen();
+            reject();
+        })
+    }
+
+    function _updateStatusMessage(selectedUserIds, updatedUsers, resolve) {
+        var msg = '<div class="fsh6" style="min-width: 50vw">Update with the following userid\'s </div><div><ul>';
+        var updatedUsersId = [];
+        for(var i=0; i< updatedUsers.length; i++) updatedUsersId.push(updatedUsers[i].username);
+        for(var i=0; i<selectedUserIds.length; i++) {
+            if(updatedUsersId.indexOf(selectedUserIds[i]) < 0) {
+                msg += nl.t('<li class="padding-mid"><span style="font-weight:bold">{} : </span><span>Invalid UserId</span>', selectedUserIds[i]);
+                continue;
+            }
+            msg += nl.t('<li class="padding-mid"><span style="font-weight:bold">{} : </span><span>Unarchived</span>', selectedUserIds[i]);
+        }
+
+        msg += '</ul></div>';
+        nlDlg.popupAlert({title: 'Update Status', template: msg}).then(function() {
+            resolve();
+            nlDlg.closeAll();
+            nl.window.location.reload();
+        });
+    }
 
     function _createOrModify(card) {
         var dlg = nlDlg.create($scope);

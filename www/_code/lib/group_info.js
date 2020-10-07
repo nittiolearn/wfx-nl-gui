@@ -517,6 +517,7 @@ function(nl, nlDlg, nlImporter, nlGroupCache) {
 //-------------------------------------------------------------------------------------------------
 function PastUserInfosFetcher(nl, nlDlg, nlImporter, nlGroupInfo) {
     var _groupInfo = null;
+    var _isArchivedUserExist = false;
     var _pastUsersIdToObj = {};
     var _pastUsersUserIdToObj = {}; // For imported users and if buildUserIdDict is set
     var _pendingArchived = [];
@@ -527,11 +528,16 @@ function PastUserInfosFetcher(nl, nlDlg, nlImporter, nlGroupInfo) {
     this.init = function(groupInfo, buildUserIdDict) {
         if (buildUserIdDict) _buildUserIdDict = true;
         _groupInfo = groupInfo || nlGroupInfo.get();
+        _isArchivedUserExist = false;
         _pastUsersIdToObj = {};
         _pastUsersUserIdToObj = {};
         var pastUserInfos = _groupInfo.props.pastUserInfos || {};
         _pendingArchived = pastUserInfos.archived || [];
         _pendingImported = pastUserInfos.imported || [];
+    };
+
+    this.isArchivedUserExist = function() {
+        return _isArchivedUserExist;
     };
 
     this.getUserObj = function(uid, user_id) {
@@ -618,7 +624,10 @@ function PastUserInfosFetcher(nl, nlDlg, nlImporter, nlGroupInfo) {
             if (user.imported && (user.user_id in _pastUsersUserIdToObj)) continue;
             _updateUserId(user);
 
-            if (user.archived) _pastUsersIdToObj[user.id] = user;
+            if (user.archived) {
+                _pastUsersIdToObj[user.id] = user;
+                _isArchivedUserExist = true;
+            }
             if ((user.imported || _buildUserIdDict) && !(user.user_id in _pastUsersUserIdToObj))
                 _pastUsersUserIdToObj[user.user_id] = user;
 

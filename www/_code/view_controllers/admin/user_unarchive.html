@@ -1,0 +1,16 @@
+<nl-dlg dlgtitle='{{dlgTitle}}'>
+    <nl-dlg-help>
+        <p><b>User id:</b>Array of Unique ids of the user within the group. "userid.groupid" will the login id of the user.</p>
+    </nl-dlg-help>
+    <nl-dlg-content>
+        <div class='row row-top row-wrap margin0 padding0'>
+		    <div ng-class='$root.resp2Col33' class='nl-dlg-field-name'>
+		         Userids
+		    </div>
+		    <div ng-class='$root.resp2Col67' class='nl-dlg-field-value'>
+			   <textarea ng-model='data.selectedIds' rows="30" 
+			   		placeholder='list of userids separated by comma or newline'></textarea>
+		    </div>
+		</div>
+    </nl-dlg-content>
+</nl-dlg>

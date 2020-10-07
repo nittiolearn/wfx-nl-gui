@@ -692,11 +692,19 @@ function(nl, nlDlg, nlConfig, Upload) {
     };
 
     //---------------------------------------------------------------------------------------------
-
     // Utility for page and batch query
+    //---------------------------------------------------------------------------------------------
+
     this.getPageFetcher = function(attrs) {
         return new PageFetcher(nl, nlDlg, attrs);
     };
+
+    //---------------------------------------------------------------------------------------------
+    // Unarchive the users
+    //---------------------------------------------------------------------------------------------
+    this.groupUpdateDeletedAttrOfUsers = function(data) {
+        return server.post('_serverapi/group_update_deleted_attr_of_users.json', data);
+    };    
     
     //---------------------------------------------------------------------------------------------
     // Private methods
