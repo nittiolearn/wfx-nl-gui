@@ -62,6 +62,9 @@ function(nl, $filter) {
                 cards.search.placeholder = 'Start typing to search';            
             if (!cards.search.icon) cards.search.icon = cards.search.onSearch ? 'ion-funnel' : '';
         } 
+        if (cards.savejson && cards.savejson.show) {
+            if (!cards.savejson.icon) cards.savejson.icon = 'ion-archive';
+        }
         _updateInternal2(cards);
     };
     
@@ -237,6 +240,11 @@ function(nl, nlDlg, $filter, nlCardsSrv) {
             	return $scope.cards.search.onSearch(search.filter, search.category.id, _onSearchParamChange);
             };
 
+            $scope.saveJsonButton = function() {
+                var jsonToSave = angular.toJson($scope.cards.cardlist, 2);
+                _saveJSON(jsonToSave);
+            }
+
 			$scope.searchKeyHandler = function(event) {
                 if (!$scope.cards.largeData && event.which === 13) {
                     $scope.showResultDetails();
@@ -250,7 +258,20 @@ function(nl, nlDlg, $filter, nlCardsSrv) {
 			function _onSearchParamChange(filter, category) {
                 $scope.cards._internal.search.filter = filter || '';
                 $scope.cards._internal.search.category = {id: category || null};
-			}
+            }
+            
+            function _saveJSON(data) {
+                if(!data) {
+                    nlDlg.popupAlert({title: 'Save Error', template: 'No data to save in the json file'});
+                    return;
+                }
+                var fileName = 'nl' + (new Date()).getTime() + '.json';
+                const a = document.createElement("a");
+                const file = new Blob([data], { type: 'text/json' });
+                a.href = URL.createObjectURL(file);
+                a.download = fileName;
+                a.click();
+            }
          }
     };
 }];

@@ -89,6 +89,8 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
     var _searchMetadata = null;
     var _canManage = false;
 	var _resultList = [];
+	var _isSaveJson = false;
+	var _autoFetchAll = false;
 	
 	// All Global data needed folder view
 	var _searchCache = {
@@ -125,7 +127,8 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
 				search: {customSearch: _searchCache.folderLabel ? _onFolderViewSearch: null,
 					onSearch: _metadataEnabled ? _onSearch: null, 
                     placeholder: nl.t('Enter course name/description')}
-            };
+			};
+			if(_isSaveJson)	$scope.cards.savejson = { show : _isSaveJson};
 			nlCardsSrv.initCards($scope.cards);
 			_getDataFromServer(resolve);
 		});
@@ -191,7 +194,9 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
 	};
 
 	function _initParams() {
-        var params = nl.location.search();
+		var params = nl.location.search();
+		_isSaveJson = params.savejson == 1 ? true : false;
+		_autoFetchAll = params.autofetchall == 1 ? true : false;
 		_searchCache.folder = params.folder || null;
 		_searchCache.enabled = _searchCache.folder ? true : false;
 		_searchCache.cacheType = type ==='course' ? 'published_course' : 'course_assignment';
@@ -442,13 +447,14 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
         var params = {metadata: _searchMetadata};
 		if(fetchMore) params['max'] = _max2;
         var listingFn = _getListFnAndUpdateParams(params);
-        _pageFetcher.fetchPage(listingFn, params, fetchMore, function(results) {
+        _pageFetcher.fetchPage(listingFn, params, fetchMore, function(results, batchDone, rawResult) {
             if (!results) {
                 if (resolve) resolve(false);
                 return;
             }
 			if (type !== 'report') {
 				_afterSubFetching(results, resolve);
+				if (_autoFetchAll && rawResult && rawResult.more) _getDataFromServer(resolve, true);
 			} else {
 				_subfetchAndOverride(results, resolve);
 			}

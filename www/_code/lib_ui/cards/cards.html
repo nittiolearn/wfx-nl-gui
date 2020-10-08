@@ -25,6 +25,10 @@
                 ng-change='onSearchButton()'
                 ng-options="item.desc group by item.grp for item in cards.searchDropdown track by item.id">
         </select>
+
+        <div class='padding-small'></div>
+        <i ng-if='cards.savejson.icon' class='nl-link-text icon fsh4 fblue2 padding-mid {{cards.savejson.icon}}'
+           tabindex="0" ng-click='saveJsonButton()'></i>
     
         <div class='padding-small'></div>
         <i ng-if='cards.search.icon' class='nl-link-text icon fsh4 fblue2 padding-mid {{cards.search.icon}}'
