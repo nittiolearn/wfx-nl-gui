@@ -195,8 +195,8 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
 
 	function _initParams() {
 		var params = nl.location.search();
-		_isSaveJson = params.savejson == 1 ? true : false;
-		_autoFetchAll = params.autofetchall == 1 ? true : false;
+		_isSaveJson = params.savejson == '1' ? true : false;
+		_autoFetchAll = params.autofetchall == '1' ? true : false;
 		_searchCache.folder = params.folder || null;
 		_searchCache.enabled = _searchCache.folder ? true : false;
 		_searchCache.cacheType = type ==='course' ? 'published_course' : 'course_assignment';

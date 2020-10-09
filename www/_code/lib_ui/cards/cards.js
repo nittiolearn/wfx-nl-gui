@@ -186,8 +186,8 @@ function(nl, nlDlg) {
 }];
 
 //-------------------------------------------------------------------------------------------------
-var CardsDirective = ['nl', 'nlDlg', '$filter', 'nlCardsSrv',
-function(nl, nlDlg, $filter, nlCardsSrv) {
+var CardsDirective = ['nl', 'nlDlg', '$filter', 'nlCardsSrv', 'nlExporter',
+function(nl, nlDlg, $filter, nlCardsSrv, nlExporter) {
     return {
         restrict: 'E',
         transclude: true,
@@ -265,12 +265,7 @@ function(nl, nlDlg, $filter, nlCardsSrv) {
                     nlDlg.popupAlert({title: 'Save Error', template: 'No data to save in the json file'});
                     return;
                 }
-                var fileName = 'nl' + (new Date()).getTime() + '.json';
-                const a = document.createElement("a");
-                const file = new Blob([data], { type: 'text/json' });
-                a.href = URL.createObjectURL(file);
-                a.download = fileName;
-                a.click();
+                nlExporter.exportTextFile('cards.json', data);
             }
          }
     };

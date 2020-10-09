@@ -77,7 +77,6 @@ nlAdminUserExport, nlAdminUserImport, nlTreeSelect, nlOuUserSelect, nlServerApi)
 		            nlDlg.popupAlert({title: 'Warning', template: nl.fmt2(msg, userCnt)});
 		        }
                 nlAdminUserImport.init(_groupInfo, _userInfo, _grpid).then(function(doesPastUserExist){
-                    if(doesPastUserExist) _updateStaticCards();
                     nl.pginfo.pageTitle = nl.t('User administration: {}', _groupInfo.name);
                     _updateCards();
                     resolve(true);
@@ -87,12 +86,6 @@ nlAdminUserExport, nlAdminUserImport, nlTreeSelect, nlOuUserSelect, nlServerApi)
             });
 		});
 	}
-
-    function _updateStaticCards() {
-        var card = $scope.cards.staticlist[0];
-        card.children.push({title: nl.t('Unarchive'), internalUrl: 'adminuser_unarchive',
-            children: [], link: [], style: 'nl-bg-blue'});
-    }
 
 	nlRouter.initContoller($scope, '', _onPageEnter);
 
@@ -183,6 +176,10 @@ nlAdminUserExport, nlAdminUserImport, nlTreeSelect, nlOuUserSelect, nlServerApi)
             children: [], link: [], style: 'nl-bg-blue'});
         card.children.push({title: nl.t('Import'), internalUrl: 'adminuser_import',
             children: [], link: [], style: 'nl-bg-blue'});
+        if(doesPastUserExist) {
+            card.children.push({title: nl.t('Unarchive'), internalUrl: 'adminuser_unarchive',
+            children: [], link: [], style: 'nl-bg-blue'});
+        }
 		return ret;
 	}
 
@@ -196,7 +193,7 @@ nlAdminUserExport, nlAdminUserImport, nlTreeSelect, nlOuUserSelect, nlServerApi)
         cards.sort(function(a, b) {
             return ((b.updated || 0) - (a.updated || 0));
         });
-        nlCardsSrv.updateCards($scope.cards, {cardlist: cards});
+        nlCardsSrv.updateCards($scope.cards, {cardlist: cards, staticlist: _getStaticCards()});
 	}
 	
 	function _createCard(user) {
