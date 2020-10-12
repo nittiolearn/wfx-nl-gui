@@ -225,6 +225,7 @@ function(nl, nlDlg, nlGroupInfo, nlImporter, nlProgressLog, nlRouter, nlServerAp
         self.initImportOperation();
         if (e) e.preventDefault();
         if (dlgScope.data.filelist.length == 0) {
+            // TODO-NOW: open the dlg box here to attach the file.
             dlgScope.error.filelist = 'Please select the CSV file';
             return;
         }
@@ -260,18 +261,21 @@ function(nl, nlDlg, nlGroupInfo, nlImporter, nlProgressLog, nlRouter, nlServerAp
                     }
                     _updateServerAfterConfirmIfNeeded(false, rows, dlgScope.data.createMissingOus);
                 }, function(e) {
+                    dlgScope.data.filelist = [];
                     _error(e);
                 });
             } catch (e) {
+                dlgScope.data.filelist = [];
                 _error(e);
             }
         }, function(e) {
+            dlgScope.data.filelist = [];
             _error(nl.t('Error reading CSV file: {}', e));
         });
     }
 
     function _throwException(message, obj) {
-        if (self.showRowNumber && obj && obj.pos) message = nl.fmt2('Row {}: {}', obj.pos, message);
+        if (self.showRowNumber && obj && obj.pos) message = nl.fmt2('Row {}: {}. Please correct the issue and reattach the file.', obj.pos, message);
         throw({message: message, obj: obj});
     }
     

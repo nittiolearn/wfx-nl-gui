@@ -254,6 +254,7 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
 	
 	function _getCacheDataFromServer(resolve) {
 		nlSearchCacheSrv.getItems(_searchCache.cacheType).then(function(itemsDict, canFetchMore) {
+			if(_autoFetchAll && nlSearchCacheSrv.canFetchMore(_searchCache.cacheType)) _getCacheDataFromServer(resolve);
 			_filterOutDisallowedItems(itemsDict);
 			_updateSearchCachedCards();
 			if (resolve) resolve(true);

@@ -42,7 +42,8 @@ nlAdminUserExport, nlAdminUserImport, nlTreeSelect, nlOuUserSelect, nlServerApi)
 	var _groupInfo = null;
 	var _grpid = null;
 	var _chunksize = 100; // Number of records to send to server for updating in one chunk
-	var _debuglog = false;
+    var _debuglog = false;
+    var _doesPastUserExist = false;
 
 	function _onPageEnter(userInfo) {
 		_userInfo = userInfo;
@@ -77,6 +78,7 @@ nlAdminUserExport, nlAdminUserImport, nlTreeSelect, nlOuUserSelect, nlServerApi)
 		            nlDlg.popupAlert({title: 'Warning', template: nl.fmt2(msg, userCnt)});
 		        }
                 nlAdminUserImport.init(_groupInfo, _userInfo, _grpid).then(function(doesPastUserExist){
+                    if(doesPastUserExist) _doesPastUserExist = doesPastUserExist;
                     nl.pginfo.pageTitle = nl.t('User administration: {}', _groupInfo.name);
                     _updateCards();
                     resolve(true);
@@ -176,7 +178,7 @@ nlAdminUserExport, nlAdminUserImport, nlTreeSelect, nlOuUserSelect, nlServerApi)
             children: [], link: [], style: 'nl-bg-blue'});
         card.children.push({title: nl.t('Import'), internalUrl: 'adminuser_import',
             children: [], link: [], style: 'nl-bg-blue'});
-        if(doesPastUserExist) {
+        if(_doesPastUserExist) {
             card.children.push({title: nl.t('Unarchive'), internalUrl: 'adminuser_unarchive',
             children: [], link: [], style: 'nl-bg-blue'});
         }
