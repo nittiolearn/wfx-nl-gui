@@ -199,15 +199,15 @@ function(nl, nlDlg, nlRouter, nlExporter, nlLrHelper, nlLrSummaryStats, nlGroupI
                     }
                 }
                 
-                if (filter.exportTypes.courseDetails && ctx.courseDetailsRow.length > 1) {
-                    for(var start=0, i=1; start < ctx.courseDetailsRow.length; i++) {
-                        var pending = ctx.courseDetailsRow.length - start;
-                        pending = pending > nlExporter.MAX_RECORDS_PER_CSV ? nlExporter.MAX_RECORDS_PER_CSV : pending;
-                        var fileName = nl.fmt2('course-details-{}.csv', i);
-                        _createCsv(filter, ctx.courseDetailsRow, zip, fileName, start, start+pending);
-                        start += pending;
-                    }
-                } 
+                // if (filter.exportTypes.courseDetails && ctx.courseDetailsRow.length > 1) {
+                //     for(var start=0, i=1; start < ctx.courseDetailsRow.length; i++) {
+                //         var pending = ctx.courseDetailsRow.length - start;
+                //         pending = pending > nlExporter.MAX_RECORDS_PER_CSV ? nlExporter.MAX_RECORDS_PER_CSV : pending;
+                //         var fileName = nl.fmt2('course-details-{}.csv', i);
+                //         _createCsv(filter, ctx.courseDetailsRow, zip, fileName, start, start+pending);
+                //         start += pending;
+                //     }
+                // } 
     
                 if (filter.exportTypes.drilldown && ctx.drillDownRow.length > 1) {
                     for(var start=0, i=1; start < ctx.drillDownRow.length; i++) {
@@ -450,10 +450,12 @@ function(nl, nlDlg, nlRouter, nlExporter, nlLrHelper, nlLrSummaryStats, nlGroupI
     function _createUserCsv(filter, records, start, end, expSummaryStats, zip, fileName) {
         var header = null;
         var rows = null;
+        var maxCourseDetails = 50000;
         if(_exportFormat == 'csv') {
             header = _getCsvHeader();
             rows = [nlExporter.getCsvString(header)];    
         }
+        var detailsCnt = 0;
         for (var i=start; i<end; i++) {
             var row = null;
             if(records[i].raw_record.ctype == _nl.ctypes.CTYPE_MODULE) {
@@ -472,7 +474,22 @@ function(nl, nlDlg, nlRouter, nlExporter, nlLrHelper, nlLrSummaryStats, nlGroupI
                 if(filter.exportTypes.courseDetails) _updateCsvCourseDetailsRows(filter, records[i]);
             }
             expSummaryStats.addToStats(records[i]);
+            //Newly added code overcome memory crash issue
+            if (ctx.courseDetailsRow.length >= maxCourseDetails) {
+                var courseDetailsRow = ctx.courseDetailsRow.slice(0);
+                ctx.courseDetailsRow = [nlExporter.getCsvHeader(_hCourseDetailsRow)];
+                detailsCnt += 1;
+                var cfileName = nl.fmt2('course-details-{}.csv', detailsCnt);
+                _createCsv(filter, courseDetailsRow, zip, cfileName, 0, courseDetailsRow.length);
+            }
         }
+        if (ctx.courseDetailsRow.length > 1 && ctx.courseDetailsRow.length < maxCourseDetails) {
+            var courseDetailsRow = ctx.courseDetailsRow;
+            detailsCnt += 1;
+            var cfileName = nl.fmt2('course-details-{}.csv', detailsCnt);
+            _createCsv(filter, courseDetailsRow, zip, cfileName, 0, courseDetailsRow.length);
+        }
+
 
         if(_exportFormat == 'csv') {
             if (filter.exportTypes.course && (filter.reptype == 'course' || filter.reptype == 'course_assign')) {

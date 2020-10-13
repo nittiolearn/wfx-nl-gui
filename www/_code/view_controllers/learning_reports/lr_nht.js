@@ -160,6 +160,53 @@ function(nl) {
             $scope.sortRows = function(colid) {
                 nl.utils.getFnFromParentOrGrandParent($scope, 'sortNhtRows')(colid);
             };
+            $scope.getMaxVisibleString = function(nht) {
+                if (!nht) return;
+                var posStr = '';
+                var rows = nht && nht.allRows || [];
+                if (rows.length > nht.MAX_VISIBLE_NHT) {
+                    var startpos = nht.currentpos + 1;
+                    var endpos = nht.currentpos + nht.rows.length - 1;
+                    posStr = nl.t('{} - {} of ', startpos, endpos);
+                }
+                return nl.t ('Showing {}{} items.', posStr, rows.length);
+            };
+        
+            $scope.canShowPrev = function(nht) {
+                if (!nht) return;
+                if (nht.currentpos > 0) return true;
+                return false;
+            };
+        
+            $scope.canShowNext = function(nht) {
+                if (!nht) return;
+                var rows = nht && nht.allRows || [];
+                if (nht.currentpos + nht.MAX_VISIBLE_NHT < rows.length) return true;
+                return false;
+            };
+        
+            $scope.onClickOnNext = function (nht) {
+                if (!nht) return;
+                var rows = nht.allRows || [];
+                var MAX_VISIBLE = nht.MAX_VISIBLE_NHT;
+                if (nht.currentpos + MAX_VISIBLE > rows.length) return;
+                if (nht.currentpos < rows.length) {
+                    nht.currentpos += MAX_VISIBLE;
+                }
+                nht.rows = nht.allRows.slice(nht.currentpos, nht.currentpos + MAX_VISIBLE);
+                if (nht.summaryRow) nht.rows.splice(0, 0, nht.summaryRow)
+            };
+
+            $scope.onClickOnPrev = function (nht) {
+                if (!nht) return;
+                var MAX_VISIBLE = nht.MAX_VISIBLE_NHT;
+                if (nht.currentpos == 0) return;
+                if (nht.currentpos >= MAX_VISIBLE) {
+                    nht.currentpos -= MAX_VISIBLE;
+                }
+                nht.rows = nht.allRows.slice(nht.currentpos, nht.currentpos + MAX_VISIBLE);
+                if (nht.summaryRow) nht.rows.splice(0, 0, nht.summaryRow)
+            }                
         }
     }
 }];

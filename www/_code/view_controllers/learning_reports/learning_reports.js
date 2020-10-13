@@ -1152,20 +1152,42 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 	//---------------------------------------------------------------------------------------------------------------------------------------------------------
 	// Running and Closed NHT tabs
 	//---------------------------------------------------------------------------------------------------------------------------------------------------------
+	var MAX_VISIBLE_NHT = 100;
 	function _updateRunningNhtTab() {
 		$scope.nhtRunningInfo = _getNhtTab('nhtrunning');
+		if ($scope.nhtRunningInfo.allRows.length > MAX_VISIBLE_NHT) 
+			$scope.nhtRunningInfo.rows = $scope.nhtRunningInfo.allRows.slice(0, MAX_VISIBLE_NHT);
+		else
+			$scope.nhtRunningInfo.rows = $scope.nhtRunningInfo.allRows.slice(0);
+		if ($scope.nhtRunningInfo.summaryRow) 
+			$scope.nhtRunningInfo.rows.splice(0, 0, $scope.nhtRunningInfo.summaryRow);
 	}
 
 	function _updateClosedNhtTab() {
 		$scope.nhtClosedInfo = _getNhtTab('nhtclosed');
+		if ($scope.nhtClosedInfo.allRows.length > MAX_VISIBLE_NHT) 
+			$scope.nhtClosedInfo.rows = $scope.nhtClosedInfo.allRows.slice(0, MAX_VISIBLE_NHT);
+		else
+			$scope.nhtClosedInfo.rows = $scope.nhtClosedInfo.allRows.slice(0);
+		if ($scope.nhtClosedInfo.summaryRow) 
+			$scope.nhtClosedInfo.rows.splice(0, 0, $scope.nhtClosedInfo.summaryRow);
 	}
 
 	function _getNhtTab(batchType) {
 		var colInfo = _getNhtAllAndSelectedColumns();
 		var statusCounts = nlLrNht.getStatsCountDict(batchType, $scope.tabData.records || []);
-		return {columns: colInfo.all,  selectedColumns: colInfo.selected,
-			isRunning: batchType == 'nhtrunning', rows: _generateDrillDownArray(true, statusCounts,
-			false, (nlLrFilter.getType() == "course_assign"), true)};
+		var all = _generateDrillDownArray(true, statusCounts, false, (nlLrFilter.getType() == "course_assign"), true);
+		var sumRow = all[0];
+		if (!sumRow.isSummaryRow) sumRow = null;
+		var ret = {columns: colInfo.all,  selectedColumns: colInfo.selected,
+			isRunning: batchType == 'nhtrunning', currentpos: 0, nextpos: MAX_VISIBLE_NHT, MAX_VISIBLE_NHT: MAX_VISIBLE_NHT};
+		if (sumRow) {
+			ret.allRows = all.slice(1);
+			ret.summaryRow = sumRow;
+		} else {
+			ret.allRows = all;
+		}
+		return ret;
 	}
 
 	function _getNhtAllAndSelectedColumns() {
@@ -1692,11 +1714,15 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		if (batchStatus.running || batchStatus.closed) {
 			if (batchStatus.running) {
 				_updateRunningNhtTab();
-				nhtStats.runningRows = $scope.nhtRunningInfo.rows;
+				nhtStats.runningRows = $scope.nhtRunningInfo.allRows.slice(0);
+				if ($scope.nhtRunningInfo.summaryRow)
+					nhtStats.runningRows.splice(0, 0, $scope.nhtRunningInfo.summaryRow);
 			}
 			if (batchStatus.closed) {
 				_updateClosedNhtTab();
-				nhtStats.closedRows = $scope.nhtClosedInfo.rows;
+				nhtStats.closedRows = $scope.nhtClosedInfo.allRows.slice(0);
+				if ($scope.nhtClosedInfo.summaryRow)
+					nhtStats.closedRows.splice(0, 0, $scope.nhtClosedInfo.summaryRow);
 			}
 			nhtStats.runningHeaders = [];
 			nhtStats.closedHeaders = [];
