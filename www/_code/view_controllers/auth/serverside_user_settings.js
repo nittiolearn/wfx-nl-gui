@@ -76,7 +76,7 @@ function(nl, nlDlg, nlServerApi) {
         var seqQuestionsInScope = [];
         var nCount = 0;
         for (var q in seqQuestionsInObj) {
-            var seqQuestionInScope = {q: {id: q}, a: seqQuestionsInObj[q]};
+            var seqQuestionInScope = {q: {id: q}, a: ''}; //a: seqQuestionsInObj[q] --> a: "" in issue #2060
             seqQuestionsInScope.push(seqQuestionInScope);
             nCount++;
             if (nCount == NOPTIONS) break;
