@@ -1123,7 +1123,9 @@ nlesson = function() {
         window.setInterval(function() {
             var idleMonitor = window.nlapp.nl.idleMonitor;
             var screenIdleTimeInSeconds = idleMonitor.getIdleSeconds();
-            if (screenIdleTimeInSeconds > AUTOSAVE_TIMEOUT + 5) {
+            var oLesson = lesson.oLesson;
+            var maxDurationDefined = oLesson.max_duration && oLesson.max_duration > 0;
+            if (!maxDurationDefined && (screenIdleTimeInSeconds > AUTOSAVE_TIMEOUT + 5)) {
                 if(screenIdleTimeInSeconds > AUTOSAVE_TIMEOUT2 + 5) 
                     lesson.sessionStartTime = new Date(); // For timeSpentCalculations reset it only if the screen is idle for greater than five minutes
                 return;

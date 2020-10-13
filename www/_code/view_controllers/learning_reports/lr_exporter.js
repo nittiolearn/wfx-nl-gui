@@ -548,7 +548,7 @@ function(nl, nlDlg, nlRouter, nlExporter, nlLrHelper, nlLrSummaryStats, nlGroupI
             'From', 'Till', 'Status', 'Quiz Attempts',
             'Achieved %', 'Maximum Score', 'Achieved Score', 'Progress']);
         for(var i=0; i<_customScoresHeader.length; i++) headers.push(_customScoresHeader[i]);
-        headers = headers.concat(['Feedback score', 'Online Time Spent (minutes)', 'ILT time spent(minutes)', 'ILT total time(minutes)']);
+        headers = headers.concat(['Feedback score', 'Online Active Time Spent (minutes)', 'ILT time spent(minutes)', 'ILT total time(minutes)']);
         var trainingParams = nlGroupInfo.getTrainingParams();
         for (var i=0; i<trainingParams.length; i++) {
             var param = trainingParams[i];
@@ -710,7 +710,7 @@ function(nl, nlDlg, nlRouter, nlExporter, nlLrHelper, nlLrSummaryStats, nlGroupI
             {id: '_score', name:'Achieved Score'},
             {id: '_passScoreStr', name:'Pass %'},
             {id: 'feedbackScore', name:'Feedback score'},
-            {id: '_timeMins', name:'Online Time Spent (minutes)'}];
+            {id: '_timeMins', name:'Online Active Time Spent (minutes)'}];
     var _h1PageScores = [
             {id: 'page', name:'Page No'},
             {id: 'title', name:'Page Title'},
@@ -747,7 +747,7 @@ function(nl, nlDlg, nlRouter, nlExporter, nlLrHelper, nlLrSummaryStats, nlGroupI
             {id: '_score', name:'Achieved Score'},
             {id: '_passScoreStr', name:'Pass %'},
             {id: 'feedbackScore', name:'Feedback score'},
-            {id: '_timeMins', name:'Online Time Spent (minutes)'},
+            {id: '_timeMins', name:'Online Active Time Spent (minutes)'},
             {id: '_timeIltMins', name:'ILT Time Spent (minutes)'},
             {id: '_timeIltTotalMins', name:'ILT Total Time(minutes)'}
         ];
