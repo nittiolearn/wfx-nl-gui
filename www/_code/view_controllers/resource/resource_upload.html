@@ -1,7 +1,7 @@
 <div class='nl-dlg-field-value'>
     <div ng-show='multiple == "true" || $parent.data[fieldmodel].length == 0'
          class="nl-thumbnail-container">
-        <div class="nl-thumbnail" 
+        <div class="nl-thumbnail" id='{{fieldid}}'
              ngf-select='onFileSelect($files || [$file])' name="fieldmodel"
              ngf-multiple="{{multiple}}" ngf-accept="'{{accept}}'"
              tabindex="{{fieldindex}}"

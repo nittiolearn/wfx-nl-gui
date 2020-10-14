@@ -48,6 +48,15 @@ function(nl, Upload, nlDlg, nlResourceUploader) {
         };
         var field = iElem.find('div')[0];
         nlDlg.addField($scope.fieldmodel, field);
+        nl.timeout(function() {
+            $scope.$parent.data.fieldrefer = {};
+            var fieldrefer = $scope.$parent.data.fieldrefer;
+            var elemid = '#' + $scope.fieldid;
+            fieldrefer.elem = angular.element(document.querySelector(elemid));
+            fieldrefer['elem'].bind('click', function(e) {
+                console.log('...');
+            });
+        });
     }
     
     function _onFileSelect($scope, files) {
@@ -129,7 +138,8 @@ function(nl, Upload, nlDlg, nlResourceUploader) {
             fieldmodel: '@',
             multiple: '@',
             restype: '@',
-            fieldindex: '@'
+            fieldindex: '@',
+            fieldid: '@'
         },
         link: _linkFunction
     };

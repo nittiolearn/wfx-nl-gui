@@ -225,8 +225,8 @@ function(nl, nlDlg, nlGroupInfo, nlImporter, nlProgressLog, nlRouter, nlServerAp
         self.initImportOperation();
         if (e) e.preventDefault();
         if (dlgScope.data.filelist.length == 0) {
-            // TODO-NOW: open the dlg box here to attach the file.
-            dlgScope.error.filelist = 'Please select the CSV file';
+            var fieldReferToOpenFileExplorer = dlgScope.data.fieldrefer.elem;
+            fieldReferToOpenFileExplorer.triggerHandler('click');
             return;
         }
         
