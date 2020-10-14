@@ -199,16 +199,6 @@ function(nl, nlDlg, nlRouter, nlExporter, nlLrHelper, nlLrSummaryStats, nlGroupI
                     }
                 }
                 
-                // if (filter.exportTypes.courseDetails && ctx.courseDetailsRow.length > 1) {
-                //     for(var start=0, i=1; start < ctx.courseDetailsRow.length; i++) {
-                //         var pending = ctx.courseDetailsRow.length - start;
-                //         pending = pending > nlExporter.MAX_RECORDS_PER_CSV ? nlExporter.MAX_RECORDS_PER_CSV : pending;
-                //         var fileName = nl.fmt2('course-details-{}.csv', i);
-                //         _createCsv(filter, ctx.courseDetailsRow, zip, fileName, start, start+pending);
-                //         start += pending;
-                //     }
-                // } 
-    
                 if (filter.exportTypes.drilldown && ctx.drillDownRow.length > 1) {
                     for(var start=0, i=1; start < ctx.drillDownRow.length; i++) {
                         var pending = ctx.drillDownRow.length - start;
