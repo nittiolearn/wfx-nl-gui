@@ -120,7 +120,7 @@ function(nl, nlServerApi, nlConfig, nlDlg) {
 	function _isDeltaOlder(cUser, deltaUser) {
         var cUpdated = nl.fmt.json2Date(cUser[UPDATED_COL_POS]);
         var deltaUpdated = nl.fmt.json2Date(deltaUser[UPDATED_COL_POS]);
-        return deltaUpdated > cUpdated;
+        return deltaUpdated < cUpdated;
 	}
 	
 	function _dbkey(grpid) {
