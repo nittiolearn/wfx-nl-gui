@@ -529,7 +529,7 @@ function(nl, nlDlg, nlRouter, nlExporter, nlLrHelper, nlLrSummaryStats, nlGroupI
 
     var _idFields = ['Report Id', 'Assign Id', 'Course/ Module Id'];
 
-    function _getCsvHeader() {
+    function _getCsvHeader(isCustom) {
         var type = nlLrFilter.getType();
         var mh = nlLrHelper.getMetaHeaders(false);
         var headers = ['User Id', 'User Name'];
@@ -538,7 +538,10 @@ function(nl, nlDlg, nlRouter, nlExporter, nlLrHelper, nlLrSummaryStats, nlGroupI
             'From', 'Till', 'Status', 'Quiz Attempts',
             'Achieved %', 'Maximum Score', 'Achieved Score', 'Progress']);
         for(var i=0; i<_customScoresHeader.length; i++) headers.push(_customScoresHeader[i]);
-        headers = headers.concat(['Feedback score', 'Online Active Time Spent (minutes)', 'ILT time spent(minutes)', 'ILT total time(minutes)']);
+        headers = headers.concat(['Feedback score'])
+        if (isCustom) headers = headers.concat(['Online Time Spent (minutes)']);
+        else headers = headers.concat(['Online Active Time Spent (minutes)']);
+        headers = headers.concat(['ILT time spent(minutes)', 'ILT total time(minutes)']);
         var trainingParams = nlGroupInfo.getTrainingParams();
         for (var i=0; i<trainingParams.length; i++) {
             var param = trainingParams[i];
@@ -1235,7 +1238,7 @@ function(nl, nlDlg, nlRouter, nlExporter, nlLrHelper, nlLrSummaryStats, nlGroupI
     }
 
     function _generateRawDataSheetContent(rawsheet, shallAppend, filter, reportRecordsDict, resolve) {
-        var header = _getCsvHeader();
+        var header = _getCsvHeader(true);
         var rows = [header];
 
         if (shallAppend) {
