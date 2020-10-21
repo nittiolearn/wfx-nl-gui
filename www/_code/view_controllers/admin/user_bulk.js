@@ -114,7 +114,6 @@ function(nl, nlDlg, nlGroupInfo, nlImporter, nlProgressLog, nlRouter, nlServerAp
     var _secloginDict = {};
     this.init = function(groupInfo, userInfo, grpid) {
         _ouDict = {};
-        _secloginDict = {};
         _groupInfo = groupInfo;
         _userInfo = userInfo;
         _grpid = grpid;
@@ -197,7 +196,12 @@ function(nl, nlDlg, nlGroupInfo, nlImporter, nlProgressLog, nlRouter, nlServerAp
         }
     }
 
+    this.resetSecLoginDict = function() {
+        _updateSecLoginDict();
+    };
+
     function _updateSecLoginDict() {
+        _secloginDict = {};
         var columnMap = _groupInfo.column_mapping || [];
         var secPos = null;
         for (var i=0; i<columnMap.length; i++) {

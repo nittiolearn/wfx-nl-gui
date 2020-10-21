@@ -196,6 +196,7 @@ nlAdminUserExport, nlAdminUserImport, nlTreeSelect, nlOuUserSelect, nlServerApi)
             return ((b.updated || 0) - (a.updated || 0));
         });
         nlCardsSrv.updateCards($scope.cards, {cardlist: cards, staticlist: _getStaticCards()});
+        nlAdminUserImport.resetSecLoginDict();
 	}
 	
 	function _createCard(user) {
