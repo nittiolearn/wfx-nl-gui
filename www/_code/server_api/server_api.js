@@ -845,7 +845,7 @@ function NlServerInterface(nl, nlDlg, nlConfig, Upload, brandingInfoHandler) {
                 if ('updated' in userInfo) data._ts = nl.fmt.json2Date(userInfo.updated);
                 if (serverType == 'api3' && userInfo.api3) data._token = userInfo.api3.token;
                 if (!upload) url = _getBaseUrl(serverType, userInfo) + url;
-                _postImpl(url, data, upload).then(
+                _postImpl(url, data, upload, serverType).then(
                 function success(data) {
                     _processResponse(self, data.data, data.status, resolve, reject, noPopup);
                 }, function error(data) {
@@ -872,10 +872,15 @@ function NlServerInterface(nl, nlDlg, nlConfig, Upload, brandingInfoHandler) {
     }
     
     var AJAX_TIMEOUT = 3*60*1000; // 3 mins timeout
-    function _postImpl(url, data, upload) {
+    var api3RequestHeaders = {'Content-Type':'text/plain'};
+    function _postImpl(url, data, upload, serverType) {
         nl.log.info('server_api: posting: ', url);
         if (upload) return Upload.upload({url: url, data: data, timeout: AJAX_TIMEOUT});
-        return nl.http.post(url, data, {timeout: AJAX_TIMEOUT});
+        if (serverType == "api3"){
+            return nl.http.post(url, data, {timeout: AJAX_TIMEOUT, headers: api3RequestHeaders});
+        }else{
+            return nl.http.post(url, data, {timeout: AJAX_TIMEOUT});
+        }
     }
     
     var MAX_DIFF = 1000*60*30; // 30 minutes
