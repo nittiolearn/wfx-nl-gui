@@ -369,8 +369,8 @@ function(nl, nlDlg, nlConfig, Upload) {
 	};
 
 	this.learningReportsGetList = function(data) {
-		//data = type, objid, assignor, parentonly, [filterParameters], [mquery parameters]
-		return server.post('_serverapi/learning_reports_get_list.json', data);
+        //data = type, objid, assignor, parentonly, [filterParameters], [mquery parameters]
+        return _serverPostToApi3OrApi(false, '_serverapi3/learning_reports_get_list', data);
 	};
 	
 	this.learningReportsGetCompletedModuleList = function(data) {
@@ -709,6 +709,24 @@ function(nl, nlDlg, nlConfig, Upload) {
     //---------------------------------------------------------------------------------------------
     // Private methods
     //---------------------------------------------------------------------------------------------
+    var _api3ToOldApiUrl = {
+        '_serverapi3/learning_reports_get_list' : '_serverapi/learning_reports_get_list.json',
+    };
+
+	function _serverPostToApi3OrApi(alwayUseApi3, url, data, config) {
+        if (!alwayUseApi3) {
+            var userInfo = server.getCurrentUserInfo() || {};
+            alwayUseApi3 = ((userInfo.groupinfo || {}).features || {}).useBleadingApi || false;
+        }
+        if (alwayUseApi3) {
+            if (!config) config = {};
+            config.serverType = 'api3';
+        } else {
+            url = _api3ToOldApiUrl[url];
+        }
+		return server.post(url, data, config);
+	};
+	
     function _getUserInfoFromCacheOrServer() {
         return nl.q(function(resolve, reject) {
             // First attempt in cache!
