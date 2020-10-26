@@ -713,12 +713,18 @@ function(nl, nlDlg, nlConfig, Upload) {
         '_serverapi3/learning_reports_get_list' : '_serverapi/learning_reports_get_list.json',
     };
 
-	function _serverPostToApi3OrApi(alwayUseApi3, url, data, config) {
-        if (!alwayUseApi3) {
-            var userInfo = server.getCurrentUserInfo() || {};
-            alwayUseApi3 = ((userInfo.groupinfo || {}).features || {}).useBleadingApi || false;
+    var _noapi3InUrl = undefined;
+	function _serverPostToApi3OrApi(alwaysUseApi3, url, data, config) {
+        if (_noapi3InUrl === undefined) {
+            _noapi3InUrl = 'noapi3' in nl.location.search();
         }
-        if (alwayUseApi3) {
+        var useApi3 = alwaysUseApi3;
+        if (!_noapi3InUrl && !alwaysUseApi3) {
+            var userInfo = server.getCurrentUserInfo() || {};
+            useApi3 = ((userInfo.groupinfo || {}).features || {}).useBleadingApi || false;
+        }
+        if (_noapi3InUrl) useApi3 = false;
+        if (useApi3) {
             if (!config) config = {};
             config.serverType = 'api3';
         } else {
