@@ -565,7 +565,7 @@ function(nl, nlDlg, nlRouter, nlExporter, nlLrHelper, nlLrSummaryStats, nlGroupI
         	report.raw_record.subject || '', nl.fmt.date2Str(report.raw_record.created), nl.fmt.date2Str(report.raw_record.updated),
             report.repcontent.not_before ? nl.fmt.date2Str(nl.fmt.json2Date(report.repcontent.not_before)) : '',
             report.repcontent.not_after ? nl.fmt.date2Str(nl.fmt.json2Date(report.repcontent.not_after)) : '', 
-            report.stats.status.txt, report.stats.avgAttempts || '',
+            report.stats.status.txt, report.stats.totalQuizAttempts || '',
             report.stats.percScoreStr, report.stats.nMaxScore, report.stats.nScore, report.stats.progressDesc]) 
 
         var customScores = report.stats.customScores || []; //customScores is array of objects [{name: 'itemname', score: 12}]

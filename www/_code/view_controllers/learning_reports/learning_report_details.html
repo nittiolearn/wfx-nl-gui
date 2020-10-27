@@ -72,7 +72,7 @@
         <span>{{rec._raw.stats.percScoreStr || '-'}}</span>
     </div>
     <div class='padding-mid' ng-class='$root.respCol422'><b>Quiz attempts:</b></div>
-    <div class='padding-mid' ng-class='$root.respCol422'>{{rec._raw.stats.avgAttempts || '-'}}
+    <div class='padding-mid' ng-class='$root.respCol422'>{{rec._raw.stats.totalQuizAttempts || '-'}}
         <span ng-show='rec._raw.stats.nLessonsAttempted > 1'>(average from {{rec._raw.stats.nLessonsAttempted}} quizzes)</span>
     </div>
 

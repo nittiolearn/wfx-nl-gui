@@ -626,7 +626,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		columns.push(_col('repcontent.not_before_str', 'From'));
 		columns.push(_col('repcontent.not_after_str', 'Till'));
 		columns.push(_col('stats.status.txt', 'Status', 'text-left', false, 'stats.status.icon'));
-		columns.push(_col('stats.avgAttempts', 'Quiz Attempts', 'text-right'));
+		columns.push(_col('stats.totalQuizAttempts', 'Quiz Attempts', 'text-right'));
 		columns.push(_col('stats.percScoreStr', 'Achieved %', 'text-right'));
 		columns.push(_col('stats.nMaxScore', 'Maximum Score', 'text-right'));
 		columns.push(_col('stats.nScore', 'Achieved Score', 'text-right'));

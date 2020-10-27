@@ -218,7 +218,7 @@
                 stats.nAttempts = 1;
                 stats.nLessonsAttempted = 1;
                 stats.nQuiz = 1;
-                stats.avgAttempts = 1;
+                stats.totalQuizAttempts = 1;
                 stats.timeSpentStr = Math.ceil(stats.timeSpentSeconds/60);
                 stats.timeSpentStr = stats.timeSpentStr > 1 ? stats.timeSpentStr + ' minutes' 
                     : stats.timeSpentStr == 1 ? stats.timeSpentStr + ' minute' : '';

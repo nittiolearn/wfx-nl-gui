@@ -291,7 +291,7 @@ function(nl, nlRouter, nlDlg, nlGroupInfo, nlLrHelper, nlLrFilter, nlGetManyStor
         if('reattempt' in stainf) {
             stats['reattempt'] = stainf['reattempt'];
         }
-        stats.avgAttempts = stats.nLessonsAttempted ? Math.round(stainf.nQuizAttempts/stats.nLessonsAttempted*10)/10 : 0;
+        stats.totalQuizAttempts = stainf.nQuizAttempts;
         stats.timeSpentStr = nl.fmt2('{} minutes online learning and {} minutes instructor led', 
             Math.ceil(stats.timeSpentSeconds/60), stats.iltTimeSpent);
         
@@ -386,7 +386,7 @@ function(nl, nlRouter, nlDlg, nlGroupInfo, nlLrHelper, nlLrFilter, nlGetManyStor
 
         var stats = { nQuiz: 0,
             timeSpentSeconds: 0, nLessonsAttempted: 0, nScore: 0, nMaxScore: 0,
-            done: 0, nQuiz: 0, avgAttempts: 0};
+            done: 0, nQuiz: 0, totalQuizAttempts: 0};
     
         if(!report.completed && (nlLrFilter.getType() == 'module_assign')) {
             _updateReminderDict(report, repcontent, user);
@@ -396,7 +396,7 @@ function(nl, nlRouter, nlDlg, nlGroupInfo, nlLrHelper, nlLrFilter, nlGetManyStor
             stats.timeSpentSeconds = repcontent.timeSpentSeconds || 0;
             stats.nLessonsAttempted = 1;
             stats.nQuiz = 1;
-            stats.avgAttempts = 1;
+            stats.totalQuizAttempts = 1;
             stats.timeSpentStr = Math.ceil(stats.timeSpentSeconds/60) + ' minutes';
         }
         report.started = nl.fmt.json2Date(repcontent.started);
