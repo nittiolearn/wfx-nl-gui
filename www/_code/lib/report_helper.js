@@ -524,6 +524,7 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
             _checkStatusPastLessonReports(cm.id, itemInfo);
             itemInfo.rawStatus = 'started';
             itemInfo.score = null;
+            itemInfo.nAttempts = (linfo.attempt - 1) > 0 ? (linfo.attempt - 1) : null;
             return;
         }
         if (linfo.selfLearningMode) {

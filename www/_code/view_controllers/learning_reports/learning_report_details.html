@@ -73,7 +73,7 @@
     </div>
     <div class='padding-mid' ng-class='$root.respCol422'><b>Quiz attempts:</b></div>
     <div class='padding-mid' ng-class='$root.respCol422'>{{rec._raw.stats.totalQuizAttempts || '-'}}
-        <span ng-show='rec._raw.stats.nLessonsAttempted > 1'>(average from {{rec._raw.stats.nLessonsAttempted}} quizzes)</span>
+        <span ng-show='rec._raw.stats.nLessonsAttempted > 1'>(from {{rec._raw.stats.nLessonsAttempted}} quizzes)</span>
     </div>
 
     <div ng-repeat-start='meta in info.metas'
