@@ -465,7 +465,7 @@ function(nl, nlDlg, nlRouter, nlExporter, nlLrHelper, nlLrSummaryStats, nlGroupI
             }
             expSummaryStats.addToStats(records[i]);
             //Newly added code overcome memory crash issue
-            if (ctx.courseDetailsRow.length >= maxCourseDetails) {
+            if (_exportFormat == 'csv' && ctx.courseDetailsRow.length >= maxCourseDetails) {
                 var courseDetailsRow = ctx.courseDetailsRow.slice(0);
                 ctx.courseDetailsRow = [nlExporter.getCsvHeader(_hCourseDetailsRow)];
                 detailsCnt += 1;
@@ -473,7 +473,7 @@ function(nl, nlDlg, nlRouter, nlExporter, nlLrHelper, nlLrSummaryStats, nlGroupI
                 _createCsv(filter, courseDetailsRow, zip, cfileName, 0, courseDetailsRow.length);
             }
         }
-        if (ctx.courseDetailsRow.length > 1 && ctx.courseDetailsRow.length < maxCourseDetails) {
+        if (_exportFormat == 'csv' && ctx.courseDetailsRow.length > 1 && ctx.courseDetailsRow.length < maxCourseDetails) {
             var courseDetailsRow = ctx.courseDetailsRow;
             detailsCnt += 1;
             var cfileName = nl.fmt2('course-details-{}.csv', detailsCnt);
