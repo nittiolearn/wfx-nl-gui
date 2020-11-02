@@ -2411,11 +2411,12 @@ function LrTabManager(tabData, nlGetManyStore, nlLrFilter, _groupInfo) {
 		var subtype = nlLrFilter.getRepSubtype();
 		var batchStatus = nlGetManyStore.getNhtBatchStates();
 		var type = nlLrFilter.getType();
+        var isNHTEnabled = (!_groupInfo.props.milestones) ? false : true;
 		_tabsDict.overview.canShow = _recordsFound.lms && subtype != 'nht' || subtype == 'lms';
-		_tabsDict.nhtoverview.canShow = _recordsFound.nht && subtype != 'lms' || subtype == 'nht';
+		_tabsDict.nhtoverview.canShow = isNHTEnabled && _recordsFound.nht && subtype != 'lms' || subtype == 'nht';
 		_tabsDict.nhtrunning.canShow =  (type != 'user' && batchStatus.running);
 		_tabsDict.nhtclosed.canShow =  (type != 'user' && batchStatus.closed);
-		_tabsDict.nhtbatchattendance.canShow = _recordsFound.nht && subtype != 'lms' || subtype == 'nht';
+		_tabsDict.nhtbatchattendance.canShow = isNHTEnabled && _recordsFound.nht && subtype != 'lms' || subtype == 'nht';
 	}
 
 	function _updateSelectedTab(tabs) {
