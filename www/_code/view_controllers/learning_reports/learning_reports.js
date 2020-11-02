@@ -1739,9 +1739,9 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		if (nlLrFilter.getType() == 'course' && nlLrFilter.getMode() == 'cert_report') {
 			certificateStats = _certHandler.getExportData();
 		}
-
+        var isNHTEnabled = (!_groupInfo.props.milestones) ? false : true;
 		nlLrExporter.export($scope, _getReportRecordsForExport, _customScoresHeader, 
-			drillDownStats, nhtStats, (_tabManager.isTmsRecordFound() && subtype != 'lms' || subtype == 'nht') ? _getNhtBatchAttendanceFn : null, lrStats, certificateStats);
+			drillDownStats, nhtStats, (isNHTEnabled &&  _tabManager.isTmsRecordFound() && subtype != 'lms' || subtype == 'nht') ? _getNhtBatchAttendanceFn : null, lrStats, certificateStats);
 	}
 	
 	function _getNhtBatchAttendanceFn() {
@@ -2411,11 +2411,12 @@ function LrTabManager(tabData, nlGetManyStore, nlLrFilter, _groupInfo) {
 		var subtype = nlLrFilter.getRepSubtype();
 		var batchStatus = nlGetManyStore.getNhtBatchStates();
 		var type = nlLrFilter.getType();
+        var isNHTEnabled = (!_groupInfo.props.milestones) ? false : true;
 		_tabsDict.overview.canShow = _recordsFound.lms && subtype != 'nht' || subtype == 'lms';
-		_tabsDict.nhtoverview.canShow = _recordsFound.nht && subtype != 'lms' || subtype == 'nht';
+		_tabsDict.nhtoverview.canShow = isNHTEnabled && _recordsFound.nht && subtype != 'lms' || subtype == 'nht';
 		_tabsDict.nhtrunning.canShow =  (type != 'user' && batchStatus.running);
 		_tabsDict.nhtclosed.canShow =  (type != 'user' && batchStatus.closed);
-		_tabsDict.nhtbatchattendance.canShow = _recordsFound.nht && subtype != 'lms' || subtype == 'nht';
+		_tabsDict.nhtbatchattendance.canShow = isNHTEnabled && _recordsFound.nht && subtype != 'lms' || subtype == 'nht';
 	}
 
 	function _updateSelectedTab(tabs) {
