@@ -312,7 +312,7 @@ function ModeHandler(nl, nlCourse, nlServerApi, nlDlg, nlGroupInfo, $scope, nlRe
     function _redirectToLessonReport(reportInfo, newTab, cm, bUpdate, scope) {
         if (!reportInfo) return false;
         return nl.q(function(resolve, reject) {
-	        var urlFmt = reportInfo.completed ?  '/lesson/view_report_assign/{}' : '/lesson/do_report_assign/{}';
+	        var urlFmt = reportInfo.completed ?  '/lesson/view_report_assign/{}' : '/lesson/do_report_assign/{}'+nl.t('?moduleid={}', cm.id);
         	if (!bUpdate || (reportInfo.not_after == self.course.not_after) && (reportInfo.not_before == self.course.not_before)) {
 		        return _redirectTo(urlFmt, reportInfo.reportId, newTab);
         	}
