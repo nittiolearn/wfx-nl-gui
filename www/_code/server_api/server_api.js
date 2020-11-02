@@ -370,7 +370,7 @@ function(nl, nlDlg, nlConfig, Upload) {
 
 	this.learningReportsGetList = function(data) {
         //data = type, objid, assignor, parentonly, [filterParameters], [mquery parameters]
-        return _serverPostToApi3OrApi(false, '_serverapi3/learning_reports_get_list', data);
+        return _serverPostToApi3OrApi('_serverapi3/learning_reports_get_list', data);
 	};
 	
 	this.learningReportsGetCompletedModuleList = function(data) {
@@ -710,27 +710,43 @@ function(nl, nlDlg, nlConfig, Upload) {
     // Private methods
     //---------------------------------------------------------------------------------------------
     var _api3ToOldApiUrl = {
+        // All calls to _serverPostToApi3OrApi can post to api3 (python3 server) 
+        // or api (python2 server) depending on 3 arrtibutes:
+        // URL not mentioned in this list: alway use api3
+        // If api3=yes in url: always use api3
+        // If api3=no in url: use old api if mapping is available else api3
+        // If api3 is not present in url: use api3 if useBleadingApi is configured to true in group
+        //    else use old api if mapping is available else api3
         '_serverapi3/learning_reports_get_list' : '_serverapi/learning_reports_get_list.json',
     };
 
-    var _noapi3InUrl = undefined;
-	function _serverPostToApi3OrApi(alwaysUseApi3, url, data, config) {
-        if (_noapi3InUrl === undefined) {
-            _noapi3InUrl = 'noapi3' in nl.location.search();
-        }
-        var useApi3 = alwaysUseApi3;
-        if (!_noapi3InUrl && !alwaysUseApi3) {
-            var userInfo = server.getCurrentUserInfo() || {};
-            useApi3 = ((userInfo.groupinfo || {}).features || {}).useBleadingApi || false;
-        }
-        if (_noapi3InUrl) useApi3 = false;
-        if (useApi3) {
-            if (!config) config = {};
-            config.serverType = 'api3';
-        } else {
-            url = _api3ToOldApiUrl[url];
-        }
-		return server.post(url, data, config);
+    var _api3InUrl = undefined;
+	function _serverPostToApi3OrApi(url, data, config) {
+        return nl.q(function(resolve, reject) {
+            _getUserInfoFromCacheOrServer().then(function(userInfo) {
+                if (!config) config = {};
+                config.userInfo = userInfo;
+                if (_api3InUrl === undefined) {
+                    _api3InUrl = nl.location.search().api3 || 'guess';
+                }
+                var useApi3 = true;
+                var oldUrl = _api3ToOldApiUrl[url];
+                if (_api3InUrl == 'yes' || !oldUrl) {
+                    useApi3 = true;
+                } else if (_api3InUrl == 'no') {
+                    useApi3 = false;
+                } else {
+                    var userInfo = server.getCurrentUserInfo() || {};
+                    useApi3 = ((userInfo.groupinfo || {}).features || {}).useBleadingApi || false;
+                }
+                if (useApi3) {
+                    config.serverType = 'api3';
+                } else {
+                    url = oldUrl;
+                }
+                server.post(url, data, config).then(resolve, reject);
+            });
+        });
 	};
 	
     function _getUserInfoFromCacheOrServer() {
@@ -862,24 +878,30 @@ function NlServerInterface(nl, nlDlg, nlConfig, Upload, brandingInfoHandler) {
             progressFn = data.progressFn;
             delete data.progressFn;
         }
+
+        function _onGettingUserInfo(userInfo, resolve, reject) {
+            data._u = reloadUserInfo ? 'NOT_DEFINED' : userInfo.username;
+            data._v = NL_SERVER_INFO.versions.script;
+            if ('updated' in userInfo) data._ts = nl.fmt.json2Date(userInfo.updated);
+            if (serverType == 'api3' && userInfo.api3) data._token = userInfo.api3.token;
+            if (!upload) url = _getBaseUrl(serverType, userInfo) + url;
+            _postImpl(url, data, upload, serverType).then(
+            function success(data) {
+                _processResponse(self, data.data, data.status, resolve, reject, noPopup);
+            }, function error(data) {
+                _processResponse(self, data.data, data.status, resolve, reject, noPopup);
+            }, function progress(evt) {
+                // Only in case of upload
+                var prog = parseInt(100.0 * evt.loaded / evt.total);
+                var resName = evt.config.data.resource.name;
+                if (progressFn) progressFn(prog, resName);
+            });
+        }
+
         return nl.q(function(resolve, reject) {
+            if (config.userInfo) return _onGettingUserInfo(config.userInfo, resolve, reject);
             self.getUserInfoFromCache().then(function(userInfo) {
-                data._u = reloadUserInfo ? 'NOT_DEFINED' : userInfo.username;
-                data._v = NL_SERVER_INFO.versions.script;
-                if ('updated' in userInfo) data._ts = nl.fmt.json2Date(userInfo.updated);
-                if (serverType == 'api3' && userInfo.api3) data._token = userInfo.api3.token;
-                if (!upload) url = _getBaseUrl(serverType, userInfo) + url;
-                _postImpl(url, data, upload, serverType).then(
-                function success(data) {
-                    _processResponse(self, data.data, data.status, resolve, reject, noPopup);
-                }, function error(data) {
-                    _processResponse(self, data.data, data.status, resolve, reject, noPopup);
-                }, function progress(evt) {
-                    // Only in case of upload
-                    var prog = parseInt(100.0 * evt.loaded / evt.total);
-                    var resName = evt.config.data.resource.name;
-                    if (progressFn) progressFn(prog, resName);
-                });
+                return _onGettingUserInfo(userInfo, resolve, reject);
             });
         });
     };
