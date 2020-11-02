@@ -1739,9 +1739,9 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		if (nlLrFilter.getType() == 'course' && nlLrFilter.getMode() == 'cert_report') {
 			certificateStats = _certHandler.getExportData();
 		}
-
+        var isNHTEnabled = (!_groupInfo.props.milestones) ? false : true;
 		nlLrExporter.export($scope, _getReportRecordsForExport, _customScoresHeader, 
-			drillDownStats, nhtStats, (_tabManager.isTmsRecordFound() && subtype != 'lms' || subtype == 'nht') ? _getNhtBatchAttendanceFn : null, lrStats, certificateStats);
+			drillDownStats, nhtStats, (isNHTEnabled &&  _tabManager.isTmsRecordFound() && subtype != 'lms' || subtype == 'nht') ? _getNhtBatchAttendanceFn : null, lrStats, certificateStats);
 	}
 	
 	function _getNhtBatchAttendanceFn() {
