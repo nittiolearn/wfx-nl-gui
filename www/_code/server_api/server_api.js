@@ -123,7 +123,8 @@ function(nl, nlDlg, nlConfig, Upload) {
 
     this.courseOrAssignGetMany = function(recordinfos) {
         // return: course, course_assignment and module assignment objects
-        return server.post('_serverapi/course_or_assign_get_many.json', {recordinfos: recordinfos});
+        // return server.post('_serverapi/course_or_assign_get_many.json', {recordinfos: recordinfos});
+        return _serverPostToApi3OrApi('_serverapi3/course_or_assign_get_many', {recordinfos: recordinfos});
     };
     
     this.courseCreate = function(data) {
@@ -375,7 +376,7 @@ function(nl, nlDlg, nlConfig, Upload) {
 	
 	this.learningReportsGetCompletedModuleList = function(data) {
 		//data = [mquery parameters]
-		return server.post('_serverapi/learning_reports_get_completed_module_list.json', data);
+		return _serverPostToApi3OrApi('_serverapi3/learning_reports_get_completed_module_list', data);
 	};
 
     this.learningReportsImport = function(data) {
@@ -717,7 +718,9 @@ function(nl, nlDlg, nlConfig, Upload) {
         // If api3=no in url: use old api if mapping is available else api3
         // If api3 is not present in url: use api3 if useBleadingApi is configured to true in group
         //    else use old api if mapping is available else api3
+        '_serverapi3/course_or_assign_get_many':'_serverapi/course_or_assign_get_many.json',
         '_serverapi3/learning_reports_get_list' : '_serverapi/learning_reports_get_list.json',
+        '_serverapi3/learning_reports_get_completed_module_list':'_serverapi/learning_reports_get_completed_module_list.json',
     };
 
     var _api3InUrl = undefined;
