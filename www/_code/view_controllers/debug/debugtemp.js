@@ -25,14 +25,15 @@ function($stateProvider) {
 }];
 
 //-------------------------------------------------------------------------------------------------
-var DebugTempCtrl = ['nl', 'nlRouter', '$scope',
-function(nl, nlRouter, $scope) {
+var DebugTempCtrl = ['nl', 'nlDlg', 'nlRouter', '$scope',
+function(nl, nlDlg, nlRouter, $scope) {
     var _userInfo = null;
 
     function _onPageEnter(userInfo) {
         _userInfo = userInfo;
         return nl.q(function(resolve, reject) {
-            nl.pginfo.pageTitle = nl.t('Debug Temp');
+            nlDlg.hideLoadingScreen();
+            resolve(true);
         });
     }
     nlRouter.initContoller($scope, '', _onPageEnter);
