@@ -426,7 +426,11 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
 
     function _updateMilestonetoLocked(cm, itemInfo, earlierTrainerItems) {
         itemInfo.dependencyArray = [];
-        if(_pendingOrWaiting(earlierTrainerItems.milestone)) {
+        if (cm.type == 'milestone' && (cm.milestone_type == 'cert_end' || cm.milestone_type == 'recert_end') 
+            && itemInfo.status == 'success') {
+            return;
+        }
+        if (_pendingOrWaiting(earlierTrainerItems.milestone)) {
             itemInfo.status = 'waiting';
             var str = nl.t('{} is marked.', earlierTrainerItems.milestone.name);
             itemInfo.dependencyArray.push(str);
