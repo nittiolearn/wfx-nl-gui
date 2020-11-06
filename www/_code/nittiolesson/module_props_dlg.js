@@ -48,7 +48,7 @@ function(nl, nlDlg, nlTreeSelect, nlModuleStatusInfo, nlResourceAddModifySrv) {
 			{id: 'check_all_question_on_browsing', name: nl.t('Ensure completion in browsing mode'), type: 'check', group:'optional_attr',
 				title: nl.t('This parameter is applicable in the browse mode - example: when browsing through modules when assigning, when creating courses or when viewing modules during training. If this parameter is checked, trainer has to wait till voice over is played completely or the question on the page is answered before progressing to the next page.')},
 		   {id: 'autoNavigate', name: nl.t('Auto move'), type: 'check', group:'optional_attr',
-		   		title: nl.t('Moves to next page after page voice is completly played.')},
+		   		title: nl.t('Page moves automatically to the next page.')},
 		   {id: 'forumTopic', name: nl.t('Discussion topic'), type: 'string', group:'optional_attr'},
 		   {id: 'blink_after', name: nl.t('Blink hotspot after'), type: 'number', group:'optional_attr', condition: 'isSelfLearningMode', min: 0},
 		   {id: 'animScheme', name: nl.t('Animation scheme'), type:'select', condition: 'isAnimationShown', group:'optional_attr'},
@@ -111,9 +111,10 @@ function(nl, nlDlg, nlTreeSelect, nlModuleStatusInfo, nlResourceAddModifySrv) {
 	
 	function _getHelpForAutoNavigate() {
 		var help = nl.t('<div>If this parameter is checked, automatic navigation to the next page happens after the page voice for the current page is played completely.</div>');
+			help += nl.t('<div>Checking this parameter does not ensure completion of a page.</div>');
 			help += nl.t('<div>Auto move is supported for below conditions.</div>');
 			help += '<ul><li>Auto move works only for information and MCQ page types.</li>';
-			help += '<li>If the MCQ page has voice over, then auto move happens only after page voice has played completely and the learner has clicked on an option.</li>';
+			help += '<li>If the MCQ page has voice over, then auto move happens only after the page voice has played completely and the learner has clicked on an option.</li>';
 			help += '<li>If the MCQ page has no voice over then automove happens after an option is clicked.</li>';
 			help += '<li>In self learning modules for MCQ pages, auto move happens only after the correct answer has been selected.</li>';
 			help += '<li>The auto move functionality is also applicable across the popup pages.</li>';
