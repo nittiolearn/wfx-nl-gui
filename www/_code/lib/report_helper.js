@@ -426,7 +426,7 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
 
     function _updateMilestonetoLocked(cm, itemInfo, earlierTrainerItems) {
         itemInfo.dependencyArray = [];
-        if (cm.type == 'milestone' && (cm.milestone_type == 'cert_end' || cm.milestone_type == 'recert_end') 
+        if (cm.type == 'milestone' && (cm.milestone_type == 'cert_end' || cm.milestone_type == 'recert_end' || cm.milestone_type == 'batch_handedover') 
             && itemInfo.rawStatus == 'success') {
             itemInfo.status = 'success';
             return;

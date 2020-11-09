@@ -1003,7 +1003,7 @@ function Validator(ctx) {
 
 			if (!lrBlockers[lr.id]) lrBlockers[lr.id] = {all: null, ms: null,
 				lastSessionAttended: null, atdMarkedDates: {}, lastDate: null,
-				canshowNextRating: null, markedCertified: null, oneOfTheMilestoneAllowed: null};
+				canshowNextRating: null, markedCertified: null};
 			var lrBlocker = lrBlockers[lr.id];
 			if (lrBlocker.all && (cm.type != 'rating' || lrBlocker.canshowNextRating === false)) {
 				lr.lockedMessage = lrBlocker.all.cantProceedMessage;
@@ -1017,9 +1017,11 @@ function Validator(ctx) {
 				cm.anyMarkingDone = true;
 			}
 			if (cm.type == 'milestone' && lrBlocker.markedCertified 
-				&& (cm.milestone_type == 'cert_end' || cm.milestone_type == 'recert_end') && !lrBlocker.oneOfTheMilestoneAllowed) {
+				&& (cm.milestone_type == 'cert_end' || cm.milestone_type == 'recert_end' || cm.milestone_type == 'batch_handedover')) {
+				if (cm.milestone_type == 'cert_end' || cm.milestone_type == 'batch_handedover') 
 					lr.lockedMessage = null;
-					lrBlocker.oneOfTheMilestoneAllowed = true;
+				if (cm.milestone_type == 'recert_end' && !lr.locked_waiting) 
+					lr.lockedMessage = null;
 			}
 			if (lr.lockedMessage) {
 				if (cm.type == 'iltsession' && !cm.asdSession) lrBlocker.canshowNextRating = false;
