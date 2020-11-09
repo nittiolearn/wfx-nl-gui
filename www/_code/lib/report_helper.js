@@ -260,6 +260,8 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
                     defaultCourseStatus ='started';
                 }
                 if (itemInfo.customStatus) defaultCourseStatus = itemInfo.customStatus;
+                if (ret.isCertified) 
+                    defaultCourseStatus = 'certified';
             }
             if (cm.showInReport && _isEndItemState(itemInfo.status)) {
                 var isCustomScoreNameUnique = true;
