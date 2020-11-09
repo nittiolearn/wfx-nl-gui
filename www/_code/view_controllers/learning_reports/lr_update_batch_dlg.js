@@ -400,7 +400,10 @@ function DbAttendanceObject(courseAssignment, ctx) {
 
 		if (attendanceConfig.isAttrition || attendanceConfig.id == 'certified') {
 			lr.cantProceedMessage = nl.fmt2('Marked {} at {}', attendanceConfig.name, nlReportHelper.getItemName(cm));
-			if (attendanceConfig.id == 'certified') lrBlocker.markedCertified = true;
+			if (attendanceConfig.id == 'certified') {
+				lrBlocker.markedCertified = true;
+				lrBlocker.markedCertifiedIn = lrBlocker.previousMs.milestone_type;
+			}
 			if (!lrBlocker.all) lrBlocker.all = lr;
 		}
 
@@ -1005,6 +1008,7 @@ function Validator(ctx) {
 				lastSessionAttended: null, atdMarkedDates: {}, lastDate: null,
 				canshowNextRating: null, markedCertified: null};
 			var lrBlocker = lrBlockers[lr.id];
+			if (cm.type == 'milestone') lrBlocker.previousMs = cm;
 			if (lrBlocker.all && (cm.type != 'rating' || lrBlocker.canshowNextRating === false)) {
 				lr.lockedMessage = lrBlocker.all.cantProceedMessage;
 			} else if (cm.type == 'milestone' && lrBlocker.ms) {
@@ -1020,7 +1024,7 @@ function Validator(ctx) {
 				&& (cm.milestone_type == 'cert_end' || cm.milestone_type == 'recert_end' || cm.milestone_type == 'batch_handedover')) {
 				if (cm.milestone_type == 'cert_end' || cm.milestone_type == 'batch_handedover') 
 					lr.lockedMessage = null;
-				if (cm.milestone_type == 'recert_end' && !lr.locked_waiting) 
+				if (cm.milestone_type == 'recert_end' && (!lr.locked_waiting || lrBlocker.markedCertifiedIn == 'recert_start')) 
 					lr.lockedMessage = null;
 			}
 			if (lr.lockedMessage) {
