@@ -349,8 +349,12 @@ function(nl, nlDlg, nlRouter, nlExporter, nlLrHelper, nlLrSummaryStats, nlGroupI
         zip.file(fileName, content);
     }
 
+    var _LrIdFields = {"raw_record.id": true, "raw_record.assignment": true, "raw_record.lesson_id": true};
     function _updateLrRow(reports) {
         var lrHeaderRow = _lrDict.columns;
+        for (var i=0; i<lrHeaderRow.length; i++) 
+            if (_LrIdFields[lrHeaderRow[i].id]) lrHeaderRow[i].fmt = "idstr";
+            
         for(var i=0; i<reports.length; i++) {
             if (_exportFormat == 'csv') 
                 ctx.lrRow.push(nlExporter.getCsvRow(lrHeaderRow, reports[i]));
