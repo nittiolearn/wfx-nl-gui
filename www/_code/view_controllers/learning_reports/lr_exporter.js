@@ -91,7 +91,7 @@ function(nl, nlDlg, nlRouter, nlExporter, nlLrHelper, nlLrSummaryStats, nlGroupI
         dlg.scope.data = {};
         dlg.scope.help = _getHelp();
         dlg.scope.options = {exportFormat: [{id: 'csv', name: 'CSV'}, {id: 'xlsx', name: 'XLSX'}],
-                             recordType: [{id: 'filtered', name: 'Export filtered records'}, {id: 'all', name: 'Export all records'}]};
+                             recordType: [{id: 'filtered', name: 'Export filtered records'}, {id: 'all', name: 'Export all records (Applicable only for certain reports see help for details)'}]};
         dlg.scope.data.exportFormat = dlg.scope.options.exportFormat[0];
         dlg.scope.data.recordType = dlg.scope.options.recordType[0];
         var exportButton = {
@@ -139,9 +139,21 @@ function(nl, nlDlg, nlRouter, nlExporter, nlLrHelper, nlLrSummaryStats, nlGroupI
     };
     
     function _getHelp() {
+        var courseRepType = {'course': true, 'course_assign': true};
+        var moduleRepType = {'module': true, 'module_assign': true, 'module_self_assign': true};
+        var reptype = nlLrFilter.getType();
+        var recHelp = '<div><ul><li>You could choose to filter the data and download subset of records or all records</li>';
+            recHelp += '<li>Selecting "Export all records" from dropdown will download all records only for the following reports. Rest of the reports will be downloaded based on the filter provided.';
+        if (courseRepType[reptype]) {
+            recHelp += '<ul><li>Course reports</li><li>Course details reports</li><li>Learning reports</li></ul></li></ul></div>';
+        } else if (moduleRepType[reptype]) {
+            recHelp += '<ul><li>Module reports</li><li>Page level reports</li><li>Feedback reports</li></ul></li></ul></div>';
+        } else if (reptype == 'user'){
+            recHelp += '<ul><li>User reports</li></ul></li></ul></div>';
+        }
         return {
             exportFormat: {name: nl.t('Export format'), help: nl.t('You may either export reports as csv or xlsx format.')},
-            recordType: {name: nl.t('Filter Data'), help: nl.t('You could choose to filter the data and download subset of records or all records')}
+            recordType: {name: nl.t('Filter Data'), help: recHelp}
         }
     }
 
