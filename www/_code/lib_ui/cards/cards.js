@@ -21,6 +21,7 @@ function module_init() {
 var CardsSrv = ['nl', '$filter', 
 function(nl, $filter) {
     var self = this;
+    var _MAX_VISIBLE = 20;
 
     // Just for documentation    
     var _knownAttrs = {
@@ -43,6 +44,10 @@ function(nl, $filter) {
             search: {filter: searchParam, category: {id: category}, infotxt: ''}
         };
         this.updateCards(cards, params);
+    };
+
+    this.getMaxVisible = function() {
+        return _MAX_VISIBLE;
     };
 
     this.updateCards = function(cards, params) {
@@ -86,7 +91,6 @@ function(nl, $filter) {
         }, 100);
     }
 
-    var _MAX_VISIBLE = 500;
     function _updateInternal2(cards) {
         var filteredCards = cards.cardlist;
         if (cards.search) {
@@ -96,6 +100,10 @@ function(nl, $filter) {
         }
         var matchedLen = filteredCards.length;
         var len = filteredCards.length > _MAX_VISIBLE ? _MAX_VISIBLE : filteredCards.length;
+        var visibleCards = filteredCards.slice(0, len);
+        for (var i=0; i<visibleCards.length; i++) {
+            if (!visibleCards[i].isProcessed) cards.createCardFn(visibleCards[i]);
+        }    
         var recs = cards.staticlist.concat(filteredCards.slice(0, len));
         cards._internal.search.visible = len;
         _updateInfotext(cards.cardlist.length, matchedLen, len, cards);
