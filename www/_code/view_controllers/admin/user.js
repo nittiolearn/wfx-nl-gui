@@ -186,47 +186,21 @@ nlAdminUserExport, nlAdminUserImport, nlTreeSelect, nlOuUserSelect, nlServerApi)
 	}
 
 	function _updateCards() {
-        var cards = [];
+		var cards = [];
         var users = nlGroupInfo.getKeyToUsers(_groupInfo, _grpid);
-        var max_visible = nlCardsSrv.getMaxVisible();
-        for (var key in users) {
-            if (cards.length < max_visible) {
-                var card = _createCard(users[key]);
-                card.isProcessed = true;
-                cards.push(card);    
-            } else {
-                cards.push(users[key]);
-            }
-        }
+		for (var key in users) {
+            var card = {_createPending: users[key]};
+			cards.push(card);
+		}
         cards.sort(function(a, b) {
-            return ((b.updated || 0) - (a.updated || 0));
+            return ((b._createPending.updated || 0) - (a._createPending.updated || 0));
         });
-        $scope.cards.createCardFn = _processCard;
+        $scope.cards.createCardFn = _createCardDelayed;
         nlCardsSrv.updateCards($scope.cards, {cardlist: cards, staticlist: _getStaticCards()});
         nlAdminUserImport.resetSecLoginDict();
 	}
-
-	function _processCard(user) {
-	    var stateIcon = user.isActive() ? 'fgreen' : 'fgrey';
-	    stateIcon = nl.fmt2('<i class="ion-record {}"></i>', stateIcon);
-	    var desc = '<div>{}<b class="padding-mid">{}</b></div>';
-	    desc += '<div>{}</div>';
-	    desc += '<div>{}</div>';
-	    desc += '<div><b>ou:</b>{}</div>';
-	    desc = nl.fmt2(desc, stateIcon, user.getUtStr(), user.username, user.email, user.org_unit);
-        user.isProcessed = true;
-        user.title = user.name;
-        user.internalUrl = 'adminuser_modify';
-        user.icon = user.getIcon();
-        user.help = desc;
-        user.children = [];
-
-		user.details = {help: '', avps: _getAvps(user)};
-		user.links = [];
-		user.links.push({id: 'details', text: nl.t('details')});
-	}
 	
-	function _createCard(user) {
+	function _createCardDelayed(user) {
 	    var stateIcon = user.isActive() ? 'fgreen' : 'fgrey';
 	    stateIcon = nl.fmt2('<i class="ion-record {}"></i>', stateIcon);
 	    var desc = '<div>{}<b class="padding-mid">{}</b></div>';
