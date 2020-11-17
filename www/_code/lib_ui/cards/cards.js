@@ -21,7 +21,7 @@ function module_init() {
 var CardsSrv = ['nl', '$filter', 
 function(nl, $filter) {
     var self = this;
-    var _MAX_VISIBLE = 20;
+    var _MAX_VISIBLE = 500;
 
     // Just for documentation    
     var _knownAttrs = {
