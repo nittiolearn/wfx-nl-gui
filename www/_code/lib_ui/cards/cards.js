@@ -102,7 +102,7 @@ function(nl, $filter) {
         var len = filteredCards.length > _MAX_VISIBLE ? _MAX_VISIBLE : filteredCards.length;
         var visibleCards = filteredCards.slice(0, len);
         for (var i=0; i<visibleCards.length; i++) {
-            if (!visibleCards[i].isProcessed) cards.createCardFn(visibleCards[i]);
+            if (!visibleCards[i].isProcessed && cards.createCardFn) cards.createCardFn(visibleCards[i]);
         }    
         var recs = cards.staticlist.concat(filteredCards.slice(0, len));
         cards._internal.search.visible = len;
