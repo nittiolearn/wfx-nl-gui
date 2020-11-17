@@ -481,6 +481,8 @@ function _loginControllerImpl(ctrlType, nl, nlRouter, $scope, nlServerApi, nlDlg
                 if($scope.msgType == 'mobile_otp') {
                     $scope.msgType = "mobile_login_otp_received";
                     $scope.isLoginOtp = true;
+                } else if ($scope.msgType == "mobile_login_otp_received") {
+                    $scope.isLoginOtp = true;
                 } else {
                     $scope.msgType = "login_otp_received";
                     $scope.isOtp2fa = true;
