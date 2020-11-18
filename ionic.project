@@ -1,6 +1,0 @@
-{
-  "name": "Nittio Learn",
-  "app_id": "",
-  "gulpStartupTasks": [ "default" ],
-  "watchPatterns": [ "www/js/**/*" ]
-}
