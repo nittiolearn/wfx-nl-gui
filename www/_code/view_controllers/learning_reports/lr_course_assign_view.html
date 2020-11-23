@@ -24,12 +24,13 @@
 		<div ng-if='chartInfo'>
 			<div class='row row-center margin0 padding0'>
 				<div class='col padding-mid'>
-					<div style='width: 150px; height: 150px'>
+					<div style='margin: auto; display: block; width: 150px; height: 150px'>
 						<canvas class='chart chart-doughnut'
 								style='height:150px; width:150px'
 								chart-data='chartInfo.data'
 								chart-labels='chartInfo.labels'
-								chart-colours='chartInfo.colours'>
+								chart-colors='chartInfo.colours'
+								chart-options='chartInfo.options'>
 						</canvas> 
 					</div>
 				</div>

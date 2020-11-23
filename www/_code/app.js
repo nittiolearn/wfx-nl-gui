@@ -109,16 +109,16 @@ ChartJsProvider, $sceDelegateProvider) {
 }];
 
 function _chartInfoInit(ChartJsProvider) {
-    ChartJsProvider.setOptions({
-      colours: ['#0000FF', '#FF8A80'],
-      responsive: true,
-      maintainAspectRatio: false,
-      fullWidth: true
-    });
-    // Configure all line charts
-    ChartJsProvider.setOptions('Line', {
-      datasetFill: false
-    });
+    // ChartJsProvider.setOptions({
+    //   colours: ['#0000FF', '#FF8A80'],
+    //   responsive: true,
+    //   maintainAspectRatio: false,
+    //   fullWidth: true
+    // });
+    // // Configure all line charts
+    // ChartJsProvider.setOptions('Line', {
+    //   datasetFill: false
+    // });
 }
 
 //-------------------------------------------------------------------------------------------------

@@ -364,6 +364,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		item.isOpen = !item.isOpen;
 		$scope.drillDownInfo = {columns: _drillDownColumns, 
 			rows: _generateDrillDownArray(false, _drilldownStatsCountDict, true)};
+		_updateDrillDownCharts();
 	};
 
 	$scope.sortNhtRows = function(colid) {
@@ -886,7 +887,8 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			title: 'Progress',
 			data: [0, 0, 0, 0],
 			labels: labels,
-			colors: colors
+			colors: colors,
+			options:{maintainAspectRatio: false}
 		},
 		{
 			type: 'bar',
@@ -894,7 +896,8 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			data: [[]],
 			labels: [],
 			series: ['Assigned', 'Completed'],
-			colors: [_nl.colorsCodes.blue2, _nl.colorsCodes.done]
+			colors: [_nl.colorsCodes.blue2, _nl.colorsCodes.done],
+			options:{scales: {yAxes: [{ticks: {beginAtZero:true}}]}, maintainAspectRatio: false}
 		}];
 		var brackets = typeStr == 'Courses' ? '(within courses) ': '';
 		$scope.timeSummaryCharts = [{
@@ -905,7 +908,8 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 				data: [[]],
 				labels: [],
 				series: ['S1'],
-				colors: [_nl.colorsCodes.blue2]
+				colors: [_nl.colorsCodes.blue2],
+				options:{scales: {yAxes: [{ticks: {beginAtZero:true}}]}, maintainAspectRatio: false}
 			},
 			{
 				type: 'bar',
@@ -914,7 +918,8 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 				data: [[]],
 				labels: [],
 				series: ['S1'],
-				colors: [_nl.colorsCodes.blue2]
+				colors: [_nl.colorsCodes.blue2],
+				options:{scales: {yAxes: [{ticks: {beginAtZero:true}}]}, maintainAspectRatio: false}
 			},
 			{
 				type: 'bar',
@@ -923,7 +928,8 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 				data: [[]],
 				labels: [],
 				series: ['S1'],
-				colors: [_nl.colorsCodes.blue2]
+				colors: [_nl.colorsCodes.blue2],
+				options:{scales: {yAxes: [{ticks: {beginAtZero:true}}]}, maintainAspectRatio: false}
 			}],
 			$scope.drillDownInfo = {};
 			$scope.nhtOverviewInfo = {};
@@ -1366,6 +1372,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		_drillDownColumns = _getDrillDownColumns();
 		$scope.drillDownInfo = {columns: _drillDownColumns,
 			rows: _generateDrillDownArray(true, _drilldownStatsCountDict, true, false)};
+		_updateDrillDownCharts();
 		return _drillDownColumns;
 	}
 
@@ -1431,6 +1438,30 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		return ret;
 	}
 
+	//---------------------------------------------------------------------------------------------------------------------------------------------------------
+	// Drilldown reports visualisations
+	//---------------------------------------------------------------------------------------------------------------------------------------------------------
+	function _updateDrillDownCharts() {
+		return;
+		var summaryRow = $scope.drillDownInfo.rows[0];
+		var labelToName = {certified: 'Certified', total: 'Total', failed: 'Failed', pending: 'Pending', started: 'Active ongoing'}
+		var labels = ['total', 'certified', 'failed', 'started', 'pending'];
+		var _data = [];
+		var _labels = [];
+		if (!summaryRow) return;
+		for (var i=0; i<labels.length; i++) {
+			_data.push(summaryRow[labels[i]] || 0);
+			_labels.push(labelToName[labels[i]]);
+		}
+		$scope.drillDownInfo.charts = [{
+			type: 'chart-pie',
+			title: 'Completion status',
+			data: _data,
+			labels: _labels,
+			series: [],
+			colors: [_nl.colorsCodes.blue2, _nl.colorsCodes.done, _nl.colorsCodes.failed, _nl.colorsCodes.started, _nl.colorsCodes.pending]
+		}];
+	};
 	//---------------------------------------------------------------------------------------------------------------------------------------------------------
 	// Common code between Drilldown and NHT tabs
 	//---------------------------------------------------------------------------------------------------------------------------------------------------------

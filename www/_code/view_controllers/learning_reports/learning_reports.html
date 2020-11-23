@@ -199,13 +199,13 @@
                         <div class='padding-small'></div>
                         <div class='fsh5 padding-mid'>{{charts[0].title}}</div>
                         <div class='padding-small'></div>
-                        <div>
+                        <div style='margin: auto; display:block; max-height:300px; max-width:300px'>
                             <canvas class='chart chart-doughnut'
                                     height='250'
                                     width='250'
                                     chart-data='charts[0].data'
                                     chart-labels='charts[0].labels'
-                                    chart-colours='charts[0].colors'
+                                    chart-colors='charts[0].colors'
                                     chart-series='charts[0].series'
                                     chart-options='charts[0].options'>
                             </canvas>
@@ -215,15 +215,15 @@
                         <div class='padding-small'></div>
                         <div class='fsh5 padding-mid'>{{charts[1].title}}</div>
                         <div class='padding-small'></div>
-                        <div on-load="chartsOnLoad()">
+                        <div style='margin: auto; display:block; max-height:300px; max-width:300px'>
                             <canvas class='chart chart-bar'
-                                    height='300'
-                                    width='450'
-                                    chart-data='charts[1].data'
-                                    chart-labels='charts[1].labels'
-                                    chart-colours='charts[1].colors'
-                                    chart-series='charts[1].series'
-                                    chart-options='charts[1].options'>
+                                height='300'
+                                width='450'
+                                chart-data='charts[1].data'
+                                chart-labels='charts[1].labels'
+                                chart-colors='charts[1].colors'
+                                chart-series='charts[1].series'
+                                chart-options='charts[1].options'>
                             </canvas>
                         </div>
                     </div>
@@ -297,13 +297,13 @@
                         style='min-width: 150px;min-height:150px' class='text-center'>
                         <div ng-show='nhtOverviewInfo.showChart'>
                             <div class='fsh5 padding-mid' style='text-align: center'>Initial HC split</div>
-                            <div>
+                            <div style='margin: auto; display:block; max-height:300px; max-width:300px'>
                                 <canvas class='chart chart-doughnut'
                                         height='150'
                                         width='150'
                                         chart-data='nhtOverviewInfo.chartData[0].data'
                                         chart-labels='nhtOverviewInfo.chartData[0].labels'
-                                        chart-colours='nhtOverviewInfo.chartData[0].colors'
+                                        chart-colors='nhtOverviewInfo.chartData[0].colors'
                                         chart-series='nhtOverviewInfo.chartData[0].series'
                                         chart-options='nhtOverviewInfo.chartData[0].options'>
                                 </canvas>
@@ -344,13 +344,13 @@
                     <div ng-if='timeSummaryChart.subtitle' class='fgrey padding-mid'><i>({{timeSummaryChart.subtitle}})</i></div>
                     <div class='padding-small'></div>
                     <div style='overflow-x: {{timeSummaryChart.data[0].length > 50 ? "scroll" : "none"}};'>
-                        <div style='width: {{(timeSummaryChart.data[0].length > 50) ? "200": (timeSummaryChart.data[0].length > 120) ? "300" : ""}}%'>
+                        <div style='width: {{(timeSummaryChart.data[0].length > 50) ? "200": (timeSummaryChart.data[0].length > 120) ? "300" : ""}}%; max-height: 300px; display:block'>
                             <canvas class='chart chart-bar'
                                     height='300'
                                     width='100%'
                                     chart-data='timeSummaryChart.data'
                                     chart-labels='timeSummaryChart.labels'
-                                    chart-colours='timeSummaryChart.colors'
+                                    chart-colors='timeSummaryChart.colors'
                                     chart-series='timeSummaryChart.series'
                                     chart-options='timeSummaryChart.options'>
                             </canvas>

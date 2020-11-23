@@ -110,12 +110,13 @@
                     <div class='padding-small'></div>
                     <div class='fsh5 padding-mid'>{{charts[0].title}}</div>
                     <div class='padding-small'></div>
-                    <div ng-if='charts[0].show'>
-                        <canvas class='chart chart-doughnut'
+                    <div ng-if='charts[0].show'
+                        style='margin: auto; display: block;'>
+                            <canvas class='chart chart-doughnut'
                                 height='250'
                                 chart-data='charts[0].data'
                                 chart-labels='charts[0].labels'
-                                chart-colours='charts[0].colors'
+                                chart-colors='charts[0].colors'
                                 chart-series='charts[0].series'
                                 chart-options='charts[0].options'>
                     </canvas>
@@ -127,12 +128,12 @@
                     <div class='padding-small'></div>
                     <div ng-if='charts[0].show'>
                         <canvas class='chart chart-bar'
-                                height='250'
-                                chart-data='charts[1].data'
-                                chart-labels='charts[1].labels'
-                                chart-colours='charts[1].colors'
-                                chart-series='charts[1].series'
-                                chart-options='charts[0].options'>
+                            height='250'
+                            chart-data='charts[1].data'
+                            chart-labels='charts[1].labels'
+                            chart-colors='charts[1].colors'
+                            chart-series='charts[1].series'
+                            chart-options='charts[1].options'>
                         </canvas>
                     </div>
                 </div>

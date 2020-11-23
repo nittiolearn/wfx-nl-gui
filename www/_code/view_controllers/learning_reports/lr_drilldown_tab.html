@@ -1,11 +1,18 @@
+<div ng-if='drilldown.showCharts'
+    style='width:97vw'>
+</div>
 <div class='padding-mid'>
     <table class='nl-table nl-table-styled3 rowlines'>
         <tr class='header'>
-            <td class='minw-name nl-link-text'>
-                <div class='row row-center magin0 padding0' 
-                    ng-click='updatePivotTable()'>
-                    <span class='padding-small' title='Customize Drilldown'>
+            <td class='minw-name'>
+                <div class='row row-center magin0 padding0'>
+                    <span class='padding-small nl-link-text' title='Customize Drilldown'
+                        ng-click='updatePivotTable()'>
                         <i class="icon ion-gear-b bold fsh3"></i>
+                    </span>
+                    <span class='padding-small nl-link-text' title='Show charts'
+                        ng-click='drilldown.showCharts = !drilldown.showCharts'>
+                        <i class="icon ion-pie-graph bold fsh3"></i>
                     </span>
                     <div class='col'></div>
                     <span class='nl-link-img'>

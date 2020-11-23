@@ -182,7 +182,8 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlServerA
 			title: 'Progress',
 			data: [0, 0, 0, 0],
 			labels: ['done', 'failed', 'started', 'pending'],
-			colors: [_nl.colorsCodes.done, _nl.colorsCodes.failed, _nl.colorsCodes.started, _nl.colorsCodes.pending]
+			colors: [_nl.colorsCodes.done, _nl.colorsCodes.failed, _nl.colorsCodes.started, _nl.colorsCodes.pending],
+			options:{maintainAspectRatio: false}
 		},
 		{
 			show: false,
@@ -191,7 +192,8 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlServerA
 			data: [[]],
 			labels: [],
 			series: ['Assigned', 'Completed'],
-			colors: [_nl.colorsCodes.blue2, _nl.colorsCodes.done]
+			colors: [_nl.colorsCodes.blue2, _nl.colorsCodes.done],
+			options: {scales: {yAxes: [{ticks: {beginAtZero:true}}]}, maintainAspectRatio: false}
 		}];
 	}
 
