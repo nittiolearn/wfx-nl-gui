@@ -1442,25 +1442,31 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 	// Drilldown reports visualisations
 	//---------------------------------------------------------------------------------------------------------------------------------------------------------
 	function _updateDrillDownCharts() {
-		return;
-		var summaryRow = $scope.drillDownInfo.rows[0];
-		var labelToName = {certified: 'Certified', total: 'Total', failed: 'Failed', pending: 'Pending', started: 'Active ongoing'}
-		var labels = ['total', 'certified', 'failed', 'started', 'pending'];
-		var _data = [];
-		var _labels = [];
-		if (!summaryRow) return;
-		for (var i=0; i<labels.length; i++) {
-			_data.push(summaryRow[labels[i]] || 0);
-			_labels.push(labelToName[labels[i]]);
+		var rows = $scope.drillDownInfo.rows;
+		var summaryRow = _drilldownStatsCountDict[0].children;
+		var charts = {labels: [], series: ['Completed', 'Not-completed'], 
+					  	options: {scales: {
+							xAxes: [{
+								stacked: true,
+							}],
+							yAxes: [{
+								stacked: true
+							}]
+							}, 
+							maintainAspectRatio: false
+						}, colors: [_nl.colorsCodes.blue2, _nl.colorsCodes.pending],
+						title: 'Overall course assignment completion based on zones'
+					};
+		var series1 = [];
+		var series2 = [];
+		for (var key in summaryRow) {
+			var statsDict = summaryRow[key].cnt;
+			charts.labels.push(key);
+			series1.push(statsDict.percCompleted);
+			series2.push(statsDict.percNotcompleted);
 		}
-		$scope.drillDownInfo.charts = [{
-			type: 'chart-pie',
-			title: 'Completion status',
-			data: _data,
-			labels: _labels,
-			series: [],
-			colors: [_nl.colorsCodes.blue2, _nl.colorsCodes.done, _nl.colorsCodes.failed, _nl.colorsCodes.started, _nl.colorsCodes.pending]
-		}];
+		charts.data = [series1, series2];
+		$scope.drillDownInfo.charts = charts;
 	};
 	//---------------------------------------------------------------------------------------------------------------------------------------------------------
 	// Common code between Drilldown and NHT tabs

@@ -1,5 +1,24 @@
 <div ng-if='drilldown.showCharts'
     style='width:97vw'>
+    <div class='row row-center text-center margin0 padding0'>
+        <div class='col'>
+            <div class='padding-small'></div>
+            <div class='fsh5 padding-mid'>{{drilldown.charts.title}}</div>
+            <div class='padding-small'></div>
+            <div style='width:100%'>
+                <div style='display:block;margin: auto; width:70%;min-height: 200px;'>
+                    <canvas class="chart chart-horizontal-bar ng-isolate-scope" 
+                            chart-data="drilldown.charts.data" 
+                            chart-labels="drilldown.charts.labels" 
+                            chart-options="drilldown.charts.options" 
+                            chart-series="drilldown.charts.series"
+                            chart-colors="drilldown.charts.colors">
+                    </canvas>
+                </div>
+            </div>
+            <div class='padding-small'></div>    
+        </div>
+    </div>
 </div>
 <div class='padding-mid'>
     <table class='nl-table nl-table-styled3 rowlines'>
