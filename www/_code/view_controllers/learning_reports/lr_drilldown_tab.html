@@ -1,18 +1,19 @@
-<div ng-if='drilldown.showCharts'
+<div ng-if='showCharts'
     style='width:97vw'>
     <div class='row row-center text-center margin0 padding0'>
         <div class='col'>
             <div class='padding-small'></div>
-            <div class='fsh5 padding-mid'>{{drilldown.charts.title}}</div>
+            <div class='fsh5 padding-mid'>{{drilldown.selectedChart.title}}</div>
             <div class='padding-small'></div>
             <div style='width:100%'>
                 <div style='display:block;margin: auto; width:70%;min-height: 200px;'>
                     <canvas class="chart chart-horizontal-bar ng-isolate-scope" 
-                            chart-data="drilldown.charts.data" 
-                            chart-labels="drilldown.charts.labels" 
-                            chart-options="drilldown.charts.options" 
-                            chart-series="drilldown.charts.series"
-                            chart-colors="drilldown.charts.colors">
+                            chart-data="drilldown.selectedChart.data" 
+                            chart-labels="drilldown.selectedChart.labels" 
+                            chart-options="drilldown.selectedChart.options" 
+                            chart-series="drilldown.selectedChart.series"
+                            chart-colors="drilldown.selectedChart.colors"
+                            chart-dataset-override="drilldown.selectedChart.dataOverride">
                     </canvas>
                 </div>
             </div>
@@ -30,7 +31,7 @@
                         <i class="icon ion-gear-b bold fsh3"></i>
                     </span>
                     <span class='padding-small nl-link-text' title='Show charts'
-                        ng-click='drilldown.showCharts = !drilldown.showCharts'>
+                        ng-click='toggleDrilldownCharts()'>
                         <i class="icon ion-pie-graph bold fsh3"></i>
                     </span>
                     <div class='col'></div>

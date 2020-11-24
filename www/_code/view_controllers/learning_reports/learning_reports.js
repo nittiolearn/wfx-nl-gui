@@ -362,9 +362,11 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		// but the internal function (_generateDrillDownArray) is called for drilldown as well as nht tabs.
 		if(!item.isFolder) return;
 		item.isOpen = !item.isOpen;
+		var chartsArray = $scope.drillDownInfo.chartsArray;
+		var defSelected = $scope.drillDownInfo.selectedChart;
 		$scope.drillDownInfo = {columns: _drillDownColumns, 
-			rows: _generateDrillDownArray(false, _drilldownStatsCountDict, true)};
-		_updateDrillDownCharts();
+			rows: _generateDrillDownArray(false, _drilldownStatsCountDict, true), 
+			chartsArray: chartsArray, selectedChart: defSelected};
 	};
 
 	$scope.sortNhtRows = function(colid) {
@@ -888,7 +890,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			data: [0, 0, 0, 0],
 			labels: labels,
 			colors: colors,
-			options:{maintainAspectRatio: false}
+			options:{}
 		},
 		{
 			type: 'bar',
@@ -897,7 +899,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			labels: [],
 			series: ['Assigned', 'Completed'],
 			colors: [_nl.colorsCodes.blue2, _nl.colorsCodes.done],
-			options:{scales: {yAxes: [{ticks: {beginAtZero:true}}]}, maintainAspectRatio: false}
+			options:{scales: {yAxes: [{ticks: {beginAtZero:true}}]}}
 		}];
 		var brackets = typeStr == 'Courses' ? '(within courses) ': '';
 		$scope.timeSummaryCharts = [{
@@ -907,9 +909,9 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 				subtitle: 'Most recent data upto a maximum of 31 days are shown',
 				data: [[]],
 				labels: [],
-				series: ['S1'],
+				series: [],
 				colors: [_nl.colorsCodes.blue2],
-				options:{scales: {yAxes: [{ticks: {beginAtZero:true}}]}, maintainAspectRatio: false}
+				options:{scales: {yAxes: [{ticks: {beginAtZero:true}}]}}
 			},
 			{
 				type: 'bar',
@@ -917,9 +919,9 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 				subtitle: 'Most recent data upto a maximum of 15 weeks are shown',
 				data: [[]],
 				labels: [],
-				series: ['S1'],
+				series: [],
 				colors: [_nl.colorsCodes.blue2],
-				options:{scales: {yAxes: [{ticks: {beginAtZero:true}}]}, maintainAspectRatio: false}
+				options:{scales: {yAxes: [{ticks: {beginAtZero:true}}]}}
 			},
 			{
 				type: 'bar',
@@ -927,9 +929,9 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 				subtitle: 'Most recent data upto a maximum of 15 months are shown',
 				data: [[]],
 				labels: [],
-				series: ['S1'],
+				series: [],
 				colors: [_nl.colorsCodes.blue2],
-				options:{scales: {yAxes: [{ticks: {beginAtZero:true}}]}, maintainAspectRatio: false}
+				options:{scales: {yAxes: [{ticks: {beginAtZero:true}}]}}
 			}],
 			$scope.drillDownInfo = {};
 			$scope.nhtOverviewInfo = {};
@@ -1442,31 +1444,52 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 	// Drilldown reports visualisations
 	//---------------------------------------------------------------------------------------------------------------------------------------------------------
 	function _updateDrillDownCharts() {
-		var rows = $scope.drillDownInfo.rows;
+		$scope.drillDownInfo.chartsArray = [];
+		var lrColNamesDict = _updateSelectedLrColumns();
 		var summaryRow = _drilldownStatsCountDict[0].children;
-		var charts = {labels: [], series: ['Completed', 'Not-completed'], 
+		var charts = {labels: [], series: ['Completed', 'Not-completed'],
 					  	options: {scales: {
 							xAxes: [{
 								stacked: true,
+								ticks: {
+									callback: function(label, index, labels) {
+										return label+'%';
+									}
+								},
+								scaleLabel: {
+									display: true,
+								}
 							}],
 							yAxes: [{
-								stacked: true
+								stacked: true,
 							}]
 							}, 
 							maintainAspectRatio: false
 						}, colors: [_nl.colorsCodes.blue2, _nl.colorsCodes.pending],
-						title: 'Overall course assignment completion based on zones'
+						title: nl.t('Completion rate based on {}', $scope.pivotConfig.level1Field.name || lrColNamesDict[$scope.pivotConfig.level1Field.id].name)
 					};
 		var series1 = [];
 		var series2 = [];
+		var graphData = [];
+			charts.graphData = graphData;
 		for (var key in summaryRow) {
 			var statsDict = summaryRow[key].cnt;
-			charts.labels.push(key);
-			series1.push(statsDict.percCompleted);
-			series2.push(statsDict.percNotcompleted);
+			graphData.push({name: statsDict.name || key, completed: statsDict.percCompleted, notCompleted: statsDict.percNotcompleted});
+		}
+		charts.graphData.sort(function(a, b) {
+			if(b.notCompleted < a.notCompleted) return 1;
+			if(b.notCompleted > a.notCompleted) return -1;
+			if(b.notCompleted == a.notCompleted) return 0;				
+
+		});
+		for(var i=0; i<charts.graphData .length; i++) {
+			charts.labels.push(charts.graphData[i].name);
+			series1.push(charts.graphData[i].completed);
+			series2.push(charts.graphData[i].notCompleted);
 		}
 		charts.data = [series1, series2];
-		$scope.drillDownInfo.charts = charts;
+		$scope.drillDownInfo.chartsArray.push(charts);
+		$scope.drillDownInfo.selectedChart = $scope.drillDownInfo.chartsArray[0];
 	};
 	//---------------------------------------------------------------------------------------------------------------------------------------------------------
 	// Common code between Drilldown and NHT tabs

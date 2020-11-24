@@ -181,6 +181,7 @@ function(nl) {
             drilldown: '='
         },
         link: function($scope, iElem, iAttrs) {
+            $scope.showCharts = true;
             $scope.generateDrillDownArray = function(item) {
                 nl.utils.getFnFromParentOrGrandParent($scope, 'generateDrillDownArray')(item);
             };
@@ -192,6 +193,10 @@ function(nl) {
             $scope.onDetailsClick = function(e, item, columns) {
                 nl.utils.getFnFromParentOrGrandParent($scope, 'onDetailsClick')(e, item, columns);
             };
+
+            $scope.toggleDrilldownCharts = function() {
+                $scope.showCharts = !$scope.showCharts;
+            }
         }
     }
 }];
