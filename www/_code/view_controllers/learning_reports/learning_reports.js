@@ -1463,8 +1463,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 							yAxes: [{
 								stacked: true,
 							}]
-							}, 
-							maintainAspectRatio: false
+							}
 						}, colors: [_nl.colorsCodes.blue2, _nl.colorsCodes.pending],
 						title: nl.t('Completion rate based on {}', $scope.pivotConfig.level1Field.name || lrColNamesDict[$scope.pivotConfig.level1Field.id].name)
 					};

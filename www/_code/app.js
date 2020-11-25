@@ -116,9 +116,6 @@ function _chartInfoInit(ChartJsProvider) {
         hover: {mode: null},
         fullWidth: true
     });
-    // ChartJsProvider.setOptions('Line', {
-    //   datasetFill: false
-    // });
 }
 
 //-------------------------------------------------------------------------------------------------

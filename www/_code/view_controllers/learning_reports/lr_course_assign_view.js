@@ -147,7 +147,7 @@ function(nl, nlDlg, nlTreeListSrv) {
     };
 
     function _updateChartInfoAndData(dlg, statusCounts, internalStatusDict) {
-        dlg.scope.chartInfo = {labels: [], colours: [], data: [], options: {maintainAspectRatio: false}};
+        dlg.scope.chartInfo = {labels: [], colours: [], data: [], options: {}};
         dlg.scope.chartData = [];
         for(var i=0; i<_allowedStatus.length; i++) {
             var statusInfo = _allowedStatus[i];
