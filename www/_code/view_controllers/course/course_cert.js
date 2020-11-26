@@ -24,8 +24,8 @@ function($stateProvider, $urlRouterProvider) {
 }];
 
 //-------------------------------------------------------------------------------------------------
-var NlCourseCertCtrl = ['nl', 'nlRouter', '$scope', 'nlServerApi', 'nlPrinter', 'nlMobileConnector', 'nlDlg',
-function(nl, nlRouter, $scope, nlServerApi, nlPrinter, nlMobileConnector, nlDlg) {
+var NlCourseCertCtrl = ['nl', 'nlRouter', '$scope', 'nlServerApi', 'nlPrinter', 'nlMobileConnector', 'nlDlg', 'nlGroupInfo',
+function(nl, nlRouter, $scope, nlServerApi, nlPrinter, nlMobileConnector, nlDlg, nlGroupInfo) {
     var nlContainer = null;
     $scope.available = false;
 	$scope.sample = false;
@@ -88,6 +88,7 @@ function(nl, nlRouter, $scope, nlServerApi, nlPrinter, nlMobileConnector, nlDlg)
         nlContainer.init({version: 0});
         
         var course = nlContainer.getCourse();
+        $scope.userName = nlGroupInfo.formatUserNameFromRecord(course);
         var courseData = nlContainer.getComputedData();
         $scope.avgQuizScore = courseData['avgQuizScore'];
         if (!course || !course.content || !course.content.modules) return;
