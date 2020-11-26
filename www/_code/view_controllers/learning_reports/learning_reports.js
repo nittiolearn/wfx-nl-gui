@@ -1454,7 +1454,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 								ticks: {
 									callback: function(label, index, labels) {
 										return label+'%';
-									}
+									},
 								},
 								scaleLabel: {
 									display: true,
@@ -1462,10 +1462,13 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 							}],
 							yAxes: [{
 								stacked: true,
+								barPercentage: 0.8,
+								categoryPercentage: 0.6
 							}]
 							}
 						}, colors: [_nl.colorsCodes.blue2, _nl.colorsCodes.pending],
-						title: nl.t('Completion rate based on {}', $scope.pivotConfig.level1Field.name || lrColNamesDict[$scope.pivotConfig.level1Field.id].name)
+						title: nl.t('Completion rate based on {}', $scope.pivotConfig.level1Field.name || lrColNamesDict[$scope.pivotConfig.level1Field.id].name),
+						currentpos: 0
 					};
 		var series1 = [];
 		var series2 = [];
@@ -1473,15 +1476,19 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			charts.graphData = graphData;
 		for (var key in summaryRow) {
 			var statsDict = summaryRow[key].cnt;
-			graphData.push({name: statsDict.name || key, completed: statsDict.percCompleted, notCompleted: statsDict.percNotcompleted});
+			var compPerc = Math.round(statsDict.completed/(statsDict.completed+statsDict.notcompleted)*100)
+			var notCompPerc = Math.round(statsDict.notcompleted/(statsDict.completed+statsDict.notcompleted)*100)
+			graphData.push({name: statsDict.name || key, completed: compPerc, notCompleted: notCompPerc});
 		}
 		charts.graphData.sort(function(a, b) {
-			if(b.notCompleted < a.notCompleted) return 1;
-			if(b.notCompleted > a.notCompleted) return -1;
+			if(b.notCompleted > a.notCompleted) return 1;
+			if(b.notCompleted < a.notCompleted) return -1;
 			if(b.notCompleted == a.notCompleted) return 0;				
 
 		});
-		for(var i=0; i<charts.graphData .length; i++) {
+		var endPos = 6;
+		if (charts.graphData.length < endPos) endPos = charts.graphData.length;
+		for(var i=0; i<endPos; i++) {
 			charts.labels.push(charts.graphData[i].name);
 			series1.push(charts.graphData[i].completed);
 			series2.push(charts.graphData[i].notCompleted);

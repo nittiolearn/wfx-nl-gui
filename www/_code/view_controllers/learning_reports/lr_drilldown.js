@@ -182,6 +182,7 @@ function(nl) {
         },
         link: function($scope, iElem, iAttrs) {
             $scope.showCharts = true;
+            var MAX_VISIBLE = 6;
             $scope.generateDrillDownArray = function(item) {
                 nl.utils.getFnFromParentOrGrandParent($scope, 'generateDrillDownArray')(item);
             };
@@ -196,6 +197,58 @@ function(nl) {
 
             $scope.toggleDrilldownCharts = function() {
                 $scope.showCharts = !$scope.showCharts;
+            };
+
+            $scope.getVisibleString = function(selectedChart) {
+                if (!selectedChart) return '';
+                if (selectedChart.currentpos + MAX_VISIBLE < selectedChart.graphData.length) {
+                    return nl.t('Showing {} - {} of {} items', selectedChart.currentpos, selectedChart.currentpos+MAX_VISIBLE, selectedChart.graphData.length)
+                } 
+                return nl.t('Showing {} - {} of {} items', selectedChart.currentpos, selectedChart.graphData.length, selectedChart.graphData.length);
+            };
+
+            $scope.canShowPrev = function(selectedChart) {
+                if (!selectedChart) return;
+                if (selectedChart.currentpos > 0) return true;
+                return false;
+            };
+        
+            $scope.canShowNext = function(selectedChart) {
+                if (!selectedChart) return;
+                if (selectedChart.currentpos + MAX_VISIBLE < selectedChart.graphData.length) return true;
+                return false;
+            };
+        
+            $scope.onClickOnNext = function (selectedChart) {
+                if (selectedChart.currentpos + MAX_VISIBLE > selectedChart.graphData.length) return;
+                if (selectedChart.currentpos < selectedChart.graphData.length) {
+                    selectedChart.currentpos += MAX_VISIBLE;
+                }
+                _updateCharts(selectedChart);
+            };
+        
+            $scope.onClickOnPrev = function (selectedChart) {
+                if (selectedChart.currentpos == 0) return;
+                if (selectedChart.currentpos >= MAX_VISIBLE) {
+                    selectedChart.currentpos -= MAX_VISIBLE;
+                }
+                _updateCharts(selectedChart);
+            }
+            
+            function _updateCharts(selectedChart) {
+                var records = selectedChart.graphData || [];
+                var series1 = [];
+                var series2 = [];
+                var labels = [];
+                var endPos = selectedChart.currentpos+MAX_VISIBLE
+                if (endPos > records.length) endPos = records.length;
+                for(var i=selectedChart.currentpos; i<endPos; i++) {
+                    labels.push(records[i].name);
+                    series1.push(records[i].completed);
+                    series2.push(records[i].notCompleted);
+                }
+                selectedChart.data = [series1, series2];
+                selectedChart.labels = labels;
             }
         }
     }

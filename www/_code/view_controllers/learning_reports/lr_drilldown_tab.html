@@ -6,7 +6,7 @@
             <div class='fsh5 padding-mid'>{{drilldown.selectedChart.title}}</div>
             <div class='padding-small'></div>
             <div style='width:100%'>
-                <div style='display:block;margin: auto; width:70%;min-height: 200px;'>
+                <div style='display:block;margin: auto; width:70%;min-height: 250px;'>
                     <canvas class="chart chart-horizontal-bar ng-isolate-scope" 
                             chart-data="drilldown.selectedChart.data" 
                             chart-labels="drilldown.selectedChart.labels" 
@@ -17,7 +17,36 @@
                     </canvas>
                 </div>
             </div>
-            <div class='padding-small'></div>    
+            <div class='row row-center padding0'
+                style='width:62%; margin-left:21%'>
+                <div style='min-width: 100px;'>
+                    <div ng-if='canShowPrev(drilldown.selectedChart)' 
+                        ng-click='onClickOnPrev(drilldown.selectedChart)' 
+                        class='nl-link-text'>
+                        <i class="icon ion-chevron-left nl-dlg-field-icon"
+                            title='Show prev'>
+                        </i>
+                        <span ng-if='$root.screenSize != "small"'>
+                            Show prev
+                        </span>
+                    </div>
+                </div>
+                <div class='col'>
+                    <div ng-if='$root.screenSize != "small"'>{{getVisibleString(drilldown.selectedChart)}}</div>
+                </div>
+                <div style='min-width: 100px;'>
+                    <div ng-if='canShowNext(drilldown.selectedChart)'
+                        ng-click='onClickOnNext(drilldown.selectedChart)'
+                        class='nl-link-text'>
+                        <span ng-if='$root.screenSize != "small"'>
+                            Show next
+                        </span>
+                        <i class="icon ion-chevron-right nl-dlg-field-icon"
+                            title='Show next'>
+                        </i>
+                    </div>
+                </div>
+            </div>    
         </div>
     </div>
 </div>
