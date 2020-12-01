@@ -1385,21 +1385,21 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		var statusDict = _getStatusDictFromArray();
 		_customScoresHeader = nlLrReportRecords.getCustomScoresHeader();
 		var customScoresHeaderWithType = nlLrReportRecords.getCustomScoresHeaderWithType();
-		columns.push({id: 'cntTotal', name: 'Total', table: true, percid:'percTotal', smallScreen: true, background: 'bggrey', showAlways: true});
-		columns.push({id: 'cntInactive', name: 'Inactive', table: true, percid:'percInactive', background: 'nl-bg-blue', showAlways: true});
+		columns.push({id: 'cntTotal', name: 'Total', table: true, percid:'percTotal', smallScreen: true, background: 'bggrey', showAlways: true, hidePerc:true});
+		columns.push({id: 'cntInactive', name: 'Inactive', table: true, percid:'percInactive', background: 'nl-bg-blue', showAlways: true, hidePerc:true});
 		if(attrition.length > 0) {
-			columns.push({id: 'attrition', name: 'Attrition', percid: 'percAttrition', indentation: 'padding-left-22'});
+			columns.push({id: 'attrition', name: 'Attrition', percid: 'percAttrition', indentation: 'padding-left-22', hidePerc: true});
 			for(var i=0; i<attrition.length; i++) {
 				var name = attrition[i];
 				var formattedName = _getFormattedName(name, statusDict);
-				columns.push({id: attrition[i], name: formattedName, percid:'perc'+attrition[i], indentation: 'padding-left-44'});
+				columns.push({id: attrition[i], name: formattedName, percid:'perc'+attrition[i], indentation: 'padding-left-44', hidePerc: true});
 			}
 		}
-		columns.push({id: 'doneInactive', name: 'Completed by inactive users', percid: 'percDoneInactive', indentation: 'padding-left-22'});
-		columns.push({id: 'pendingInactive', name: 'Pending by inactive users', percid:'percPendingInactive', indentation: 'padding-left-22'});
+		columns.push({id: 'doneInactive', name: 'Completed by inactive users', percid: 'percDoneInactive', indentation: 'padding-left-22', hidePerc: true});
+		columns.push({id: 'pendingInactive', name: 'Pending by inactive users', percid:'percPendingInactive', indentation: 'padding-left-22', hidePerc: true});
 		columns.push({id: 'cntActive', name: 'Total (excl. inactive)', percid: 'percActive', table: true, background: 'nl-bg-blue', showAlways: true});
 		columns.push({id: 'completed', name: 'Completed', percid: 'percCompleted', table: true, indentation: 'padding-left-22', showAlways: true});
-		columns.push({id: 'certified', name: 'Certified', percid: 'percCertified', table: true, indentation: 'padding-left-44'});
+		columns.push({id: 'certified', name: 'Certified/Done', percid: 'percCertified', table: true, indentation: 'padding-left-44'});
 		columns.push({id: 'failed', name: 'Failed', percid: 'percFailed', table: true, indentation: 'padding-left-44'});
 		columns.push({id: 'notcompleted', name: 'Not completed', percid: 'percNotcompleted', table: true, indentation: 'padding-left-22', showAlways: true});
 		columns.push({id: 'started', name: 'Active ongoing', percid: 'percStarted', table: true, indentation: 'padding-left-44', showAlways: true});
@@ -1447,7 +1447,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		$scope.drillDownInfo.chartsArray = [];
 		var lrColNamesDict = _updateSelectedLrColumns();
 		var summaryRow = _drilldownStatsCountDict[0].children;
-		var charts = {labels: [], series: ['Completed', 'Not-completed'],
+		var charts = {labels: [], series: ['Certified/Done', 'Failed', 'Pending'],
 					  	options: {scales: {
 							xAxes: [{
 								stacked: true,
@@ -1462,23 +1462,30 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 							}],
 							yAxes: [{
 								stacked: true,
-								barPercentage: 0.8,
+								barPercentage: 0.9,
 								categoryPercentage: 0.6
 							}]
 							}
-						}, colors: [_nl.colorsCodes.blue2, _nl.colorsCodes.pending],
-						title: nl.t('Completion rate based on {}', $scope.pivotConfig.level1Field.name || lrColNamesDict[$scope.pivotConfig.level1Field.id].name),
+						}, colors: [_nl.colorsCodes.done, _nl.colorsCodes.failed, _nl.colorsCodes.pending],
+						title: nl.t('Completion percentage based on {}', $scope.pivotConfig.level1Field.name || lrColNamesDict[$scope.pivotConfig.level1Field.id].name),
 						currentpos: 0
 					};
 		var series1 = [];
 		var series2 = [];
+		var series3 = [];
 		var graphData = [];
 			charts.graphData = graphData;
 		for (var key in summaryRow) {
 			var statsDict = summaryRow[key].cnt;
-			var compPerc = Math.round(statsDict.completed/(statsDict.completed+statsDict.notcompleted)*100)
-			var notCompPerc = Math.round(statsDict.notcompleted/(statsDict.completed+statsDict.notcompleted)*100)
-			graphData.push({name: statsDict.name || key, completed: compPerc, notCompleted: notCompPerc});
+			var certPerc = Math.round(statsDict.certified/(statsDict.certified+statsDict.failed+statsDict.notcompleted)*100)
+			var failPerc = Math.round(statsDict.failed/(statsDict.certified+statsDict.failed+statsDict.notcompleted)*100)
+			var notCompPerc = Math.round(statsDict.notcompleted/(statsDict.certified+statsDict.failed+statsDict.notcompleted)*100)
+			if (certPerc+failPerc+notCompPerc > 100) {
+				if (notCompPerc > 0) notCompPerc = notCompPerc - 1;
+				else if (certPerc > 0) certPerc = certPerc - 1;
+				else if (failPerc > 0) failPerc = failPerc - 1;
+			}
+			graphData.push({name: statsDict.name || key, cert: certPerc, failed: failPerc, notCompleted: notCompPerc});
 		}
 		charts.graphData.sort(function(a, b) {
 			if(b.notCompleted > a.notCompleted) return 1;
@@ -1486,14 +1493,15 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			if(b.notCompleted == a.notCompleted) return 0;				
 
 		});
-		var endPos = 6;
+		var endPos = 5;
 		if (charts.graphData.length < endPos) endPos = charts.graphData.length;
 		for(var i=0; i<endPos; i++) {
 			charts.labels.push(charts.graphData[i].name);
-			series1.push(charts.graphData[i].completed);
-			series2.push(charts.graphData[i].notCompleted);
+			series1.push(charts.graphData[i].cert);
+			series2.push(charts.graphData[i].failed);
+			series3.push(charts.graphData[i].notCompleted);
 		}
-		charts.data = [series1, series2];
+		charts.data = [series1, series2, series3];
 		$scope.drillDownInfo.chartsArray.push(charts);
 		$scope.drillDownInfo.selectedChart = $scope.drillDownInfo.chartsArray[0];
 	};

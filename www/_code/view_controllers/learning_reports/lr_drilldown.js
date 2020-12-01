@@ -182,7 +182,7 @@ function(nl) {
         },
         link: function($scope, iElem, iAttrs) {
             $scope.showCharts = true;
-            var MAX_VISIBLE = 6;
+            var MAX_VISIBLE = 5;
             $scope.generateDrillDownArray = function(item) {
                 nl.utils.getFnFromParentOrGrandParent($scope, 'generateDrillDownArray')(item);
             };
@@ -371,20 +371,20 @@ function StatsCounts(nl) {
     }
 
     function _updateStatsPercs(updatedStats) {
-        if(updatedStats.cntTotal > 0) {
+        if(updatedStats.cntActive > 0) {
             updatedStats['percTotal'] = Math.round(updatedStats.cntTotal*100/updatedStats.cntTotal);
-            updatedStats['percActive'] = Math.round(updatedStats.cntActive*100/updatedStats.cntTotal);
-            updatedStats['percInactive'] = Math.round(updatedStats.cntInactive*100/updatedStats.cntTotal);
-            updatedStats['percDoneInactive'] = Math.round(updatedStats.doneInactive*100/updatedStats.cntTotal);
-            updatedStats['percPendingInactive'] = Math.round(updatedStats.pendingInactive*100/updatedStats.cntTotal);
-            updatedStats['percCompleted'] = Math.round(updatedStats.completed*100/updatedStats.cntTotal);
-            updatedStats['percCertified'] = Math.round(updatedStats.certified*100/updatedStats.cntTotal);
-            updatedStats['percFailed'] = Math.round(updatedStats.failed*100/updatedStats.cntTotal);
-            updatedStats['percNotcompleted'] = Math.round(updatedStats.notcompleted*100/updatedStats.cntTotal);
-            updatedStats['percPending'] = Math.round(updatedStats.pending*100/updatedStats.cntTotal);
-            updatedStats['percStarted'] = Math.round(updatedStats.started*100/updatedStats.cntTotal);
+            updatedStats['percActive'] = Math.round(updatedStats.cntActive*100/updatedStats.cntActive);
+            updatedStats['percInactive'] = Math.round(updatedStats.cntInactive*100/updatedStats.cntActive);
+            updatedStats['percDoneInactive'] = Math.round(updatedStats.doneInactive*100/updatedStats.cntActive);
+            updatedStats['percPendingInactive'] = Math.round(updatedStats.pendingInactive*100/updatedStats.cntActive);
+            updatedStats['percCompleted'] = Math.round(updatedStats.completed*100/updatedStats.cntActive);
+            updatedStats['percCertified'] = Math.round(updatedStats.certified*100/updatedStats.cntActive);
+            updatedStats['percFailed'] = Math.round(updatedStats.failed*100/updatedStats.cntActive);
+            updatedStats['percNotcompleted'] = Math.round(updatedStats.notcompleted*100/updatedStats.cntActive);
+            updatedStats['percPending'] = Math.round(updatedStats.pending*100/updatedStats.cntActive);
+            updatedStats['percStarted'] = Math.round(updatedStats.started*100/updatedStats.cntActive);
             updatedStats['avgScore'] = (updatedStats.percScore != 0 && (updatedStats.completed != 0 || updatedStats.doneInactive != 0)) ? Math.round(updatedStats.percScore/(updatedStats.completed + updatedStats.doneInactive))+' %' : 0;
-            updatedStats['avgDelay'] = Math.round(updatedStats.delayDays/updatedStats.cntTotal);
+            updatedStats['avgDelay'] = Math.round(updatedStats.delayDays/updatedStats.cntActive);
             updatedStats['timeSpentInMins'] = Math.round(updatedStats.timeSpent/60);
             if(updatedStats.attrition) updatedStats['percAttrition'] = Math.round(updatedStats.attrition*100/updatedStats.cntTotal)
         }
