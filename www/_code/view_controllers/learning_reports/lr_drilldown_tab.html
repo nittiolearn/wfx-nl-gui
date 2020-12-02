@@ -1,56 +1,52 @@
-<div ng-if='showCharts'
-    style='width:97vw'>
-    <div class='row row-center text-center margin0 padding0'>
-        <div class='col'>
-            <div class='padding-small'></div>
-            <div class='fsh5 padding-mid'>{{drilldown.selectedChart.title}}</div>
-            <div class='padding-small'></div>
-            <div style='width:100%'>
-                <div style='display:block;margin: auto; width:70%;min-height: 250px;'>
-                    <canvas class="chart chart-horizontal-bar ng-isolate-scope" 
-                            chart-data="drilldown.selectedChart.data" 
-                            chart-labels="drilldown.selectedChart.labels" 
-                            chart-options="drilldown.selectedChart.options" 
-                            chart-series="drilldown.selectedChart.series"
-                            chart-colors="drilldown.selectedChart.colors"
-                            chart-dataset-override="drilldown.selectedChart.dataOverride">
-                    </canvas>
-                </div>
-            </div>
-            <div class='row row-center padding0'
-                style='width:62%; margin-left:21%'>
-                <div style='min-width: 100px;'>
-                    <div ng-if='canShowPrev(drilldown.selectedChart)' 
-                        ng-click='onClickOnPrev(drilldown.selectedChart)' 
-                        class='nl-link-text'>
-                        <i class="icon ion-chevron-left nl-dlg-field-icon"
-                            title='Show prev'>
-                        </i>
-                        <span ng-if='$root.screenSize != "small"'>
-                            Show prev
-                        </span>
-                    </div>
-                </div>
-                <div class='col'>
-                    <div ng-if='$root.screenSize != "small"'>{{getVisibleString(drilldown.selectedChart)}}</div>
-                </div>
-                <div style='min-width: 100px;'>
-                    <div ng-if='canShowNext(drilldown.selectedChart)'
-                        ng-click='onClickOnNext(drilldown.selectedChart)'
-                        class='nl-link-text'>
-                        <span ng-if='$root.screenSize != "small"'>
-                            Show next
-                        </span>
-                        <i class="icon ion-chevron-right nl-dlg-field-icon"
-                            title='Show next'>
-                        </i>
-                    </div>
-                </div>
-            </div>    
-        </div>
+<div ng-show='drilldowndata.tabs' 
+    class='row row-wrap row-stretch margin0 padding0 text-center page_format_tab_not_selected'
+    style='height:34px'>
+    <div style='width:36px'>
+        <span class='padding-small nl-link-text' title='Customize Drilldown'
+            ng-click='updatePivotTable()'>
+            <i class="icon ion-gear-b bold fsh3"></i>
+        </span>
+    </div>
+    <div class='nl-min-250 padding-mid {{(drilldowndata.selectedtab.id == tab.id) ? "page_format_tab_selected" : ""}} nl-link-text'
+        ng-click='changeTab(drilldowndata, tab)'
+        ng-repeat='tab in drilldowndata.tabs'>
+        {{tab.name}}
     </div>
 </div>
-<div class='padding-mid'>
+
+<div ng-if='drilldowndata.selectedtab.id == "charts"'
+    class='flyfrom-r'
+    style='width:95vw'>
+    <div class='row row-center text-center margin0 padding0'>
+        <div class='col'></div>
+        <div class='col col-80' style='width: 100%; max-width: 900px;''>
+            <div class='padding-small'></div>
+            <div class='row row-center margin0 padding0 text-left'>
+                <div class='col fsh5 padding-mid'>
+                    {{drilldowndata.charts.selectedChart.title}}
+                </div>
+                <div>
+                    <nl-navigation-section data="drilldowndata.charts.selectedChart"></nl-navigation-section>
+                </div>
+                <div class='padding-mid'>
+                </div>
+            </div>
+            <div class='padding-small'></div>
+            <div style='width:100%; height: {{drilldowndata.charts.selectedChart.data[0].length > 3 ?  drilldowndata.charts.selectedChart.data[0].length*50 : 200}}px'>
+                <canvas class="chart chart-horizontal-bar ng-isolate-scope" 
+                        chart-data="drilldowndata.charts.selectedChart.data" 
+                        chart-labels="drilldowndata.charts.selectedChart.labels" 
+                        chart-options="drilldowndata.charts.selectedChart.options" 
+                        chart-series="drilldowndata.charts.selectedChart.series"
+                        chart-colors="drilldowndata.charts.selectedChart.colors"
+                        chart-dataset-override="drilldowndata.charts.selectedChart.dataOverride">
+                </canvas>
+            </div>    
+        </div>
+        <div class='col'></div>
+    </div>
+</div>
+<div class='padding-mid flyfrom-l' ng-if='drilldowndata.selectedtab.id == "data"'>
     <table class='nl-table nl-table-styled3 rowlines'>
         <tr class='header'>
             <td class='minw-name'>
@@ -59,22 +55,18 @@
                         ng-click='updatePivotTable()'>
                         <i class="icon ion-gear-b bold fsh3"></i>
                     </span>
-                    <span class='padding-small nl-link-text' title='Show charts'
-                        ng-click='toggleDrilldownCharts()'>
-                        <i class="icon ion-pie-graph bold fsh3"></i>
-                    </span>
                     <div class='col'></div>
                     <span class='nl-link-img'>
                     </span> 
                 </div>
             </td>
-            <td ng-repeat='col in drilldown.columns track by $index'
+            <td ng-repeat='col in drilldowndata.drilldown.columns track by $index'
                 class='minw-number text-center' ng-if='($root.screenSize != "small" && col.table) || ($root.screenSize == "small" && col.smallScreen)'>
                 <div>{{col.name}}</div>
             </td>
         </tr>
         <tr class='{{rec.isFolder ? "clickable hover" : ""}}'
-             ng-repeat='rec in drilldown.rows track by $index'
+             ng-repeat='rec in drilldowndata.drilldown.rows track by $index'
              ng-click='generateDrillDownArray(rec)'>
             <td class='minw-name'>
                 <div class='row row-center magin0 padding0'style='padding-left:{{rec.indentation}}px' >
@@ -83,12 +75,12 @@
                         <i ng-show='rec.isOpen' class="icon ion-arrow-down-b bold fsh5"></i>
                     </span>
                     <div class='col'>{{rec.orgname || rec.name}}</div>
-                    <span ng-click='onDetailsClick($event, rec, drilldown.columns)' class='nl-link-text'>
+                    <span ng-click='onDetailsClick($event, rec, drilldowndata.drilldown.columns)' class='nl-link-text'>
                         <i class="padding-mid icon ion-information-circled fsh4 nl-info-icon"></i>
                     </span> 
                 </div>
             </td>
-            <td ng-repeat='col in drilldown.columns track by $index'
+            <td ng-repeat='col in drilldowndata.drilldown.columns track by $index'
                 class='minw-number text-center'  ng-if='($root.screenSize != "small" && col.table) || ($root.screenSize == "small" && col.smallScreen)'>
                 <div class='row row-center {{!col.hidePerc ? "text-right" : "text-center"}}'>
                     <div class='col'>{{rec[col.id] || '-'}}</div>

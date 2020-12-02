@@ -23,7 +23,8 @@ function module_init() {
     .directive('nlFormTextarea', FormTextareaDirective)
     .directive('nlElastic', ElasticTextareaDirective)
     .directive('nlDateSelect', DateSelectDirective)
-    .directive('nlDateTimeSelect', DateTimeSelectDirective);
+    .directive('nlDateTimeSelect', DateTimeSelectDirective)
+    .directive('nlNavigationSection', NavigationSection);
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -512,6 +513,41 @@ function(nl) {
             };
             iElem.on("input change", onResize);
             nl.timeout(onResize, 0);
+        }
+    };
+}];
+
+//-------------------------------------------------------------------------------------------------
+
+var NavigationSection = ['nl',
+function(nl) {
+    return {
+        restrict: 'E',
+        transclude: true,
+        templateUrl: 'lib_ui/dlg/nlnavigator.html',
+        scope: {
+            data: '='
+        },
+        link: function($scope, iElem, iAttrs) {
+            $scope.getVisibleString = function() {
+                return nl.utils.getFnFromParentOrGrandParent($scope, 'getVisibleString')($scope.data);
+            };
+
+            $scope.canShowPrev = function() {
+                return nl.utils.getFnFromParentOrGrandParent($scope, 'canShowPrev')($scope.data);
+            };
+        
+            $scope.canShowNext = function() {
+                return nl.utils.getFnFromParentOrGrandParent($scope, 'canShowNext')($scope.data);
+            };
+
+            $scope.onClickOnPrev = function () {
+                nl.utils.getFnFromParentOrGrandParent($scope, 'onClickOnPrev')($scope.data);
+            };
+
+            $scope.onClickOnNext = function () {
+                nl.utils.getFnFromParentOrGrandParent($scope, 'onClickOnNext')($scope.data);
+            };
         }
     };
 }];

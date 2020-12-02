@@ -178,11 +178,11 @@ function(nl) {
         transclude: true,
         templateUrl: 'view_controllers/learning_reports/lr_drilldown_tab.html',
         scope: {
-            drilldown: '='
+            drilldowndata: '='
         },
         link: function($scope, iElem, iAttrs) {
             $scope.showCharts = true;
-            var MAX_VISIBLE = 5;
+            var MAX_VISIBLE = 10;
             $scope.generateDrillDownArray = function(item) {
                 nl.utils.getFnFromParentOrGrandParent($scope, 'generateDrillDownArray')(item);
             };
@@ -195,16 +195,24 @@ function(nl) {
                 nl.utils.getFnFromParentOrGrandParent($scope, 'onDetailsClick')(e, item, columns);
             };
 
+            $scope.changeTab = function(drilldowndata, tab) {
+                drilldowndata.selectedtab = tab;
+            };
+
             $scope.toggleDrilldownCharts = function() {
                 $scope.showCharts = !$scope.showCharts;
+            };
+
+            $scope.sortBasedOn = function(selectedChart, val) {
+                selectedChart.sortAndUpdateFn(selectedChart, val);
             };
 
             $scope.getVisibleString = function(selectedChart) {
                 if (!selectedChart) return '';
                 if (selectedChart.currentpos + MAX_VISIBLE < selectedChart.graphData.length) {
-                    return nl.t('Showing {} - {} of {} items', selectedChart.currentpos, selectedChart.currentpos+MAX_VISIBLE, selectedChart.graphData.length)
+                    return nl.t('{} - {} of {}', selectedChart.currentpos+1, selectedChart.currentpos+MAX_VISIBLE, selectedChart.graphData.length)
                 } 
-                return nl.t('Showing {} - {} of {} items', selectedChart.currentpos, selectedChart.graphData.length, selectedChart.graphData.length);
+                return nl.t('{} - {} of {}', selectedChart.currentpos+1, selectedChart.graphData.length, selectedChart.graphData.length);
             };
 
             $scope.canShowPrev = function(selectedChart) {
@@ -239,15 +247,17 @@ function(nl) {
                 var records = selectedChart.graphData || [];
                 var series1 = [];
                 var series2 = [];
+                var series3 = [];
                 var labels = [];
                 var endPos = selectedChart.currentpos+MAX_VISIBLE
                 if (endPos > records.length) endPos = records.length;
                 for(var i=selectedChart.currentpos; i<endPos; i++) {
                     labels.push(records[i].name);
-                    series1.push(records[i].completed);
-                    series2.push(records[i].notCompleted);
+                    series1.push(records[i].cert);
+                    series2.push(records[i].failed);
+                    series3.push(records[i].notCompleted);
                 }
-                selectedChart.data = [series1, series2];
+                selectedChart.data = [series1, series2, series3];
                 selectedChart.labels = labels;
             }
         }

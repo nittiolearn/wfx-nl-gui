@@ -362,11 +362,8 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		// but the internal function (_generateDrillDownArray) is called for drilldown as well as nht tabs.
 		if(!item.isFolder) return;
 		item.isOpen = !item.isOpen;
-		var chartsArray = $scope.drillDownInfo.chartsArray;
-		var defSelected = $scope.drillDownInfo.selectedChart;
-		$scope.drillDownInfo = {columns: _drillDownColumns, 
-			rows: _generateDrillDownArray(false, _drilldownStatsCountDict, true), 
-			chartsArray: chartsArray, selectedChart: defSelected};
+		$scope.drillDownInfo.drilldown = {columns: _drillDownColumns, 
+			rows: _generateDrillDownArray(false, _drilldownStatsCountDict, true)};
 	};
 
 	$scope.sortNhtRows = function(colid) {
@@ -479,7 +476,11 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 	}
 
 	function _someTabDataChanged() {
-		$scope.drillDownInfo = {};
+		// $scope.drillDownInfo = {table: {},
+		//  charts: {selectedchart: {}, chartArray: []},
+		//  drilldowntabs: [{id: ‘data’,  name: ‘Data’}, {id: ‘charts’, name: ‘Charts’}],
+		// Selected tab: {id: ‘data’, name: ‘Data’}}
+		$scope.drillDownInfo = {}; 
 		$scope.nhtOverviewInfo = {};
 		$scope.nhtRunningInfo = {};
 		$scope.nhtClosedInfo = {};
@@ -1372,7 +1373,9 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		}
 		_drilldownStatsCountDict = nlLrDrilldown.getStatsCountDict();
 		_drillDownColumns = _getDrillDownColumns();
-		$scope.drillDownInfo = {columns: _drillDownColumns,
+		$scope.drillDownInfo.tabs = [{id: 'charts', name: 'Charts', tabNo: 1}, {id: 'data', name: 'Data', tabNo: 2}];
+		$scope.drillDownInfo.selectedtab = $scope.drillDownInfo.tabs[0];
+		$scope.drillDownInfo.drilldown = {columns: _drillDownColumns,
 			rows: _generateDrillDownArray(true, _drilldownStatsCountDict, true, false)};
 		_updateDrillDownCharts();
 		return _drillDownColumns;
@@ -1444,7 +1447,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 	// Drilldown reports visualisations
 	//---------------------------------------------------------------------------------------------------------------------------------------------------------
 	function _updateDrillDownCharts() {
-		$scope.drillDownInfo.chartsArray = [];
+		$scope.drillDownInfo.charts = {};
 		var lrColNamesDict = _updateSelectedLrColumns();
 		var summaryRow = _drilldownStatsCountDict[0].children;
 		var charts = {labels: [], series: ['Certified/Done', 'Failed', 'Pending'],
@@ -1470,31 +1473,42 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 						title: nl.t('Completion percentage based on {}', $scope.pivotConfig.level1Field.name || lrColNamesDict[$scope.pivotConfig.level1Field.id].name),
 						currentpos: 0
 					};
+		
+		charts.graphData = [];
+		for (var key in summaryRow) {
+			var statsDict = summaryRow[key].cnt;
+			var total = statsDict.certified+statsDict.failed+statsDict.notcompleted;
+			var certPerc = Math.round(statsDict.certified/total*100)
+			var failPerc = Math.round(statsDict.failed/total*100)
+			var notCompPerc = 100 - (certPerc+failPerc);
+			charts.graphData.push({name: statsDict.name || key, cert: certPerc, failed: failPerc, notCompleted: notCompPerc});
+		}
+		_sortAndUpdate(charts, false);
+		charts.sortAndUpdateFn = _sortAndUpdate;
+		$scope.drillDownInfo.charts.chartsArray= [charts];
+		$scope.drillDownInfo.charts.selectedChart = $scope.drillDownInfo.charts.chartsArray[0];
+	};
+
+	function _sortAndUpdate(charts, moreCompletion) {
+		charts.currentpos = 0;
+		if (moreCompletion) {
+			charts.graphData.sort(function(a, b) {
+				if(b.notCompleted < a.notCompleted) return 1;
+				if(b.notCompleted > a.notCompleted) return -1;
+				if(b.notCompleted == a.notCompleted) return 0;
+			});	
+		} else {
+			charts.graphData.sort(function(a, b) {
+				if(b.notCompleted > a.notCompleted) return 1;
+				if(b.notCompleted < a.notCompleted) return -1;
+				if(b.notCompleted == a.notCompleted) return 0;
+			});	
+		}
+		var endPos = 10;
+		if (charts.graphData.length < endPos) endPos = charts.graphData.length;
 		var series1 = [];
 		var series2 = [];
 		var series3 = [];
-		var graphData = [];
-			charts.graphData = graphData;
-		for (var key in summaryRow) {
-			var statsDict = summaryRow[key].cnt;
-			var certPerc = Math.round(statsDict.certified/(statsDict.certified+statsDict.failed+statsDict.notcompleted)*100)
-			var failPerc = Math.round(statsDict.failed/(statsDict.certified+statsDict.failed+statsDict.notcompleted)*100)
-			var notCompPerc = Math.round(statsDict.notcompleted/(statsDict.certified+statsDict.failed+statsDict.notcompleted)*100)
-			if (certPerc+failPerc+notCompPerc > 100) {
-				if (notCompPerc > 0) notCompPerc = notCompPerc - 1;
-				else if (certPerc > 0) certPerc = certPerc - 1;
-				else if (failPerc > 0) failPerc = failPerc - 1;
-			}
-			graphData.push({name: statsDict.name || key, cert: certPerc, failed: failPerc, notCompleted: notCompPerc});
-		}
-		charts.graphData.sort(function(a, b) {
-			if(b.notCompleted > a.notCompleted) return 1;
-			if(b.notCompleted < a.notCompleted) return -1;
-			if(b.notCompleted == a.notCompleted) return 0;				
-
-		});
-		var endPos = 5;
-		if (charts.graphData.length < endPos) endPos = charts.graphData.length;
 		for(var i=0; i<endPos; i++) {
 			charts.labels.push(charts.graphData[i].name);
 			series1.push(charts.graphData[i].cert);
@@ -1502,9 +1516,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			series3.push(charts.graphData[i].notCompleted);
 		}
 		charts.data = [series1, series2, series3];
-		$scope.drillDownInfo.chartsArray.push(charts);
-		$scope.drillDownInfo.selectedChart = $scope.drillDownInfo.chartsArray[0];
-	};
+	}
 	//---------------------------------------------------------------------------------------------------------------------------------------------------------
 	// Common code between Drilldown and NHT tabs
 	//---------------------------------------------------------------------------------------------------------------------------------------------------------

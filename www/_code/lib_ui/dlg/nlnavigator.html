@@ -1,0 +1,34 @@
+<style>
+.nl-nav-arrow{
+    width:26px; 
+    height:24px;
+    border-radius: 50%;        
+}
+.nl-link-text-nav {
+    cursor: pointer;
+    &:hover, &:focus, &:active {
+        background-color: $nlGrey2;
+    }
+}
+
+</style>
+
+<div class='row row-center margin0 bgdefault padding-small' style='height:36px'>
+    <div class='nl-link-text'>
+        <span>{{getVisibleString()}}</span>
+    </div>
+    <div class='padding-small'></div>
+    <div class='nl-link-text-nav nl-nav-arrow'>
+        <span style='padding-left: 8px' title='Prev'
+            ng-click='onClickOnPrev()'>
+            <i class="icon ion-ios-arrow-back bold fsh5"></i>
+        </span> 
+    </div>
+    <div class='padding-small'></div>
+    <div class='nl-link-text-nav nl-nav-arrow'>
+        <span style='padding-left: 12px' title='Next'
+            ng-click='onClickOnNext()'>
+            <i class="icon ion-ios-arrow-forward bold fsh5"></i>
+        </span> 
+    </div>
+</div>
