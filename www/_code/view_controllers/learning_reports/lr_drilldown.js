@@ -182,7 +182,6 @@ function(nl) {
         },
         link: function($scope, iElem, iAttrs) {
             $scope.showCharts = true;
-            var MAX_VISIBLE = 10;
             $scope.generateDrillDownArray = function(item) {
                 nl.utils.getFnFromParentOrGrandParent($scope, 'generateDrillDownArray')(item);
             };
@@ -202,6 +201,9 @@ function(nl) {
             $scope.toggleDrilldownCharts = function() {
                 $scope.showCharts = !$scope.showCharts;
             };
+            $scope.canSort = function() {
+                return true;
+            };
 
             $scope.sortBasedOn = function(selectedChart, val) {
                 selectedChart.sortAndUpdateFn(selectedChart, val);
@@ -209,8 +211,8 @@ function(nl) {
 
             $scope.getVisibleString = function(selectedChart) {
                 if (!selectedChart) return '';
-                if (selectedChart.currentpos + MAX_VISIBLE < selectedChart.graphData.length) {
-                    return nl.t('{} - {} of {}', selectedChart.currentpos+1, selectedChart.currentpos+MAX_VISIBLE, selectedChart.graphData.length)
+                if (selectedChart.currentpos + selectedChart.maxvisible < selectedChart.graphData.length) {
+                    return nl.t('{} - {} of {}', selectedChart.currentpos+1, selectedChart.currentpos+selectedChart.maxvisible, selectedChart.graphData.length)
                 } 
                 return nl.t('{} - {} of {}', selectedChart.currentpos+1, selectedChart.graphData.length, selectedChart.graphData.length);
             };
@@ -223,22 +225,22 @@ function(nl) {
         
             $scope.canShowNext = function(selectedChart) {
                 if (!selectedChart) return;
-                if (selectedChart.currentpos + MAX_VISIBLE < selectedChart.graphData.length) return true;
+                if (selectedChart.currentpos + selectedChart.maxvisible < selectedChart.graphData.length) return true;
                 return false;
             };
         
             $scope.onClickOnNext = function (selectedChart) {
-                if (selectedChart.currentpos + MAX_VISIBLE > selectedChart.graphData.length) return;
+                if (selectedChart.currentpos + selectedChart.maxvisible > selectedChart.graphData.length) return;
                 if (selectedChart.currentpos < selectedChart.graphData.length) {
-                    selectedChart.currentpos += MAX_VISIBLE;
+                    selectedChart.currentpos += selectedChart.maxvisible;
                 }
                 _updateCharts(selectedChart);
             };
         
             $scope.onClickOnPrev = function (selectedChart) {
                 if (selectedChart.currentpos == 0) return;
-                if (selectedChart.currentpos >= MAX_VISIBLE) {
-                    selectedChart.currentpos -= MAX_VISIBLE;
+                if (selectedChart.currentpos >= selectedChart.maxvisible) {
+                    selectedChart.currentpos -= selectedChart.maxvisible;
                 }
                 _updateCharts(selectedChart);
             }
@@ -249,7 +251,7 @@ function(nl) {
                 var series2 = [];
                 var series3 = [];
                 var labels = [];
-                var endPos = selectedChart.currentpos+MAX_VISIBLE
+                var endPos = selectedChart.currentpos+selectedChart.maxvisible
                 if (endPos > records.length) endPos = records.length;
                 for(var i=selectedChart.currentpos; i<endPos; i++) {
                     labels.push(records[i].name);

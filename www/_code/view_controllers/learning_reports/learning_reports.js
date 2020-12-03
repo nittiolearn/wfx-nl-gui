@@ -1344,9 +1344,9 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 
 	function _getHelp() {
         return {
-            firstPivot: {name: nl.t('Drill down level 1'), help: nl.t('Select the item to create first level drilldown.')},
-			secondPivot: {name: nl.t('Drill down level 2'), help: nl.t('Select the item to create second level drilldown.')},
-			pivotIndividualCourses: {name: nl.t('Course drilldowns'), help: nl.t('Enable this to show individual course level drill downs.')}
+            firstPivot: {name: nl.t('Drill down level 1'), help: nl.t('Select the item to create first level drilldown (applicable in Chart and Data tabs).')},
+			secondPivot: {name: nl.t('Drill down level 2'), help: nl.t('Select the item to create second level drilldown (applicable in Data tab).')},
+			pivotIndividualCourses: {name: nl.t('Course drilldowns'), help: nl.t('Enable this to show individual course level drill downs in Data tab')}
         }
     }
 
@@ -1373,8 +1373,9 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		}
 		_drilldownStatsCountDict = nlLrDrilldown.getStatsCountDict();
 		_drillDownColumns = _getDrillDownColumns();
-		$scope.drillDownInfo.tabs = [{id: 'charts', name: 'Charts', tabNo: 1}, {id: 'data', name: 'Data', tabNo: 2}];
-		$scope.drillDownInfo.selectedtab = $scope.drillDownInfo.tabs[0];
+		var selectedTab = $scope.drillDownInfo.selectedtab || null;
+		$scope.drillDownInfo.tabs = [{id: 'charts', name: 'Chart', tabNo: 1}, {id: 'data', name: 'Data', tabNo: 2}];
+		$scope.drillDownInfo.selectedtab = selectedTab || $scope.drillDownInfo.tabs[0];
 		$scope.drillDownInfo.drilldown = {columns: _drillDownColumns,
 			rows: _generateDrillDownArray(true, _drilldownStatsCountDict, true, false)};
 		_updateDrillDownCharts();
@@ -1447,7 +1448,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 	// Drilldown reports visualisations
 	//---------------------------------------------------------------------------------------------------------------------------------------------------------
 	function _updateDrillDownCharts() {
-		$scope.drillDownInfo.charts = {};
+		$scope.drillDownInfo.charts = {options: [{id: 'completed', name: 'Highest completion'}, {id: 'pending', name: 'Lowest completion'}]};
 		var lrColNamesDict = _updateSelectedLrColumns();
 		var summaryRow = _drilldownStatsCountDict[0].children;
 		var charts = {labels: [], series: ['Certified/Done', 'Failed', 'Pending'],
@@ -1471,15 +1472,17 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 							}
 						}, colors: [_nl.colorsCodes.done, _nl.colorsCodes.failed, _nl.colorsCodes.pending],
 						title: nl.t('Completion percentage based on {}', $scope.pivotConfig.level1Field.name || lrColNamesDict[$scope.pivotConfig.level1Field.id].name),
-						currentpos: 0
+						currentpos: 0,
+						maxvisible: 10
 					};
 		
 		charts.graphData = [];
 		for (var key in summaryRow) {
 			var statsDict = summaryRow[key].cnt;
 			var total = statsDict.certified+statsDict.failed+statsDict.notcompleted;
-			var certPerc = Math.round(statsDict.certified/total*100)
-			var failPerc = Math.round(statsDict.failed/total*100)
+			var certPerc = Math.round(statsDict.certified/total*100);
+			var failPerc = Math.round(statsDict.failed/total*100);
+			if (certPerc + failPerc > 100) failPerc--;
 			var notCompPerc = 100 - (certPerc+failPerc);
 			charts.graphData.push({name: statsDict.name || key, cert: certPerc, failed: failPerc, notCompleted: notCompPerc});
 		}
@@ -1504,12 +1507,12 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 				if(b.notCompleted == a.notCompleted) return 0;
 			});	
 		}
-		var endPos = 10;
-		if (charts.graphData.length < endPos) endPos = charts.graphData.length;
+		if (charts.graphData.length < charts.maxvisible) charts.maxvisible = charts.graphData.length;
 		var series1 = [];
 		var series2 = [];
 		var series3 = [];
-		for(var i=0; i<endPos; i++) {
+		charts.labels = [];
+		for(var i=0; i<charts.maxvisible; i++) {
 			charts.labels.push(charts.graphData[i].name);
 			series1.push(charts.graphData[i].cert);
 			series2.push(charts.graphData[i].failed);

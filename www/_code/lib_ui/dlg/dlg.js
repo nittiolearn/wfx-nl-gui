@@ -526,11 +526,29 @@ function(nl) {
         transclude: true,
         templateUrl: 'lib_ui/dlg/nlnavigator.html',
         scope: {
-            data: '='
+            data: '=',
+            options: '='
         },
         link: function($scope, iElem, iAttrs) {
             $scope.getVisibleString = function() {
                 return nl.utils.getFnFromParentOrGrandParent($scope, 'getVisibleString')($scope.data);
+            };
+            $scope.toggleDropDown = function() {
+                if (!$scope.options) return;
+                $scope.data.showDropDown = !$scope.data.showDropDown;
+            }
+
+            $scope.canShowDropdown = function() {
+                return $scope.data.showDropDown;
+            };
+
+            $scope.sortBasedOn = function(val) {
+                $scope.data.showDropDown = false;
+                nl.utils.getFnFromParentOrGrandParent($scope, 'sortBasedOn')($scope.data, val.id == "completed");
+            };
+
+            $scope.canSort = function() {
+                return nl.utils.getFnFromParentOrGrandParent($scope, 'canSort')($scope.data);
             };
 
             $scope.canShowPrev = function() {

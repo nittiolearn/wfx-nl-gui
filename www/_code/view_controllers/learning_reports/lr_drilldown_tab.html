@@ -15,24 +15,23 @@
 </div>
 
 <div ng-if='drilldowndata.selectedtab.id == "charts"'
-    class='flyfrom-r'
-    style='width:95vw'>
+    class='flyfrom-r'>
     <div class='row row-center text-center margin0 padding0'>
         <div class='col'></div>
-        <div class='col col-80' style='width: 100%; max-width: 900px;''>
+        <div class='col col-80' style='width: 100%; max-width: 900px;min-width: 300px;''>
             <div class='padding-small'></div>
             <div class='row row-center margin0 padding0 text-left'>
                 <div class='col fsh5 padding-mid'>
                     {{drilldowndata.charts.selectedChart.title}}
                 </div>
                 <div>
-                    <nl-navigation-section data="drilldowndata.charts.selectedChart"></nl-navigation-section>
+                    <nl-navigation-section data="drilldowndata.charts.selectedChart" options='drilldowndata.charts.options'></nl-navigation-section>
                 </div>
                 <div class='padding-mid'>
                 </div>
             </div>
             <div class='padding-small'></div>
-            <div style='width:100%; height: {{drilldowndata.charts.selectedChart.data[0].length > 3 ?  drilldowndata.charts.selectedChart.data[0].length*50 : 200}}px'>
+            <div style='width: auto; height: {{drilldowndata.charts.selectedChart.data[0].length > 3 ?  drilldowndata.charts.selectedChart.data[0].length*45 : 200}}px'>
                 <canvas class="chart chart-horizontal-bar ng-isolate-scope" 
                         chart-data="drilldowndata.charts.selectedChart.data" 
                         chart-labels="drilldowndata.charts.selectedChart.labels" 
@@ -51,13 +50,7 @@
         <tr class='header'>
             <td class='minw-name'>
                 <div class='row row-center magin0 padding0'>
-                    <span class='padding-small nl-link-text' title='Customize Drilldown'
-                        ng-click='updatePivotTable()'>
-                        <i class="icon ion-gear-b bold fsh3"></i>
-                    </span>
                     <div class='col'></div>
-                    <span class='nl-link-img'>
-                    </span> 
                 </div>
             </td>
             <td ng-repeat='col in drilldowndata.drilldown.columns track by $index'
