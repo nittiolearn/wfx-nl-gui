@@ -560,10 +560,12 @@ function(nl) {
             };
 
             $scope.onClickOnPrev = function () {
+                if (!nl.utils.getFnFromParentOrGrandParent($scope, 'canShowPrev')($scope.data)) return;
                 nl.utils.getFnFromParentOrGrandParent($scope, 'onClickOnPrev')($scope.data);
             };
 
             $scope.onClickOnNext = function () {
+                if (!nl.utils.getFnFromParentOrGrandParent($scope, 'canShowNext')($scope.data)) return;
                 nl.utils.getFnFromParentOrGrandParent($scope, 'onClickOnNext')($scope.data);
             };
         }
