@@ -3655,9 +3655,37 @@ a.enabled {
   height:24px;
   border-radius: 50%;        
 }
-.nl-link-text-nav {
+
+.nl-nav-text{
+  height: 32px;
+  padding: 8px;
+  border-radius: 5px;
   cursor: pointer;
   &:hover{
       background-color: $nlGrey2;
   }
+}
+.nl-nav-button {
+  cursor: pointer;
+  &:hover{
+      background-color: $nlGrey2;
+  }
+}
+.nl-nav-dropdown {
+  position:absolute; 
+  padding: 6px 0px;
+  min-width: 175px;
+  background-color:#ffffff; 
+  border-radius: 5px;
+  box-shadow: 0 8px 10px 1px rgba(0,0,0,0.14), 0 3px 14px 2px rgba(0,0,0,0.12), 0 5px 5px -3px rgba(0,0,0,0.2);
+}
+
+.nl-nav-dropdown-option{
+  height:36px;
+  padding: 0px 8px;
+  text-align: center;
+  cursor: pointer;
+  &:hover{
+    background-color: $nlGrey2;
+}
 }

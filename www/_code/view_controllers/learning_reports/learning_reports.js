@@ -161,7 +161,13 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			clickHandler: _userRowClickHandler,
 			metas: nlLrHelper.getMetaHeaders(false),
 			detailsInfo: {gradelabel: _userInfo.groupinfo.gradelabel, 
-				subjectlabel: _userInfo.groupinfo.subjectlabel}
+				subjectlabel: _userInfo.groupinfo.subjectlabel},
+			getVisibleString: _getMaxVisibleStringFn,
+			canShowPrev: _canShowPrev,
+			canShowNext: _canShowNext,
+			onClickOnNext: _onClickOnNext,
+			onClickOnPrev: _onClickOnPrev,
+			canSort: _canSort
 		};
 		_updateSelectedLrColumns();
 		$scope.utable.styleDetail = 'nl-max-1100';
@@ -172,6 +178,47 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		_initChartData();
 	}
 	
+	function _getMaxVisibleStringFn() {
+		var records = $scope.tabData && $scope.tabData.records || [];
+		var startpos = _tableNavPos.currentpos + 1;
+		if (records.length > MAX_VISIBLE) {
+			var endpos = _tableNavPos.currentpos + $scope.utable._internal.visibleRecs.length;
+			return nl.t('{} - {} of {}', startpos, endpos, records.length);
+		}
+		return nl.t('{} - {} of {}', startpos, records.length, records.length);
+	};
+
+	function _canShowPrev() {
+		if (_tableNavPos.currentpos > 0) return true;
+		return false;
+	};
+
+	function _canShowNext() {
+		var records = $scope.tabData && $scope.tabData.records || [];
+		if (_tableNavPos.currentpos + MAX_VISIBLE < records.length) return true;
+		return false;
+	};
+
+	function _onClickOnNext() {
+		var records = $scope.tabData.records || [];
+		if (_tableNavPos.currentpos + MAX_VISIBLE > records.length) return;
+		if (_tableNavPos.currentpos < records.length) {
+			_tableNavPos.currentpos += MAX_VISIBLE;
+		}
+		nlTable.updateTablePage($scope.utable, _tableNavPos.currentpos);
+	};
+
+	function _onClickOnPrev() {
+		if (_tableNavPos.currentpos == 0) return;
+		if (_tableNavPos.currentpos >= MAX_VISIBLE) {
+			_tableNavPos.currentpos -= MAX_VISIBLE;
+		}
+		nlTable.updateTablePage($scope.utable, _tableNavPos.currentpos);
+	}
+	
+	function _canSort() {
+		return false;
+	}
 	function _userRowClickHandler(rec, action) {
 		if (action == 'delete') {
 			return _deleteReport(rec);
@@ -398,45 +445,6 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
         else if (a < b) return -1;
         return 0;
     }
-
-	$scope.getMaxVisibleString = function() {
-		var posStr = '';
-		var records = $scope.tabData && $scope.tabData.records || [];
-		if (records.length > MAX_VISIBLE) {
-			var startpos = _tableNavPos.currentpos + 1;
-			var endpos = _tableNavPos.currentpos + $scope.utable._internal.visibleRecs.length;
-			posStr = nl.t('{} - {} of ', startpos, endpos);
-		}
-		return nl.t ('Showing {}{} items.', posStr, records.length);
-	};
-
-	$scope.canShowPrev = function() {
-		if (_tableNavPos.currentpos > 0) return true;
-		return false;
-	};
-
-	$scope.canShowNext = function() {
-		var records = $scope.tabData && $scope.tabData.records || [];
-		if (_tableNavPos.currentpos + MAX_VISIBLE < records.length) return true;
-		return false;
-	};
-
-	$scope.onClickOnNext = function () {
-		var records = $scope.tabData.records || [];
-		if (_tableNavPos.currentpos + MAX_VISIBLE > records.length) return;
-		if (_tableNavPos.currentpos < records.length) {
-			_tableNavPos.currentpos += MAX_VISIBLE;
-		}
-		nlTable.updateTablePage($scope.utable, _tableNavPos.currentpos);
-	};
-
-	$scope.onClickOnPrev = function () {
-		if (_tableNavPos.currentpos == 0) return;
-		if (_tableNavPos.currentpos >= MAX_VISIBLE) {
-			_tableNavPos.currentpos -= MAX_VISIBLE;
-		}
-		nlTable.updateTablePage($scope.utable, _tableNavPos.currentpos);
-	}
 
 	function _getContentOfCourseAssignment() {
         if(nlLrFilter.getType() != 'course_assign') return null;
@@ -1448,8 +1456,9 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 	// Drilldown reports visualisations
 	//---------------------------------------------------------------------------------------------------------------------------------------------------------
 	function _updateDrillDownCharts() {
-		$scope.drillDownInfo.charts = {options: [{id: 'completed', name: 'Highest completion'}, {id: 'pending', name: 'Lowest completion'}]};
 		var lrColNamesDict = _updateSelectedLrColumns();
+		var level1pivotName = $scope.pivotConfig.level1Field.name || lrColNamesDict[$scope.pivotConfig.level1Field.id].name;
+		$scope.drillDownInfo.charts = {options: [{id: $scope.pivotConfig.level1Field.id, name: level1pivotName}, {id: 'completed', name: 'Highest completion'}, {id: 'pending', name: 'Lowest completion'}]};
 		var summaryRow = _drilldownStatsCountDict[0].children;
 		var charts = {labels: [], series: ['Certified/Done', 'Failed', 'Pending'],
 					  	options: {scales: {
@@ -1469,6 +1478,17 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 								barPercentage: 0.9,
 								categoryPercentage: 0.6
 							}]
+							},
+							tooltips: {
+								enabled: true,
+								callbacks: {
+								  label: function(tooltipItem, data) {
+									var allData = data.datasets[tooltipItem.datasetIndex].data;
+									var tooltipLabel = data.datasets[tooltipItem.datasetIndex].label;
+									var tooltipData = allData[tooltipItem.index];
+									return tooltipLabel + ": " + tooltipData + "%";
+								  }
+								}
 							}
 						}, colors: [_nl.colorsCodes.done, _nl.colorsCodes.failed, _nl.colorsCodes.pending],
 						title: nl.t('Completion percentage based on {}', $scope.pivotConfig.level1Field.name || lrColNamesDict[$scope.pivotConfig.level1Field.id].name),
@@ -1486,25 +1506,31 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			var notCompPerc = 100 - (certPerc+failPerc);
 			charts.graphData.push({name: statsDict.name || key, cert: certPerc, failed: failPerc, notCompleted: notCompPerc});
 		}
-		_sortAndUpdate(charts, false);
+		_sortAndUpdate(charts, 'pending');
 		charts.sortAndUpdateFn = _sortAndUpdate;
 		$scope.drillDownInfo.charts.chartsArray= [charts];
 		$scope.drillDownInfo.charts.selectedChart = $scope.drillDownInfo.charts.chartsArray[0];
 	};
 
-	function _sortAndUpdate(charts, moreCompletion) {
+	function _sortAndUpdate(charts, sortOn) {
 		charts.currentpos = 0;
-		if (moreCompletion) {
+		if (sortOn == 'completed') {
 			charts.graphData.sort(function(a, b) {
 				if(b.notCompleted < a.notCompleted) return 1;
 				if(b.notCompleted > a.notCompleted) return -1;
 				if(b.notCompleted == a.notCompleted) return 0;
 			});	
-		} else {
+		} else if (sortOn == 'pending'){
 			charts.graphData.sort(function(a, b) {
 				if(b.notCompleted > a.notCompleted) return 1;
 				if(b.notCompleted < a.notCompleted) return -1;
 				if(b.notCompleted == a.notCompleted) return 0;
+			});	
+		} else {
+			charts.graphData.sort(function(a, b) {
+				if(b.name < a.name) return 1;
+				if(b.name > a.name) return -1;
+				if(b.name == a.name) return 0;
 			});	
 		}
 		if (charts.graphData.length < charts.maxvisible) charts.maxvisible = charts.graphData.length;

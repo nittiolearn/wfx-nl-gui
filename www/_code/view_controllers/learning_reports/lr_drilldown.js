@@ -141,7 +141,7 @@ function(nlReportHelper, nlTable) {
                 _attritionObj[statusStr] = record.stats.progress;
             return;
         }
-        if(status.id == nlReportHelper.STATUS_STARTED) {
+        if(statusStr != "failed" && status.id == nlReportHelper.STATUS_STARTED) {
             statsCountObj[statusStr] = 1;
             statsCountObj['started'] = 1;
             statsCountObj['notcompleted'] = 1;
@@ -153,7 +153,7 @@ function(nlReportHelper, nlTable) {
         } 
         statsCountObj['completed'] = 1;
         statsCountObj['percScore'] = record.stats.percScore;
-        if(status.id == nlReportHelper.STATUS_FAILED) {
+        if(status.id == nlReportHelper.STATUS_FAILED || statusStr == "failed") {
             statsCountObj['failed'] = 1;
             return;
         }

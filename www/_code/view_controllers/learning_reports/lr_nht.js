@@ -160,16 +160,20 @@ function(nl) {
             $scope.sortRows = function(colid) {
                 nl.utils.getFnFromParentOrGrandParent($scope, 'sortNhtRows')(colid);
             };
-            $scope.getMaxVisibleString = function(nht) {
+
+            $scope.canSort = function() {
+                return false;
+            }
+            $scope.getVisibleString = function(nht) {
                 if (!nht) return;
                 var posStr = '';
                 var rows = nht && nht.allRows || [];
+                var startpos = nht.currentpos + 1;
                 if (rows.length > nht.MAX_VISIBLE_NHT) {
-                    var startpos = nht.currentpos + 1;
                     var endpos = nht.currentpos + nht.rows.length - 1;
-                    posStr = nl.t('{} - {} of ', startpos, endpos);
+                    return nl.t('{} - {} of {}', startpos, endpos, rows.length);
                 }
-                return nl.t ('Showing {}{} items.', posStr, rows.length);
+                return nl.t('{} - {} of {}', startpos, rows.length, rows.length);
             };
         
             $scope.canShowPrev = function(nht) {
