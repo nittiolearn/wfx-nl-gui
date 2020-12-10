@@ -2272,6 +2272,10 @@ function SectionSelectionHandler(lesson) {
             njs_toolbelt.Toolbelt.toggleToolGroup('Media', true);
             var sec = _getSection();
             var pagetype = sec.page.pagetype;
+            if(sec.page.pagetype.isInteractive(sec)) {
+                njs_toolbelt.Toolbelt.toggleToolGroup('Popup', false);
+                return;
+            }
             njs_toolbelt.Toolbelt.toggleToolGroup('Popup', true);
             var osec = sec.oSection;
             if (osec && osec.popups) {
@@ -2460,7 +2464,6 @@ function ModulePopupHadler() {
 
     function _canShowPopup(section) {
         if (!section.oSection.popups) return false;
-        if (g_lesson.renderCtx.lessonMode() == 'do' || g_lesson.renderCtx.lessonMode() == 'report') return false;        
         if (g_lesson.renderCtx.launchCtx() != 'do_assign' && g_lesson.renderCtx.launchCtx() != 'view') return true;
         if (!section.page.pagetype.isInteractive(section)) return true;
         //if (g_lesson.oLesson.selfLearningMode) return true;

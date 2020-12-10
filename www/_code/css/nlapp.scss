@@ -2776,6 +2776,35 @@ img.nl-full-width {
 .nl-anim-grow {
     @include nl_animation_class(animGrow, 1s, ease-in-out, both);
 }
+
+.nl-anim-slide-right {
+  @include nl_animation_class(animSlideRight, 0.25s, linear, both);
+}
+
+.nl-anim-slide-right.ng-hide, .nl-anim-slide-right.ng-leave.ng-leave-active, .nl-anim-slide-right.ng-move, .nl-anim-slide-right.ng-enter {
+  opacity: 0;
+}
+
+@keyframes animSlideRight {
+  from {
+    transform: translateX(100vw);
+    opacity: 0.5; }
+
+  to {
+    transform: translateX(0);
+    opacity: 1; } }
+
+.nl-anim-slide-left {
+  @include nl_animation_class(animSlideLeft, 0.25s, linear, both);
+}
+@keyframes animSlideLeft {
+  from {
+    transform: translateX(-100vw);
+    opacity: 0; }
+
+  to {
+    transform: translateX(0);
+    opacity: 1; } }
     
 /*-----------------------------------------------------------------------------------------*
  * ng-show/hide animations
@@ -2838,7 +2867,7 @@ img.nl-full-width {
 .flyfrom-l.ng-leave.ng-leave-active,
 .flyfrom-l.ng-move,
 .flyfrom-l.ng-enter {
-  transform:translateX(-60vh);
+  transform:translateX(100vw);
 }
 
 .flyfrom-l.ng-leave,

@@ -14,8 +14,7 @@
     </div>
 </div>
 
-<div ng-if='drilldowndata.selectedtab.id == "charts"'
-    class='flyfrom-r'>
+<div ng-if='drilldowndata.selectedtab.id == "charts"'>
     <div class='row row-center text-center margin0 padding0'>
         <div class='col'></div>
         <div class='col col-80' style='width: 100%; max-width: 900px;min-width: 300px;''>
@@ -45,7 +44,13 @@
         <div class='col'></div>
     </div>
 </div>
-<div class='padding-mid flyfrom-l' ng-if='drilldowndata.selectedtab.id == "data"'>
+<div class='padding-mid anim-enter {{getAnimClass()}}' ng-if='drilldowndata.selectedtab.id == "data"'>
+    <div class='row row-center margin0 padding-mid' style='width:92vw'>
+        <div class='col'></div>
+        <div>
+            <nl-navigation-section data="drilldowndata.drilldown"></nl-navigation-section>
+        </div>
+    </div>
     <table class='nl-table nl-table-styled3 rowlines'>
         <tr class='header'>
             <td class='minw-name'>

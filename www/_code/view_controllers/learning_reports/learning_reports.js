@@ -409,8 +409,9 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		// but the internal function (_generateDrillDownArray) is called for drilldown as well as nht tabs.
 		if(!item.isFolder) return;
 		item.isOpen = !item.isOpen;
-		$scope.drillDownInfo.drilldown = {columns: _drillDownColumns, 
-			rows: _generateDrillDownArray(false, _drilldownStatsCountDict, true)};
+		var all = _generateDrillDownArray(false, _drilldownStatsCountDict, true);
+		$scope.drillDownInfo.drilldown.allRows = all;
+		_updateVisibleDrilldownRows($scope.drillDownInfo.drilldown);
 	};
 
 	$scope.sortNhtRows = function(colid) {
@@ -1384,11 +1385,55 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		var selectedTab = $scope.drillDownInfo.selectedtab || null;
 		$scope.drillDownInfo.tabs = [{id: 'charts', name: 'Chart', tabNo: 1}, {id: 'data', name: 'Data', tabNo: 2}];
 		$scope.drillDownInfo.selectedtab = selectedTab || $scope.drillDownInfo.tabs[0];
-		$scope.drillDownInfo.drilldown = {columns: _drillDownColumns,
-			rows: _generateDrillDownArray(true, _drilldownStatsCountDict, true, false)};
+		var all = _generateDrillDownArray(true, _drilldownStatsCountDict, true, false)
+		$scope.drillDownInfo.drilldown = {columns: _drillDownColumns, allRows: all, currentpos: 0, maxvisible: 100};
+		$scope.drillDownInfo.drilldown.getVisibleStringFn = _getVisibleStingDrilldown;
+		$scope.drillDownInfo.drilldown.canShowNextFn = _canShowNextDrilldown;
+		$scope.drillDownInfo.drilldown.onClickOnNextFn = _onClickOnNextDrilldown;
+		$scope.drillDownInfo.drilldown.onClickOnPrevFn = _onClickOnPrevDrilldown;
+		_updateVisibleDrilldownRows($scope.drillDownInfo.drilldown);
 		_updateDrillDownCharts();
 		return _drillDownColumns;
 	}
+
+	function _getVisibleStingDrilldown(drilldown) {
+		if (drilldown.currentpos + drilldown.maxvisible < drilldown.allRows.length) {
+			return nl.t('{} - {} of {}', drilldown.currentpos+1, drilldown.currentpos+drilldown.maxvisible, drilldown.allRows.length)
+		} 
+		return nl.t('{} - {} of {}', drilldown.currentpos+1, drilldown.allRows.length, drilldown.allRows.length);
+	}
+
+	function _canShowNextDrilldown(drilldown) {
+		if (!drilldown) return;
+		if (drilldown.currentpos + drilldown.maxvisible < drilldown.allRows.length) return true;
+		return false;
+	}
+
+	function _onClickOnNextDrilldown(drilldown) {
+		if (drilldown.currentpos + drilldown.maxvisible > drilldown.allRows.length) return;
+		if (drilldown.currentpos < drilldown.allRows.length) {
+			drilldown.currentpos += drilldown.maxvisible;
+		}
+		_updateVisibleDrilldownRows(drilldown);
+	}
+
+	function _onClickOnPrevDrilldown(drilldown) {
+		if (drilldown.currentpos == 0) return;
+		if (drilldown.currentpos >= drilldown.maxvisible) {
+			drilldown.currentpos -= drilldown.maxvisible;
+		}
+		_updateVisibleDrilldownRows(drilldown);
+	}
+	
+	function _updateVisibleDrilldownRows(drilldown) {
+		var _rows = [];
+		var maxCount = drilldown.allRows.length < drilldown.currentpos+drilldown.maxvisible ? drilldown.allRows.length : drilldown.currentpos+drilldown.maxvisible;
+		if ((drilldown.allRows.length - drilldown.currentpos) < drilldown.maxvisible) maxCount = drilldown.allRows.length;
+		for(var i=drilldown.currentpos; i<maxCount; i++) 
+			_rows.push(drilldown.allRows[i]);
+		drilldown.rows = _rows;
+	}
+
 
 	function _getDrillDownColumns() {
 		var columns = [];
@@ -1507,9 +1552,13 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			charts.graphData.push({name: statsDict.name || key, cert: certPerc, failed: failPerc, notCompleted: notCompPerc});
 		}
 		_sortAndUpdate(charts, 'pending');
-		charts.sortAndUpdateFn = _sortAndUpdate;
 		$scope.drillDownInfo.charts.chartsArray= [charts];
 		$scope.drillDownInfo.charts.selectedChart = $scope.drillDownInfo.charts.chartsArray[0];
+		$scope.drillDownInfo.charts.sortAndUpdateFn = _sortAndUpdate;
+		$scope.drillDownInfo.charts.getVisibleStringFn = _getVisibleStringCharts;
+		$scope.drillDownInfo.charts.canShowNextFn = _canShowNextCharts;
+		$scope.drillDownInfo.charts.onClickOnNextFn = _onClickOnNextCharts;
+		$scope.drillDownInfo.charts.onClickOnPrevFn = _onClickOnPrevCharts;
 	};
 
 	function _sortAndUpdate(charts, sortOn) {
@@ -1546,6 +1595,54 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		}
 		charts.data = [series1, series2, series3];
 	}
+
+	function _getVisibleStringCharts(selectedChart) {
+		if (selectedChart.currentpos + selectedChart.maxvisible < selectedChart.graphData.length) {
+			return nl.t('{} - {} of {}', selectedChart.currentpos+1, selectedChart.currentpos+selectedChart.maxvisible, selectedChart.graphData.length)
+		} 
+		return nl.t('{} - {} of {}', selectedChart.currentpos+1, selectedChart.graphData.length, selectedChart.graphData.length);
+	}
+
+	function _canShowNextCharts(selectedChart) {
+		if (!selectedChart) return;
+		if (selectedChart.currentpos + selectedChart.maxvisible < selectedChart.graphData.length) return true;
+		return false;
+	}
+
+	function _onClickOnNextCharts(selectedChart) {
+		if (selectedChart.currentpos + selectedChart.maxvisible > selectedChart.graphData.length) return;
+		if (selectedChart.currentpos < selectedChart.graphData.length) {
+			selectedChart.currentpos += selectedChart.maxvisible;
+		}
+		_updateCharts(selectedChart);
+	}
+
+	function _onClickOnPrevCharts(selectedChart) {
+		if (selectedChart.currentpos == 0) return;
+		if (selectedChart.currentpos >= selectedChart.maxvisible) {
+			selectedChart.currentpos -= selectedChart.maxvisible;
+		}
+		_updateCharts(selectedChart);
+	}
+
+	function _updateCharts(selectedChart) {
+		var records = selectedChart.graphData || [];
+		var series1 = [];
+		var series2 = [];
+		var series3 = [];
+		var labels = [];
+		var endPos = selectedChart.currentpos+selectedChart.maxvisible
+		if (endPos > records.length) endPos = records.length;
+		for(var i=selectedChart.currentpos; i<endPos; i++) {
+			labels.push(records[i].name);
+			series1.push(records[i].cert);
+			series2.push(records[i].failed);
+			series3.push(records[i].notCompleted);
+		}
+		selectedChart.data = [series1, series2, series3];
+		selectedChart.labels = labels;
+	}
+
 	//---------------------------------------------------------------------------------------------------------------------------------------------------------
 	// Common code between Drilldown and NHT tabs
 	//---------------------------------------------------------------------------------------------------------------------------------------------------------
