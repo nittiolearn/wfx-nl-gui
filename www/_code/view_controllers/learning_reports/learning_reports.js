@@ -1503,7 +1503,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 	function _updateDrillDownCharts() {
 		var lrColNamesDict = _updateSelectedLrColumns();
 		var level1pivotName = $scope.pivotConfig.level1Field.name || lrColNamesDict[$scope.pivotConfig.level1Field.id].name;
-		$scope.drillDownInfo.charts = {options: [{id: $scope.pivotConfig.level1Field.id, name: level1pivotName}, {id: 'completed', name: 'Highest completion'}, {id: 'pending', name: 'Lowest completion'}]};
+		$scope.drillDownInfo.charts = {options: [{id: $scope.pivotConfig.level1Field.id, name: nl.t('{} (A-Z)', level1pivotName)}, {id: 'completed', name: 'Highest completion'}, {id: 'pending', name: 'Lowest completion'}]};
 		var summaryRow = _drilldownStatsCountDict[0].children;
 		var charts = {labels: [], series: ['Certified/Done', 'Failed', 'Pending'],
 					  	options: {scales: {
