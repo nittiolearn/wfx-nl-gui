@@ -14,7 +14,8 @@
     </div>
 </div>
 
-<div ng-if='drilldowndata.selectedtab.id == "charts"'>
+<div ng-if='drilldowndata.selectedtab.id == "charts"'
+    class='anim-enter {{getAnimClass("charts")}}'>
     <div class='row row-center text-center margin0 padding0'>
         <div class='col'></div>
         <div class='col col-80' style='width: 100%; max-width: 900px;min-width: 300px;''>
@@ -44,13 +45,7 @@
         <div class='col'></div>
     </div>
 </div>
-<div class='padding-mid anim-enter {{getAnimClass()}}' ng-if='drilldowndata.selectedtab.id == "data"'>
-    <div class='row row-center margin0 padding-mid' style='width:92vw'>
-        <div class='col'></div>
-        <div>
-            <nl-navigation-section data="drilldowndata.drilldown"></nl-navigation-section>
-        </div>
-    </div>
+<div class='padding-mid anim-enter {{getAnimClass("data")}}' ng-if='drilldowndata.selectedtab.id == "data"'>
     <table class='nl-table nl-table-styled3 rowlines'>
         <tr class='header'>
             <td class='minw-name'>
@@ -66,7 +61,17 @@
         <tr class='{{rec.isFolder ? "clickable hover" : ""}}'
              ng-repeat='rec in drilldowndata.drilldown.rows track by $index'
              ng-click='generateDrillDownArray(rec)'>
-            <td class='minw-name'>
+             <td ng-if='rec.showMoreLink'
+                ng-click='onClickOnShowMore(rec);$event.stopImmediatePropagation(); $event.preventDefault();'
+                class='fgrey td-clickable td-hover'>
+                <div class='row row-center magin0 padding0'style='padding-left:{{rec.indentation}}px' >
+                    <div class='col'  style='padding-left:{{24+rec.cnt.indentation}}px' >Show more</div>
+                    <span class='nl-link-text'>
+                        <i class="padding-mid icon ion-chevron-down fsh4 nl-info-icon"></i>
+                    </span> 
+                </div>
+            </td>
+            <td ng-if='!rec.showMoreLink' class='minw-name'>
                 <div class='row row-center magin0 padding0'style='padding-left:{{rec.indentation}}px' >
                     <span class='padding-small' ng-show='rec.isFolder'>
                         <i ng-hide='rec.isOpen' class="icon ion-arrow-right-b bold fsh5"></i>
@@ -81,7 +86,7 @@
             <td ng-repeat='col in drilldowndata.drilldown.columns track by $index'
                 class='minw-number text-center'  ng-if='($root.screenSize != "small" && col.table) || ($root.screenSize == "small" && col.smallScreen)'>
                 <div class='row row-center {{!col.hidePerc ? "text-right" : "text-center"}}'>
-                    <div class='col'>{{rec[col.id] || '-'}}</div>
+                    <div class='col'>{{rec[col.id] || rec.showMoreLink ? '' : '-'}}</div>
                     <div class='col nl-perc-class text-left' ng-if='!col.hidePerc'>{{(col.percid && rec[col.percid]) ? rec[col.percid]+'%' : ''}}</div>
                 </div>
             </td>

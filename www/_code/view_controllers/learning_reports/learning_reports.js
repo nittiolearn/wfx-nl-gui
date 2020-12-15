@@ -409,8 +409,11 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		// but the internal function (_generateDrillDownArray) is called for drilldown as well as nht tabs.
 		if(!item.isFolder) return;
 		item.isOpen = !item.isOpen;
-		var all = _generateDrillDownArray(false, _drilldownStatsCountDict, true);
-		$scope.drillDownInfo.drilldown.allRows = all;
+		_updateVisibleDrilldownRows($scope.drillDownInfo.drilldown);
+	};
+
+	$scope.onClickOnShowMore = function(item) {
+		item.cnt.visible += $scope.drillDownInfo.drilldown.defMaxVisible;
 		_updateVisibleDrilldownRows($scope.drillDownInfo.drilldown);
 	};
 
@@ -1385,55 +1388,50 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		var selectedTab = $scope.drillDownInfo.selectedtab || null;
 		$scope.drillDownInfo.tabs = [{id: 'charts', name: 'Chart', tabNo: 1}, {id: 'data', name: 'Data', tabNo: 2}];
 		$scope.drillDownInfo.selectedtab = selectedTab || $scope.drillDownInfo.tabs[0];
-		var all = _generateDrillDownArray(true, _drilldownStatsCountDict, true, false)
-		$scope.drillDownInfo.drilldown = {columns: _drillDownColumns, allRows: all, currentpos: 0, maxvisible: 100};
-		$scope.drillDownInfo.drilldown.getVisibleStringFn = _getVisibleStingDrilldown;
-		$scope.drillDownInfo.drilldown.canShowNextFn = _canShowNextDrilldown;
-		$scope.drillDownInfo.drilldown.onClickOnNextFn = _onClickOnNextDrilldown;
-		$scope.drillDownInfo.drilldown.onClickOnPrevFn = _onClickOnPrevDrilldown;
+		var all = _generateFullDrilldownArray(true, _drilldownStatsCountDict, true);
+		$scope.drillDownInfo.drilldown = {columns: _drillDownColumns, allRows: all, shown: 0, childCount: all.length, defMaxVisible: 100};
 		_updateVisibleDrilldownRows($scope.drillDownInfo.drilldown);
 		_updateDrillDownCharts();
 		return _drillDownColumns;
 	}
-
-	function _getVisibleStingDrilldown(drilldown) {
-		if (drilldown.currentpos + drilldown.maxvisible < drilldown.allRows.length) {
-			return nl.t('{} - {} of {}', drilldown.currentpos+1, drilldown.currentpos+drilldown.maxvisible, drilldown.allRows.length)
-		} 
-		return nl.t('{} - {} of {}', drilldown.currentpos+1, drilldown.allRows.length, drilldown.allRows.length);
-	}
-
-	function _canShowNextDrilldown(drilldown) {
-		if (!drilldown) return;
-		if (drilldown.currentpos + drilldown.maxvisible < drilldown.allRows.length) return true;
-		return false;
-	}
-
-	function _onClickOnNextDrilldown(drilldown) {
-		if (drilldown.currentpos + drilldown.maxvisible > drilldown.allRows.length) return;
-		if (drilldown.currentpos < drilldown.allRows.length) {
-			drilldown.currentpos += drilldown.maxvisible;
-		}
-		_updateVisibleDrilldownRows(drilldown);
-	}
-
-	function _onClickOnPrevDrilldown(drilldown) {
-		if (drilldown.currentpos == 0) return;
-		if (drilldown.currentpos >= drilldown.maxvisible) {
-			drilldown.currentpos -= drilldown.maxvisible;
-		}
-		_updateVisibleDrilldownRows(drilldown);
-	}
 	
 	function _updateVisibleDrilldownRows(drilldown) {
 		var _rows = [];
-		var maxCount = drilldown.allRows.length < drilldown.currentpos+drilldown.maxvisible ? drilldown.allRows.length : drilldown.currentpos+drilldown.maxvisible;
-		if ((drilldown.allRows.length - drilldown.currentpos) < drilldown.maxvisible) maxCount = drilldown.allRows.length;
-		for(var i=drilldown.currentpos; i<maxCount; i++) 
-			_rows.push(drilldown.allRows[i]);
+		drilldown.shown = 0;
+		for(var i=0; i<drilldown.allRows.length; i++) {
+			var row = drilldown.allRows[i];
+			_rows.push(row);
+			if (row.isOpen && row.children) 
+				_addChildrenToRow(_rows, row);
+			drilldown.shown += 1;
+			if (!drilldown.visible) drilldown.visible = drilldown.defMaxVisible;
+			if (drilldown.shown < drilldown.visible) continue;
+			if (drilldown.visible < drilldown.allRows.length) {
+				_rows.push({cnt: drilldown, showMoreLink: true});
+				break;
+			}
+		}
 		drilldown.rows = _rows;
 	}
 
+	function _addChildrenToRow(_rows, row) {
+		var children = row.children || [];
+		row.shown = 0;
+		for(var i=0; i<children.length; i++) {
+			var child = children[i];
+			_rows.push(child);
+			if (child.isOpen && child.children) {
+				_addChildrenToRow(_rows, child);
+			}
+			row.shown += 1;
+			if(!row.visible) row.visible = $scope.drillDownInfo.drilldown.defMaxVisible;
+			if(row.shown < row.visible) continue;
+			if (row.visible < row.children.length) {
+				_rows.push({cnt: row, showMoreLink: true});
+				break;
+			}
+		}
+	}
 
 	function _getDrillDownColumns() {
 		var columns = [];
@@ -1504,7 +1502,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		var lrColNamesDict = _updateSelectedLrColumns();
 		var level1pivotName = $scope.pivotConfig.level1Field.name || lrColNamesDict[$scope.pivotConfig.level1Field.id].name;
 		$scope.drillDownInfo.charts = {options: [{id: $scope.pivotConfig.level1Field.id, name: nl.t('{} (A-Z)', level1pivotName)}, {id: 'completed', name: 'Highest completion'}, {id: 'pending', name: 'Lowest completion'}]};
-		var summaryRow = _drilldownStatsCountDict[0].children;
+		var summaryRow = (_drilldownStatsCountDict[0] && _drilldownStatsCountDict[0].children) ? _drilldownStatsCountDict[0].children : {};
 		var charts = {labels: [], series: ['Certified/Done', 'Failed', 'Pending'],
 					  	options: {scales: {
 							xAxes: [{
@@ -1704,6 +1702,61 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 				if(org.cnt.isOpen && org.children) _addSuborgOrOusToArray(drillDownArray,
 					org.children, org.cnt.sortkey, org.cnt.name, showLeafOnly);
 			}
+		}
+	}
+
+	//---------------------------------------------------------------------------------------------------------------------------------------------------------
+	// Code to compute and push all the for drilldown
+	//---------------------------------------------------------------------------------------------------------------------------------------------------------
+	function _generateFullDrilldownArray(firstTimeGenerated, statusDict, singleRepCheck) {
+		var drillDown = [];
+		var isSingleReport = (singleRepCheck && Object.keys(statusDict).length == 2) ? true : false;
+		for(var key in statusDict) {
+			var root = statusDict[key];
+			if(key == 0) {
+				root.cnt.style = 'nl-bg-dark-blue';
+				root.cnt['sortkey'] = 0+root.cnt.name;
+				root.cnt.isSummaryRow = true;
+				if(isSingleReport) continue;
+			} else {
+				root.cnt.style = 'nl-bg-blue';
+				root.cnt['sortkey'] = 1+root.cnt.name+key;
+			}
+
+			drillDown.push(root.cnt);
+			root.cnt.childCount = 0;
+			root.cnt.isOpen = false;
+			root.cnt.shown = 0;
+			root.cnt.children = [];
+			if (root.children) _addSuborgOrOusToDrilldownArray(root.cnt, drillDown, root.children,
+				root.cnt.sortkey, null);
+		}
+		drillDown.sort(function(a, b) {
+			if(b.sortkey.toLowerCase() < a.sortkey.toLowerCase()) return 1;
+			if(b.sortkey.toLowerCase() > a.sortkey.toLowerCase()) return -1;
+			if(b.sortkey.toLowerCase() == a.sortkey.toLowerCase()) return 0;				
+		});
+		return drillDown;
+	};
+
+	function _addSuborgOrOusToDrilldownArray(folderitem, drillDown, subOrgDict, sortkey, subOrgName) {
+		for(var key in subOrgDict) {
+			folderitem.childCount++;
+			var org = subOrgDict[key];
+				org.cnt['sortkey'] = sortkey+'.aa'+org.cnt.name;
+				org.cnt['orgname'] = org.cnt['name'];
+				if(nlGroupInfo.isSubOrgEnabled()) {
+					if(subOrgName && org.cnt['name'].indexOf(subOrgName+'.') === 0) org.cnt['orgname'] = org.cnt['name'].slice(subOrgName.length+1);
+				}
+				folderitem.children.push(org.cnt);
+				if(org.children) {
+					org.cnt.childCount = 0;
+					org.cnt.shown = 0;
+					org.cnt.children = [];
+					org.cnt.isOpen = false;
+					_addSuborgOrOusToDrilldownArray(org.cnt, drillDown,
+					org.children, org.cnt.sortkey, org.cnt.name);
+				}
 		}
 	}
 

@@ -509,6 +509,14 @@ $animation-duration: 200ms !default;
       border: 1px solid $nlBorderGrey2;
     }
   }
+  td.td-clickable {
+    cursor: pointer;
+  }
+  td.td-hover {
+    &:hover, &:focus, &:active {
+      background-color: $nlGrey3;
+    }
+  }
 }
 
 
@@ -2863,11 +2871,24 @@ img.nl-full-width {
   transform:translateY(0);
 }
 
+.flyfrom-r.ng-hide,
+.flyfrom-r.ng-leave.ng-leave-active,
+.flyfrom-r.ng-move,
+.flyfrom-r.ng-enter {
+  transform:translateX(100vw);
+}
+
+.flyfrom-r.ng-leave,
+.flyfrom-r.ng-move.ng-move-active,
+.flyfrom-r.ng-enter.ng-enter-active {
+  transform:translateX(0);
+}
+
 .flyfrom-l.ng-hide,
 .flyfrom-l.ng-leave.ng-leave-active,
 .flyfrom-l.ng-move,
 .flyfrom-l.ng-enter {
-  transform:translateX(100vw);
+  transform:translateX(-100vw);
 }
 
 .flyfrom-l.ng-leave,
@@ -3680,8 +3701,8 @@ a.enabled {
 /*----------------------------------------------------------------------------------------------------*/
 
 .nl-nav-arrow{
-  width:26px; 
-  height:24px;
+  width: 30px; 
+  height: 30px;
   border-radius: 50%;        
 }
 

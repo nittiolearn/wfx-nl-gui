@@ -186,6 +186,11 @@ function(nl) {
                 nl.utils.getFnFromParentOrGrandParent($scope, 'generateDrillDownArray')(item);
             };
 
+            $scope.onClickOnShowMore = function(item) {
+                nl.utils.getFnFromParentOrGrandParent($scope, 'onClickOnShowMore')(item);
+
+            };
+
             $scope.updatePivotTable = function(item) {
                 nl.utils.getFnFromParentOrGrandParent($scope, 'updatePivotTable')(item);
             };
@@ -195,6 +200,7 @@ function(nl) {
             };
 
             $scope.changeTab = function(drilldowndata, tab) {
+                drilldowndata.previousSelectedTab = drilldowndata.selectedtab;
                 drilldowndata.selectedtab = tab;
             };
 
@@ -202,9 +208,17 @@ function(nl) {
                 return ($scope.drilldowndata.selectedtab.id == 'charts');
             };
 
-            $scope.getAnimClass = function() {
+            $scope.getAnimClass = function(tabid) {
                 if (!$scope.drilldowndata) return '';
-                if ($scope.drilldowndata.selectedtab.id == 'data') return 'flyfrom-l';
+                if (tabid != $scope.drilldowndata.selectedtab.id) return;
+                var currentSelectedTab = $scope.drilldowndata.selectedtab;
+                var previousSelectedTab = $scope.drilldowndata.previousSelectedTab || {};
+                var animEffect = null;
+                if (previousSelectedTab.tabNo < currentSelectedTab.tabNo) 
+                    animEffect = 'flyfrom-r';
+                if (currentSelectedTab.tabNo < previousSelectedTab.tabNo)
+                    animEffect = 'flyfrom-l';
+                return animEffect;
             };
 
             $scope.sortBasedOn = function(selectedChart, val) {
