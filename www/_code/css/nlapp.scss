@@ -519,6 +519,14 @@ $animation-duration: 200ms !default;
   }
 }
 
+.td-cell-clickable {
+  cursor: pointer;
+}
+.td-cell-hover {
+  &:hover, &:focus, &:active {
+    background-color: $nlGrey3;
+  }
+}
 
 .no-border {
   tr { border: none;}

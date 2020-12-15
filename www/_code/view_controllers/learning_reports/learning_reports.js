@@ -1389,7 +1389,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		$scope.drillDownInfo.tabs = [{id: 'charts', name: 'Chart', tabNo: 1}, {id: 'data', name: 'Data', tabNo: 2}];
 		$scope.drillDownInfo.selectedtab = selectedTab || $scope.drillDownInfo.tabs[0];
 		var all = _generateFullDrilldownArray(true, _drilldownStatsCountDict, true);
-		$scope.drillDownInfo.drilldown = {columns: _drillDownColumns, allRows: all, shown: 0, childCount: all.length, defMaxVisible: 100};
+		$scope.drillDownInfo.drilldown = {columns: _drillDownColumns, allRows: all, shown: 0, childCount: all.length, defMaxVisible: 2};
 		_updateVisibleDrilldownRows($scope.drillDownInfo.drilldown);
 		_updateDrillDownCharts();
 		return _drillDownColumns;
