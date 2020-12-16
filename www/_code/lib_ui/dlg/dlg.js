@@ -559,12 +559,14 @@ function(nl) {
 
             $scope.canShowPrev = function() {
                 if (!$scope.data) return;
+                if (typeof $scope.data == 'object' && Object.keys($scope.data).length == 0) return;
                 if ('canShowPrev' in $scope.data) return $scope.data.canShowPrev($scope.data);
                 return nl.utils.getFnFromParentOrGrandParent($scope, 'canShowPrev')($scope.data);
             };
         
             $scope.canShowNext = function() {
                 if (!$scope.data) return;
+                if (typeof $scope.data == 'object' && Object.keys($scope.data).length == 0) return;
                 if ('canShowNext' in $scope.data) return $scope.data.canShowNext($scope.data);
                 return nl.utils.getFnFromParentOrGrandParent($scope, 'canShowNext')($scope.data);
             };
