@@ -1,4 +1,13 @@
-<div> <!-- Dummy div to solve scrolled view disappears with popup issue #701 -->
+<div> 
+    <div ng-if="cards.breadCrump.breadCrumpData.currentFolder && $root.screenSize=='small'" class="padding-mid ">
+        <div class="padding-mid">
+            <span ng-repeat='path in cards.breadCrump.breadCrumpData.currentPath track by $index'
+                ng-click="cards.breadCrump.onClickBreadCrumb(path.id)" nlta='{{path.name}}'
+                class='nl-link-text padding-mid-right'>{{path.name}} >
+            </span>
+        </div>
+    </div>
+    <!-- Dummy div to solve scrolled view disappears with popup issue #701 -->
 <div class='row row-center margin0 padding0'
 	 style='height: 36px; overflow: hidden; border-bottom: 1px solid rgba(0, 0, 0, 0.1)'
 	 ng-if='cards.toolbar'>
@@ -27,6 +36,14 @@
         </select>
 
         <div class='padding-small'></div>
+        <div ng-if="cards.dropdown.dropdownData.canFolderView && $root.screenSize!= 'small'">
+            <select class='col padding-mid default-input ' ng-model='selectedFolder'
+                ng-init="selectedFolder=cards.dropdown.dropdownData.defaultValue" id='elem.id'
+                ng-change='cards.dropdown.onChange(selectedFolder)'
+                ng-options='elem.name as elem.name for elem in cards.dropdown.dropdownData.folderViewOptions '
+                style="width: 175px;">
+            </select>
+        </div>
         <i ng-if='cards.savejson.icon' class='nl-link-text icon fsh4 fblue2 padding-mid {{cards.savejson.icon}}'
            tabindex="0" ng-click='saveJsonButton()'></i>
     
@@ -35,6 +52,15 @@
            tabindex="0" ng-click='onSearchButton()'></i>
     </div>
     <div class='padding-small'></div>
+    <div class="row row-center margin0 padding0"
+    ng-if="cards.dropdown.dropdownData.canFolderView && $root.screenSize=='small'">
+    <select class='col padding-mid default-input' ng-model='selectedFolder'
+        ng-init="selectedFolder=cards.dropdown.dropdownData.defaultValue" id='elem.id'
+        ng-change='cards.dropdown.onChange(selectedFolder)'
+        ng-options='elem.name as elem.name for elem in cards.dropdown.dropdownData.folderViewOptions '
+        style="margin-right: 12px;">
+    </select>
+    </div>
     <div class='row row-center padding0 margin0'>
         <div ng-show='cards._internal.search.usageHint' class='padding-small'>
         </div>
@@ -50,22 +76,42 @@
 <div ng-hide='cards.search' class='padding-mid'>
 </div>
 
-<div ng-if='!cards.listConfig'
-     class='nl-card nl-link-text-container {{cards.largeData ? "" : "anim fade"' 
-	 ng-repeat="card in cards._internal.visibleCards" 
-     nlta='{{card.title}}'
-	 ng-style="{height: h + 'px', width: w + 'px', 'font-size': fs + '%', 'margin-left': ml + 'px'}">
+<div class="row  margin0 padding0">
+    <div ng-if='cards.treeStructure.treeView.canTreeView && $root.screenSize!= "small" '
+        style='position: relative; width: 300px; border-right: 1px solid rgba(0, 0, 0, 0.1)'>
+        <div class='nl-thin-scroll nl-full'>
+            <div ng-repeat='cm in cards.treeStructure.treeView.treeData' class='row row-center margin0'
+                style='padding: 8px' ng-show='cm.isVisible'>
+                <div style='width: {{cm.indentation*16}}px'></div>
+                <div class=' row row-center margin0 padding-mid nl-cv-item nl-link-text'
+                    ng-click="cards.treeStructure.onClickTreeFolder($event,cm)">
+                    <div ng-show='cm.isFolder' style='width: 20px'>
+                        <i ng-show='!cm.isOpen' class="icon ion-arrow-right-b bold fsh3"></i>
+                        <i ng-show='cm.isOpen' class="icon ion-arrow-down-b bold fsh3"></i>
+                    </div>
+                    <div class='col nl-cv-item-text'>{{cm.name}}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col">
+        <div ng-if='!cards.listConfig' class=' padding0 nl-card nl-link-text-container {{cards.largeData ? "" : "anim fade" ' 
+        ng-repeat="card in cards._internal.visibleCards" 
+        nlta='{{card.title}}'
+            ng-style="{height: h + 'px', width: w + 'px', 'font-size': fs + '%', 'margin-left': ml + 'px'} ">
+            <a ng-if='card.url' class='nl-card-url' ng-href='{{card.url}}'>
+                <nl-card card='card'
+                    class='nl-card-holder {{card.style}} {{card.url || card.internalUrl ? "nl-link-img" : ""}}'
+                    ng-click='onCardInternalUrlClicked(card, card.internalUrl || null)'></nl-card>
+            </a>
+            <div ng-if='!card.url' class='nl-card-url'>
+                <nl-card card='card'
+                    class='nl-card-holder {{card.style}} {{card.url || card.internalUrl ? "nl-link-img" : ""}}'
+                    ng-click='onCardInternalUrlClicked(card, card.internalUrl || null)'></nl-card>
+            </div>
 
-	<a ng-if='card.url' class='nl-card-url' ng-href='{{card.url}}'>	
-		<nl-card card='card'
-			class='nl-card-holder {{card.style}} {{card.url || card.internalUrl ? "nl-link-img" : ""}}'
-			ng-click='onCardInternalUrlClicked(card, card.internalUrl || null)'></nl-card>
-	</a>
-	<div ng-if='!card.url' class='nl-card-url'>
-		<nl-card card='card'
-			class='nl-card-holder {{card.style}} {{card.url || card.internalUrl ? "nl-link-img" : ""}}'
-			ng-click='onCardInternalUrlClicked(card, card.internalUrl || null)'></nl-card>
-	</div>
+        </div>
+    </div>
 
 </div>
 

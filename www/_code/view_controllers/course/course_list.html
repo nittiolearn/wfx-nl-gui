@@ -1,11 +1,3 @@
 <div class="nl-thin-scroll">
-    <div ng-show='folderView.currentFolder' class="padding-mid">
-        <div class="padding-mid">
-            <span ng-repeat='path in folderView.currentPath track by $index' ng-click="onClickBreadCrumb(path.id)"
-                    nlta='{{path.name}}'
-                    class='nl-link-text padding-mid-right'>{{path.name}} >
-            </span>
-        </div>
-    </div>
     <nl-cards cards='cards'></nl-cards>
 </div>
