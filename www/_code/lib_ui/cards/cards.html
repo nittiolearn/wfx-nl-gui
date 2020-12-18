@@ -1,8 +1,8 @@
 <div> 
-    <div ng-if="cards.breadCrump.breadCrumpData.currentFolder && $root.screenSize=='small'" class="padding-mid ">
+    <div ng-if="cards.treeStructure.treeView.canBreadCrumpView && $root.screenSize=='small'" class="padding-mid ">
         <div class="padding-mid">
-            <span ng-repeat='path in cards.breadCrump.breadCrumpData.currentPath track by $index'
-                ng-click="cards.breadCrump.onClickBreadCrumb(path.id)" nlta='{{path.name}}'
+            <span ng-repeat='path in cards.treeStructure.treeView.currentPath track by $index'
+                ng-click="cards.treeStructure.onClickBreadCrumb(path.id)" nlta='{{path.name}}'
                 class='nl-link-text padding-mid-right'>{{path.name}} >
             </span>
         </div>

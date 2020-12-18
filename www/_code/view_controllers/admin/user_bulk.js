@@ -666,10 +666,10 @@ function(nl, nlDlg, nlGroupInfo, nlImporter, nlProgressLog, nlRouter, nlServerAp
         var actualOU = ou;
         if (ou.indexOf('.') > 0) {
             var ouarray = ou.split('.');
-            for(var i=0; i<ouarray.length; i++) ouarray[i] = ouarray[i].toLowerCase().trim();
+            for(var i=0; i<ouarray.length; i++) ouarray[i] = ouarray[i].trim();
             ou = ouarray.join('.');
         } else {
-            ou = ou.toLowerCase().trim();
+            ou = ou.trim();
         }
         if (ou in _ouDict) return {isFound: true, ou: ou};
         if (actualOU.indexOf('.') > 0) {

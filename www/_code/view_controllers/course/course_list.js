@@ -109,16 +109,17 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
 		currentPath: [],		// Path shown in breadcrumps
 		searchStr: '',			// For custom searching in folder view
 		searchCategory: '',			// For custom searching in folder view
-		canTreeView:false,
-		treeData:[],
-		drodownData:{}
+		treeData:{},
+		dropdownData:{}
 	}; 
-	_searchCache.drodownData['canFolderView']=false;
+	_searchCache.dropdownData['canFolderView']=false;
+	_searchCache.treeData['canTreeView']=false;
+	_searchCache.treeData['canBreadCrumpView']=false;
 
 	function _makeTreeStructure(grade) {
 		var _gradeInfo = {data: nlTreeSelect.strArrayToTreeArray(grade|| [])};
 		 nlTreeSelect.updateSelectionTree(_gradeInfo, {});
-		_searchCache.treeData=_gradeInfo.data;
+		_searchCache.treeData['treeData']=_gradeInfo.data;
 	}
 
 	function _computeFolderView(treeFolderView, _treeFolderView) {
@@ -131,7 +132,7 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
    }
 
    function _initTreeStructure() {
-		_searchCache.canTreeView=true;
+		_searchCache.treeData['canTreeView']=true;
 		var _rootFolder={};
 		var _treeFolderView=[];
 		_rootFolder[_searchCache.folderLabel]=_searchCache.tree._root;
@@ -139,8 +140,8 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
 		_makeTreeStructure(_treeFolderView);
 		_updateFolderPath(null);
 		_addCurrentFolderCards();
-		_showImmediateChild(_searchCache.treeData[0]);
-		_searchCache.treeData[0].isOpen=true;
+		_showImmediateChild(_searchCache.treeData['treeData'][0]);
+		_searchCache.treeData['treeData'][0].isOpen=true;
 	}
 
 	function _onSelectFolder(selectedFolder) {
@@ -148,6 +149,7 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
 			_searchCache.folder = 'none';
 			_searchCache.folderLabel=null;
 			_searchCache.currentFolder=null;
+			_searchCache.treeData['canBreadCrumpView']=false;
 		} else if (selectedFolder == _userInfo.groupinfo.gradelabel) {
 			_searchCache.folder = 'grade';
 			_searchCache.folderLabel = _userInfo.groupinfo.gradelabel;
@@ -159,7 +161,7 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
 		if(_searchCache.folder != 'none') {
 			_initTreeStructure();
 		}
-		else _searchCache.canTreeView=false;		 
+		else _searchCache.treeData['canTreeView']=false;		 
 	}	
 
 	function _onClickTreeFolder(e,cm) {
@@ -203,10 +205,10 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
 	}
 
 	function _updateIsVisible(id,visibleState) {
-		for(var i=0;i<_searchCache.treeData.length;i++) {
-			if(_searchCache.treeData[i]['id'] == id) {
-				if(_searchCache.treeData[i].isFolder) _searchCache.treeData[i]['isOpen']=false;
-				_searchCache.treeData[i].isVisible=visibleState;
+		for(var i=0;i<_searchCache.treeData['treeData'].length;i++) {
+			if(_searchCache.treeData['treeData'][i]['id'] == id) {
+				if(_searchCache.treeData['treeData'][i].isFolder) _searchCache.treeData['treeData'][i]['isOpen']=false;
+				_searchCache.treeData['treeData'][i].isVisible=visibleState;
 			}
 		}
 	}
@@ -231,17 +233,14 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
 					placeholder: nl.t('Enter course name/description')
 				},
 				dropdown:{
-					dropdownData:_searchCache.drodownData,
+					dropdownData:_searchCache.dropdownData,
 					onChange: _onSelectFolder,
 				},
 				treeStructure:{
-					treeView:_searchCache,
-					onClickTreeFolder:_onClickTreeFolder,		
-				},
-				breadCrump:{
-					breadCrumpData:_searchCache,
-					onClickBreadCrumb:_onClickBreadCrumb,
-				}	
+					treeView:_searchCache.treeData,
+					onClickTreeFolder:_onClickTreeFolder,
+					onClickBreadCrumb:_onClickBreadCrumb,		
+				},	
 			};
 			if(_isSaveJson)	$scope.cards.savejson = { show : _isSaveJson};
 			nlCardsSrv.initCards($scope.cards);
@@ -325,20 +324,20 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
 		if(!('folder' in params)) return;
 		_searchCache.folder = params.folder || "none";
 		_searchCache.enabled = true;
-		_searchCache.drodownData['canFolderView']=true;
-		_searchCache.drodownData['defaultValue']="None";
+		_searchCache.dropdownData['canFolderView']=true;
+		_searchCache.dropdownData['defaultValue']="None";
 		var folderViewOptions = [
 			{'id': 'none', 'val': 'none', 'name': 'None'},
 			{'id': 'grade', 'val': 'grade', 'name': _userInfo.groupinfo.gradelabel},
 			{'id': 'subject', 'val': 'subject', 'name': _userInfo.groupinfo.subjectlabel}
 		];
-		_searchCache.drodownData['folderViewOptions']=folderViewOptions;
+		_searchCache.dropdownData['folderViewOptions']=folderViewOptions;
 		if (_searchCache.folder == 'grade') {
 			_searchCache.folderLabel = _userInfo.groupinfo.gradelabel;
-			_searchCache.drodownData['defaultValue']=_userInfo.groupinfo.gradelabel;
+			_searchCache.dropdownData['defaultValue']=_userInfo.groupinfo.gradelabel;
 		} else if (_searchCache.folder == 'subject') {
 			_searchCache.folderLabel = _userInfo.groupinfo.subjectlabel;
-			_searchCache.drodownData['defaultValue']=_userInfo.groupinfo.subjectlabel;
+			_searchCache.dropdownData['defaultValue']=_userInfo.groupinfo.subjectlabel;
 		} else if (_searchCache.folder == 'authorname') {
 			_searchCache.folderLabel = 'Author:';
 		}
@@ -455,7 +454,7 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
 			}
 			_addToFolders(courseItem, itemVisible);
 		}
-		if(_searchCache.drodownData['canFolderView']) _initTreeStructure();
+		if(_searchCache.dropdownData['canFolderView']) _initTreeStructure();
 		_updateCounts(_searchCache.tree['_root']);
 		_addCurrentFolderCards();
 	}
@@ -532,15 +531,18 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
 	function _updateFolderPath(pathId) {
 		if (_searchCache.currentFolder == pathId) return;
 		if(!pathId) {
-			_searchCache.currentFolder = null; 
+			_searchCache.currentFolder = null;
+			_searchCache.treeData['canBreadCrumpView']=false; 
 			return;
 		}
 		_searchCache.currentFolder = pathId;
+		_searchCache.treeData['canBreadCrumpView']=true;
 		_searchCache.currentPath = [{name: _searchCache.folderLabel, id: null}];
 		var parts = pathId.split('.');
 		for(var i=0; i<parts.length; i++) {
 			_searchCache.currentPath.push({ name: parts[i], id:parts.slice(0,i+1).join('.') });
 		}
+		_searchCache.treeData['currentPath']=_searchCache.currentPath;
 	}
 	
 	function _addCurrentFolderCards() {
