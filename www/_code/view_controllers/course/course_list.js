@@ -110,7 +110,7 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
 	}; 
 	function _makeTreeStructure(strArray) {
 		var treeArray = {data: nlTreeSelect.strArrayToTreeArray(strArray|| [])};
-		var openUptoLevel = 2; // TODO-NOW - check if 2
+		var openUptoLevel = 2;
 		nlTreeSelect.updateSelectionTree(treeArray, {}, openUptoLevel);
 		_searchCache.folderTree.treeData = treeArray.data;
 	}
