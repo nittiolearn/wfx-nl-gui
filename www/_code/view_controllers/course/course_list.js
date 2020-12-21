@@ -104,13 +104,13 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
 		itemsDict: {},			// list of course/ course assignmenet items fetched from search cache
 		searchStr: '',			// For custom searching in folder view
 		searchCategory: '',			// For custom searching in folder view
-		folderTree: {canTreeView: false, treeData: null, folderLabel: null,
+		folderTree: {canTreeView: false, treeData: [], folderLabel: null,
 			currentFolder: null, currentPath: []},
 		folderTypeDropdown: {canFolderView: false, defaultValue: null, folderViewOptions: []}
 	}; 
 	function _makeTreeStructure(strArray) {
 		var treeArray = {data: nlTreeSelect.strArrayToTreeArray(strArray|| [])};
-		var openUptoLevel = 1; // TODO-NOW - check if 2
+		var openUptoLevel = 2; // TODO-NOW - check if 2
 		nlTreeSelect.updateSelectionTree(treeArray, {}, openUptoLevel);
 		_searchCache.folderTree.treeData = treeArray.data;
 	}
@@ -128,7 +128,7 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
 		_searchCache.folderTree.canTreeView = true;
 		var rootFolder={};
 		var allTreeFolders=[];
-		rootFolder[_searchCache.folderLabel]=_searchCache.tree._root;
+		rootFolder[_searchCache.folderTree.folderLabel]=_searchCache.tree._root;
 		_computeFolderView(rootFolder,allTreeFolders);
 		_makeTreeStructure(allTreeFolders);
 		_updateFolderPath(null);
@@ -145,17 +145,20 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
 		} else {
 			_searchCache.folder = 'none';
 			_searchCache.folderTree.folderLabel = null;
+			_searchCache.folderTree.currentFolder=null;
 			_searchCache.folderTree.canTreeView = false;
+			_updateSearchCachedCards();
 			return;
 		}
 		_updateCardsInFolderView();
+		_initTreeStructure();
 	}	
 
 	function _onClickTreeFolder(e,cm) {
 		e.stopImmediatePropagation();
 		e.preventDefault();
 		if(cm.isFolder) {
-			if(cm.isOpen) _closeAllChildren(cm,visibleState);
+			if(!cm.isOpen) _closeAllChildren(cm);
 			else _showImmediateChild(cm);
 			cm.isOpen=!cm.isOpen;
 		} 
@@ -180,9 +183,10 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
 	function _closeAllChildren(cm) {
 		if(!('children' in cm)) return;
 		var children = cm['children'];
-		for(var childid in children) {
-			_updateIsVisible(childid, false);
-			if('children' in childrens[children])  _closeAllChildren(childrens[children]);
+		for(var i=0;i<Object.keys(children).length;i++) {
+			var child=Object.keys(children)[i];
+			_updateIsVisible(children[child].id,false);
+			if('children' in children[child])  _closeAllChildren(children[child]);
 		}
 	}
 
@@ -399,7 +403,7 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
 	}
 
     function _updateSearchCachedCards() {
-		if (_searchCache.enabled) return _updateCardsInFolderView();
+		if (_searchCache.folderTree.folderLabel) return _updateCardsInFolderView();
 		var cards = [];
 		for (var itemId in _searchCache.itemsDict) {
 			var card = _createCard(_searchCache.itemsDict[itemId]);
@@ -506,13 +510,12 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
 		if (ft.currentFolder == pathId) return;
 		if(!pathId) {
 			ft.currentFolder = null;
-			ft.currentPath = [];
-			ft.canTreeView = false; 
+			ft.currentPath = []; 
 			return;
 		}
 		ft.currentFolder = pathId;
 		ft.canTreeView = true;
-		ft.currentPath = [{name: _searchCache.folderLabel, id: null}];
+		ft.currentPath = [{name: ft.folderLabel, id: null}];
 		var parts = pathId.split('.');
 		for(var i=0; i<parts.length; i++) {
 			ft.currentPath.push({ name: parts[i], id:parts.slice(0,i+1).join('.') });

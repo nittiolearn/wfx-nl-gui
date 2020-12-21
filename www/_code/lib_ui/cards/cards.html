@@ -52,14 +52,13 @@
            tabindex="0" ng-click='onSearchButton()'></i>
     </div>
     <div class='padding-small'></div>
-    <div class="row row-center margin0 padding0"
-    ng-if="cards.folderTypeDropdown.canFolderView && $root.screenSize=='small'">
-    <select class='col padding-mid default-input' ng-model='selectedFolder'
-        ng-init="selectedFolder=cards.folderTypeDropdown.defaultValue" id='elem.id'
-        ng-change='cards.folderTypeDropdown.onChange(selectedFolder)'
-        ng-options='elem.name as elem.name for elem in cards.folderTypeDropdown.folderViewOptions '
-        style="margin-right: 12px;">
-    </select>
+    <div class="row row-center margin0 padding0" ng-if="cards.folderTypeDropdown.canFolderView && $root.screenSize=='small'">
+        <select class='col padding-mid default-input ' ng-model='selectedFolder'
+            ng-init="selectedFolder={id:cards.folderTypeDropdown.defaultValue}" id='elem.id'
+            ng-change='cards.folderTypeDropdown.onChange(selectedFolder.id)'
+            ng-options='elem as elem.name for elem in cards.folderTypeDropdown.folderViewOptions track by elem.id'
+            style="margin-right: 12px;">
+        </select>
     </div>
     <div class='row row-center padding0 margin0'>
         <div ng-show='cards._internal.search.usageHint' class='padding-small'>
@@ -86,8 +85,8 @@
                 <div class=' row row-center margin0 padding-mid nl-cv-item nl-link-text'
                     ng-click="cards.folderTree.onClickTreeFolder($event,cm)">
                     <div ng-show='cm.isFolder' style='width: 20px'>
-                        <i ng-show='!cm.isOpen' class="icon ion-arrow-right-b bold fsh3"></i>
-                        <i ng-show='cm.isOpen' class="icon ion-arrow-down-b bold fsh3"></i>
+                        <i ng-show='cm.isOpen' class="icon ion-arrow-right-b bold fsh3"></i>
+                        <i ng-show='!cm.isOpen' class="icon ion-arrow-down-b bold fsh3"></i>
                     </div>
                     <div class='col nl-cv-item-text'>{{cm.name}}</div>
                 </div>
