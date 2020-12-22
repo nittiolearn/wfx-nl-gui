@@ -105,7 +105,7 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
 		searchStr: '',			// For custom searching in folder view
 		searchCategory: '',			// For custom searching in folder view
 		folderTree: {canTreeView: false, treeData: [], folderLabel: null,
-			currentFolder: null, currentPath: []},
+			currentFolder: null, currentPath: [],selectedID:null},
 		folderTypeDropdown: {canFolderView: false, defaultValue: null, folderViewOptions: []}
 	}; 
 	function _makeTreeStructure(strArray) {
@@ -115,21 +115,27 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
 		_searchCache.folderTree.treeData = treeArray.data;
 	}
 
-	function _computeFolderView(currentFolder, allTreeFolders) {
-		for(var i=0;i<Object.keys(currentFolder).length;i++) {
-			var child = Object.keys(currentFolder)[i];
-			if(allTreeFolders.length>0) allTreeFolders.push(allTreeFolders[0]+'.'+child);
-			else allTreeFolders.push(child); 
-			if('folders' in currentFolder[child]) _computeFolderView(currentFolder[child].folders,allTreeFolders);
+	function _computeFolderView(currentFolder, allTreeFolders, parentId) {
+		for(var key in currentFolder) {
+			var child = currentFolder[key];
+			if (parentId) 
+				allTreeFolders.push(parentId+'.'+key);
+			else 
+				allTreeFolders.push(key);
+			if('folders' in child){
+				var folderId = parentId ? parentId+'.'+key : key;
+				_computeFolderView(child.folders, allTreeFolders, folderId);
+			} 
+
 		}
-   }
+	}
 
    function _initTreeStructure() {
 		_searchCache.folderTree.canTreeView = true;
 		var rootFolder={};
 		var allTreeFolders=[];
 		rootFolder[_searchCache.folderTree.folderLabel]=_searchCache.tree._root;
-		_computeFolderView(rootFolder,allTreeFolders);
+		_computeFolderView(rootFolder,allTreeFolders,null);
 		_makeTreeStructure(allTreeFolders);
 		_updateFolderPath(null);
 		_addCurrentFolderCards();
@@ -161,7 +167,7 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
 			if(!cm.isOpen) _closeAllChildren(cm);
 			else _showImmediateChild(cm);
 			cm.isOpen=!cm.isOpen;
-		} 
+		} else _searchCache.folderTree.selectedID = cm.id;
 		var part = cm.id.split('.');
 		var pathId="";
 		for(var i=1; i<part.length; i++) {
@@ -174,27 +180,28 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
 
 	function _showImmediateChild(cm) {
 		var immediateChildrens=cm['children'];
-		for(var i=0;i<Object.keys(immediateChildrens).length;i++) {
-			 var children=Object.keys(immediateChildrens)[i];
-			 _updateIsVisible(immediateChildrens[children].id,true);
+		for(var key in immediateChildrens ) {
+			var item = immediateChildrens[key];
+			_updateIsVisible(item.id, true);
 		}
 	}
 
 	function _closeAllChildren(cm) {
 		if(!('children' in cm)) return;
 		var children = cm['children'];
-		for(var i=0;i<Object.keys(children).length;i++) {
-			var child=Object.keys(children)[i];
-			_updateIsVisible(children[child].id,false);
-			if('children' in children[child])  _closeAllChildren(children[child]);
+		for(var key in children ) {
+			var child=children[key];
+			_updateIsVisible(child.id, false);
+			if('children' in child)  _closeAllChildren(child);
 		}
 	}
 
 	function _updateIsVisible(id,visibleState) {
-		for(var i=0;i<_searchCache.folderTree.treeData.length;i++) {
-			if(_searchCache.folderTree.treeData[i]['id'] == id) {
-				if(_searchCache.folderTree.treeData[i].isFolder) _searchCache.folderTree.treeData[i]['isOpen']=false;
-				_searchCache.folderTree.treeData[i].isVisible=visibleState;
+		var treeData=_searchCache.folderTree.treeData;
+		for(var i=0;i<treeData.length;i++) {
+			if(treeData[i]['id'] == id) {
+				if(treeData[i].isFolder) treeData[i]['isOpen']=false;
+				treeData[i].isVisible=visibleState;
 			}
 		}
 	}
@@ -311,8 +318,7 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
 			ft.folderLabel = _userInfo.groupinfo.gradelabel;
 		} else if (_searchCache.folder == 'subject') {
 			ft.folderLabel =_userInfo.groupinfo.subjectlabel;
-		}
-		else {
+		} else {
 			_searchCache.folder = 'none';
 			ft.folderLabel = null;
 		}
