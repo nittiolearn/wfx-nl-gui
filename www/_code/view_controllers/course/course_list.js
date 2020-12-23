@@ -105,7 +105,7 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
 		searchStr: '',			// For custom searching in folder view
 		searchCategory: '',			// For custom searching in folder view
 		folderTree: {canTreeView: false, treeData: [], folderLabel: null,
-			currentFolder: null, currentPath: [],selectedID:null},
+			currentFolder: null, currentPath: [], selectedLeaf:null},
 		folderTypeDropdown: {canFolderView: false, defaultValue: null, folderViewOptions: []}
 	}; 
 	function _makeTreeStructure(strArray) {
@@ -167,7 +167,10 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
 			if(!cm.isOpen) _closeAllChildren(cm);
 			else _showImmediateChild(cm);
 			cm.isOpen=!cm.isOpen;
-		} else _searchCache.folderTree.selectedID = cm.id;
+			_searchCache.folderTree.selectedLeaf = null;
+		} else {
+			_searchCache.folderTree.selectedLeaf = cm;
+		}
 		var part = cm.id.split('.');
 		var pathId="";
 		for(var i=1; i<part.length; i++) {
