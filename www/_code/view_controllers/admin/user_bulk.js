@@ -677,7 +677,7 @@ function(nl, nlDlg, nlGroupInfo, nlImporter, nlProgressLog, nlRouter, nlServerAp
             for(var i=0; i<ouarray.length; i++) ouarray[i] = ouarray[i].trim();
             actualOU = ouarray.join('.');
         } else {
-            actualOU = ou.trim();
+            actualOU = actualOU.trim();
         }
         ou = actualOU;
         var msg = nl.fmt2('OU not present in tree: {}', ou);
@@ -726,7 +726,7 @@ function(nl, nlDlg, nlGroupInfo, nlImporter, nlProgressLog, nlRouter, nlServerAp
                     for(var i=0; i<ouarray.length; i++) ouarray[i] = ouarray[i].trim();
                     actualOU = ouarray.join('.');
                 } else {
-                    actualOU = ou.trim();
+                    actualOU = actualOU.trim();
                 }
                 array.push(actualOU);
             }
