@@ -1,3 +1,10 @@
+<style>
+    .tree-View{
+        overflow: auto; 
+        height: 575px;
+        border-top: 1px solid rgba(0, 0, 0, 0.1);
+    }
+</style>
 <div>
     <div ng-if="cards.folderTree.canTreeView && $root.screenSize=='small'" class="padding-mid ">
         <div class="padding-mid">
@@ -72,7 +79,7 @@
 
     <div class="row  margin0 padding0">
         <div ng-if='cards.folderTree.canTreeView && $root.screenSize!= "small" '
-            style='position: relative; width: 300px; border-right: 1px solid rgba(0, 0, 0, 0.1)'>
+            style='position: relative; width: 300px; border-right: 1px solid rgba(0, 0, 0, 0.1); border-top: 1px solid rgba(0, 0, 0, 0.1)'>
             <div class='nl-thin-scroll nl-full'>
                 <div ng-repeat='cm in cards.folderTree.treeData' class='row row-center margin0' style='padding: 8px'
                     ng-show='cm.isVisible'>
@@ -88,7 +95,7 @@
                 </div>
             </div>
         </div>
-        <div class="col">
+        <div class="col {{cards.folderTree.canTreeView && $root.screenSize != 'small' ? 'tree-View':'' }}">
             <div ng-if='!cards.listConfig'
                 class=' padding0 nl-card nl-link-text-container {{cards.largeData ? "" : "anim fade" '
                 ng-repeat="card in cards._internal.visibleCards" nlta='{{card.title}}'
