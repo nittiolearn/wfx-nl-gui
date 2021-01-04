@@ -80,8 +80,8 @@
                     <div class=' row row-center margin0 padding-mid nl-cv-item nl-link-text {{cards.folderTree.selectedID == cm.id ? "selected" : "" }}'
                         ng-click="cards.folderTree.onClickTreeFolder($event,cm)">
                         <div ng-show='cm.isFolder' style='width: 20px'>
-                            <i ng-show='cm.isOpen' class="icon ion-arrow-right-b bold fsh3"></i>
-                            <i ng-show='!cm.isOpen' class="icon ion-arrow-down-b bold fsh3"></i>
+                            <i ng-show='!cm.isOpen' class="icon ion-arrow-right-b bold fsh3"></i>
+                            <i ng-show='cm.isOpen' class="icon ion-arrow-down-b bold fsh3"></i>
                         </div>
                         <div class='col nl-cv-item-text'>{{cm.name}}</div>
                     </div>

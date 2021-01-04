@@ -115,30 +115,32 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
 		_searchCache.folderTree.treeData = treeArray.data;
 	}
 
-	function _computeFolderView(currentFolder, allTreeFolders, parentId) {
+	function _computeFolderView(currentFolder, allTreeFolders) {
 		for(var key in currentFolder) {
 			var child = currentFolder[key];
-			if (parentId) 
-				allTreeFolders.push(parentId+'.'+key);
+			if (allTreeFolders.length>0) 
+				allTreeFolders.push(allTreeFolders[0]+'.'+key);
 			else 
 				allTreeFolders.push(key);
 			if('folders' in child){
-				var folderId = parentId ? parentId+'.'+key : key;
-				_computeFolderView(child.folders, allTreeFolders, folderId);
+				_computeFolderView(child.folders, allTreeFolders);
 			} 
 
 		}
 	}
 
    function _initTreeStructure() {
-		_searchCache.folderTree.canTreeView = true;
-		var rootFolder={};
-		var allTreeFolders=[];
-		rootFolder[_searchCache.folderTree.folderLabel]=_searchCache.tree._root;
+	   var selectedFolder = _searchCache.folder == 'grade' || _searchCache.folder == 'subject' || _searchCache.folder == 'authorname';
+		_searchCache.folderTree.canTreeView = selectedFolder ? true : false ;
+		if(_searchCache.folderTree.canTreeView == false) return;
+		var rootFolder = {};
+		var allTreeFolders = [];
+		rootFolder[_searchCache.folderTree.folderLabel] = _searchCache.tree._root;
 		_computeFolderView(rootFolder,allTreeFolders,null);
 		_makeTreeStructure(allTreeFolders);
 		_updateFolderPath(null);
 		_addCurrentFolderCards();
+		_searchCache.folderTree.treeData[0].isOpen = true;
 	}
 
 	function _onSelectFolder(selectedFolder) {
@@ -148,10 +150,15 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
 		} else if (selectedFolder == 'subject') {
 			_searchCache.folder = 'subject';
 			_searchCache.folderTree.folderLabel = _userInfo.groupinfo.subjectlabel;
-		} else {
+		} 
+		else if (selectedFolder == 'authorname') {
+			_searchCache.folder = 'authorname';
+			_searchCache.folderTree.folderLabel = 'Author:';
+		}
+		else {
 			_searchCache.folder = 'none';
 			_searchCache.folderTree.folderLabel = null;
-			_searchCache.folderTree.currentFolder=null;
+			_searchCache.folderTree.currentFolder = null;
 			_searchCache.folderTree.canTreeView = false;
 			_updateSearchCachedCards();
 			return;
@@ -164,7 +171,8 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
 		e.stopImmediatePropagation();
 		e.preventDefault();
 		if(cm.isFolder) {
-			if(!cm.isOpen) _closeAllChildren(cm);
+			_searchCache.folderTree.selectedID = null;
+			if(cm.isOpen) _closeAllChildren(cm);
 			else _showImmediateChild(cm);
 			cm.isOpen=!cm.isOpen;
 		} else _searchCache.folderTree.selectedID = cm.id;
@@ -311,14 +319,18 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
 		_searchCache.folderTypeDropdown.folderViewOptions = [
 			{'id': 'none', 'name': 'None'},
 			{'id': 'grade', 'name': _userInfo.groupinfo.gradelabel},
-			{'id': 'subject', 'name': _userInfo.groupinfo.subjectlabel}
+			{'id': 'subject', 'name': _userInfo.groupinfo.subjectlabel},
+			{'id': 'authorname',  'name': 'Author'}
 		];
 		var ft = _searchCache.folderTree;
 		if (_searchCache.folder == 'grade') {
 			ft.folderLabel = _userInfo.groupinfo.gradelabel;
 		} else if (_searchCache.folder == 'subject') {
 			ft.folderLabel =_userInfo.groupinfo.subjectlabel;
-		} else {
+		} else if (_searchCache.folder == 'authorname') {
+			_searchCache.folderLabel = 'Author:';
+		} 
+		else {
 			_searchCache.folder = 'none';
 			ft.folderLabel = null;
 		}
