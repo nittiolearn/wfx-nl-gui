@@ -108,22 +108,25 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
 			currentFolder: null, currentPath: [], selectedLeaf:null},
 		folderTypeDropdown: {canFolderView: false, defaultValue: null, folderViewOptions: []}
 	}; 
-	function _makeTreeStructure(strArray) {
+	function _makeTreeStructure(strArray, allTreeCounts) {
 		var treeArray = {data: nlTreeSelect.strArrayToTreeArray(strArray|| [])};
+		for (var i=0; i<treeArray.data.length; i++) {
+			var treeItem = treeArray.data[i];
+			treeItem.sticker = treeItem.id in allTreeCounts ? ('' + allTreeCounts[treeItem.id]) : '';
+		}
 		var openUptoLevel = 2;
 		nlTreeSelect.updateSelectionTree(treeArray, {}, openUptoLevel);
 		_searchCache.folderTree.treeData = treeArray.data;
 	}
 
-	function _computeFolderView(currentFolder, allTreeFolders) {
+	function _computeFolderView(currentFolder, allTreeFolders, allTreeCounts) {
 		for(var key in currentFolder) {
 			var child = currentFolder[key];
-			if (allTreeFolders.length>0) 
-				allTreeFolders.push(allTreeFolders[0]+'.'+key);
-			else 
-				allTreeFolders.push(key);
+			var folderName = allTreeFolders.length>0 ? allTreeFolders[0]+'.'+key : key;
+			allTreeFolders.push(folderName);
+			allTreeCounts[folderName] = child.count;		
 			if('folders' in child){
-				_computeFolderView(child.folders, allTreeFolders);
+				_computeFolderView(child.folders, allTreeFolders, allTreeCounts);
 			} 
 
 		}
@@ -135,10 +138,11 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
 		if(_searchCache.folderTree.canTreeView == false) return;
 		var rootFolder = {};
 		var allTreeFolders = [];
+		var allTreeCounts = {};
 		rootFolder[_searchCache.folderTree.folderLabel] = _searchCache.tree._root;
-		_computeFolderView(rootFolder,allTreeFolders);
+		_computeFolderView(rootFolder, allTreeFolders, allTreeCounts);
 		allTreeFolders.sort();
-		_makeTreeStructure(allTreeFolders);
+		_makeTreeStructure(allTreeFolders, allTreeCounts);
 		_updateFolderPath(null);
 		_addCurrentFolderCards();
 		_searchCache.folderTree.treeData[0].isOpen = true;
@@ -314,7 +318,7 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
 		if (!_searchCache.folder) return;
 		_searchCache.folderTypeDropdown.canFolderView = true;
 		_searchCache.folderTypeDropdown.folderViewOptions = [
-			{'id': 'none', 'name': 'None'},
+			{'id': 'none', 'name': 'Select folder view ...'},
 			{'id': 'grade', 'name': _userInfo.groupinfo.gradelabel},
 			{'id': 'subject', 'name': _userInfo.groupinfo.subjectlabel}
 		];
@@ -443,8 +447,8 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
 			}
 			_addToFolders(courseItem, itemVisible);
 		}
-		if(_searchCache.folderTypeDropdown.canFolderView) _initTreeStructure();
 		_updateCounts(_searchCache.tree['_root']);
+		if(_searchCache.folderTypeDropdown.canFolderView) _initTreeStructure();
 		_addCurrentFolderCards();
 	}
 
@@ -498,8 +502,11 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
 	function _createFolderCard(fs) {
 		var icon2 = fs.count ? 'ion-ios-folder forange3' : 'ion-ios-folder fgrey';
 		var cardStyle = fs.count ? 'bgblue3' : 'bgdefault nl-opacity-5';
-		var card = {title: nl.fmt2('{} ({})', fs.folderName, fs.count),
+		var stickerTrStyle = 'round fwhite fsmall2 padding-small-h ' + (fs.count ? 'bgblue' : 'bggrey');
+		var card = {title: fs.folderName,
 					icon2: icon2,
+					stickerTr: '' + fs.count || 0,
+					stickerTrStyle: stickerTrStyle,
 					fs: fs, 
 					internalUrl: 'folder_click',
 					children: [],
