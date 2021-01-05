@@ -187,7 +187,8 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
             quizScore: {},
             nlockedcnt: 0,
             nhiddencnt: 0,
-            ndelayedcnt: 0
+            ndelayedcnt: 0,
+            lastUnlockedModule: null
 
             // Also may have has following:
             // reattempt: true/false
@@ -232,6 +233,9 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
             }
             if (cm.isReattempt && itemInfo.rawStatus != 'pending') ret.reattempt = true;
             _updateStatusToWaitingIfNeeded(cm, itemInfo, itemIdToInfo);
+            if (cm.type == 'lesson' && itemInfo.status != 'waiting') {
+                ret.lastUnlockedModule = cm;
+            }
             if (!(cm.hide_locked && itemInfo.status == 'waiting')) _updateItemToLocked(cm, itemInfo, earlierTrainerItems); 
             if((cm.hide_locked && itemInfo.status == 'waiting') || itemInfo.hideItem) {
                 itemInfo.hideItem = true;
@@ -929,6 +933,15 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
             ret.status = defaultCourseStatus;
             if (defaultCourseStatus == 'pending') _checkAndUpdateRecordStatus(ret, defaultCourseStatus);
             return; 
+        }
+        //Check whether none of the next items are accessible
+        if (ret.lastUnlockedModule) {
+            var _item = ret.lastUnlockedModule;
+            var _itemInfo = ret.itemIdToInfo[_item.id];
+            if (_itemInfo.status == 'failed' && _item.maxAttempts == _itemInfo.nAttempts) {
+                ret.status = 'failed';
+                return;
+            }
         }
         var cm = _modules[_modules.length -1];
         var itemInfo = ret.itemIdToInfo[cm.id];
