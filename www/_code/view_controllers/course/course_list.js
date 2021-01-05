@@ -172,12 +172,6 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
 			if(cm.isOpen) _closeAllChildren(cm);
 			else _showImmediateChild(cm);
 			cm.isOpen=!cm.isOpen;
-<<<<<<< HEAD
-			_searchCache.folderTree.selectedLeaf = null;
-		} else {
-			_searchCache.folderTree.selectedLeaf = cm;
-=======
->>>>>>> 1acabe4dacdc26e89e43e39f5230e1e898029c6a
 		}
 		var part = cm.id.split('.');
 		var pathId="";
