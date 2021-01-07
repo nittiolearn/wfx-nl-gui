@@ -223,6 +223,7 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
 			nlGetManyStore.init();
 			_initParams();
 			nl.pginfo.pageTitle = _getPageTitle();
+			if(nl.pginfo.pageTitle == 'Published courses') _initFolderView ();
 			if(_searchCache.enabled) nlSearchCacheSrv.init();
 			$scope.cards = {
 				staticlist: _getStaticCards(), 
@@ -311,7 +312,6 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
 		_searchMetadata = nlMetaDlg.getMetadataFromUrl();
 		_maxDelete = params.max_delete || 50;
 		_max2 = ('max2' in params) ? parseInt(params.max2) : 500;
-		_initFolderView ();
 	}
 
 	function _initFolderView () {
