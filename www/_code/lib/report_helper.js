@@ -526,6 +526,7 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
     function _getRawStatusOfLesson(cm, itemInfo) {
         var linfo = _lessonReports[cm.id] || null;
         itemInfo.selfLearningMode = false;
+        itemInfo.maxAttempts = cm.maxAttempts || 1;
         if (linfo === null) {
             itemInfo.rawStatus = 'pending';
             itemInfo.score = null;
@@ -750,6 +751,7 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
         var failCnt = 0;
         var pendCnt = 0;
         var isFailed = false;
+        var moreAttemptsCnt = 0;
         // We need to go through all elements in list to calculate pendCnt
         for(var i=0; i<prereqs.length; i++){
             var p = prereqs[i];
@@ -772,7 +774,10 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
                     }
                     if (condTotal == condSatisfied) continue;
                 }
-                if (cm.type == 'certificate' && preItem.isModuleCompleted && preItem.isModuleCompleted.status == 'failed') isFailed = true;
+                if (cm.type == 'certificate' && preItem.isModuleCompleted && preItem.isModuleCompleted.status == 'failed') {
+                    isFailed = true;
+                    if (preItem.type == 'lesson' && preItem.nAttempts < preItem.maxAttempts) moreAttemptsCnt++;
+                }
                 pendCnt++;
                 continue;
             }
@@ -807,7 +812,10 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
                     }
                 }    
             }
-            if (isConditionFailed) failCnt++;
+            if (isConditionFailed) {
+                failCnt++;
+                if (preItem.type == 'lesson' && preItem.nAttempts < preItem.maxAttempts) moreAttemptsCnt++;
+            }
         }
 
         if (condCnt == 0) return;
@@ -818,6 +826,10 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
             itemInfo.prereqPending = false;
         } else if (pendCnt > 0) {
             itemInfo.prereqPending = true;
+        }
+        if (cm.type == 'certificate') {
+            if (isAndCondition && (errCnt == moreAttemptsCnt)) itemInfo.prereqPending = true;
+            else if (!isAndCondition && (moreAttemptsCnt > 0)) itemInfo.prereqPending = true;    
         }
         itemInfo.status = 'waiting';
         itemInfo.score = null;
