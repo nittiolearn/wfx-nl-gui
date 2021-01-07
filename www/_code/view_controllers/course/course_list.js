@@ -215,6 +215,13 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
 		}
 	}
 
+	function _getCardSearchObj() {
+		return {customSearch: _searchCache.folderTree.folderLabel ? _onFolderViewSearch: null,
+			onSearch: _metadataEnabled ? _onSearch: null, 
+			placeholder: nl.t('Enter course name/description')
+		};
+	}
+
 	function _onPageEnter(userInfo) {
 		_userInfo = userInfo;
 		_canManage = nlRouter.isPermitted(_userInfo, 'assignment_manage');
@@ -228,10 +235,7 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
 			$scope.cards = {
 				staticlist: _getStaticCards(), 
 				largeData: _searchCache.enabled,
-				search: {customSearch: _searchCache.enabled ? _onFolderViewSearch: null,
-					onSearch: _metadataEnabled ? _onSearch: null, 
-					placeholder: nl.t('Enter course name/description')
-				},
+				search: _getCardSearchObj(),
 				folderTypeDropdown: _searchCache.folderTypeDropdown,
 				folderTree: _searchCache.folderTree
 			};
@@ -432,6 +436,7 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
 		});
 		nlCardsSrv.updateCards($scope.cards, {
 			cardlist: cards,
+			search: _getCardSearchObj(),
 			canFetchMore: nlSearchCacheSrv.canFetchMore(_searchCache.cacheType)
 		});
 	}
@@ -570,6 +575,7 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
 
 		nlCardsSrv.updateCards($scope.cards, {
 			cardlist: cards,
+			search: _getCardSearchObj(),
 			canFetchMore: nlSearchCacheSrv.canFetchMore(_searchCache.cacheType)
 		});
 	}
