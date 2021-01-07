@@ -518,6 +518,11 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
         }
     }
 
+    function _getValidTime(timeSpentSeconds) {
+        var ret = timeSpentSeconds || 0;
+        return (ret < 0) ? 0 : ret;
+    }
+
     function _getRawStatusOfLesson(cm, itemInfo) {
         var linfo = _lessonReports[cm.id] || null;
         itemInfo.selfLearningMode = false;
@@ -528,7 +533,7 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
             return;
         }
         itemInfo.nAttempts = linfo.attempt || null;
-        itemInfo.timeSpentSeconds = linfo.timeSpentSeconds || 0;
+        itemInfo.timeSpentSeconds = _getValidTime(linfo.timeSpentSeconds);
         itemInfo.moduleRepId = linfo.reportId || null;
         itemInfo.selfLearningMode = linfo.selfLearningMode || false;
         if (!linfo.completed) {
@@ -552,11 +557,11 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
         var pastInfo = _pastLessonReports[cm.id] || {};
         var maxPerc = _getPerc(linfo);
         var maxLinfo = linfo;
-        var totalTimeSpent = linfo.timeSpentSeconds;
+        var totalTimeSpent = _getValidTime(linfo.timeSpentSeconds);
         for(var i=pastInfo.length-1; i>=0; i--) {
             var pastRep = pastInfo[i];
             if (!pastRep.completed || !pastRep.reportId) continue; // For data created by old bug (see #956)
-            totalTimeSpent += pastRep.timeSpentSeconds;
+            totalTimeSpent += _getValidTime(pastRep.timeSpentSeconds);
             var pastPerc = _getPerc(pastRep);
             if(pastPerc <= maxPerc) continue;
             maxPerc = pastPerc;

@@ -1201,6 +1201,7 @@ nlesson = function() {
         if (!('sessionStartTime' in lesson)) return;
         var now = new Date();
         var timeSpentSeconds = parseInt((now.valueOf() - lesson.sessionStartTime.valueOf())/1000);
+		if (timeSpentSeconds < 0) timeSpentSeconds = 0;
         lesson.sessionStartTime = now;
         if ('timeSpentSeconds' in lesson.oLesson) lesson.oLesson.timeSpentSeconds += timeSpentSeconds;
     }
