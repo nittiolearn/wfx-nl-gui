@@ -223,7 +223,7 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
 			nlGetManyStore.init();
 			_initParams();
 			nl.pginfo.pageTitle = _getPageTitle();
-			if(nl.pginfo.pageTitle == 'Published courses') _initFolderView ();
+			_initFolderView();
 			if(_searchCache.enabled) nlSearchCacheSrv.init();
 			$scope.cards = {
 				staticlist: _getStaticCards(), 
@@ -315,6 +315,7 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
 	}
 
 	function _initFolderView () {
+		if (!(type == 'course' && !my)) return;
 		if (!_searchCache.folder) return;
 		_searchCache.folderTypeDropdown.canFolderView = true;
 		_searchCache.folderTypeDropdown.folderViewOptions = [
