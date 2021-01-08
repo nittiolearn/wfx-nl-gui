@@ -1,11 +1,10 @@
 <style>
     .tree-View{
         overflow: auto; 
-        height: 575px;
         border-top: 1px solid rgba(0, 0, 0, 0.1);
     }
 </style>
-<div>
+<div class='nl-learning-report-body padding-small nl-thin-scroll' style='position:absolute; width: 100%; height: 100%'>
     <div ng-if="cards.folderTree.canTreeView && $root.screenSize=='small'" class="padding-mid ">
         <div class="padding-mid">
             <span ng-repeat='path in cards.folderTree.currentPath track by $index'
@@ -24,7 +23,7 @@
         </span>
     </div>
 
-    <div ng-show='cards.search' class='padding-mid'>
+    <div ng-show='cards.search' class='padding-mid nl-topsection'>
         <div class='padding-small'></div>
         <div class='row row-center margin0 padding0'>
             <input class='col padding-mid default-input' ng-model='cards._internal.search.filter'
@@ -96,7 +95,7 @@
                 </div>
             </div>
         </div>
-        <div class="col {{cards.folderTree.canTreeView && $root.screenSize != 'small' ? 'tree-View':'' }}">
+        <div class="col  {{cards.folderTree.canTreeView && $root.screenSize != 'small' ? 'tree-View':'' }}" style='height: {{getContTabHeight($event)}}px'> 
             <div ng-if='!cards.listConfig'
                 class=' padding0 nl-card nl-link-text-container {{cards.largeData ? "" : "anim fade" '
                 ng-repeat="card in cards._internal.visibleCards" nlta='{{card.title}}'

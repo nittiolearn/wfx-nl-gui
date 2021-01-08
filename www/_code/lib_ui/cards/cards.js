@@ -251,6 +251,13 @@ function(nl, nlDlg, $filter, nlCardsSrv, nlExporter) {
                 _saveJSON(jsonToSave);
             }
 
+            $scope.getContTabHeight = function() {
+                var document = nl.window.document;
+                var bodyElement = document.getElementsByClassName("nl-learning-report-body")
+                var topElem = document.getElementsByClassName("nl-topsection");
+                return (bodyElement[0].clientHeight - topElem[0].clientHeight-18);
+            };
+
 			$scope.searchKeyHandler = function(event) {
                 if (!$scope.cards.largeData && event.which === 13) {
                     $scope.showResultDetails();
