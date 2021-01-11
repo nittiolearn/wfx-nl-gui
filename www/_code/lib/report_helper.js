@@ -958,7 +958,14 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
         } else if (itemInfo.status == 'waiting' && !itemInfo.prereqPending) {
             ret.status = 'failed';
         } else {
-            ret.status = defaultCourseStatus;
+            if (cm.type == 'certificate') {
+                var getStatus = _findActualStatusOfCourse(cm, ret);
+                if (getStatus == 'failed') ret.status = 'failed';
+                else ret.status = defaultCourseStatus;
+            } else {
+                ret.status = defaultCourseStatus;
+
+            }
         }
         if (!_isNHT) return; 
         if (defaultCourseStatus == 'started') {
@@ -977,6 +984,75 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
             var tenure = tenures[i];
             if (tenure.after < diff) ret.status = tenure.id;
         }
+    }
+
+    function _findActualStatusOfCourse(cm, ret) {
+        var itemIdToIteminfo = ret.itemIdToInfo || {};
+        var modulesDict = nl.utils.arrayToDictById(_modules)
+        if (!cm.start_after || cm.start_after.length == 0) return;
+        var canbeUnlocked = true;
+        if (cm.dependencyType == 'all') {
+            var preReq = cm.start_after;
+            for (var i=0; i<preReq.length; i++) {
+                var dep = preReq[i];  //Cm ==> certificate;
+                var _itemInfo = itemIdToIteminfo[dep.module];
+                if (_itemInfo.status != 'waiting') continue;
+                canbeUnlocked = _canItemBeUnlocked(dep.module, modulesDict, itemIdToIteminfo); //dep.module ==> M1,M2,M3 etc..
+                if (!canbeUnlocked) return 'failed';
+            }
+        } else {
+            var preReq = cm.start_after;
+            for (var i=0; i<preReq.length; i++) {
+                var dep = preReq[i];  //Cm ==> certificate;
+                var _itemInfo = itemIdToIteminfo[dep.module];
+                if (_itemInfo.status != 'waiting') continue;
+                canbeUnlocked = _canItemBeUnlocked(dep.module, modulesDict, itemIdToIteminfo); //dep.module ==> M1,M2,M3 etc..
+                if (canbeUnlocked) break;
+            }
+            if (!canbeUnlocked) return 'failed';
+        }
+    }
+
+    function _canItemBeUnlocked(cmid, modulesDict, itemIdToIteminfo) {
+        var cm = modulesDict[cmid]; //M1, M2
+        var start_after = cm.start_after || [];
+        if (!start_after || start_after.length == 0) return;
+        if (cm.dependencyType == 'all') {
+            var itemBeUnlocked = true;
+            for (var i=0; i<start_after.length; i++) {
+                var preReq = start_after[i];
+                var previousItem = modulesDict[preReq.module]; //M33 ==> previous items
+                var _itemInfo = itemIdToIteminfo[preReq.module];
+                if (_itemInfo.status == 'waiting') {
+                    itemBeUnlocked = _canItemBeUnlocked(previousItem.id, modulesDict, itemIdToIteminfo)
+                } else {
+                    if ((preReq.min_score && _itemInfo.score < preReq.min_score) || (preReq.max_score && preReq.max_score <= _itemInfo.score)) {
+                        if (_itemInfo.nAttempts < _itemInfo.maxAttempts) return true;
+                        else return false;
+                    } 
+                }
+                if (!itemBeUnlocked) break;
+            }
+            return itemBeUnlocked;
+        } else {
+            var itemBeUnlocked = false;
+            for (var i=0; i<start_after.length; i++) {
+                var preReq = start_after[i];
+                var previousItem = modulesDict[preReq.module]; //M33 ==> previous items
+                var _itemInfo = itemIdToIteminfo[preReq.module];
+                if (_itemInfo.status == 'waiting') {
+                    itemBeUnlocked = _canItemBeUnlocked(previousItem.id, modulesDict, itemIdToIteminfo)
+                } else {
+                    if ((preReq.min_score && _itemInfo.score < preReq.min_score) || (preReq.max_score && preReq.max_score <= _itemInfo.score)) {
+                        if (_itemInfo.nAttempts < _itemInfo.maxAttempts) return true;
+                        else return false
+                    } 
+                }
+                if (itemBeUnlocked) break;
+            }
+            return itemBeUnlocked;
+        }
+
     }
 
     function _updateCourseDelayForLMS(ret) {
