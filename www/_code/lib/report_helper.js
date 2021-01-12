@@ -996,8 +996,11 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
             for (var i=0; i<preReq.length; i++) {
                 var dep = preReq[i];  //Cm ==> certificate;
                 var _itemInfo = itemIdToIteminfo[dep.module];
-                if (_itemInfo.status != 'waiting') continue;
-                canbeUnlocked = _canItemBeUnlocked(dep.module, modulesDict, itemIdToIteminfo); //dep.module ==> M1,M2,M3 etc..
+                if (_itemInfo.status == 'waiting') {
+                    canbeUnlocked = _canItemBeUnlocked(dep.module, modulesDict, itemIdToIteminfo); //dep.module ==> M1,M2,M3 etc..
+                } else if (_itemInfo.status == 'pending') {
+                    continue;                   
+                }
                 if (!canbeUnlocked) return 'failed';
             }
         } else {
@@ -1005,8 +1008,11 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
             for (var i=0; i<preReq.length; i++) {
                 var dep = preReq[i];  //Cm ==> certificate;
                 var _itemInfo = itemIdToIteminfo[dep.module];
-                if (_itemInfo.status != 'waiting') continue;
-                canbeUnlocked = _canItemBeUnlocked(dep.module, modulesDict, itemIdToIteminfo); //dep.module ==> M1,M2,M3 etc..
+                if (_itemInfo.status == 'waiting') {
+                    canbeUnlocked = _canItemBeUnlocked(dep.module, modulesDict, itemIdToIteminfo); //dep.module ==> M1,M2,M3 etc..
+                } else if (_itemInfo.status == 'pending') {
+                    canbeUnlocked = true;
+                } 
                 if (canbeUnlocked) break;
             }
             if (!canbeUnlocked) return 'failed';
@@ -1025,6 +1031,8 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
                 var _itemInfo = itemIdToIteminfo[preReq.module];
                 if (_itemInfo.status == 'waiting') {
                     itemBeUnlocked = _canItemBeUnlocked(previousItem.id, modulesDict, itemIdToIteminfo)
+                } else if (_itemInfo.status == 'pending') {
+                    continue;
                 } else {
                     if ((preReq.min_score && _itemInfo.score < preReq.min_score) || (preReq.max_score && preReq.max_score <= _itemInfo.score)) {
                         if (_itemInfo.nAttempts < _itemInfo.maxAttempts) return true;
@@ -1042,8 +1050,10 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
                 var _itemInfo = itemIdToIteminfo[preReq.module];
                 if (_itemInfo.status == 'waiting') {
                     itemBeUnlocked = _canItemBeUnlocked(previousItem.id, modulesDict, itemIdToIteminfo)
+                } else if (_itemInfo.status == 'pending') {
+                    itemBeUnlocked = true;
                 } else {
-                    if ((preReq.min_score && _itemInfo.score < preReq.min_score) || (preReq.max_score && preReq.max_score <= _itemInfo.score)) {
+                     if ((preReq.min_score && _itemInfo.score < preReq.min_score) || (preReq.max_score && preReq.max_score <= _itemInfo.score)) {
                         if (_itemInfo.nAttempts < _itemInfo.maxAttempts) return true;
                         else return false
                     } 
