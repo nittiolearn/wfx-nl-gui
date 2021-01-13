@@ -1,16 +1,12 @@
-<div class='padding-mid'>
-    <div class='padding-small fgrey'>
-        {{getMaxVisibleString(nht)}}
-        <span ng-if='canShowPrev(nht)' ng-click='onClickOnPrev(nht)' class='nl-link-text'
-            title='Click to view previous reords'>
-            <u>Show previous.</u>
-        </span>
-        <span ng-if='canShowNext(nht)' ng-click='onClickOnNext(nht)' class='nl-link-text'
-                title='Click to view next reords'>
-            <u>Show next.</u>
-        </span>
+<div class='row row-center margin0 padding-mid text-left'>
+    <div class='col fsh5 padding-mid'></div>
+    <div>
+        <nl-navigation-section data="nht"></nl-navigation-section>
     </div>
-    <div class='padding-small'></div>
+    <div class='padding-mid'>
+    </div>
+</div>    
+<div class='padding-mid'>
     <div>
         <table class='nl-table nl-table-styled3 rowlines'>
             <tr class='header'>

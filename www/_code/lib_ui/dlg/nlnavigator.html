@@ -1,0 +1,33 @@
+<style>
+</style>
+
+<div class='row row-center margin0 padding-small' style='height:36px'>
+    <div class='{{canSort() ? "nl-nav-text" : ""}}'
+        style='background-color: {{canShowDropdown() ? "#CCCCDD" : ""}}'
+        ng-click="toggleDropDown()">
+        <span>{{getVisibleString()}}</span>
+    </div>
+    <div class='padding-small'></div>
+    <div class='{{canShowPrev() ? "nl-nav-button" : "fgrey"}} nl-nav-arrow'
+        ng-click='onClickOnPrev()'>
+        <span style='padding-left: 8px' title='Prev'>
+            <i class="icon ion-ios-arrow-back fbold fsh4"></i>
+        </span> 
+    </div>
+    <div class='padding-small'></div>
+    <div class='{{canShowNext() ? "nl-nav-button" : "fgrey"}} nl-nav-arrow'
+        ng-click='onClickOnNext()'>
+        <span style='padding-left: 12px' title='Next'>
+            <i class="icon ion-ios-arrow-forward fbold fsh4"></i>
+        </span> 
+    </div>
+</div>
+<div ng-if='canShowDropdown()' style='padding-left: 4px'>
+    <div class='nl-nav-dropdown'>
+        <div class='row row-center margin0 nl-nav-dropdown-option'
+            ng-repeat='opt in options'
+            ng-click='sortBasedOn(opt)'>
+            {{opt.name}}
+        </div>
+    </div>
+</div>

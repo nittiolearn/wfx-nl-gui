@@ -23,7 +23,8 @@ function module_init() {
     .directive('nlFormTextarea', FormTextareaDirective)
     .directive('nlElastic', ElasticTextareaDirective)
     .directive('nlDateSelect', DateSelectDirective)
-    .directive('nlDateTimeSelect', DateTimeSelectDirective);
+    .directive('nlDateTimeSelect', DateTimeSelectDirective)
+    .directive('nlNavigationSection', NavigationSection);
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -512,6 +513,83 @@ function(nl) {
             };
             iElem.on("input change", onResize);
             nl.timeout(onResize, 0);
+        }
+    };
+}];
+
+//-------------------------------------------------------------------------------------------------
+
+var NavigationSection = ['nl',
+function(nl) {
+    return {
+        restrict: 'E',
+        transclude: true,
+        templateUrl: 'lib_ui/dlg/nlnavigator.html',
+        scope: {
+            data: '=',
+            options: '='
+        },
+        link: function($scope, iElem, iAttrs) {
+            $scope.getVisibleString = function() {
+                if (!$scope.data) return;
+                if ('getVisibleString' in $scope.data) 
+                    return $scope.data.getVisibleString($scope.data);
+                return nl.utils.getFnFromParentOrGrandParent($scope, 'getVisibleString')($scope.data);
+            };
+            $scope.toggleDropDown = function() {
+                if (!$scope.options) return;
+                $scope.data.showDropDown = !$scope.data.showDropDown;
+            }
+
+            $scope.canShowDropdown = function() {
+                if (!$scope.data) return;
+                return $scope.data.showDropDown;
+            };
+
+            $scope.sortBasedOn = function(val) {
+                $scope.data.showDropDown = false;
+                nl.utils.getFnFromParentOrGrandParent($scope, 'sortBasedOn')($scope.data, val.id);
+            };
+
+            $scope.canSort = function() {
+                if (!$scope.data) return;
+                if ('canSort' in $scope.data) return $scope.data.canSort($scope.data);
+                return nl.utils.getFnFromParentOrGrandParent($scope, 'canSort')($scope.data);
+            };
+
+            $scope.canShowPrev = function() {
+                if (!$scope.data) return;
+                if (typeof $scope.data == 'object' && Object.keys($scope.data).length == 0) return;
+                if ('canShowPrev' in $scope.data) return $scope.data.canShowPrev($scope.data);
+                return nl.utils.getFnFromParentOrGrandParent($scope, 'canShowPrev')($scope.data);
+            };
+        
+            $scope.canShowNext = function() {
+                if (!$scope.data) return;
+                if (typeof $scope.data == 'object' && Object.keys($scope.data).length == 0) return;
+                if ('canShowNext' in $scope.data) return $scope.data.canShowNext($scope.data);
+                return nl.utils.getFnFromParentOrGrandParent($scope, 'canShowNext')($scope.data);
+            };
+
+            $scope.onClickOnPrev = function () {
+                if (!$scope.data) return;
+                if ('onClickOnPrev' in $scope.data){
+                    $scope.data.onClickOnPrev($scope.data);
+                    return;
+                }
+                if (!nl.utils.getFnFromParentOrGrandParent($scope, 'canShowPrev')($scope.data)) return;
+                nl.utils.getFnFromParentOrGrandParent($scope, 'onClickOnPrev')($scope.data);
+            };
+
+            $scope.onClickOnNext = function () {
+                if (!$scope.data) return;
+                if ('onClickOnNext' in $scope.data){
+                    $scope.data.onClickOnNext($scope.data);
+                    return;
+                }
+                if (!nl.utils.getFnFromParentOrGrandParent($scope, 'canShowNext')($scope.data)) return;
+                nl.utils.getFnFromParentOrGrandParent($scope, 'onClickOnNext')($scope.data);
+            };
         }
     };
 }];

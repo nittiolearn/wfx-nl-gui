@@ -509,8 +509,24 @@ $animation-duration: 200ms !default;
       border: 1px solid $nlBorderGrey2;
     }
   }
+  td.td-clickable {
+    cursor: pointer;
+  }
+  td.td-hover {
+    &:hover, &:focus, &:active {
+      background-color: $nlGrey3;
+    }
+  }
 }
 
+.td-cell-clickable {
+  cursor: pointer;
+}
+.td-cell-hover {
+  &:hover, &:focus, &:active {
+    background-color: $nlGrey3;
+  }
+}
 
 .no-border {
   tr { border: none;}
@@ -1547,10 +1563,10 @@ nl-cards {
   .icon-tl, .icon-tr, .icon-bl, .icon-br {
     position: absolute;
   }
-  .icon-tl {top: 5%; left: 5%;}
-  .icon-tr {top: 5%; right: 5%;}
-  .icon-bl {bottom: 5%; left: 5%;}
-  .icon-br {bottom: 5%; right: 5%;}
+  .icon-tl {top: 5%; left: 3%;}
+  .icon-tr {top: 5%; right: 3%;}
+  .icon-bl {bottom: 5%; left: 3%;}
+  .icon-br {bottom: 5%; right: 3%;}
 }
 
 .nl-card-img.cover {
@@ -2776,6 +2792,35 @@ img.nl-full-width {
 .nl-anim-grow {
     @include nl_animation_class(animGrow, 1s, ease-in-out, both);
 }
+
+.nl-anim-slide-right {
+  @include nl_animation_class(animSlideRight, 0.25s, linear, both);
+}
+
+.nl-anim-slide-right.ng-hide, .nl-anim-slide-right.ng-leave.ng-leave-active, .nl-anim-slide-right.ng-move, .nl-anim-slide-right.ng-enter {
+  opacity: 0;
+}
+
+@keyframes animSlideRight {
+  from {
+    transform: translateX(100vw);
+    opacity: 0.5; }
+
+  to {
+    transform: translateX(0);
+    opacity: 1; } }
+
+.nl-anim-slide-left {
+  @include nl_animation_class(animSlideLeft, 0.25s, linear, both);
+}
+@keyframes animSlideLeft {
+  from {
+    transform: translateX(-100vw);
+    opacity: 0; }
+
+  to {
+    transform: translateX(0);
+    opacity: 1; } }
     
 /*-----------------------------------------------------------------------------------------*
  * ng-show/hide animations
@@ -2834,11 +2879,24 @@ img.nl-full-width {
   transform:translateY(0);
 }
 
+.flyfrom-r.ng-hide,
+.flyfrom-r.ng-leave.ng-leave-active,
+.flyfrom-r.ng-move,
+.flyfrom-r.ng-enter {
+  transform:translateX(100vw);
+}
+
+.flyfrom-r.ng-leave,
+.flyfrom-r.ng-move.ng-move-active,
+.flyfrom-r.ng-enter.ng-enter-active {
+  transform:translateX(0);
+}
+
 .flyfrom-l.ng-hide,
 .flyfrom-l.ng-leave.ng-leave-active,
 .flyfrom-l.ng-move,
 .flyfrom-l.ng-enter {
-  transform:translateX(-60vh);
+  transform:translateX(-100vw);
 }
 
 .flyfrom-l.ng-leave,
@@ -3646,3 +3704,46 @@ a.enabled {
   font-size: 10px;
 }
 
+/*----------------------------------------------------------------------------------------------------*/
+/* Navigation styles
+/*----------------------------------------------------------------------------------------------------*/
+
+.nl-nav-arrow{
+  width: 30px; 
+  height: 30px;
+  border-radius: 50%;        
+}
+
+.nl-nav-text{
+  height: 32px;
+  padding: 8px;
+  border-radius: 5px;
+  cursor: pointer;
+  &:hover{
+      background-color: $nlGrey2;
+  }
+}
+.nl-nav-button {
+  cursor: pointer;
+  &:hover{
+      background-color: $nlGrey2;
+  }
+}
+.nl-nav-dropdown {
+  position:absolute; 
+  padding: 6px 0px;
+  min-width: 175px;
+  background-color:#ffffff; 
+  border-radius: 5px;
+  box-shadow: 0 8px 10px 1px rgba(0,0,0,0.14), 0 3px 14px 2px rgba(0,0,0,0.12), 0 5px 5px -3px rgba(0,0,0,0.2);
+}
+
+.nl-nav-dropdown-option{
+  height:36px;
+  padding: 0px 8px;
+  text-align: center;
+  cursor: pointer;
+  &:hover{
+    background-color: $nlGrey2;
+}
+}

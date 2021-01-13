@@ -811,7 +811,7 @@ function(nl, nlDlg, nlRouter, nlExporter, nlLrHelper, nlLrSummaryStats, nlGroupI
             _email: rep._email, _assignTypeStr: rep._assignTypeStr, 
             _courseName: rep._courseName, _batchName: rep._batchName,
             assign_remarks: report.repcontent.assign_remarks, assignment: rep.assignment,
-            _courseId: rep._courseId, containerid: rep.containerid, _attempts : rep._attempts, module_status: report.stats.status.txt};
+            _courseId: rep._courseId, containerid: rep.containerid, _attempts : rep._attempts, module_status: rep._statusStr};
             
         for(var i=0; i<mh.length; i++)
             currentPageRecord[mh[i].id] = rep[mh[i].id];

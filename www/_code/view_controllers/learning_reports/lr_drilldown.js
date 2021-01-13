@@ -141,7 +141,7 @@ function(nlReportHelper, nlTable) {
                 _attritionObj[statusStr] = record.stats.progress;
             return;
         }
-        if(status.id == nlReportHelper.STATUS_STARTED) {
+        if(statusStr != "failed" && status.id == nlReportHelper.STATUS_STARTED) {
             statsCountObj[statusStr] = 1;
             statsCountObj['started'] = 1;
             statsCountObj['notcompleted'] = 1;
@@ -153,7 +153,7 @@ function(nlReportHelper, nlTable) {
         } 
         statsCountObj['completed'] = 1;
         statsCountObj['percScore'] = record.stats.percScore;
-        if(status.id == nlReportHelper.STATUS_FAILED) {
+        if(status.id == nlReportHelper.STATUS_FAILED || statusStr == "failed") {
             statsCountObj['failed'] = 1;
             return;
         }
@@ -178,13 +178,17 @@ function(nl) {
         transclude: true,
         templateUrl: 'view_controllers/learning_reports/lr_drilldown_tab.html',
         scope: {
-            drilldown: '='
+            drilldowndata: '='
         },
         link: function($scope, iElem, iAttrs) {
             $scope.showCharts = true;
-            var MAX_VISIBLE = 5;
             $scope.generateDrillDownArray = function(item) {
                 nl.utils.getFnFromParentOrGrandParent($scope, 'generateDrillDownArray')(item);
+            };
+
+            $scope.onClickOnShowMore = function(item) {
+                nl.utils.getFnFromParentOrGrandParent($scope, 'onClickOnShowMore')(item);
+
             };
 
             $scope.updatePivotTable = function(item) {
@@ -195,61 +199,59 @@ function(nl) {
                 nl.utils.getFnFromParentOrGrandParent($scope, 'onDetailsClick')(e, item, columns);
             };
 
-            $scope.toggleDrilldownCharts = function() {
-                $scope.showCharts = !$scope.showCharts;
+            $scope.changeTab = function(drilldowndata, tab) {
+                drilldowndata.previousSelectedTab = drilldowndata.selectedtab;
+                drilldowndata.selectedtab = tab;
             };
 
-            $scope.getVisibleString = function(selectedChart) {
-                if (!selectedChart) return '';
-                if (selectedChart.currentpos + MAX_VISIBLE < selectedChart.graphData.length) {
-                    return nl.t('Showing {} - {} of {} items', selectedChart.currentpos, selectedChart.currentpos+MAX_VISIBLE, selectedChart.graphData.length)
-                } 
-                return nl.t('Showing {} - {} of {} items', selectedChart.currentpos, selectedChart.graphData.length, selectedChart.graphData.length);
+            $scope.canSort = function() {
+                return ($scope.drilldowndata.selectedtab.id == 'charts');
             };
 
-            $scope.canShowPrev = function(selectedChart) {
-                if (!selectedChart) return;
-                if (selectedChart.currentpos > 0) return true;
+            $scope.getAnimClass = function(tabid) {
+                if (!$scope.drilldowndata) return '';
+                if (tabid != $scope.drilldowndata.selectedtab.id) return;
+                var currentSelectedTab = $scope.drilldowndata.selectedtab;
+                var previousSelectedTab = $scope.drilldowndata.previousSelectedTab || {};
+                var animEffect = null;
+                if (previousSelectedTab.tabNo < currentSelectedTab.tabNo) 
+                    animEffect = 'flyfrom-r';
+                if (currentSelectedTab.tabNo < previousSelectedTab.tabNo)
+                    animEffect = 'flyfrom-l';
+                return animEffect;
+            };
+
+            $scope.sortBasedOn = function(selectedChart, val) {
+                $scope.drilldowndata.charts.sortAndUpdateFn(selectedChart, val);
+            };
+
+            $scope.getVisibleString = function(selectedItem) {
+                if (!selectedItem) return '';
+                if ($scope.drilldowndata.selectedtab.id == 'charts') return $scope.drilldowndata.charts.getVisibleStringFn(selectedItem);
+                if ($scope.drilldowndata.selectedtab.id == 'data') return $scope.drilldowndata.drilldown.getVisibleStringFn(selectedItem);
+            };
+
+            $scope.canShowPrev = function(selectedItem) {
+                if (!selectedItem) return;
+                if (selectedItem.currentpos > 0) return true;
                 return false;
             };
         
-            $scope.canShowNext = function(selectedChart) {
-                if (!selectedChart) return;
-                if (selectedChart.currentpos + MAX_VISIBLE < selectedChart.graphData.length) return true;
-                return false;
+            $scope.canShowNext = function(selectedItem) {
+                if (!selectedItem) return;
+                if ($scope.drilldowndata.selectedtab.id == 'charts') return $scope.drilldowndata.charts.canShowNextFn(selectedItem);
+                if ($scope.drilldowndata.selectedtab.id == 'data') return $scope.drilldowndata.drilldown.canShowNextFn(selectedItem);
             };
         
-            $scope.onClickOnNext = function (selectedChart) {
-                if (selectedChart.currentpos + MAX_VISIBLE > selectedChart.graphData.length) return;
-                if (selectedChart.currentpos < selectedChart.graphData.length) {
-                    selectedChart.currentpos += MAX_VISIBLE;
-                }
-                _updateCharts(selectedChart);
+            $scope.onClickOnNext = function (selectedItem) {
+                if ($scope.drilldowndata.selectedtab.id == 'charts') return $scope.drilldowndata.charts.onClickOnNextFn(selectedItem);
+                if ($scope.drilldowndata.selectedtab.id == 'data') return $scope.drilldowndata.drilldown.onClickOnNextFn(selectedItem);
             };
         
-            $scope.onClickOnPrev = function (selectedChart) {
-                if (selectedChart.currentpos == 0) return;
-                if (selectedChart.currentpos >= MAX_VISIBLE) {
-                    selectedChart.currentpos -= MAX_VISIBLE;
-                }
-                _updateCharts(selectedChart);
-            }
-            
-            function _updateCharts(selectedChart) {
-                var records = selectedChart.graphData || [];
-                var series1 = [];
-                var series2 = [];
-                var labels = [];
-                var endPos = selectedChart.currentpos+MAX_VISIBLE
-                if (endPos > records.length) endPos = records.length;
-                for(var i=selectedChart.currentpos; i<endPos; i++) {
-                    labels.push(records[i].name);
-                    series1.push(records[i].completed);
-                    series2.push(records[i].notCompleted);
-                }
-                selectedChart.data = [series1, series2];
-                selectedChart.labels = labels;
-            }
+            $scope.onClickOnPrev = function (selectedItem) {
+                if ($scope.drilldowndata.selectedtab.id == 'charts') return $scope.drilldowndata.charts.onClickOnPrevFn(selectedItem);
+                if ($scope.drilldowndata.selectedtab.id == 'data') return $scope.drilldowndata.drilldown.onClickOnPrevFn(selectedItem);
+            }            
         }
     }
 }];

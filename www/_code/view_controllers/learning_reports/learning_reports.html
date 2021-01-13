@@ -316,17 +316,14 @@
             ******************************************************************* -->
             <div ng-show='tabData.selectedTab.id == "learningrecords" && !tabData.processingOnging'
                 class='anim-enter1 flyfrom-t padding-mid'>
-                <div class='padding-small fgrey'>
-                    {{getMaxVisibleString()}}
-                    <span ng-if='canShowPrev()' ng-click='onClickOnPrev()' class='nl-link-text'
-                        title='Click to view previous reords'>
-                        <u>Show previous.</u>
-                    </span>
-                    <span ng-if='canShowNext()' ng-click='onClickOnNext()' class='nl-link-text'
-                            title='Click to view next reords'>
-                        <u>Show next.</u>
-                    </span>
-                </div>
+                <div class='row row-center margin0 padding0 text-left'>
+                    <div class='col fsh5 padding-mid'></div>
+                    <div>
+                        <nl-navigation-section data="utable"></nl-navigation-section>
+                    </div>
+                    <div class='padding-mid'>
+                    </div>
+                </div>    
                 <div class='padding-small'></div>
                 <nl-table info='utable'></nl-table>
            </div>
@@ -361,20 +358,20 @@
             ******************************************************************* -->
             <div ng-show='tabData.selectedTab.id == "drilldown"  && !tabData.processingOnging'
                 class='anim-enter1 flyfrom-l' style='width: {{checkOverflow($event) ? "fit-content" : ""}}'>
-                <nl-lr-drilldown-tab drilldown='drillDownInfo'></nl-lr-drilldown-tab>
+                <nl-lr-drilldown-tab drilldowndata='drillDownInfo'></nl-lr-drilldown-tab>
             </div>
             <!-- **************************************************************
                 NHT Running Batches tab
             ******************************************************************* -->
             <div ng-show='tabData.selectedTab.id == "nhtrunning" && !tabData.processingOnging'
-                class='anim-enter1 flyfrom-l' style='width: {{checkOverflow($event) ? "fit-content" : ""}}'>
+                class='anim-enter1 flyfrom-l'>
                 <nl-lr-nht-tab nht='nhtRunningInfo'></nl-lr-nht-tab>
             </div>
             <!-- **************************************************************
                 NHT Closed Batches tab
             ******************************************************************* -->
             <div ng-show='tabData.selectedTab.id == "nhtclosed" && !tabData.processingOnging'
-                class='anim-enter1 flyfrom-l' style='width: {{checkOverflow($event) ? "fit-content" : ""}}'>
+                class='anim-enter1 flyfrom-l'>
                 <nl-lr-nht-tab nht='nhtClosedInfo'></nl-lr-nht-tab>
             </div>
             <!-- **************************************************************

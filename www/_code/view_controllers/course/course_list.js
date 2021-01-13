@@ -50,27 +50,27 @@ function($stateProvider, $urlRouterProvider) {
 		}});
 }];
 
-var CourseListCtrl = ['nl', 'nlRouter', '$scope', 'nlServerApi', 'nlGetManyStore', 'nlDlg', 'nlCardsSrv', 'nlSendAssignmentSrv', 'nlMetaDlg', 'nlCourse', 'nlExpressionProcessor', 'nlChangeOwner', 'nlSearchCacheSrv', '$filter',
-function(nl, nlRouter, $scope, nlServerApi, nlGetManyStore, nlDlg, nlCardsSrv, nlSendAssignmentSrv, nlMetaDlg, nlCourse, nlExpressionProcessor, nlChangeOwner, nlSearchCacheSrv, $filter) {
-	_listCtrlImpl('course', nl, nlRouter, $scope, nlServerApi, nlGetManyStore, nlDlg, nlCardsSrv, nlSendAssignmentSrv, nlMetaDlg, nlCourse, nlExpressionProcessor, nlChangeOwner, nlSearchCacheSrv, $filter);
+var CourseListCtrl = ['nl', 'nlRouter', '$scope', 'nlServerApi', 'nlGetManyStore', 'nlDlg', 'nlCardsSrv', 'nlSendAssignmentSrv', 'nlMetaDlg', 'nlCourse', 'nlExpressionProcessor', 'nlChangeOwner', 'nlSearchCacheSrv', '$filter','nlTreeSelect',
+function(nl, nlRouter, $scope, nlServerApi, nlGetManyStore, nlDlg, nlCardsSrv, nlSendAssignmentSrv, nlMetaDlg, nlCourse, nlExpressionProcessor, nlChangeOwner, nlSearchCacheSrv, $filter,nlTreeSelect) {
+	_listCtrlImpl('course', nl, nlRouter, $scope, nlServerApi, nlGetManyStore, nlDlg, nlCardsSrv, nlSendAssignmentSrv, nlMetaDlg, nlCourse, nlExpressionProcessor, nlChangeOwner, nlSearchCacheSrv, $filter,nlTreeSelect);
 }];
 
-var CourseAssignListCtrl = ['nl', 'nlRouter', '$scope', 'nlServerApi', 'nlGetManyStore', 'nlDlg', 'nlCardsSrv', 'nlSendAssignmentSrv', 'nlMetaDlg', 'nlCourse', 'nlExpressionProcessor', 'nlChangeOwner', 'nlSearchCacheSrv', '$filter',
-function(nl, nlRouter, $scope, nlServerApi, nlGetManyStore, nlDlg, nlCardsSrv, nlSendAssignmentSrv, nlMetaDlg, nlCourse, nlExpressionProcessor, nlChangeOwner, nlSearchCacheSrv, $filter) {
-	_listCtrlImpl('assign', nl, nlRouter, $scope, nlServerApi, nlGetManyStore, nlDlg, nlCardsSrv, nlSendAssignmentSrv, nlMetaDlg, nlCourse, nlExpressionProcessor, nlChangeOwner, nlSearchCacheSrv, $filter);
+var CourseAssignListCtrl = ['nl', 'nlRouter', '$scope', 'nlServerApi', 'nlGetManyStore', 'nlDlg', 'nlCardsSrv', 'nlSendAssignmentSrv', 'nlMetaDlg', 'nlCourse', 'nlExpressionProcessor', 'nlChangeOwner', 'nlSearchCacheSrv', '$filter','nlTreeSelect',
+function(nl, nlRouter, $scope, nlServerApi, nlGetManyStore, nlDlg, nlCardsSrv, nlSendAssignmentSrv, nlMetaDlg, nlCourse, nlExpressionProcessor, nlChangeOwner, nlSearchCacheSrv, $filter,nlTreeSelect) {
+	_listCtrlImpl('assign', nl, nlRouter, $scope, nlServerApi, nlGetManyStore, nlDlg, nlCardsSrv, nlSendAssignmentSrv, nlMetaDlg, nlCourse, nlExpressionProcessor, nlChangeOwner, nlSearchCacheSrv, $filter,nlTreeSelect);
 }];
 
-var CourseAssignMyListCtrl = ['nl', 'nlRouter', '$scope', 'nlServerApi', 'nlGetManyStore', 'nlDlg', 'nlCardsSrv', 'nlSendAssignmentSrv', 'nlMetaDlg', 'nlCourse', 'nlExpressionProcessor', 'nlChangeOwner', 'nlSearchCacheSrv', '$filter',
-function(nl, nlRouter, $scope, nlServerApi, nlGetManyStore, nlDlg, nlCardsSrv, nlSendAssignmentSrv, nlMetaDlg, nlCourse, nlExpressionProcessor, nlChangeOwner, nlSearchCacheSrv, $filter) {
-	_listCtrlImpl('assign_my', nl, nlRouter, $scope, nlServerApi, nlGetManyStore, nlDlg, nlCardsSrv, nlSendAssignmentSrv, nlMetaDlg, nlCourse, nlExpressionProcessor, nlChangeOwner, nlSearchCacheSrv, $filter);
+var CourseAssignMyListCtrl = ['nl', 'nlRouter', '$scope', 'nlServerApi', 'nlGetManyStore', 'nlDlg', 'nlCardsSrv', 'nlSendAssignmentSrv', 'nlMetaDlg', 'nlCourse', 'nlExpressionProcessor', 'nlChangeOwner', 'nlSearchCacheSrv', '$filter','nlTreeSelect',
+function(nl, nlRouter, $scope, nlServerApi, nlGetManyStore, nlDlg, nlCardsSrv, nlSendAssignmentSrv, nlMetaDlg, nlCourse, nlExpressionProcessor, nlChangeOwner, nlSearchCacheSrv, $filter,nlTreeSelect) {
+	_listCtrlImpl('assign_my', nl, nlRouter, $scope, nlServerApi, nlGetManyStore, nlDlg, nlCardsSrv, nlSendAssignmentSrv, nlMetaDlg, nlCourse, nlExpressionProcessor, nlChangeOwner, nlSearchCacheSrv, $filter,nlTreeSelect);
 }];
 
-var CourseReportListCtrl = ['nl', 'nlRouter', '$scope', 'nlServerApi', 'nlGetManyStore', 'nlDlg', 'nlCardsSrv', 'nlSendAssignmentSrv', 'nlMetaDlg', 'nlCourse', 'nlExpressionProcessor', 'nlChangeOwner', 'nlSearchCacheSrv', '$filter',
-function(nl, nlRouter, $scope, nlServerApi, nlGetManyStore, nlDlg, nlCardsSrv, nlSendAssignmentSrv, nlMetaDlg, nlCourse, nlExpressionProcessor, nlChangeOwner, nlSearchCacheSrv, $filter) {
-	_listCtrlImpl('report', nl, nlRouter, $scope, nlServerApi, nlGetManyStore, nlDlg, nlCardsSrv, nlSendAssignmentSrv, nlMetaDlg, nlCourse, nlExpressionProcessor, nlChangeOwner, nlSearchCacheSrv, $filter);
+var CourseReportListCtrl = ['nl', 'nlRouter', '$scope', 'nlServerApi', 'nlGetManyStore', 'nlDlg', 'nlCardsSrv', 'nlSendAssignmentSrv', 'nlMetaDlg', 'nlCourse', 'nlExpressionProcessor', 'nlChangeOwner', 'nlSearchCacheSrv', '$filter','nlTreeSelect',
+function(nl, nlRouter, $scope, nlServerApi, nlGetManyStore, nlDlg, nlCardsSrv, nlSendAssignmentSrv, nlMetaDlg, nlCourse, nlExpressionProcessor, nlChangeOwner, nlSearchCacheSrv, $filter,nlTreeSelect) {
+	_listCtrlImpl('report', nl, nlRouter, $scope, nlServerApi, nlGetManyStore, nlDlg, nlCardsSrv, nlSendAssignmentSrv, nlMetaDlg, nlCourse, nlExpressionProcessor, nlChangeOwner, nlSearchCacheSrv, $filter,nlTreeSelect);
 }];
 
-function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, nlDlg, nlCardsSrv, nlSendAssignmentSrv, nlMetaDlg, nlCourse, nlExpressionProcessor, nlChangeOwner, nlSearchCacheSrv, $filter) {
+function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, nlDlg, nlCardsSrv, nlSendAssignmentSrv, nlMetaDlg, nlCourse, nlExpressionProcessor, nlChangeOwner, nlSearchCacheSrv, $filter,nlTreeSelect) {
 	/* 
 	 * URLs handled
 	 * 'View published' : /course_list?type=course&my=0
@@ -96,21 +96,131 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
 	var _searchCache = {
 		enabled: false,			// Set to true if url contains folder.
 		folder: null, 			// This is derived from URL and not changed later.
-								// grade|subject|authorname|anythingelse (from URL). If defined, 
-								// searchcache is used to get cached data from server. The folder
-					  			// view itself is shown only when folderLabel is not null
-		folderLabel: null,		// This is initialzed on startup.
-								// If folder is a supported attribute, folderLabel is set to the
-								// display name. For example: grade => gradelabel. Only if this
-								// is set, the folderview is shown.
+								// grade|subject|none. If defined, 
+								// searchcache is used and folder type selector is shown. The fodler
+								// type by defaut is as passed in URL. If it is a knonw type(grade, subject)
+								// the tree is shown by default.
 		tree: {}, 				// Folder structure
 		itemsDict: {},			// list of course/ course assignmenet items fetched from search cache
-		currentFolder: null,	// Currently displayed folder
-		currentPath: [],		// Path shown in breadcrumps
 		searchStr: '',			// For custom searching in folder view
 		searchCategory: '',			// For custom searching in folder view
+		folderTree: {canTreeView: false, treeData: [], folderLabel: null,
+			currentFolder: null, currentPath: [], selectedLeaf:null},
+		folderTypeDropdown: {canFolderView: false, defaultValue: null, folderViewOptions: []}
 	}; 
-	$scope.folderView = _searchCache;
+	function _makeTreeStructure(strArray, allTreeCounts) {
+		var treeArray = {data: nlTreeSelect.strArrayToTreeArray(strArray|| [])};
+		for (var i=0; i<treeArray.data.length; i++) {
+			var treeItem = treeArray.data[i];
+			treeItem.sticker = treeItem.id in allTreeCounts ? ('' + allTreeCounts[treeItem.id]) : '';
+		}
+		var openUptoLevel = 2;
+		nlTreeSelect.updateSelectionTree(treeArray, {}, openUptoLevel);
+		_searchCache.folderTree.treeData = treeArray.data;
+	}
+
+	function _computeFolderView(currentFolder, allTreeFolders, allTreeCounts) {
+		for(var key in currentFolder) {
+			var child = currentFolder[key];
+			var folderName = allTreeFolders.length>0 ? allTreeFolders[0]+'.'+key : key;
+			allTreeFolders.push(folderName);
+			allTreeCounts[folderName] = child.count;		
+			if('folders' in child){
+				_computeFolderView(child.folders, allTreeFolders, allTreeCounts);
+			} 
+
+		}
+	}
+
+   function _initTreeStructure() {
+	   var selectedFolder = _searchCache.folder == 'grade' || _searchCache.folder == 'subject';
+		_searchCache.folderTree.canTreeView = selectedFolder ? true : false ;
+		if(_searchCache.folderTree.canTreeView == false) return;
+		var rootFolder = {};
+		var allTreeFolders = [];
+		var allTreeCounts = {};
+		rootFolder[_searchCache.folderTree.folderLabel] = _searchCache.tree._root;
+		_computeFolderView(rootFolder, allTreeFolders, allTreeCounts);
+		allTreeFolders.sort();
+		_makeTreeStructure(allTreeFolders, allTreeCounts);
+		_updateFolderPath(null);
+		_addCurrentFolderCards();
+		_searchCache.folderTree.treeData[0].isOpen = true;
+	}
+
+	function _onSelectFolder(selectedFolder) {
+		if (selectedFolder == 'grade') {
+			_searchCache.folder = 'grade';
+			_searchCache.folderTree.folderLabel = _userInfo.groupinfo.gradelabel;
+		} else if (selectedFolder == 'subject') {
+			_searchCache.folder = 'subject';
+			_searchCache.folderTree.folderLabel = _userInfo.groupinfo.subjectlabel;
+		} else {
+			_searchCache.folder = 'none';
+			_searchCache.folderTree.folderLabel = null;
+			_searchCache.folderTree.currentFolder = null;
+			_searchCache.folderTree.canTreeView = false;
+			_updateSearchCachedCards();
+			return;
+		}
+		_searchCache.folderTree.selectedID = _searchCache.folderTree.folderLabel;
+		_updateCardsInFolderView();
+		_initTreeStructure();
+	}	
+
+	function _onClickTreeFolder(e,cm) {
+		e.stopImmediatePropagation();
+		e.preventDefault();
+		_searchCache.folderTree.selectedID = cm.id;
+		if(cm.isFolder) {
+			if(cm.isOpen) _closeAllChildren(cm);
+			else _showImmediateChild(cm);
+			cm.isOpen=!cm.isOpen;
+		}
+		var part = cm.id.split('.');
+		var pathId="";
+		for(var i=1; i<part.length; i++) {
+			if(pathId.length==0) pathId=part[i];
+			else pathId = pathId + '.' + part[i];
+		}
+		_updateFolderPath(pathId);
+		_addCurrentFolderCards();
+	}
+
+	function _showImmediateChild(cm) {
+		var immediateChildrens=cm['children'];
+		for(var key in immediateChildrens ) {
+			var item = immediateChildrens[key];
+			_updateIsVisible(item.id, true);
+		}
+	}
+
+	function _closeAllChildren(cm) {
+		if(!('children' in cm)) return;
+		var children = cm['children'];
+		for(var key in children ) {
+			var child=children[key];
+			_updateIsVisible(child.id, false);
+			if('children' in child)  _closeAllChildren(child);
+		}
+	}
+
+	function _updateIsVisible(id,visibleState) {
+		var treeData=_searchCache.folderTree.treeData;
+		for(var i=0;i<treeData.length;i++) {
+			if(treeData[i]['id'] == id) {
+				if(treeData[i].isFolder) treeData[i]['isOpen']=false;
+				treeData[i].isVisible=visibleState;
+			}
+		}
+	}
+
+	function _getCardSearchObj() {
+		return {customSearch: _searchCache.folderTree.folderLabel ? _onFolderViewSearch: null,
+			onSearch: _metadataEnabled ? _onSearch: null, 
+			placeholder: nl.t('Enter course name/description')
+		};
+	}
 
 	function _onPageEnter(userInfo) {
 		_userInfo = userInfo;
@@ -120,13 +230,14 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
 			nlGetManyStore.init();
 			_initParams();
 			nl.pginfo.pageTitle = _getPageTitle();
+			_initFolderView();
 			if(_searchCache.enabled) nlSearchCacheSrv.init();
 			$scope.cards = {
 				staticlist: _getStaticCards(), 
 				largeData: _searchCache.enabled,
-				search: {customSearch: _searchCache.folderLabel ? _onFolderViewSearch: null,
-					onSearch: _metadataEnabled ? _onSearch: null, 
-                    placeholder: nl.t('Enter course name/description')}
+				search: _getCardSearchObj(),
+				folderTypeDropdown: _searchCache.folderTypeDropdown,
+				folderTree: _searchCache.folderTree
 			};
 			if(_isSaveJson)	$scope.cards.savejson = { show : _isSaveJson};
 			nlCardsSrv.initCards($scope.cards);
@@ -205,14 +316,32 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
 		_searchMetadata = nlMetaDlg.getMetadataFromUrl();
 		_maxDelete = params.max_delete || 50;
 		_max2 = ('max2' in params) ? parseInt(params.max2) : 500;
+	}
 
+	function _initFolderView () {
+		if (!(type == 'course' && !my)) return;
+		if (!_searchCache.folder) return;
+		_searchCache.folderTypeDropdown.canFolderView = true;
+		_searchCache.folderTypeDropdown.folderViewOptions = [
+			{'id': 'none', 'name': 'Select folder view ...'},
+			{'id': 'grade', 'name': _userInfo.groupinfo.gradelabel},
+			{'id': 'subject', 'name': _userInfo.groupinfo.subjectlabel}
+		];
+		var ft = _searchCache.folderTree;
 		if (_searchCache.folder == 'grade') {
-			_searchCache.folderLabel = _userInfo.groupinfo.gradelabel;
+			ft.folderLabel = _userInfo.groupinfo.gradelabel;
 		} else if (_searchCache.folder == 'subject') {
-			_searchCache.folderLabel = _userInfo.groupinfo.subjectlabel;
-		} else if (_searchCache.folder == 'authorname') {
-			_searchCache.folderLabel = 'Author:';
+			ft.folderLabel =_userInfo.groupinfo.subjectlabel;
+		} else {
+			_searchCache.folder = 'none';
+			ft.folderLabel = null;
 		}
+		ft.selectedID = ft.folderLabel;
+		_searchCache.folderTypeDropdown.defaultValue = _searchCache.folder;
+		_searchCache.folderTypeDropdown.onChange = _onSelectFolder;
+		ft.onClickTreeFolder = _onClickTreeFolder;
+		ft.onClickBreadCrumb = _onClickBreadCrumb;		
+
 	}
 
 	function _getPageTitle() {
@@ -295,7 +424,7 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
 	}
 
     function _updateSearchCachedCards() {
-		if (_searchCache.folderLabel) return _updateCardsInFolderView();
+		if (_searchCache.folderTree.folderLabel) return _updateCardsInFolderView();
 		var cards = [];
 		for (var itemId in _searchCache.itemsDict) {
 			var card = _createCard(_searchCache.itemsDict[itemId]);
@@ -307,6 +436,7 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
 		});
 		nlCardsSrv.updateCards($scope.cards, {
 			cardlist: cards,
+			search: _getCardSearchObj(),
 			canFetchMore: nlSearchCacheSrv.canFetchMore(_searchCache.cacheType)
 		});
 	}
@@ -324,6 +454,7 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
 			_addToFolders(courseItem, itemVisible);
 		}
 		_updateCounts(_searchCache.tree['_root']);
+		if(_searchCache.folderTypeDropdown.canFolderView) _initTreeStructure();
 		_addCurrentFolderCards();
 	}
 
@@ -377,8 +508,11 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
 	function _createFolderCard(fs) {
 		var icon2 = fs.count ? 'ion-ios-folder forange3' : 'ion-ios-folder fgrey';
 		var cardStyle = fs.count ? 'bgblue3' : 'bgdefault nl-opacity-5';
-		var card = {title: nl.fmt2('{} ({})', fs.folderName, fs.count),
+		var stickerTrStyle = 'round fwhite fsmall2 padding-small-h ' + (fs.count ? 'bgblue' : 'bggrey');
+		var card = {title: fs.folderName,
 					icon2: icon2,
+					stickerTr: '' + fs.count || 0,
+					stickerTrStyle: stickerTrStyle,
 					fs: fs, 
 					internalUrl: 'folder_click',
 					children: [],
@@ -387,33 +521,37 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
 	}
 
 	function _onFolderClick(card) {
+		_searchCache.folderTree.selectedID = _searchCache.folderTree.folderLabel + '.' + card.fs.folderName;
 		_updateFolderPath(card.fs.folderName);
 		_addCurrentFolderCards();
 	}
 
-	$scope.onClickBreadCrumb = function(pathId) {
+	function _onClickBreadCrumb (pathId) {
 		_updateFolderPath(pathId);
 		_addCurrentFolderCards();
 	};
 
 	function _updateFolderPath(pathId) {
-		if (_searchCache.currentFolder == pathId) return;
+		var ft = _searchCache.folderTree;
+		if (ft.currentFolder == pathId) return;
 		if(!pathId) {
-			_searchCache.currentFolder = null; 
+			ft.currentFolder = null;
+			ft.currentPath = []; 
 			return;
 		}
-		_searchCache.currentFolder = pathId;
-		_searchCache.currentPath = [{name: _searchCache.folderLabel, id: null}];
+		ft.currentFolder = pathId;
+		ft.canTreeView = true;
+		ft.currentPath = [{name: ft.folderLabel, id: null}];
 		var parts = pathId.split('.');
 		for(var i=0; i<parts.length; i++) {
-			_searchCache.currentPath.push({ name: parts[i], id:parts.slice(0,i+1).join('.') });
+			ft.currentPath.push({ name: parts[i], id:parts.slice(0,i+1).join('.') });
 		}
 	}
-	
+
 	function _addCurrentFolderCards() {
 		var cards = [];
 
-		var folderKey = _searchCache.currentFolder || '_root';
+		var folderKey = _searchCache.folderTree.currentFolder || '_root';
 		var fs = _searchCache.tree[folderKey];
 		if (!fs) fs = _searchCache.tree['_root'];
 		for(var key in fs.folders) {
@@ -437,6 +575,7 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
 
 		nlCardsSrv.updateCards($scope.cards, {
 			cardlist: cards,
+			search: _getCardSearchObj(),
 			canFetchMore: nlSearchCacheSrv.canFetchMore(_searchCache.cacheType)
 		});
 	}

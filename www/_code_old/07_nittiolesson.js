@@ -1201,6 +1201,7 @@ nlesson = function() {
         if (!('sessionStartTime' in lesson)) return;
         var now = new Date();
         var timeSpentSeconds = parseInt((now.valueOf() - lesson.sessionStartTime.valueOf())/1000);
+		if (timeSpentSeconds < 0) timeSpentSeconds = 0;
         lesson.sessionStartTime = now;
         if ('timeSpentSeconds' in lesson.oLesson) lesson.oLesson.timeSpentSeconds += timeSpentSeconds;
     }
@@ -2272,6 +2273,10 @@ function SectionSelectionHandler(lesson) {
             njs_toolbelt.Toolbelt.toggleToolGroup('Media', true);
             var sec = _getSection();
             var pagetype = sec.page.pagetype;
+            if(sec.page.pagetype.isInteractive(sec)) {
+                njs_toolbelt.Toolbelt.toggleToolGroup('Popup', false);
+                return;
+            }
             njs_toolbelt.Toolbelt.toggleToolGroup('Popup', true);
             var osec = sec.oSection;
             if (osec && osec.popups) {
@@ -2459,7 +2464,8 @@ function ModulePopupHadler() {
     }
 
     function _canShowPopup(section) {
-    	if (!section.oSection.popups) return false;
+        if (!section.oSection.popups) return false;
+        if (section.page.pagetype.isInteractive(section)) return false;
         if (g_lesson.renderCtx.launchCtx() != 'do_assign' && g_lesson.renderCtx.launchCtx() != 'view') return true;
         if (!section.page.pagetype.isInteractive(section)) return true;
         //if (g_lesson.oLesson.selfLearningMode) return true;
