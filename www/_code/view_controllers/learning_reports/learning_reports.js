@@ -466,7 +466,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 	var _tabManager = null;
 	function _initTabData(utable) {
 		$scope.tabData =  {tabs: [], utable: utable};
-		_tabManager = new LrTabManager($scope.tabData, nlGetManyStore, nlLrFilter, _groupInfo);
+		_tabManager = new LrTabManager(nl,$scope.tabData, nlGetManyStore, nlLrFilter, _groupInfo);
 
 		var ret = $scope.tabData;
 		ret.isFilterApplied = false;
@@ -552,6 +552,8 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			_updateOverviewTab(tabData.summaryStatSummaryRow);
 		} else if (tab.id == 'learningrecords') {
 			_updateLearningRecordsTab(tabData);
+		} else if (tab.id == 'pagelevelrecords') {	
+            _updatePageLevelRecordsTab();
 		} else if (tab.id == 'timesummary') {
 			_updateTimeSummaryTab();
 		} else if (tab.id == 'drilldown') {
@@ -1375,6 +1377,214 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 				valueFieldId: tab.valueFieldId});
 		}
 		return ret;
+	}
+
+	function _updatePageLevelRecordsTab() {
+		var records = $scope.tabData.records; 
+		var plRecords = _getPageLevelRecords(records);
+		var plrColumns = _getPlrColumns(); 
+		var plrRows = [];
+		for(var key in plRecords) {
+			plRecords[key]["% score"] = Math.round(plRecords[key].totalScore/plRecords[key].maxScore*100);
+			plRecords[key]["Not attempt"] = records.length - plRecords[key].userAttempt 
+			plrRows.push(plRecords[key]);
+		}
+		$scope.plInfo = {columns: plrColumns, rows: plrRows}; 
+		_updatePlDrillDownCharts(plrRows); 
+	}
+
+	function _getPageLevelRecords(records) {
+		var questions = {};
+		for(var i=0; i<records.length; i++) {
+			var plRecord = records[i].repcontent.learningData;
+			if("pages" in plRecord) {
+			    var pages = plRecord.pages;
+			    for(var key in pages) { 
+				    if(("pageNo" in pages[key]) && (pages[key].maxScore>0)) { 
+						var qKey = pages[key].pageNo + "-" + pages[key].title;
+		                if(!(qKey in questions)) questions[qKey] = {Question:qKey, userAttempt:0, maxScore:0, totalScore:0, Correct:0, "Partially correct":0, Incorrect:0, Skipped:0};
+		                _updatePlQStatus(questions[qKey], pages[key]);
+				    }
+			    }
+		    }
+	    }
+		return questions;
+	}
+
+	function _updatePlQStatus(qKey, page) {
+		qKey.totalScore += (page.score); 
+		qKey.userAttempt ++;
+		qKey.maxScore += page.maxScore;
+		if(page.answerStatus == 0) qKey.Skipped++;
+		else {
+			if(page.maxScore == page.score) qKey.Correct++;
+			else if(page.score != 0) qKey["Partially correct"]++;
+			else qKey.Incorrect++;
+		}
+	}
+
+	function _getPlrColumns() { 
+		var columns = [];
+		columns.push({id: '1', name: 'Question'});
+		columns.push({id: '2', name: '% score'});
+		columns.push({id: '3', name: 'Not attempt'});
+		columns.push({id: '4', name: 'Correct'});
+		columns.push({id: '5', name: 'Partially correct'});
+		columns.push({id: '6', name: 'Incorrect'});
+		return columns;
+	}
+
+	function _updatePlDrillDownCharts(plrRows) { 
+		var charts = {labels: [], series: ['Correct', 'Partially correct', 'Incorrect'],
+					  	options: {scales: {
+							xAxes: [{
+								stacked: true,
+								ticks: {
+									callback: function(label, index, labels) {
+										return label+'%';
+									},
+								},
+								scaleLabel: {
+									display: true,
+								}
+							}],
+							yAxes: [{
+								stacked: true,
+								barPercentage: 0.9,
+								categoryPercentage: 0.6
+							}]
+							},
+							tooltips: {
+								enabled: true,
+								callbacks: {
+								  label: function(tooltipItem, data) {
+									var allData = data.datasets[tooltipItem.datasetIndex].data;
+									var tooltipLabel = data.datasets[tooltipItem.datasetIndex].label;
+									var tooltipData = allData[tooltipItem.index];
+									return tooltipLabel + ": " + tooltipData + "%";
+								  }
+								}
+							}
+						}, colors: [_nl.colorsCodes.done, _nl.colorsCodes.failed, _nl.colorsCodes.pending],
+						title: "Completion percentage based on question solved.",
+						currentpos: 0,
+						maxvisible: 15 
+					};
+
+		charts.graphData = [];
+		for (var i=0; i<plrRows.length; i++) {
+			var total = plrRows[i].Correct + plrRows[i]["Partially correct"] + plrRows[i].Incorrect;
+			var correctperc = Math.round(plrRows[i].Correct/total*100);
+			var parCorrPerc = Math.round(plrRows[i]["Partially correct"]/total*100);
+			if (correctperc + parCorrPerc > 100) parCorrPerc --;
+			var incorrectPerc = 100 - (correctperc + parCorrPerc);
+			charts.graphData.push({name: plrRows[i].Question, "Correct": correctperc, "Partially correct": parCorrPerc, "Incorrect": incorrectPerc});
+		}
+	   
+		_updatePlrLabelsAndData(charts, plrRows);  
+		var chartArray = [charts];
+		$scope.plDrillDownInfo = chartArray[0];
+		$scope.plDrillDownInfo.totalData = _visiblePlData(charts);
+		$scope.plDrillDownInfo.canShowNext = _canShowNextPlcharts(charts);
+		$scope.plDrillDownInfo.canShowPrev = _canShowPrevPlcharts(charts);
+		$scope.plDrillDownInfo.onClickOnNextPl = function(){
+			    if(_canShowNextPlcharts(charts)) _onClickOnNextPl(charts, plrRows); 
+		}
+		$scope.plDrillDownInfo.onClickOnPrevPl = function(){
+			if(_canShowPrevPlcharts(charts)) _onClickOnPrevPl(charts, plrRows); 
+		}	
+	};
+
+	function _updatePlrLabelsAndData(charts, plrRows) {
+		charts.currentpos = 0;
+		if (charts.graphData.length < charts.maxvisible) charts.maxvisible = charts.graphData.length;
+		var series1 = [];
+		var series2 = [];
+		var series3 = [];
+		charts.labels = []; 
+		for(var i=0; i<charts.maxvisible; i++) {
+			var title = charts.graphData[i].name; 
+			if(title.length >= 15) {
+				title = title.slice(0,15);  
+				title  = title + "...";  
+			}
+			charts.labels.push(title);
+			series1.push(charts.graphData[i].Correct);
+			series2.push(charts.graphData[i]["Partially correct"]); 
+			series3.push(charts.graphData[i].Incorrect);
+		}
+
+		var visibleRows = [];
+		for(var i=0; i<charts.maxvisible; i++) { 
+			visibleRows.push(plrRows[i]);
+		}
+		$scope.plInfo.visibleRows = visibleRows;
+		charts.data = [series1, series2, series3];
+	}
+
+	function _visiblePlData(selectedChart) { 
+		if (selectedChart.currentpos + selectedChart.maxvisible < selectedChart.graphData.length) {
+			return nl.t('{} - {} of {}', selectedChart.currentpos+1, selectedChart.currentpos+selectedChart.maxvisible, selectedChart.graphData.length)
+		} 
+		return nl.t('{} - {} of {}', selectedChart.currentpos+1, selectedChart.graphData.length, selectedChart.graphData.length);
+	}
+
+	function _canShowNextPlcharts(selectedChart) { 
+		if (!selectedChart) return false;
+		if (selectedChart.currentpos + selectedChart.maxvisible < selectedChart.graphData.length) return true;
+		return false;
+	}
+
+	function _canShowPrevPlcharts(selectedChart) { 
+		if (!selectedChart) return false; 
+		if (selectedChart.currentpos ==0 ) return false; 
+		return true;
+	}
+
+	function _onClickOnNextPl(selectedChart, plrRows) {
+		if (selectedChart.currentpos + selectedChart.maxvisible > selectedChart.graphData.length) return;
+		if (selectedChart.currentpos < selectedChart.graphData.length) {
+			selectedChart.currentpos += selectedChart.maxvisible;
+		}
+		_updatePlCharts(selectedChart, plrRows);
+		$scope.plDrillDownInfo.totalData = _visiblePlData(selectedChart);
+		$scope.plDrillDownInfo.canShowNext = _canShowNextPlcharts(selectedChart);
+		$scope.plDrillDownInfo.canShowPrev = _canShowPrevPlcharts(selectedChart); 	
+	}
+
+	function _onClickOnPrevPl(selectedChart, plrRows) {
+		if (selectedChart.currentpos == 0) return;
+		if (selectedChart.currentpos >= selectedChart.maxvisible) {
+			selectedChart.currentpos -= selectedChart.maxvisible;
+		}
+		_updatePlCharts(selectedChart, plrRows);
+		$scope.plDrillDownInfo.totalData = _visiblePlData(selectedChart);
+		$scope.plDrillDownInfo.canShowPrev = _canShowPrevPlcharts(selectedChart);
+		$scope.plDrillDownInfo.canShowNext = _canShowNextPlcharts(selectedChart);
+	}
+
+	function _updatePlCharts(selectedChart, plrRows) {
+			var records = selectedChart.graphData || [];
+			var series1 = [];
+			var series2 = [];
+			var series3 = [];
+			var labels = [];
+			var endPos = selectedChart.currentpos+selectedChart.maxvisible
+			if (endPos > records.length) endPos = records.length;
+			for(var i=selectedChart.currentpos; i<endPos; i++) {
+				labels.push(records[i].name);
+				series1.push(records[i].Correct);
+				series2.push(records[i]["Partially correct"]);
+				series3.push(records[i].Incorrect);
+			}
+
+			var visibleRows = [];
+			for(var i=selectedChart.currentpos; i<endPos; i++) {
+				visibleRows.push(plrRows[i]);
+			}
+			$scope.plInfo.visibleRows = visibleRows; 
+			selectedChart.data = [series1, series2, series3]; 
+			selectedChart.labels = labels;
 	}
 
 	function _updateDrillDownTab() {
@@ -2540,7 +2750,7 @@ function CertificateHandler(nl, $scope) {
 
 }
 //-------------------------------------------------------------------------------------------------
-function LrTabManager(tabData, nlGetManyStore, nlLrFilter, _groupInfo) {
+function LrTabManager(nl,tabData, nlGetManyStore, nlLrFilter, _groupInfo) {
 
 	this.clear = function() {
 		_recordsFound = {lms: false, nht: false};
@@ -2632,6 +2842,15 @@ function LrTabManager(tabData, nlGetManyStore, nlLrFilter, _groupInfo) {
 			canShow: true,
 			tables: [tabData.utable]
 		},
+		pagelevelrecords: {
+			title : 'Click here to view page level records',
+			name: 'Page Level Records',
+			icon : 'ion-ios-paper',
+			id: 'pagelevelrecords',
+			updated: false, 
+			canShow: true,
+			tables: [tabData.utable]
+		},
 		timesummary: {
 			title : 'Click here to view time summary',
 			name: 'Time Summary',
@@ -2668,6 +2887,7 @@ function LrTabManager(tabData, nlGetManyStore, nlLrFilter, _groupInfo) {
 			tabs.push(_tabsDict.drilldown);
 			tabs.push(_tabsDict.learningrecords);
 			tabs.push(_tabsDict.timesummary);
+			tabs.push(_tabsDict.pagelevelrecords);
 		}
 	}
 	_init(this);
@@ -2682,6 +2902,8 @@ function LrTabManager(tabData, nlGetManyStore, nlLrFilter, _groupInfo) {
 		_tabsDict.nhtrunning.canShow =  (type != 'user' && batchStatus.running);
 		_tabsDict.nhtclosed.canShow =  (type != 'user' && batchStatus.closed);
 		_tabsDict.nhtbatchattendance.canShow = isNHTEnabled && _recordsFound.nht && subtype != 'lms' || subtype == 'nht';
+		var params = nl.location.search(); 
+		_tabsDict.pagelevelrecords.canShow = params.type == "module_assign" && ("objid" in params)? true:false; 
 	}
 
 	function _updateSelectedTab(tabs) {
