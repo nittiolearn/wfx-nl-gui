@@ -33,7 +33,6 @@ function(nl, Upload, nlDlg, nlResourceUploader) {
     function _linkFunction($scope, iElem, iAttrs) {
         $scope.$parent.data[$scope.fieldmodel] = [];
         $scope.accept = _getAcceptString($scope.restype);
-        
         $scope.onFileSelect = function(files) {
             _onFileSelect($scope, files);
             if (!('onChange' in $scope.$parent) || 
@@ -44,12 +43,6 @@ function(nl, Upload, nlDlg, nlResourceUploader) {
         $scope.onResourceClick = function(fileInfo, pos) {
             _onResourceClick($scope, fileInfo, pos);
         };
-        $scope.imageEditor = function(imagesrc, pos) {
-            imageEditor($scope, imagesrc, pos);
-        }
-        $scope.intializeEditor =function(id) {
-            intializeEditor(id);
-        }
         $scope.onResourceRemove = function(fileInfo, pos) {
             _onResourceRemove($scope, fileInfo, pos);
         };
@@ -66,7 +59,7 @@ function(nl, Upload, nlDlg, nlResourceUploader) {
         });
     }
     
-    function _onFileSelect($scope, files) {        
+    function _onFileSelect($scope, files) {
         $scope.$parent.error[$scope.fieldmodel] = '';
         if ($scope.multiple !== 'true')
             $scope.$parent.data[$scope.fieldmodel] = [];
@@ -90,63 +83,7 @@ function(nl, Upload, nlDlg, nlResourceUploader) {
         Upload.dataUrl(fileInfo.resource).then(function(url) {
             fileInfo.resimg = url;
         });
-        
     }
-    function imageEditor($scope,imagesrc,pos) {
-        var EditorDlg =$scope.$new();
-        EditorDlg.fileInfo=imagesrc;
-        var msg = {title: 'Image Editor', 
-            templateUrl: 'view_controllers/resource/image_editor.html',
-            scope: EditorDlg,
-            okText: nl.t('OK')
-        };
-            var imageEditor;
-            $scope.intializeEditor = function(id) {
-                    imageEditor = new tui.ImageEditor('#'+id , {
-                        includeUI: {
-                            loadImage: {
-                                path: imagesrc,
-                                name: 'edited-image'
-                            },
-                            initMenu: 'filter',
-                            menuBarPosition: 'bottom',
-                        },
-                        cssMaxWidth: 700,
-                        cssMaxHeight: 500,
-                        usageStatistics: false
-                    });
-                    window.onresize = function() {
-                        imageEditor.ui.resizeEditor();
-                    }
-                }
-            nlDlg.popupConfirm(msg).then(function(e) {
-                if(!e) return;
-                
-                _applyEditor($scope, imagesrc, pos);
-            });
-            function _applyEditor($scope, imagesrc, pos) {
-                var editedFile=[];
-                var editedImagesrc=imageEditor.toDataURL();
-                var blobfile=dataURItoBlob(editedImagesrc);
-                editedFile.push(blobfile);
-                _onFileSelect($scope, editedFile)
-             }
-     };
-
-    
-     function dataURItoBlob(dataURI, callback) {
-        var byteString = atob(dataURI.split(',')[1]);
-        var mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0]
-        var arraybuffer = new ArrayBuffer(byteString.length);
-        var unitArray = new Uint8Array(arraybuffer);
-        for (var i = 0; i < byteString.length; i++) {
-            unitArray[i] = byteString.charCodeAt(i);
-        }
-        // write the ArrayBuffer to a blob, and you're done
-        var blobFile = new File([unitArray],'image.png',{ type: mimeString })
-        return blobFile;
-    }
-            			        
     
     function _onResourceClick($scope, fileInfo, pos) {
         var scope = $scope.$new();
@@ -158,10 +95,8 @@ function(nl, Upload, nlDlg, nlResourceUploader) {
            templateUrl: 'view_controllers/resource/resource_desc.html',
            scope: scope,
            okText: nl.t('Remove')};
-          
         nlDlg.popupConfirm(msg).then(function(e) {
             if(!e) return;
-    
             _onResourceRemove($scope, fileInfo, pos);
         });
     }
@@ -208,7 +143,6 @@ function(nl, Upload, nlDlg, nlResourceUploader) {
         },
         link: _linkFunction
     };
-    
 }];
 
 //-------------------------------------------------------------------------------------------------

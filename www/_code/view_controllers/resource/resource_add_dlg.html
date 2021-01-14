@@ -219,7 +219,7 @@
     <nl-dlg-row attr='filename' data='data' help='help'
                 ng-if='data.selectedTab == "upload" && data.isPasteAndUpload && !data.advOptions'>
         <nl-input fieldmodel='filename' fieldtype='text' fieldcls='w100' fieldindex='0'></nl-input>
-	</nl-dlg-row> 
+    </nl-dlg-row> 
     
     <nl-dlg-row attr='resource' data='data' help='help'
                 ng-if='data.selectedTab == "upload" && !data.advOptions && !data.isPasteAndUpload'>
@@ -228,15 +228,13 @@
             ng-if='restype.id == data.restype.id'
             fieldmodel='resource' 
             restype='{{restype.id}}'>
-		</nl-resource-upload>
+        </nl-resource-upload>
     </nl-dlg-row> 
-	
+
     <nl-dlg-row attr='selectedImage' data='data' help='help'
                 ng-if='data.selectedTab == "upload" && data.isPasteAndUpload && !data.advOptions'>
          <img ng-src='{{data.resource[0].resimg}}' style='max-height:280px;' class='nl-dlg-field-value'>
-		 <button id="btn1" ng-if="showImageEditor" ng-click = "imageEditor(data.resource[0].resimg)" class="btn-primary" style="position:relative;bottom:13px;">Edit Image</button>
-		</div>
-	</nl-dlg-row> 
+    </nl-dlg-row> 
 
     <nl-dlg-row attr='bgShade' data='data' help='help'
                 ng-if='(data.selectedTab == "url" || data.selectedTab == "upload") && !data.advOptions && data.resourceFilter == "bg"'>

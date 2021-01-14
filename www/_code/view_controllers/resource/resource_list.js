@@ -36,7 +36,7 @@ function($stateProvider, $urlRouterProvider) {
 //-------------------------------------------------------------------------------------------------
 var ResourceListCtrl = ['nl', 'nlRouter', '$scope', 'nlDlg', 'nlCardsSrv', 'nlServerApi', 'nlResourceUploader', 'nlResourceAddModifySrv',
 function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlResourceUploader, nlResourceAddModifySrv) {
-    
+
 	var _userInfo = null;
 	var _allCardsForReview = [];
 	var _type = 'my';
@@ -285,9 +285,8 @@ function(nl, nlServerApi, nlDlg, Upload, nlProgressFn, nlResourceUploader){
 	                addModifyResourceDlg.resolvedCalled = true;
 	                if (!beforeShow) addModifyResourceDlg.close();
 	                resolve(_processResults(addModifyResourceDlg, markupHandler, afterFirstOk));
-				}; 
-				$scope.showImageEditor = ((userInfo.groupinfo || {}).features || {}).imageEditor || false;
-				addModifyResourceDlg.resolveAfterOnce = function () {
+	            }; 
+	            addModifyResourceDlg.resolveAfterOnce = function () {
 	                if (!onlyOnce) return false;
 	                addModifyResourceDlg.resolve(true);
 	                return true;
@@ -318,7 +317,7 @@ function(nl, nlServerApi, nlDlg, Upload, nlProgressFn, nlResourceUploader){
 	    	if (addModifyResourceDlg.resInfos.length != 1) return null;
         	ret.url = addModifyResourceDlg.resInfos[0].url;
         	ret.bgShade = sd.bgShade.id;
-			var resource = addModifyResourceDlg.resInfos[0];
+	    	var resource = addModifyResourceDlg.resInfos[0];
         	var newRes = {group: sd.resourceFilter == 'bg' ? 'Backgrounds' : 'Images', owner: 'self', 
         				  name: resource.name, background: resource.url, restype:resource.restype, 
         				  id: '_db_'+resource.resid, info: resource.info, shared: sd.shared, 
@@ -334,7 +333,7 @@ function(nl, nlServerApi, nlDlg, Upload, nlProgressFn, nlResourceUploader){
         ret.markupUrl = markupHandler.getMarkupUrl(addModifyResourceDlg.scope.data, ret.url);
         return ret;
     }
-	
+
 	function _showDlg(addModifyResourceDlg, card, $scope, restypes, markupHandler) {
 		var buttonName = addModifyResourceDlg.scope.data.buttonname;
         var modifyButton = {text: buttonName, onTap: function(e) {
@@ -353,69 +352,7 @@ function(nl, nlServerApi, nlDlg, Upload, nlProgressFn, nlResourceUploader){
             addModifyResourceDlg.resolve(false);
 		}};
         addModifyResourceDlg.show('view_controllers/resource/resource_add_dlg.html', 
-		[modifyButton], cancelButton, false);
-		
-
-		addModifyResourceDlg.scope.imageEditor = function(imagesrc) 
-		{
-			addModifyResourceDlg.close(false)
-			var imageEditor;
-			var imageEditorDlg=nlDlg.create($scope)
-			imageEditorDlg.scope.data = {};
-			imageEditorDlg.scope.data.imgsrc=imagesrc;
-			imageEditorDlg.scope.intializeEditor=function(id){
-				imageEditor = new tui.ImageEditor('#'+id , {
-                    includeUI: {
-                        loadImage: {
-                            path: imageEditorDlg.scope.data.imgsrc,
-                            name: 'edited-image'
-                        },
-                        initMenu: 'filter',
-						menuBarPosition: 'bottom',
-                    },
-                    cssMaxWidth: 700,
-                    cssMaxHeight: 500,
-                    usageStatistics: false
-                });
-                window.onresize = function() {
-                    imageEditor.ui.resizeEditor();
-                }
-			}
-			imageEditorDlg.scope.data.imagesrc=imagesrc;
-			var cancelImageEditor={text: nl.t('Cancel'), onTap: function(e) {
-				addModifyResourceDlg.close(false);
-				addModifyResourceDlg.show('view_controllers/resource/resource_add_dlg.html', 
-				[modifyButton], cancelButton, false);
-			}};
-			var saveimageEditor= {text: 'OK', onTap: function(e) {
-				
-				var editedImagesrc=imageEditor.toDataURL();
-				var blobfile=dataURItoBlob(editedImagesrc);
-				card.resource[0]={};
-				card.resource[0]=blobfile;
-				_initResourceDlg(addModifyResourceDlg, card, restypes)
-				if(!markupHandler.initScope(addModifyResourceDlg.scope)) {
-	                addModifyResourceDlg.resolve(false, true);
-	                return false;
-	            }
-				addModifyResourceDlg.show('view_controllers/resource/resource_add_dlg.html', 
-				[modifyButton], cancelButton, false);
-			}};
-			imageEditorDlg.show('view_controllers/resource/image_editor.html', 
-			[saveimageEditor], cancelImageEditor, false)
-			
-		}
-		function dataURItoBlob(dataURI, callback) {
-			var byteString = atob(dataURI.split(',')[1]);
-			var mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0]
-			var arraybuffer = new ArrayBuffer(byteString.length);
-			var unitArray = new Uint8Array(arraybuffer);
-			for (var i = 0; i < byteString.length; i++) {
-				unitArray[i] = byteString.charCodeAt(i);
-			}
-			var blobFile = new File([unitArray],'image.png',{ type: mimeString })
-			return blobFile;
-		}
+        [modifyButton], cancelButton, false);
 	}
 
 	function _initResourceDlg(addModifyResourceDlg, card, restypes) {
@@ -425,14 +362,14 @@ function(nl, nlServerApi, nlDlg, Upload, nlProgressFn, nlResourceUploader){
 	    addModifyResourceDlg.scope.error = {};
 		addModifyResourceDlg.scope.options = {};
 		addModifyResourceDlg.scope.data.card = card;
-		addModifyResourceDlg.scope.data.restype = {};	
-		if(card && card.isPasteAndUpload) {
+        addModifyResourceDlg.scope.data.restype = {};
+        if(card && card.isPasteAndUpload) {
         	addModifyResourceDlg.scope.data.isPasteAndUpload = true;
             addModifyResourceDlg.scope.data.restype.id = 'Image';
-			card.resource = card.resource[0];
-			var extn = nlResourceUploader.getValidExtension(card.resource, 'Image');
+        	card.resource = card.resource[0];
+        	var extn = nlResourceUploader.getValidExtension(card.resource, 'Image');
             var restype = nlResourceUploader.getRestypeFromExt(extn);            
-			var fileInfo = {resource: card.resource, restype: restype, extn: extn, name: ''};
+            var fileInfo = {resource: card.resource, restype: restype, extn: extn, name: ''};
 	        Upload.dataUrl(card.resource).then(function(url) {
 	            fileInfo.resimg = url;
 	        });
@@ -472,7 +409,8 @@ function(nl, nlServerApi, nlDlg, Upload, nlProgressFn, nlResourceUploader){
 		}
 		return data;
 	}
-	function _validate(scope) {
+
+    function _validate(scope) {
     	scope.data.advOptions = false;
         if (scope.data.selectedTab == 'url' && !scope.data.url)
             return _validateFail(scope, 'url', 'Please specify a valid URL');
@@ -503,9 +441,9 @@ function(nl, nlServerApi, nlDlg, Upload, nlProgressFn, nlResourceUploader){
 	    resourceInfoDict['insertfrom'] = sd.lessonid ? nl.t('/lesson/edit/{}/', sd.lessonid) : '/';
 	    
 	    if(sd.isPasteAndUpload) {
-			resourceInfoDict['name'] = sd.filename;
+	    	resourceInfoDict['name'] = sd.filename;
 	    	resourceInfoDict['filename'] = nl.t('{}{}', sd.filename, resourceList[0].extn) || resourceList[0].resource.name;
-		}
+	    }
 	    if(resourceList.length == 0) {
 		    if (e) e.preventDefault();
 		    if (sd.selectedTab == 'record') {
@@ -545,7 +483,7 @@ function(nl, nlServerApi, nlDlg, Upload, nlProgressFn, nlResourceUploader){
 
     this.insertOrUpdateResource = function($scope, restypes, markupText, showMarkupOptions, resourceDict, resourceFilter, lessonId, card) {
     	// resoureFilter = 'bg' | 'icon' | undefined
-	    nlDlg.hideLoadingScreen();
+		nlDlg.hideLoadingScreen();
 		if(!resourceDict && _updatedResourceList.length == 0) {
 			return nl.q(function(resolve, reject) {
 				nlDlg.showLoadingScreen();
