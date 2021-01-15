@@ -540,7 +540,7 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
             itemInfo.nAttempts = (linfo.attempt - 1) > 0 ? (linfo.attempt - 1) : null;
             return;
         }
-        if (linfo.selfLearningMode) {
+        if (itemInfo.selfLearningMode) {
             itemInfo.rawStatus = 'success';
             itemInfo.score = 100;
             itemInfo.started = nl.fmt.json2Date(linfo.started || '');
