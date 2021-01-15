@@ -11,7 +11,7 @@
 			</div>
 		</div>
 		<div ng-repeat='cm in modules' class='anim fade'
-			style='background-color: #FFFFFF; border-bottom: 1px solid #EFEFF5' ng-hide='cm.hideItem'>
+			style='background-color:rgba(255,255,255,0.2); border-bottom: 1px solid #EFEFF5' ng-hide='cm.hideItem'>
 	        <div ng-click='onRowClick($event, cm)'
 	        	class='row row-center row-wrap margin0 padding0 fdarkgrey1 {{ext.item.id == cm.id ? "item-selected" : ""}} {{cm.type != "certificate" ? "nl-link-text" : ""}}'>
 				<div ng-class='resp2Col67' class='margin0 padding-mid' style='padding-left: {{cm.indentationLevel*16 + 8}}px'>
@@ -20,7 +20,7 @@
 			                <i ng-show="!cm.isOpen" class="icon ion-arrow-right-b bold fsh3"></i>
 			                <i ng-show="cm.isOpen" class="icon ion-arrow-down-b bold fsh3 ng-hide"></i>
 			            </div>
-						<div class='col padding0 {{cm.asdSession ? "forange3" : ""}}' style='font-size: 16px; padding-right: 8px'>
+						<div class='col padding0 {{cm.asdSession ? "forange3" : ""}}' style='font-size: 16px; padding-right: 8px; color: #FFFFFF;'>
 							{{courseContent.targetLang == "en" ? cm.name : (courseContent.languageInfo[courseContent.targetLang][cm.id].name || cm.name)}}
 						</div>
 						<div class=''>

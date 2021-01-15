@@ -7,10 +7,10 @@
     <div ng-repeat='lang in data.languages'>
         <div class='row row-center padding0 margin0 nl-link-text' ng-click='onLangSelected(lang)'>
             <span class='padding-mid'>
-                <i ng-hide='lang.selected' class="fsh4 icon ion-android-checkbox-outline-blank"></i>
-                <i ng-show='lang.selected' class='fsh4 icon ion-android-checkbox-outline'></i>
+                <i ng-hide='lang.selected' class="fsh4 icon ion-android-checkbox-outline-blank fblue"></i>
+                <i ng-show='lang.selected' class='fsh4 icon ion-android-checkbox-outline fblue'></i>
             </span>
-            <div class='col padding-mid fsh6'>
+            <div class='col padding-mid fsh6 fblue'>
                 {{lang.name}}
             </div>
         </div>

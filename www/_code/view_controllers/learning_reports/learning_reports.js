@@ -912,7 +912,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			labels: [],
 			series: ['Assigned', 'Completed'],
 			colors: [_nl.colorsCodes.blue2, _nl.colorsCodes.done],
-			options:{scales: {yAxes: [{ticks: {beginAtZero:true}}]}}
+			//options:{scales: {yAxes: [{ticks: {beginAtZero:true}}]}}
 		}];
 		var brackets = typeStr == 'Courses' ? '(within courses) ': '';
 		$scope.timeSummaryCharts = [{
@@ -924,7 +924,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 				labels: [],
 				series: [],
 				colors: [_nl.colorsCodes.blue2],
-				options:{scales: {yAxes: [{ticks: {beginAtZero:true}}]}}
+				//options:{scales: {yAxes: [{ticks: {beginAtZero:true}}]}}
 			},
 			{
 				type: 'bar',
@@ -934,7 +934,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 				labels: [],
 				series: [],
 				colors: [_nl.colorsCodes.blue2],
-				options:{scales: {yAxes: [{ticks: {beginAtZero:true}}]}}
+				//options:{scales: {yAxes: [{ticks: {beginAtZero:true}}]}}
 			},
 			{
 				type: 'bar',
@@ -944,7 +944,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 				labels: [],
 				series: [],
 				colors: [_nl.colorsCodes.blue2],
-				options:{scales: {yAxes: [{ticks: {beginAtZero:true}}]}}
+				//options:{scales: {yAxes: [{ticks: {beginAtZero:true}}]}}
 			}],
 			$scope.drillDownInfo = {};
 			$scope.nhtOverviewInfo = {};
@@ -1511,15 +1511,27 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 									callback: function(label, index, labels) {
 										return label+'%';
 									},
+									fontColor: "#ffffff",
 								},
 								scaleLabel: {
 									display: true,
+								},
+								gridLines: {
+									display: true ,
+									color: "#A0A0C0"
 								}
 							}],
 							yAxes: [{
 								stacked: true,
 								barPercentage: 0.9,
-								categoryPercentage: 0.6
+								categoryPercentage: 0.6,
+								gridLines: {
+									display: true ,
+									color: "#A0A0C0"
+								},
+								ticks: {
+									fontColor: "#ffffff",
+								}
 							}]
 							},
 							tooltips: {

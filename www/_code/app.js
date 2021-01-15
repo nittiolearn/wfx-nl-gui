@@ -25,13 +25,13 @@ var _nl = {
 		CTYPE_TRAINING: 4 // Depricated and not used
     },
     colorsCodes: {
-        done: '#007700',          // $nlGreen1
-        failed: '#770000',        // $nlRed
-        started: '#44BB44',       // nlGreen2
-        pending: '#eab01f',       // $nlOrange3
+        done: '#2FB885',          // $nlGreen1
+        failed: '#FF646A',        // $nlRed
+        started: '#FFE17D',       // nlGreen2
+        pending: '#E8658F',       // $nlOrange3
         waiting: '#A0A0C0',       // $nlGrey1
-        delayed: '#e84c3d',       // $nlOrange1
-        blue1: '#153673',         // $nlBlue1
+        delayed: '#F98E36',       // $nlOrange1
+        blue1: '#008AFF',         // $nlBlue1
         blue2: '#2461cc'          // $nlBlue2
     }
 };
@@ -114,7 +114,30 @@ function _chartInfoInit(ChartJsProvider) {
         responsive: true,
         maintainAspectRatio: false,
         hover: {mode: null},
-        fullWidth: true
+        fullWidth: true,
+    });
+    ChartJsProvider.setOptions("bar",{
+    scales: {
+        xAxes: [{
+                    gridLines: {
+                            display: true ,
+                            color: "#A0A0C0"
+                },
+                ticks: {
+                fontColor: "#ffffff",
+                }
+            }],
+            yAxes: [{
+                gridLines: {
+                    display: true ,
+                    color: "#A0A0C0"
+                        },
+                ticks: {
+                    fontColor: "#ffffff",
+                    beginAtZero:true,
+                }
+                }], 
+        }
     });
 }
 

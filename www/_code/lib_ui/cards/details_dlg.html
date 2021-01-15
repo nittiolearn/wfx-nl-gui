@@ -9,7 +9,7 @@
         </div>
         <div ng-repeat='avp in card.details.avps' class='nl-border-bottom row row-top margin0 padding0'>
             <a ng-if='avp.url' ng-href='{{avp.url}}' nlta='{{avp.attr}}'
-               class='col col-20 padding-mid nl-link-text'>{{avp.attr}}</a>
+               class='col col-20 padding-mid fblue nl-link-text'>{{avp.attr}}</a>
             <span ng-if='!avp.url'
                   class='col col-20 padding-mid'>{{avp.attr}}</span>
 
@@ -18,8 +18,8 @@
             <span ng-if='avp.type == "links"'
                   class='col padding-mid'>
             	<span ng-repeat='op in avp.val track by $index'>
-	            	<a ng-if="op.url" nlta='{{op.val}}' ng-href='{{op.url}}' class='nl-link-text'>{{op.val}}</a>
-	            	<span ng-if="op.linkid" nlta='{{op.val}}' ng-click='onCardInternalUrlClicked($event, card, op.linkid)' class='nl-link-text'>{{op.val}}</span>
+	            	<a ng-if="op.url" nlta='{{op.val}}' ng-href='{{op.url}}' class='fblue nl-link-text'>{{op.val}}</a>
+	            	<span ng-if="op.linkid" nlta='{{op.val}}' ng-click='onCardInternalUrlClicked($event, card, op.linkid)' class='fblue nl-link-text'>{{op.val}}</span>
 	            	<span ng-if="$index < avp.val.length - 1"> | </span>
             	</span>
             </span>

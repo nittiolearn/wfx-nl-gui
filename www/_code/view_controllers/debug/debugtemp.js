@@ -39,9 +39,17 @@ function(nl, nlDlg, nlRouter, $scope) {
           scales: {
             xAxes: [{
               stacked: true,
+              gridLines: {
+                display: true ,
+                color: "#FFFFFF"
+              }
             }],
             yAxes: [{
-              stacked: true
+              stacked: true,
+              gridLines: {
+                display: true ,
+                color: "#FFFFFF"
+              }
             }]
           }
         };

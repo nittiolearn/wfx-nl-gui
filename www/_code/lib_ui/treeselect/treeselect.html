@@ -4,15 +4,15 @@
      ng-click='info.treeIsShown = !info.treeIsShown'
      autofocus=''
      tabindex="{{tabindex || 0}}">
-     <div class='col padding-small nl-textellipsis'>{{info.selectedText}}</div>
+     <div class='col padding-small nl-textellipsis fblue'>{{info.selectedText}}</div>
      <i ng-show='info.onFilterClick'
         title='{{info.filterIconTitle}}'	
         class="icon {{info.filterIcon || 'ion-funnel'}} nl-dlg-field-icon"
         ng-click='info.onFilterClick($event)'></i>
      <i ng-show='info.canShowClear' class="icon ion-ios-close forange2 nl-dlg-field-icon"
         ng-click='clearSelection($event)'></i>
-     <i ng-show='!info.treeIsShown' class="icon ion-arrow-down-b nl-dlg-field-icon"></i>
-     <i ng-show='info.treeIsShown' class="icon ion-arrow-up-b nl-dlg-field-icon"></i>
+     <i ng-show='!info.treeIsShown' class="icon ion-arrow-down-b nl-dlg-field-icon fblue"></i>
+     <i ng-show='info.treeIsShown' class="icon ion-arrow-up-b nl-dlg-field-icon fblue"></i>
 </div>
 <div class='padding-mid'
 	  ng-show='info.treeIsShown && info.showSearchField'>
@@ -36,7 +36,7 @@
 	</div>
 </div>
 <div ng-repeat='item in info.visibleData'
-     class='row row-wrap row-center margin0 padding0 nl-link-text {{$index == info.currentItemPos ? "activated": ""}}'
+     class='row row-wrap row-center margin0 padding0 fblue nl-link-text {{$index == info.currentItemPos ? "activated": ""}}'
      ng-show='info.treeIsShown && item.isVisible'
      ng-click='onClick(item, $event, $index)'>
     <div class='padding-mid'>

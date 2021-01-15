@@ -86,14 +86,14 @@
                     placeholder='{{tabData.searchPlaceholder}}'
                     ng-keydown='tabData.onSearch($event)'>
                 <div class='padding-small'></div>
-                <i class='nl-link-text icon fsh4 fblue padding-mid ion-ios-search'
+                <i class='nl-link-text icon fsh4 fwhite padding-mid ion-ios-search'
                     ng-click='tabData.onSearch(null)'>
                 </i>
                 <div class='padding-small'></div>
                 <div ng-click='tabData.onFilter(null)'
                      class='{{filterCount > 0 ? "forange" : "fblue"}} nl-link-text padding-mid'>
                      <div class='row row-top padding0 margin0'>
-                        <i class='icon fsh4 ion-funnel'></i>
+                        <i class='icon fsh4 ion-funnel fwhite'></i>
                         <span ng-if='filterCount' class='nl-superscript'>{{filterCount}}</span>
                      </div>
                 </div>
@@ -197,7 +197,7 @@
                 <div class='row row-top row-wrap margin0 padding0'>
                     <div ng-class='$root.respCol221' class='text-center padding-mid'>
                         <div class='padding-small'></div>
-                        <div class='fsh5 padding-mid'>{{charts[0].title}}</div>
+                        <div class='fsh5 padding-mid fwhite'>{{charts[0].title}}</div>
                         <div class='padding-small'></div>
                         <div style='margin: auto; display:block; max-height:300px; max-width:300px'>
                             <canvas class='chart chart-doughnut'
@@ -213,7 +213,7 @@
                     </div>
                     <div ng-class='$root.respCol221' class='text-center padding-mid'>
                         <div class='padding-small'></div>
-                        <div class='fsh5 padding-mid'>{{charts[1].title}}</div>
+                        <div class='fsh5 padding-mid fwhite'>{{charts[1].title}}</div>
                         <div class='padding-mid'></div>
                         <div style='margin: auto; display:block; height:300px; width:450px'>
                             <canvas class='chart chart-bar'
@@ -335,7 +335,7 @@
                 class='anim-enter1 flyfrom-l padding-mid'>
                 <div ng-repeat='timeSummaryChart in timeSummaryCharts'>
                     <div class='padding-small'></div>
-                    <div class='fsh5 padding-mid'>{{timeSummaryChart.title}}</div>
+                    <div class='fsh5 padding-mid fwhite'>{{timeSummaryChart.title}}</div>
                     <div ng-if='timeSummaryChart.subtitle' class='fgrey padding-mid'><i>({{timeSummaryChart.subtitle}})</i></div>
                     <div class='padding-small'></div>
                     <div style='overflow-x: {{timeSummaryChart.data[0].length > 50 ? "scroll" : "none"}};'>
