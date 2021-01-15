@@ -466,7 +466,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 	var _tabManager = null;
 	function _initTabData(utable) {
 		$scope.tabData =  {tabs: [], utable: utable};
-		_tabManager = new LrTabManager(nl,$scope.tabData, nlGetManyStore, nlLrFilter, _groupInfo);
+		_tabManager = new LrTabManager($scope.tabData, nlGetManyStore, nlLrFilter, _groupInfo);
 
 		var ret = $scope.tabData;
 		ret.isFilterApplied = false;
@@ -2750,7 +2750,7 @@ function CertificateHandler(nl, $scope) {
 
 }
 //-------------------------------------------------------------------------------------------------
-function LrTabManager(nl,tabData, nlGetManyStore, nlLrFilter, _groupInfo) {
+function LrTabManager(tabData, nlGetManyStore, nlLrFilter, _groupInfo) {
 
 	this.clear = function() {
 		_recordsFound = {lms: false, nht: false};
@@ -2896,14 +2896,14 @@ function LrTabManager(nl,tabData, nlGetManyStore, nlLrFilter, _groupInfo) {
 		var subtype = nlLrFilter.getRepSubtype();
 		var batchStatus = nlGetManyStore.getNhtBatchStates();
 		var type = nlLrFilter.getType();
+		var objid = nlLrFilter.getObjectId();
         var isNHTEnabled = (!_groupInfo.props.milestones) ? false : true;
 		_tabsDict.overview.canShow = _recordsFound.lms && subtype != 'nht' || subtype == 'lms';
 		_tabsDict.nhtoverview.canShow = isNHTEnabled && _recordsFound.nht && subtype != 'lms' || subtype == 'nht';
 		_tabsDict.nhtrunning.canShow =  (type != 'user' && batchStatus.running);
 		_tabsDict.nhtclosed.canShow =  (type != 'user' && batchStatus.closed);
 		_tabsDict.nhtbatchattendance.canShow = isNHTEnabled && _recordsFound.nht && subtype != 'lms' || subtype == 'nht';
-		var params = nl.location.search(); 
-		_tabsDict.pagelevelrecords.canShow = params.type == "module_assign" && ("objid" in params)? true:false; 
+		_tabsDict.pagelevelrecords.canShow = (type == "module_assign" || type == 'module') && objid;
 	}
 
 	function _updateSelectedTab(tabs) {
