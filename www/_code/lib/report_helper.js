@@ -521,7 +521,7 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
     function _getRawStatusOfLesson(cm, itemInfo) {
         var linfo = _lessonReports[cm.id] || null;
         itemInfo.selfLearningMode = false;
-        itemInfo.maxAttempts = cm.maxAttempts || 1;
+        itemInfo.maxAttempts = (cm.maxAttempts === 0) ? 0 : cm.maxAttempts || 1;
         if (linfo === null) {
             itemInfo.rawStatus = 'pending';
             itemInfo.score = null;
@@ -772,7 +772,7 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
                 }
                 if (cm.type == 'certificate' && preItem.isModuleCompleted && preItem.isModuleCompleted.status == 'failed') {
                     isFailed = true;
-                    if (preItem.type == 'lesson' && preItem.nAttempts < preItem.maxAttempts) moreAttemptsCnt++;
+                    if (preItem.type == 'lesson' && (preItem.maxAttempts === 0 || preItem.nAttempts < preItem.maxAttempts)) moreAttemptsCnt++;
                 }
                 pendCnt++;
                 continue;
@@ -810,7 +810,7 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
             }
             if (isConditionFailed) {
                 failCnt++;
-                if (preItem.type == 'lesson' && preItem.nAttempts < preItem.maxAttempts) moreAttemptsCnt++;
+                if (preItem.type == 'lesson' && (preItem.maxAttempts === 0 || preItem.nAttempts < preItem.maxAttempts)) moreAttemptsCnt++;
             }
         }
 
@@ -1002,7 +1002,7 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
                 } else if (_itemInfo.status == 'pending' || _itemInfo.status == 'started') {
                     continue;
                 } else if (_itemInfo.status == 'failed') {
-                    if (_itemInfo.nAttempts < _itemInfo.maxAttempts) continue;
+                    if (_itemInfo.maxAttempts === 0 || _itemInfo.nAttempts < _itemInfo.maxAttempts) continue;
                 }
                 if (!canbeUnlocked) return 'failed';
             }
@@ -1016,7 +1016,7 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
                 } else if (_itemInfo.status == 'pending' || _itemInfo.status == 'started') {
                     canbeUnlocked = true;
                 } else if (_itemInfo.status == 'failed') {
-                    if (_itemInfo.nAttempts < _itemInfo.maxAttempts) canbeUnlocked = true;
+                    if (_itemInfo.maxAttempts === 0 || _itemInfo.nAttempts < _itemInfo.maxAttempts) canbeUnlocked = true;
                 }
                 if (canbeUnlocked) break;
             }
@@ -1039,11 +1039,11 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
                 } else if (_itemInfo.status == 'pending' || _itemInfo.status == 'started') {
                     continue;
                 } else if (_itemInfo.status == 'failed') {
-                    if (_itemInfo.nAttempts < _itemInfo.maxAttempts) continue;
+                    if (_itemInfo.maxAttempts === 0 || _itemInfo.nAttempts < _itemInfo.maxAttempts) continue;
                     else itemBeUnlocked = false;
                 } else {
                     if ((preReq.min_score && _itemInfo.score < preReq.min_score) || (preReq.max_score && preReq.max_score <= _itemInfo.score)) {
-                        if (_itemInfo.nAttempts < _itemInfo.maxAttempts) return true;
+                        if (_itemInfo.maxAttempts === 0 || _itemInfo.nAttempts < _itemInfo.maxAttempts) return true;
                         else return false;
                     } 
                 }
@@ -1061,10 +1061,10 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
                 } else if (_itemInfo.status == 'pending' || _itemInfo.status == 'started') {
                     itemBeUnlocked = true;
                 } else if (_itemInfo.status == 'failed') {
-                    if (_itemInfo.nAttempts < _itemInfo.maxAttempts) itemBeUnlocked = true;
+                    if (_itemInfo.maxAttempts === 0 || _itemInfo.nAttempts < _itemInfo.maxAttempts) itemBeUnlocked = true;
                 } else {
                      if ((preReq.min_score && _itemInfo.score < preReq.min_score) || (preReq.max_score && preReq.max_score <= _itemInfo.score)) {
-                        if (_itemInfo.nAttempts < _itemInfo.maxAttempts) return true;
+                        if (_itemInfo.maxAttempts === 0 || _itemInfo.nAttempts < _itemInfo.maxAttempts) return true;
                         else return false
                     } 
                 }
