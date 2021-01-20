@@ -353,12 +353,8 @@ function(nl, nlServerApi, nlDlg, Upload, nlProgressFn, nlResourceUploader){
             addModifyResourceDlg.resolve(false);
 		}};
         addModifyResourceDlg.show('view_controllers/resource/resource_add_dlg.html', 
-		[modifyButton], cancelButton, false);
-		
-
-		addModifyResourceDlg.scope.imageEditor = function(imagesrc) 
-		{
-			addModifyResourceDlg.close(false)
+		[modifyButton], cancelButton, false);		
+		addModifyResourceDlg.scope.imageEditor = function(imagesrc) {
 			var imageEditor;
 			var imageEditorDlg=nlDlg.create($scope)
 			imageEditorDlg.scope.data = {};
@@ -383,38 +379,22 @@ function(nl, nlServerApi, nlDlg, Upload, nlProgressFn, nlResourceUploader){
 			}
 			imageEditorDlg.scope.data.imagesrc=imagesrc;
 			var cancelImageEditor={text: nl.t('Cancel'), onTap: function(e) {
-				addModifyResourceDlg.close(false);
-				addModifyResourceDlg.show('view_controllers/resource/resource_add_dlg.html', 
-				[modifyButton], cancelButton, false);
 			}};
-			var saveimageEditor= {text: 'OK', onTap: function(e) {
-				
-				var editedImagesrc=imageEditor.toDataURL();
-				var blobfile=dataURItoBlob(editedImagesrc);
-				card.resource[0]={};
-				card.resource[0]=blobfile;
-				_initResourceDlg(addModifyResourceDlg, card, restypes)
-				if(!markupHandler.initScope(addModifyResourceDlg.scope)) {
-	                addModifyResourceDlg.resolve(false, true);
-	                return false;
-	            }
-				addModifyResourceDlg.show('view_controllers/resource/resource_add_dlg.html', 
-				[modifyButton], cancelButton, false);
+			var saveimageEditor= {text: 'OK', onTap: function(e) {				
+				var editedImagesrc= imageEditor.toDataURL();
+				var blobfile= nlResourceUploader.dataURItoBlob(editedImagesrc);
+				var extn = nlResourceUploader.getValidExtension(blobfile, 'Image');
+				var restype = nlResourceUploader.getRestypeFromExt(extn);            
+				var fileInfo = {resource: blobfile, restype: restype, extn: extn, name: ''};
+				Upload.dataUrl(blobfile).then(function(url) {
+					fileInfo.resimg = url;
+				});
+				addModifyResourceDlg.scope.data.resource = [fileInfo];
+				imageEditorDlg.close(false);
 			}};
 			imageEditorDlg.show('view_controllers/resource/image_editor.html', 
 			[saveimageEditor], cancelImageEditor, false)
 			
-		}
-		function dataURItoBlob(dataURI, callback) {
-			var byteString = atob(dataURI.split(',')[1]);
-			var mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0]
-			var arraybuffer = new ArrayBuffer(byteString.length);
-			var unitArray = new Uint8Array(arraybuffer);
-			for (var i = 0; i < byteString.length; i++) {
-				unitArray[i] = byteString.charCodeAt(i);
-			}
-			var blobFile = new File([unitArray],'image.png',{ type: mimeString })
-			return blobFile;
 		}
 	}
 
@@ -472,6 +452,7 @@ function(nl, nlServerApi, nlDlg, Upload, nlProgressFn, nlResourceUploader){
 		}
 		return data;
 	}
+
 	function _validate(scope) {
     	scope.data.advOptions = false;
         if (scope.data.selectedTab == 'url' && !scope.data.url)

@@ -32,8 +32,7 @@ var ResourceUploadDirective = ['nl', 'Upload', 'nlDlg', 'nlResourceUploader',
 function(nl, Upload, nlDlg, nlResourceUploader) {
     function _linkFunction($scope, iElem, iAttrs) {
         $scope.$parent.data[$scope.fieldmodel] = [];
-        $scope.accept = _getAcceptString($scope.restype);
-        
+        $scope.accept = _getAcceptString($scope.restype);       
         $scope.onFileSelect = function(files) {
             _onFileSelect($scope, files);
             if (!('onChange' in $scope.$parent) || 
@@ -89,8 +88,7 @@ function(nl, Upload, nlDlg, nlResourceUploader) {
         if (fileInfo.restype != 'Image') return;
         Upload.dataUrl(fileInfo.resource).then(function(url) {
             fileInfo.resimg = url;
-        });
-        
+        });      
     }
     function imageEditor($scope,imagesrc,pos) {
         var EditorDlg =$scope.$new();
@@ -121,33 +119,17 @@ function(nl, Upload, nlDlg, nlResourceUploader) {
                 }
             nlDlg.popupConfirm(msg).then(function(e) {
                 if(!e) return;
-                
                 _applyEditor($scope, imagesrc, pos);
             });
             function _applyEditor($scope, imagesrc, pos) {
                 var editedFile=[];
                 var editedImagesrc=imageEditor.toDataURL();
-                var blobfile=dataURItoBlob(editedImagesrc);
+                var blobfile=nlResourceUploader.dataURItoBlob(editedImagesrc);
                 editedFile.push(blobfile);
                 _onFileSelect($scope, editedFile)
              }
      };
 
-    
-     function dataURItoBlob(dataURI, callback) {
-        var byteString = atob(dataURI.split(',')[1]);
-        var mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0]
-        var arraybuffer = new ArrayBuffer(byteString.length);
-        var unitArray = new Uint8Array(arraybuffer);
-        for (var i = 0; i < byteString.length; i++) {
-            unitArray[i] = byteString.charCodeAt(i);
-        }
-        // write the ArrayBuffer to a blob, and you're done
-        var blobFile = new File([unitArray],'image.png',{ type: mimeString })
-        return blobFile;
-    }
-            			        
-    
     function _onResourceClick($scope, fileInfo, pos) {
         var scope = $scope.$new();
         scope.fileInfo = fileInfo;
@@ -157,11 +139,9 @@ function(nl, Upload, nlDlg, nlResourceUploader) {
         var msg = {title: fileInfo.resource.name, 
            templateUrl: 'view_controllers/resource/resource_desc.html',
            scope: scope,
-           okText: nl.t('Remove')};
-          
+           okText: nl.t('Remove')};          
         nlDlg.popupConfirm(msg).then(function(e) {
             if(!e) return;
-    
             _onResourceRemove($scope, fileInfo, pos);
         });
     }
@@ -207,8 +187,7 @@ function(nl, Upload, nlDlg, nlResourceUploader) {
             fieldid: '@'
         },
         link: _linkFunction
-    };
-    
+    };    
 }];
 
 //-------------------------------------------------------------------------------------------------
@@ -450,6 +429,23 @@ function(nl, nlServerApi, nlDlg, nlProgressFn) {
             _uploadNextResource(self, resourceList, keyword, compressionlevel, resid, resourceInfos, resourceInfoDict, resolve, reject);
         });
     };
+
+    this.dataURItoBlob = function(dataURI) {
+        return _dataURItoBlob(dataURI);
+    }
+
+    function _dataURItoBlob(dataURI) {
+        var byteString = atob(dataURI.split(',')[1]);
+        var mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0]
+        var arraybuffer = new ArrayBuffer(byteString.length);
+        var unitArray = new Uint8Array(arraybuffer);
+        for (var i = 0; i < byteString.length; i++) {
+            unitArray[i] = byteString.charCodeAt(i);
+        }
+        // write the ArrayBuffer to a blob, and you're done
+        var blobFile = new File([unitArray],'image.png',{ type: mimeString })
+        return blobFile;
+    }
 
     function _uploadNextResource(self, resourceList, keyword, compressionlevel, resid, resourceInfos, resourceInfoDict, resolve, reject) {
         if (resourceList.length == 0) {
