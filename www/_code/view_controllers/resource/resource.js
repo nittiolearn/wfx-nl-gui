@@ -385,6 +385,23 @@ function(nl, nlServerApi, nlDlg, nlProgressFn) {
         });
     };
 
+    this.dataURItoBlob = function(dataURI) {
+        return _dataURItoBlob(dataURI);
+    }
+
+    function _dataURItoBlob(dataURI) {
+        var byteString = atob(dataURI.split(',')[1]);
+        var mimeString = dataURI.split(',')[0].split(':')[1].split(';')[0]
+        var arraybuffer = new ArrayBuffer(byteString.length);
+        var unitArray = new Uint8Array(arraybuffer);
+        for (var i = 0; i < byteString.length; i++) {
+            unitArray[i] = byteString.charCodeAt(i);
+        }
+        // write the ArrayBuffer to a blob, and you're done
+        var blobFile = new File([unitArray],'image.png',{ type: mimeString })
+        return blobFile;
+    }
+
     function _uploadNextResource(self, resourceList, keyword, compressionlevel, resid, resourceInfos, resourceInfoDict, resolve, reject) {
         if (resourceList.length == 0) {
             resolve(resourceInfos);

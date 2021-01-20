@@ -352,7 +352,49 @@ function(nl, nlServerApi, nlDlg, Upload, nlProgressFn, nlResourceUploader){
             addModifyResourceDlg.resolve(false);
 		}};
         addModifyResourceDlg.show('view_controllers/resource/resource_add_dlg.html', 
-        [modifyButton], cancelButton, false);
+		[modifyButton], cancelButton, false);		
+		addModifyResourceDlg.scope.imageEditor = function(imagesrc) {
+			var imageEditor;
+			var imageEditorDlg=nlDlg.create($scope)
+			imageEditorDlg.scope.data = {};
+			imageEditorDlg.scope.data.imgsrc=imagesrc;
+			imageEditorDlg.scope.intializeEditor=function(id){
+				imageEditor = new tui.ImageEditor('#'+id , {
+                    includeUI: {
+                        loadImage: {
+                            path: imageEditorDlg.scope.data.imgsrc,
+                            name: 'edited-image'
+                        },
+                        initMenu: 'filter',
+						menuBarPosition: 'bottom',
+                    },
+                    cssMaxWidth: 700,
+                    cssMaxHeight: 500,
+                    usageStatistics: false
+                });
+                window.onresize = function() {
+                    imageEditor.ui.resizeEditor();
+                }
+			}
+			imageEditorDlg.scope.data.imagesrc=imagesrc;
+			var cancelImageEditor={text: nl.t('Cancel'), onTap: function(e) {
+			}};
+			var saveimageEditor= {text: 'OK', onTap: function(e) {				
+				var editedImagesrc= imageEditor.toDataURL();
+				var blobfile= nlResourceUploader.dataURItoBlob(editedImagesrc);
+				var extn = nlResourceUploader.getValidExtension(blobfile, 'Image');
+				var restype = nlResourceUploader.getRestypeFromExt(extn);            
+				var fileInfo = {resource: blobfile, restype: restype, extn: extn, name: ''};
+				Upload.dataUrl(blobfile).then(function(url) {
+					fileInfo.resimg = url;
+				});
+				addModifyResourceDlg.scope.data.resource = [fileInfo];
+				imageEditorDlg.close(false);
+			}};
+			imageEditorDlg.show('view_controllers/resource/image_editor.html', 
+			[saveimageEditor], cancelImageEditor, false)
+			
+		}
 	}
 
 	function _initResourceDlg(addModifyResourceDlg, card, restypes) {
