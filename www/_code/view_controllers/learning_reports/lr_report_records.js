@@ -448,6 +448,7 @@ function(nl, nlRouter, nlDlg, nlGroupInfo, nlLrHelper, nlLrFilter, nlGetManyStor
 
         report.typeStr = 'Module';
         _updateHideDeleteButton(report);
+        report.versionId = repcontent.versionId || '';
         var ret = {raw_record: report, repcontent: repcontent,
             user: user, usermd: user.metadataObj, stats: stats,
             created: nl.fmt.fmtDateDelta(report.created, null, 'minute'), 

@@ -1359,7 +1359,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			for(var key in pages) { 
 				var page = pages[key];
 				var pageNo = page.pageNo;
-				if (!pageNo) continue;
+				if (!pageNo || page.maxScore === 0) continue;
 				if (page.maxScore > 0 && !(pageNo in pageLevelQuestionsObj))
 					pageLevelQuestionsObj[pageNo] = {pageno: pageNo, title:nl.t('Page no{} - {}', pageNo, page.title), userAttempt:0, maxScore:0, score:0, correct:0, partial:0, incorrect:0, skipped:0, totalAttempt: 0}										
 				_updatePageLevelData(pageLevelQuestionsObj[pageNo], page);

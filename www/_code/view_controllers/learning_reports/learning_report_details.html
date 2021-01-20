@@ -104,4 +104,9 @@
     <div class='padding-mid' ng-class='$root.respCol422'>
         <span>{{rec._raw.raw_record.id}}</span>
     </div>
+
+    <div ng-if='rec._raw.raw_record.completed && rec._raw.raw_record.typeStr == "Module"' class='padding-mid' ng-class='$root.respCol422'><b>Version ID:</b></div>
+    <div ng-if='rec._raw.raw_record.completed && rec._raw.raw_record.typeStr == "Module"' class='padding-mid' ng-class='$root.respCol422'>
+        <span>{{rec._raw.repcontent.versionId || '-'}}</span>
+    </div>
 </div>

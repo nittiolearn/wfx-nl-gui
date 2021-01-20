@@ -699,6 +699,7 @@ function(nl, nlDlg, nlRouter, nlExporter, nlLrHelper, nlLrSummaryStats, nlGroupI
             {id: 'id', name:'Report Id', fmt: 'idstr'},
             {id: 'assignment', name:'Assign Id', fmt: 'idstr'},
             {id: 'lesson_id', name:'Module Id', fmt: 'idstr'},
+            {id: 'versionId', name:'Version ID', fmt: 'idstr'},
             {id: '_courseId', name:'Course/Training Id', fmt: 'idstr'},
             {id: 'containerid', name:'Course/Training Report Id', fmt: 'idstr'}
     ];
@@ -767,6 +768,7 @@ function(nl, nlDlg, nlRouter, nlExporter, nlLrHelper, nlLrSummaryStats, nlGroupI
         {id: '_courseId', name: 'Course Id' },
         {id: '_moduleId', name: 'Module Id' },
         {id: '_moduleRepId', name: 'Module report Id' },
+        {id: '_versionId', name:'Version ID'},
         {id: '_language', name: 'Language' },
     ]
 
@@ -985,6 +987,7 @@ function(nl, nlDlg, nlRouter, nlExporter, nlLrHelper, nlLrSummaryStats, nlGroupI
         defaultRowObj._passScoreStr =  statusinfo.passScore ? statusinfo.passScore: '';
         defaultRowObj._timeMins = Math.ceil((statusinfo.timeSpentSeconds || 0)/60);
         defaultRowObj.feedbackScore = statusinfo.feedbackScore || '';
+        defaultRowObj._versionId = statusinfo.versionId || '';
     };
 
 	function _updateCsvSessionRows1(statusinfo, defaultRowObj) {

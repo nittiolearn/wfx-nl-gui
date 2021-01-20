@@ -549,6 +549,7 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
             _ctx.unlockNext[cm.id] = itemInfo.ended || itemInfo.updated;
             itemInfo.feedbackScore = _getFeedbackScoreForModule(linfo.feedbackScore);
             itemInfo.feedbackScore = itemInfo.feedbackScore ? '' + Math.round(itemInfo.feedbackScore*10)/10 + '%' : '';
+            itemInfo.versionId = linfo.versionId || '';
             return;
         }
         var pastInfo = _pastLessonReports[cm.id] || {};
@@ -565,6 +566,7 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
             maxLinfo = pastRep;
         }
         itemInfo.targetLang = maxLinfo.targetLang || '';
+        itemInfo.versionId = maxLinfo.versionId || '';
         itemInfo.score = maxPerc;
         itemInfo.timeSpentSeconds = totalTimeSpent;
         itemInfo.maxScore = _getMaxScore(maxLinfo);
