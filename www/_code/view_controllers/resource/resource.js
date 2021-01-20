@@ -46,6 +46,15 @@ function(nl, Upload, nlDlg, nlResourceUploader) {
         $scope.onResourceRemove = function(fileInfo, pos) {
             _onResourceRemove($scope, fileInfo, pos);
         };
+
+        $scope.imageEditor = function(imagesrc, pos) {
+            imageEditor($scope, imagesrc, pos);
+        };
+
+        $scope.intializeEditor =function(id) {
+            intializeEditor(id);
+        };
+
         var field = iElem.find('div')[0];
         nlDlg.addField($scope.fieldmodel, field);
         nl.timeout(function() {
@@ -84,7 +93,48 @@ function(nl, Upload, nlDlg, nlResourceUploader) {
             fileInfo.resimg = url;
         });
     }
-    
+
+    function imageEditor($scope,imagesrc,pos) {
+        var EditorDlg =$scope.$new();
+        EditorDlg.fileInfo=imagesrc;
+        var msg = {title: 'Image Editor', 
+            templateUrl: 'view_controllers/resource/image_editor.html',
+            scope: EditorDlg,
+            okText: nl.t('OK')
+        };
+            var imageEditor;
+            $scope.intializeEditor = function(id) {
+                    imageEditor = new tui.ImageEditor('#'+id , {
+                        includeUI: {
+                            loadImage: {
+                                path: imagesrc,
+                                name: 'edited-image'
+                            },
+                            initMenu: 'filter',
+                            menuBarPosition: 'bottom',
+                        },
+                        cssMaxWidth: 700,
+                        cssMaxHeight: 500,
+                        usageStatistics: false
+                    });
+                    window.onresize = function() {
+                        imageEditor.ui.resizeEditor();
+                    }
+                }
+            nlDlg.popupConfirm(msg).then(function(e) {
+                if(!e) return;
+                
+                _applyEditor($scope, imagesrc, pos);
+            });
+            function _applyEditor($scope, imagesrc, pos) {
+                var editedFile=[];
+                var editedImagesrc=imageEditor.toDataURL();
+                var blobfile=nlResourceUploader.dataURItoBlob(editedImagesrc);
+                editedFile.push(blobfile);
+                _onFileSelect($scope, editedFile)
+             }
+     };
+
     function _onResourceClick($scope, fileInfo, pos) {
         var scope = $scope.$new();
         scope.fileInfo = fileInfo;

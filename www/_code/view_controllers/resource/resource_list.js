@@ -285,7 +285,8 @@ function(nl, nlServerApi, nlDlg, Upload, nlProgressFn, nlResourceUploader){
 	                addModifyResourceDlg.resolvedCalled = true;
 	                if (!beforeShow) addModifyResourceDlg.close();
 	                resolve(_processResults(addModifyResourceDlg, markupHandler, afterFirstOk));
-	            }; 
+				};
+				$scope.showImageEditor = ((userInfo.groupinfo || {}).features || {}).imageEditor || false; 
 	            addModifyResourceDlg.resolveAfterOnce = function () {
 	                if (!onlyOnce) return false;
 	                addModifyResourceDlg.resolve(true);

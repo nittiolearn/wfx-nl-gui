@@ -22,6 +22,9 @@
                 <i class="ion-ios-close-outline"></i>
             </div>
             <div class="nl-thumbnail-txt">{{fileInfo.resource.name}}</div>
+            <div style="position:relative; top:132px;">
+                <button id="btn1" ng-if="$root.showImageEditor" ng-click ="imageEditor(fileInfo.resimg, $index)" class="btn-primary btn-block" style="position:relative;bottom:27px;left:113%;background-color: #153673;">Edit Image</button>
+            </div>
         </div>
     </div>
     <div ng-show='$parent.error[fieldmodel]' class='nl-dlg-field-errormsg'>{{$parent.error[fieldmodel]}}</div>
