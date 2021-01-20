@@ -498,6 +498,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		$scope.nhtClosedInfo = {};
 		$scope.iltBatchInfo = {};
 		$scope.certificateInfo = {};
+		$scope.pageLevelInfo = {};
 		var tabs = $scope.tabData.tabs;
 		for (var i=0; i<tabs.length; i++) {
 			tabs[i].updated = false;
@@ -552,6 +553,8 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			_updateOverviewTab(tabData.summaryStatSummaryRow);
 		} else if (tab.id == 'learningrecords') {
 			_updateLearningRecordsTab(tabData);
+		} else if (tab.id == 'pagelevelrecords') {	
+            _updatePageLevelRecordsTab();
 		} else if (tab.id == 'timesummary') {
 			_updateTimeSummaryTab();
 		} else if (tab.id == 'drilldown') {
@@ -953,6 +956,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			$scope.batchinfo = {};
 			$scope.iltBatchInfo = {};
 			$scope.certificateInfo = {};
+			$scope.pageLevelInfo = {};
 	}
 	
 	function _updateOverviewTab(summaryRecord) {
@@ -1326,6 +1330,138 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 	//---------------------------------------------------------------------------------------------------------------------------------------------------------
 	// Drilldown tab
 	//---------------------------------------------------------------------------------------------------------------------------------------------------------
+	function _updatePageLevelRecordsTab() {
+		var records = $scope.tabData.records; 
+		var pageLevelDataObj = _getPageLevelRecords(records);
+		var pageLevelColumns = _getPlrColumns(); 
+		var pageRows = [];
+		for(var key in pageLevelDataObj) {
+			pageLevelDataObj[key]['scorePerc'] = Math.round(pageLevelDataObj[key].score/pageLevelDataObj[key].maxScore*100);
+			pageLevelDataObj[key]['notAttempted'] = pageLevelDataObj[key].totalAttempt - pageLevelDataObj[key].userAttempt 
+			pageRows.push(pageLevelDataObj[key]);
+		}
+		pageRows = pageRows.sort(function(a, b) {
+			if(b.pageno < a.pageno) return 1;
+			if(b.pageno > a.pageno) return -1;
+			if(b.pageno == a.pageno) return 0;
+		});
+		$scope.pageLevelInfo = {columns: pageLevelColumns, visibleRows: pageRows, rows: pageRows}; 
+		if (pageRows.length == 0) return;
+		_updatePageLevelCharts(pageRows); 
+	}
+
+	function _getPageLevelRecords(records) {
+		var  pageLevelQuestionsObj= {};
+		for(var i=0; i<records.length; i++) {
+			var report = records[i];
+			if (!report.raw_record.completed) continue;
+			var pages = report.repcontent.learningData.pages;
+			for(var key in pages) { 
+				var page = pages[key];
+				var pageNo = page.pageNo;
+				if (!pageNo) continue;
+				if (page.maxScore > 0 && !(pageNo in pageLevelQuestionsObj))
+					pageLevelQuestionsObj[pageNo] = {pageno: pageNo, title:nl.t('Page no{} - {}', pageNo, page.title), userAttempt:0, maxScore:0, score:0, correct:0, partial:0, incorrect:0, skipped:0, totalAttempt: 0}										
+				_updatePageLevelData(pageLevelQuestionsObj[pageNo], page);
+			}
+	    }
+		return pageLevelQuestionsObj;
+	}
+
+	function _updatePageLevelData(questionObj, page) {
+		questionObj.maxScore += page.maxScore;
+		questionObj.totalAttempt += 1;
+		if (page.answerStatus == 0) {
+			questionObj.skipped++
+			return;
+		}
+		questionObj.userAttempt++;
+		if (page.score == page.maxScore) {
+			questionObj.correct += 1;
+			questionObj.score += page.score; 
+		}
+		if(page.score > 0 && page.score < page.maxScore) questionObj.partial++;
+		if (page.score == 0) questionObj.incorrect++;
+	}
+
+	function _getPlrColumns() { 
+		var columns = [];
+		columns.push({id: 'title', name: 'Question'});
+		columns.push({id: 'scorePerc', name: 'Score (%)'});
+		columns.push({id: 'skipped', name: 'Not attempt'});
+		columns.push({id: 'correct', name: 'Correct'});
+		columns.push({id: 'partial', name: 'Partially correct'});
+		columns.push({id: 'incorrect', name: 'Incorrect'});
+		return columns;
+	}
+
+	function _updatePageLevelCharts(plrRows) { 
+		var charts = {labels: [], series: ['Correct', 'Partially correct', 'Incorrect'],
+					  	options: {scales: {
+							xAxes: [{
+								stacked: true,
+								ticks: {
+									callback: function(label, index, labels) {
+										return label+'%';
+									},
+								},
+								scaleLabel: {
+									display: true,
+								}
+							}],
+							yAxes: [{
+								stacked: true,
+								barPercentage: 0.9,
+								categoryPercentage: 0.6
+							}]
+							},
+							tooltips: {
+								enabled: true,
+								callbacks: {
+								  label: function(tooltipItem, data) {
+									var allData = data.datasets[tooltipItem.datasetIndex].data;
+									var tooltipLabel = data.datasets[tooltipItem.datasetIndex].label;
+									var tooltipData = allData[tooltipItem.index];
+									return tooltipLabel + ": " + tooltipData + "%";
+								  }
+								}
+							}
+						}, colors: [_nl.colorsCodes.done, _nl.colorsCodes.failed, _nl.colorsCodes.pending],
+						title: "Completion percentage based on question solved.",
+						currentpos: 0,
+						maxvisible: 10
+					};
+
+		var chartArray = [charts];
+		$scope.pageLevelInfo.selectedChart = chartArray[0];
+		charts.graphData = [];
+		for (var i=0; i<plrRows.length; i++) {
+			var page = plrRows[i];
+			var total = page.correct + page.partial + page.incorrect;
+			var correctperc = Math.round(page.correct/total*100);
+			var partialPerc = Math.round(page.partial/total*100);
+			if (correctperc + partialPerc > 100) partialPerc --;
+			var incorrectPerc = 100 - (correctperc + partialPerc);
+			charts.graphData.push({title: page.title, correct: correctperc, partial: partialPerc, incorrect: incorrectPerc});
+		}
+	   
+		_updatePageCharts(charts);
+		$scope.pageLevelInfo.selectedChart.visibleStr = _getVisibleStringCharts;
+		$scope.pageLevelInfo.selectedChart.canShowNext = _canShowNextCharts;
+		$scope.pageLevelInfo.selectedChart.canShowPrev = _canShowPrevCharts;
+		$scope.pageLevelInfo.selectedChart.onClickOnNextPl = function(selectedChart){
+			if (!selectedChart || !_canShowNextCharts(selectedChart)) return;
+			_onClickOnNextCharts(selectedChart, 'page'); 
+		}
+		$scope.pageLevelInfo.selectedChart.onClickOnPrevPl = function(selectedChart){
+			if (!selectedChart || !_canShowPrevCharts(selectedChart)) return;
+			_onClickOnPrevCharts(selectedChart, 'page'); 
+	}	
+	};
+
+	//---------------------------------------------------------------------------------------------------------------------------------------------------------
+	// Drilldown tab
+	//---------------------------------------------------------------------------------------------------------------------------------------------------------
 	var _drilldownStatsCountDict = {};
 	var _drillDownColumns = [];
 
@@ -1594,6 +1730,9 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		charts.data = [series1, series2, series3];
 	}
 
+	//---------------------------------------------------------------------------------------------------------------------------------------------------------
+	// Common code for navigation of charts for drilldown and pagelevel Charts
+	//---------------------------------------------------------------------------------------------------------------------------------------------------------
 	function _getVisibleStringCharts(selectedChart) {
 		if (selectedChart.currentpos + selectedChart.maxvisible < selectedChart.graphData.length) {
 			return nl.t('{} - {} of {}', selectedChart.currentpos+1, selectedChart.currentpos+selectedChart.maxvisible, selectedChart.graphData.length)
@@ -1601,26 +1740,34 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		return nl.t('{} - {} of {}', selectedChart.currentpos+1, selectedChart.graphData.length, selectedChart.graphData.length);
 	}
 
+	function  _canShowPrevCharts(selectedChart) {
+		if (!selectedChart) return;
+		if (selectedChart.currentpos > 0) return true;
+		return false;
+	};
+
 	function _canShowNextCharts(selectedChart) {
 		if (!selectedChart) return;
 		if (selectedChart.currentpos + selectedChart.maxvisible < selectedChart.graphData.length) return true;
 		return false;
 	}
 
-	function _onClickOnNextCharts(selectedChart) {
+	function _onClickOnNextCharts(selectedChart, type) {
 		if (selectedChart.currentpos + selectedChart.maxvisible > selectedChart.graphData.length) return;
 		if (selectedChart.currentpos < selectedChart.graphData.length) {
 			selectedChart.currentpos += selectedChart.maxvisible;
 		}
-		_updateCharts(selectedChart);
+		if (type == 'page') _updatePageCharts(selectedChart)
+		else _updateCharts(selectedChart);
 	}
 
-	function _onClickOnPrevCharts(selectedChart) {
+	function _onClickOnPrevCharts(selectedChart, type) {
 		if (selectedChart.currentpos == 0) return;
 		if (selectedChart.currentpos >= selectedChart.maxvisible) {
 			selectedChart.currentpos -= selectedChart.maxvisible;
 		}
-		_updateCharts(selectedChart);
+		if (type == 'page') _updatePageCharts(selectedChart)
+		else _updateCharts(selectedChart);
 	}
 
 	function _updateCharts(selectedChart) {
@@ -1638,6 +1785,30 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			series3.push(records[i].notCompleted);
 		}
 		selectedChart.data = [series1, series2, series3];
+		selectedChart.labels = labels;
+	}
+
+	function _updatePageCharts(selectedChart) {
+		var records = selectedChart.graphData || [];
+		var series1 = [];
+		var series2 = [];
+		var series3 = [];
+		var labels = [];
+		var endPos = selectedChart.currentpos+selectedChart.maxvisible
+		if (endPos > records.length) endPos = records.length;
+		for(var i=selectedChart.currentpos; i<endPos; i++) {
+			var pageItem = selectedChart.graphData[i]
+			var title = pageItem.title; 
+			if(title.length >= 15) {
+				title = title.slice(0,15);  
+				title  = title + "...";  
+			}
+			labels.push(title);
+			series1.push(records[i].correct);
+			series2.push(records[i].partial);
+			series3.push(records[i].incorrect);
+		}
+		selectedChart.data = [series1, series2, series3]; 
 		selectedChart.labels = labels;
 	}
 
@@ -2632,6 +2803,15 @@ function LrTabManager(tabData, nlGetManyStore, nlLrFilter, _groupInfo) {
 			canShow: true,
 			tables: [tabData.utable]
 		},
+		pagelevelrecords: {
+			title : 'Click here to view page level records',
+			name: 'Page Level Records',
+			icon : 'ion-ios-paper',
+			id: 'pagelevelrecords',
+			updated: false, 
+			canShow: true,
+			tables: [tabData.utable]
+		},
 		timesummary: {
 			title : 'Click here to view time summary',
 			name: 'Time Summary',
@@ -2668,6 +2848,7 @@ function LrTabManager(tabData, nlGetManyStore, nlLrFilter, _groupInfo) {
 			tabs.push(_tabsDict.drilldown);
 			tabs.push(_tabsDict.learningrecords);
 			tabs.push(_tabsDict.timesummary);
+			tabs.push(_tabsDict.pagelevelrecords);
 		}
 	}
 	_init(this);
@@ -2676,12 +2857,14 @@ function LrTabManager(tabData, nlGetManyStore, nlLrFilter, _groupInfo) {
 		var subtype = nlLrFilter.getRepSubtype();
 		var batchStatus = nlGetManyStore.getNhtBatchStates();
 		var type = nlLrFilter.getType();
+		var objid = nlLrFilter.getObjectId();
         var isNHTEnabled = (!_groupInfo.props.milestones) ? false : true;
 		_tabsDict.overview.canShow = _recordsFound.lms && subtype != 'nht' || subtype == 'lms';
 		_tabsDict.nhtoverview.canShow = isNHTEnabled && _recordsFound.nht && subtype != 'lms' || subtype == 'nht';
 		_tabsDict.nhtrunning.canShow =  (type != 'user' && batchStatus.running);
 		_tabsDict.nhtclosed.canShow =  (type != 'user' && batchStatus.closed);
 		_tabsDict.nhtbatchattendance.canShow = isNHTEnabled && _recordsFound.nht && subtype != 'lms' || subtype == 'nht';
+		_tabsDict.pagelevelrecords.canShow = (type == "module_assign" || type == 'module') && objid;
 	}
 
 	function _updateSelectedTab(tabs) {
