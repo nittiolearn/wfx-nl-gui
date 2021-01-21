@@ -47,6 +47,8 @@
 		<div ng-show='ext.item.type == "lesson"' ng-class='respCol442'>
 			<nl-course-number-of-attempts></nl-course-number-of-attempts>
 		</div>
+		<div ng-show='ext.item.type == "lesson" && ext.item.ended' ng-class='respCol442'><b>Version ID</b></div>
+		<div ng-show='ext.item.type == "lesson" && ext.item.ended' ng-class='respCol442'>{{ext.item.versionId ? ext.item.versionId : ""}}</div>
 	</div>
 	<div ng-show='ext.pastAttemptData.length > 0' class='row padding-small margin0'>
 		<nl-course-past-attempt-data class='col'></nl-course-past-attempt-data>

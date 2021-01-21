@@ -70,6 +70,12 @@
 			<nl-course-number-of-attempts></nl-course-number-of-attempts>
 		</div>
 	</div>
+	<div ng-show='ext.item.type == "lesson" && ext.item.ended' class='row row-center row-justify-evenly margin0 padding0'>
+		<div class='col'><b>Version ID</b></div>
+		<div class='col'>
+			{{ext.item.versionId ? ext.item.versionId : ""}}		
+		</div>
+	</div>
 	<div ng-show='ext.pastAttemptData.length > 0' class='row row-center row-justify-evenly margin0 padding0'>
 		<nl-course-past-attempt-data class='col'></nl-course-past-attempt-data>
 	</div>

@@ -223,7 +223,10 @@ function(nl, nlRouter, nlDlg, $scope, nlCardsSrv, nlServerApi, nlGroupInfo) {
 	    var desc = nl.fmt2('<div><b>{} {} on:</b> {}</div>', 
 	       _getTypeName(item.entitytype), actionType, nl.fmt.fmtDateDelta(item.created));
 	    if (item.username) desc += nl.fmt2('<div>by {}</div>', item.username);
-	    
+        var info = {};
+        if (item.info && typeof(item.info == 'string')) info = angular.fromJson(item.info);
+        if (info.versionId) desc += nl.fmt2('<div>Version ID: {}</div>', info.versionId); 
+
 	    var card = {id: item.id,
             updated: item.updated,
             created: item.created,

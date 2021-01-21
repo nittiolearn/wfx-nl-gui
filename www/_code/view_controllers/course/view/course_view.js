@@ -1137,6 +1137,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlCourseEditor, nlC
         cm.score = isEnded ? itemInfo.rawScore || null : null;
         cm.maxScore = isEnded ? itemInfo.maxScore || null : null;
         cm.perc = isEnded ? itemInfo.score || null : null;
+        cm.versionId = isEnded ? itemInfo.versionId : '';
     }
     
     function _updateModuleData(cm, itemIdToInfo) {
