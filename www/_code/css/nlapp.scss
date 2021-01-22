@@ -30,9 +30,12 @@ $nlOrange2:                       #ed7000 !default;
 $nlOrange3:                       #eab01f !default; 
 // Yellow used throughout the file/app
 $nlYellow:                        #E5FF80;
+$nlYellow1:                       #FFFF80;
 // Red used throughout the file/app
 $nlRed:                           #770000 !default;
-$nlRed1:                           #FF0000;
+$nlRed1:                          #FF0000;
+$nlRed2:                          #402000;
+$nlRed3:                          #FF8080;
 // Green used throughout the file/app
 $nlGreen1:                        #007700 !default;
 $nlGreen2:                        #44BB44 !default; // Light green
@@ -43,12 +46,17 @@ $nlGrey2:                         #CCCCDD !default;
 $nlGrey3:                         #EEEEFF !default; 
 $nlGrey4:                         #f5f5f5 !default; // Lightest of light greys
 $nlGrey5:                         #DDDDDD;
+$nlGrey6:                         #AAAAAA;
+$nlGrey7:                         #f8f8f8;
 $nlDaryGrey1:                     #575B5E !default; // Darkest of dark greys
 $nlDaryGrey2:                     #707172 !default; // Lightest of dark greys
+$nlDarkGrey3:                     #777777;
+$nlDarkGrey4:                     #888888;
 $nlBorderGrey1:                    #EEEEEE !default;
 $nlBorderGrey2:                    #CCCCCC !default;
 // White used throughout the file/app
 $nlWhite:                          #ffffff;
+$nlWhite1:                         #F0F0F0;
 // Black used throughout the file/app
 $nlBlack:                          #000000;
 
@@ -902,12 +910,12 @@ a.black {
   }
   
   &::-webkit-scrollbar-thumb {
-    background: #AAAAAA;
+    background: $nlGrey6;
     box-shadow: inset 1px 0 0 rgba(255, 255, 255, 0.4);
   }
   
   &::-webkit-scrollbar-thumb:hover {
-    background: #777777;
+    background: $nlDarkGrey3;
     box-shadow: inset 2px 0 0 rgba(255, 255, 255, 0.4);
   }
 }
@@ -1268,7 +1276,7 @@ input.nl-dlg-field-error, .nl-dlg-field-error {
  * nl-date-time-select, nl-module-select, nl-tree-select styles
  *-----------------------------------------------------------------------------------------*/
 .nl-xxx-select {
-  background-color: #EEEEFF;
+  background-color: $nlGrey3;
   min-height: 34px;
 }
 
@@ -1354,7 +1362,7 @@ input.nl-dlg-field-error, .nl-dlg-field-error {
   right: 8px;
   width: auto;
   height: auto;
-  box-shadow: 2px 2px 10px 5px #402000;
+  box-shadow: 2px 2px 10px 5px $nlRed2;
 }
  
 .nl-form-head {
@@ -1801,8 +1809,8 @@ nl-summary-box.small-summary-box {
   padding:3px;
   margin: 0;
   border-radius:4px;
-  background: #f8f8f8;
-  color:#888;
+  background: $nlGrey7;
+  color:$nlDarkGrey4;
   outline:none;
   cursor:pointer;
   &:focus {
@@ -1949,11 +1957,11 @@ nl-summary-box.small-summary-box {
   }
   
   .nltb-title small a {
-    color: #FFFF80;
+    color: $nlYellow1;
   }
   
   .nltb-title small a:hover {
-    color: #FF8080;
+    color: $nlRed3;
   }
   
   .nltb-tab {
@@ -3050,8 +3058,8 @@ img.nl-full-width {
   border-radius: 50%;
   font-size: 15px;
   padding: 2px 6px;
-  background-color: #F0F0F0;
-  border: 1px solid #AAAAAA;
+  background-color: $nlWhite1;
+  border: 1px solid $nlGrey6;
   color: 404040;
   font-weight: 800;
   z-index: 2;
@@ -3585,7 +3593,7 @@ a.enabled {
 
 /*----------------------------------------------------------------------------------------------------*/
 /* Font sizes */
-.njsSlides .size-title1 p, .njsSlides .title p {font-size: 200%; text-shadow: 0 1px 0 #cccccc, 0 2px 0 #c9c9c9, 0 3px 0 #bbbbbb, 0 4px 0 #b9b9b9, 0 5px 0 #aaaaaa, 0 6px 1px rgba(0, 0, 0, 0.1), 0 0 5px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.3), 0 3px 5px rgba(0, 0, 0, 0.2), 0 5px 10px rgba(0, 0, 0, 0.25), 0 20px 20px rgba(0, 0, 0, 0.15);}
+.njsSlides .size-title1 p, .njsSlides .title p {font-size: 200%; text-shadow: 0 1px 0 $nlBorderGrey2, 0 2px 0 #c9c9c9, 0 3px 0 #bbbbbb, 0 4px 0 #b9b9b9, 0 5px 0 #$nlGrey6, 0 6px 1px rgba(0, 0, 0, 0.1), 0 0 5px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.3), 0 3px 5px rgba(0, 0, 0, 0.2), 0 5px 10px rgba(0, 0, 0, 0.25), 0 20px 20px rgba(0, 0, 0, 0.15);}
 .njsSlides .size-title2 p {font-size: 180%}
 .njsSlides .size-title3 p {font-size: 150%}
 .njsSlides .size-title4 p {font-size: 120%;}
