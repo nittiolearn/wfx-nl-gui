@@ -15,34 +15,74 @@ $royal:                           #886aea !default;
 $dark:                            #444 !default;
 */
 
+
 // Blue used throughout the file/app
 $nlBlue1:                         #153673 !default;
 $nlBlue2:                         #2461cc !default;
+$nlBlue2Transparent30:              rgba($nlBlue2, 0.3);
+$nlBlue2Transparent50:              rgba($nlBlue2, 0.5);
 $nlBlue3:                         #c2e3fc !default;
+$nlBlue3Transparent70:              rgba($nlBlue3, 0.7);
+$nlBlue3Transparent50:              rgba($nlBlue3, 0.5);
 $nlBlue4:                         #000077;
 $nlBlue5:                         #0000FF;
+$nlBlue6:                         rgba(128, 128, 255, 0.2);
+$nlBlue7:                         rgba(170,170,255,0.1);
+$nlBlue8:                         rgba(0,128,128,0.5);
+$nlBlue9:                         rgba(0, 32, 96, 0.8);
+$nlBlue10:                        rgba(0, 176, 240, 0.8);
+$nlBlue11:                        rgba(0, 139, 139, 0.8);
+$nlBlue12:                        rgba(0, 0, 255, 0.8);
 $nlLightBlue1:                    #DDDDFF;
 $nlLightBlue2:                    rgba(194, 227, 252, 1);
 $nlLightBlue3:                    rgba(81, 203, 238, 1);
+$nlLightBlue4:                    rgba(240, 240, 255, 0.7);
+$nlLightBlue5:                    rgba(229, 229, 255, 1);
+$nlLightBlue6:                    rgba(245, 245, 255, 1);
+$nlLightBlue7:                    rgba(230, 230, 255, 0.9);
+$nlLightBlue8:                    rgba(128,255,255,0.5);
+$nlLightBlue9:                    rgba(143,170,220,0.8);
 // Orange used throughout the file/app
 $nlOrange1:                       #e84c3d !default; 
 $nlOrange2:                       #ed7000 !default;
 $nlOrange3:                       #eab01f !default; 
+$nlOrange4:                       rgba(255, 192, 0, 0.8);
 // Yellow used throughout the file/app
 $nlYellow:                        #E5FF80;
 $nlYellow1:                       #FFFF80;
+$nlYellow2:                       rgba(255,255,170,0.8);
+$nlYellow3:                       rgba(150, 100, 0, 0.8);
+$nlYellow4:                       rgba(255, 255, 0, 0.8);
 // Red used throughout the file/app
 $nlRed:                           #770000 !default;
 $nlRed1:                          #FF0000;
 $nlRed2:                          #402000;
 $nlRed3:                          #FF8080;
 $nlRed4:                          #800000;
+$nlRed5:                          rgba(170,0,0,0.1);
+$nlRed6:                          rgba(255, 128, 128, 1);
+$nlRed7:                          rgba(255, 178, 178, 1);
+$nlRed8Transparent50:             rgba(180, 0, 0, 0.5);
+$nlRed8Transparent10:             rgba(180, 0, 0, 0.1);
+$nlRed9:                          rgba(128, 0, 0, 0.1);
+$nlRed10:                         rgba(255,0,0,0.8);
+$nlRed11:                         rgba(220,170,170,0.8);
+$nlRed12:                         rgba(100, 0, 0, 0.8);
 // Green used throughout the file/app
 $nlGreen1:                        #007700 !default;
 $nlGreen2:                        #44BB44 !default; // Light green
 $nlGreen3:                        #BBFFBB !default; // Light green 
+$nlGreen4:                        rgba(0, 128, 0, 0.1);
+$nlGreen5:                        rgba(143,220,170,0.8);
+$nlGreen6:                        rgba(0, 100, 0, 0.8);
+$nlGreen7:                        rgba(154, 205, 50, 0.8);
+$nlGreen8:                        rgba(110, 139, 61, 0.8);
+$nlGreen9:                        rgba(69, 139, 116, 0.8);
+$nlGreen10:                       rgba(0, 255, 0, 0.8);
 // Grey used throughout the file/app
 $nlGrey1:                         #A0A0C0 !default; // Darkest of light greys
+$nlGrey1Transparent30:              rgba($nlGrey1, 0.3);
+$nlGrey1Transparent50:              rgba($nlGrey1, 0.5);
 $nlGrey2:                         #CCCCDD !default; 
 $nlGrey3:                         #EEEEFF !default; 
 $nlGrey4:                         #f5f5f5 !default; // Lightest of light greys
@@ -52,15 +92,24 @@ $nlGrey7:                         #f8f8f8;
 $nlGrey8:                         #c9c9c9;
 $nlGrey9:                         #bbbbbb;
 $nlGrey10:                        #b9b9b9;
+$nlGrey11:                        rgba(200,200,200,1);
 $nlDaryGrey1:                     #575B5E !default; // Darkest of dark greys
 $nlDaryGrey2:                     #707172 !default; // Lightest of dark greys
 $nlDarkGrey3:                     #777777;
 $nlDarkGrey4:                     #888888;
+$nlDarkGrey5Transparent70:        rgba(255, 255, 255, 0.7);
+$nlDarkGrey5Transparent60:        rgba(255, 255, 255, 0.6);
+$nlDarkGrey5Transparent50:        rgba(255, 255, 255, 0.5);
+$nlDarkGrey5Transparent40:        rgba(255, 255, 255, 0.4);
+$nlDarkGrey5Transparent30:        rgba(255, 255, 255, 0.3);
+$nlDarkGrey6:                     rgba(170, 170, 170, 1);
+$nlDarkGrey7:                     rgba(128,128,128,0.8);
 $nlBorderGrey1:                    #EEEEEE !default;
 $nlBorderGrey2:                    #CCCCCC !default;
 // White used throughout the file/app
 $nlWhite:                          #ffffff;
 $nlWhite1:                         #F0F0F0;
+$nlWhiteTransparent10:             rgba(255, 255, 255, 1);
 // Black used throughout the file/app
 $nlBlack:                          #000000;
 $nlBlackTransparent:               rgba(0, 0, 0, 0);
@@ -702,10 +751,10 @@ tr.summary {
     padding: 8px;
     cursor: pointer;
     &:hover {
-      background-color: rgba(255, 255, 255, 0.5);
+      background-color: $nlDarkGrey5Transparent50;
     }
     &:focus, &:active, &.activated {
-      background-color: rgba(255, 255, 255, 0.3);
+      background-color: $nlDarkGrey5Transparent30;
     }
   }
 }
@@ -758,7 +807,7 @@ tr.summary {
     text-decoration: none;
   }
   &:focus, &:active {
-    background-color: rgba(128, 128, 255, 0.2);
+    background-color:$nlBlue6;
   }
 }
 
@@ -779,14 +828,14 @@ tr.summary {
 }
 
 .activated > .nl-link-text, .activated.nl-link-text {
-  background-color: rgba(128, 128, 255, 0.2);
+  background-color:$nlBlue6;
   opacity: 0.5;
 }
 
 .nl-link-img {
   cursor: pointer;
   &:hover, &:focus, &:active {
-    box-shadow: inset 0 0 5px rgba(170,0,0,0.1), 0 0 10px rgba(0,0,0,1);
+    box-shadow: inset 0 0 5px $nlRed5, 0 0 10px $nlBlackTransparent10;
   }
 }
 
@@ -797,7 +846,7 @@ tr.summary {
 }
 
 .activated > .nl-link-img, .activated.nl-link-img {
-  box-shadow: inset 0 0 5px rgba(170,0,0,0.1), 0 0 10px rgba(0,0,0,1);
+  box-shadow: inset 0 0 5px $nlRed5, 0 0 10px $nlBlackTransparent10;
   opacity: 0.5;
 }
 
@@ -836,12 +885,12 @@ a.black {
   }
   i.icon:hover {
     color: $nlBlue2;
-    background-color: rgba(255, 255, 255, 0.7);
+    background-color:$nlDarkGrey5Transparent70;
     box-shadow: inset 0 0 2px $nlBlue1, 0 0 5px $nlBlue1;
   }
   i.icon:focus, i.icon:active, &.activated > i.icon, i.icon.activated {
     color: $nlBlue2;
-    background-color: rgba(255, 255, 255, 1);
+    background-color: $nlWhiteTransparent10;
     box-shadow: inset 0 0 5px $nlBlue1, 0 0 2px $nlBlue1;
   }
   i.iconsuperscript {
@@ -925,12 +974,12 @@ a.black {
   
   &::-webkit-scrollbar-thumb {
     background: $nlGrey6;
-    box-shadow: inset 1px 0 0 rgba(255, 255, 255, 0.4);
+    box-shadow: inset 1px 0 0 $nlDarkGrey5Transparent40;
   }
   
   &::-webkit-scrollbar-thumb:hover {
     background: $nlDarkGrey3;
-    box-shadow: inset 2px 0 0 rgba(255, 255, 255, 0.4);
+    box-shadow: inset 2px 0 0 $nlDarkGrey5Transparent40;
   }
 }
 
@@ -1094,7 +1143,7 @@ a.black {
 .image-round-button {
   border-radius: 50%;
   background-color: $nlWhite;
-    box-shadow: inset 0 0 0 rgba(170,0,0,0.1), 0 0 10px rgba(200,200,200,1);
+    box-shadow: inset 0 0 0 $nlRed5, 0 0 10px $nlGrey11;
   z-index: 10;
   opacity: 0.7;
 }
@@ -1132,7 +1181,7 @@ a.black {
 
 nl-inline-help .nl-inline-help, nl-dlg-help, .nl-dlg-help {
   border: 1px dotted $nlBlue3;
-  background-color: rgba(240, 240, 255, 0.7);
+  background-color: $nlLightBlue4;
   color: $nlBlue1;
 }
 
@@ -1243,7 +1292,7 @@ input.nl-dlg-field-error, .nl-dlg-field-error {
 }
 
 .nl-login-darkbg .nl-dlg-field-errormsg {
-  color: rgba(255, 128, 128, 1);
+  color: $nlRed6;
 }
 
 .nl-dlg-field-icon {
@@ -1621,7 +1670,7 @@ nl-cards {
   padding: 0 16px 16px 16px;
   font-size: 100%;
   text-align: left;
-  color: rgba(170, 170, 170, 1);
+  color: $nlDarkGrey6;
 }
 
 .nl-card-desc .nl-link-text {
@@ -1688,15 +1737,15 @@ nl-cards {
 }
 
 .nl-bg-red {
-  background-color: rgba(255, 178, 178, 1);
+  background-color: $nlRed7;
 }
 
 .nl-bg-blue {
-  background-color: rgba(229, 229, 255, 1); 
+  background-color: $nlLightBlue5; 
 }
 
 .module_popup_img {
-  background-color: rgba(245, 245, 255, 1) !important;
+  background-color: $nlLightBlue6 !important;
 }
 
 .njsSlides > section > .bgimg, .page_format_preview > .bgimg {
@@ -1711,7 +1760,7 @@ nl-cards {
   box-shadow: inset 0 0 2px $nlBlue1, 0 0 5px $nlBlue1;
   z-index: -1;
   outline: none;
-  background-color: rgba(255, 255, 255, 0.3);
+  background-color: $nlDarkGrey5Transparent30;
 }
 
 .page_format_preview > .bgimg {
@@ -2347,10 +2396,10 @@ nl-course-canvas-view .holder1 {
       font-size: 20px;
       border-radius: 50%;
       background-color: $nlWhite;
-      color: rgba(180, 0, 0, 0.5);
+      color: $nlRed8Transparent50;
       cursor: pointer;
       &:hover, &:focus, &:active {
-        color: rgba(180, 0, 0, 1);
+        color: $nlRed8Transparent10;
       }
     }
     .nl-thumbnail-txt {
@@ -2550,11 +2599,11 @@ img.nl-full-width {
   }
   &:hover {
     color: $nlWhite;
-    background-color: rgba($nlBlue2, 0.3);
+    background-color: $nlBlue2Transparent30;
   }
   &:focus, &:active {
     color: $nlWhite;
-    background-color: rgba($nlBlue2, 0.5);
+    background-color: $nlBlue2Transparent50;
   }
 }
 
@@ -2565,11 +2614,11 @@ img.nl-full-width {
   }
   &:hover {
     color: $nlBlack;
-    background-color: rgba($nlBlue3, 0.5);
+    background-color: $nlBlue3Transparent50;
   }
   &:focus, &:active {
     color: $nlBlack;
-    background-color: rgba($nlBlue3, 0.7);
+    background-color: $nlBlue3Transparent70;
   }
 }
 
@@ -2580,11 +2629,11 @@ img.nl-full-width {
   }
   &:hover {
     color: $nlBlack;
-    background-color: rgba($nlGrey1, 0.3);
+    background-color: $nlGrey1Transparent30;
   }
   &:focus, &:active {
     color: $nlBlack;
-    background-color: rgba($nlGrey1, 0.5);
+    background-color: $nlGrey1Transparent50;
   }
 }
 
@@ -2942,11 +2991,11 @@ img.nl-full-width {
 
 .highlight.ng-move,
 .highlight.ng-enter {
-  background-color: rgba(0, 128, 0, 0.1);
+  background-color: $nlGreen4;
 }
 
 .highlight.ng-leave {
-  background-color: rgba(128, 0, 0, 0.1);
+  background-color: $nlRed9;
 }
 
 .anim-highlight-off {
@@ -3060,8 +3109,8 @@ img.nl-full-width {
   bottom: 10px;
   height: auto;
   width: auto;
-  background-color: rgba(230, 230, 255, 0.9);
-  box-shadow: 5px 5px 10px rgba(128,128,128,0.8);
+  background-color: $nlLightBlue6;
+  box-shadow: 5px 5px 10px $nlDarkGrey7;
   transition: 400ms cubic-bezier(0.250, 0.250, 0.750, 0.750) all;
 }
 
@@ -3103,7 +3152,7 @@ a.enabled {
   max-height: 42px;
   max-width: 99%;
   text-align: right;
-  background-color: rgba(255, 255, 255, 0.7);
+  background-color:$nlDarkGrey5Transparent70;
   z-index: 12;
   overflow-x:hidden;
   overflow-y:auto;
@@ -3169,7 +3218,7 @@ a.enabled {
 
 .toolBar .toolbarIcon > img:hover, 
 .sectiontoolbarIcon > img:hover, .sectiontoolbarIcon > img:focus, .sectiontoolbarIcon > img:active {
-  box-shadow: inset 0 0 0 rgba(170,0,0,0.1), 0 0 5px $nlBlackTransparent10;
+  box-shadow: inset 0 0 0 $nlRed5, 0 0 5px $nlBlackTransparent10;
   opacity: 1;
 }
 
@@ -3460,7 +3509,7 @@ a.enabled {
   width: 98%;
   margin: 0 0 4px 4px;
   text-align: left;
-  box-shadow: inset 0 0 5px rgba(170,0,0,0.1), 0 0 10px $nlBlackTransparent10;
+  box-shadow: inset 0 0 5px $nlRed5, 0 0 10px $nlBlackTransparent10;
 }
 
 .dlgFieldName {
@@ -3511,7 +3560,7 @@ a.enabled {
 
 .dlgField.mand textarea:focus, .dlgField.mand select:focus, .dlgField.mand input:focus {
   border-color: $nlRed1;
-  box-shadow: inset 0 0 0 rgba(170,170,255,0.1), 0 0 10px rgba(255,0,0,0.8);
+  box-shadow: inset 0 0 0 $nlBlue7, 0 0 10px $nlRed10;
 }
 
 /*----------------------------------------------------------------------------------------------------------------------
@@ -3563,38 +3612,38 @@ a.enabled {
 
 /*----------------------------------------------------------------------------------------------------*/
 /* Shadow */
-.njsSlides .shadow-1 {box-shadow: 0 0 5px rgba(128,255,255,0.5);}
-.njsSlides .bglight .shadow-1 {box-shadow: 0 0 5px rgba(0,128,128,0.5);}
-.njsSlides .shadow-2 {box-shadow: 0 0 10px rgba(128,255,255,0.8);}
-.njsSlides .bglight .shadow-2 {box-shadow: 0 0 10px rgba(0,128,128,0.8);}
-.njsSlides .shadow-3 {box-shadow: 10px 15px 10px rgba(255,255,255,0.7);}
-.njsSlides .bglight .shadow-3 {box-shadow: 10px 15px 10px rgba(128,128,128,0.7);}
+.njsSlides .shadow-1 {box-shadow: 0 0 5px $nlLightBlue8;}
+.njsSlides .bglight .shadow-1 {box-shadow: 0 0 5px $nlBlue8;}
+.njsSlides .shadow-2 {box-shadow: 0 0 10px $nlLightBlue8;}
+.njsSlides .bglight .shadow-2 {box-shadow: 0 0 10px $nllue8;}
+.njsSlides .shadow-3 {box-shadow: 10px 15px 10px $nlDarkGrey5Transparent70;}
+.njsSlides .bglight .shadow-3 {box-shadow: 10px 15px 10px $nlDarkGrey7;}
 
 /*----------------------------------------------------------------------------------------------------*/
 /* Background colors */
-.njsSlides .bg-light1, .njsSlides .bglight .bg-light1 {background-color: rgba(255, 255, 255, 0.6); color: $nlBlack;}
-.njsSlides .bg-light2, .njsSlides .bglight .bg-light2 {background-color: rgba(143,170,220,0.8); color: $nlBlack;}
-.njsSlides .bg-light3, .njsSlides .bglight .bg-light3 {background-color: rgba(143,220,170,0.8); color: $nlBlack;}
-.njsSlides .bg-light4, .njsSlides .bglight .bg-light4 {background-color: rgba(220,170,170,0.8); color: $nlBlack;}
-.njsSlides .bg-light5, .njsSlides .bglight .bg-light5 {background-color: rgba(255,255,170,0.8); color: $nlBlack;}
+.njsSlides .bg-light1, .njsSlides .bglight .bg-light1 {background-color: $nlDarkGrey5Transparent60; color: $nlBlack;}
+.njsSlides .bg-light2, .njsSlides .bglight .bg-light2 {background-color: $nlLightBlue9; color: $nlBlack;}
+.njsSlides .bg-light3, .njsSlides .bglight .bg-light3 {background-color: $nlGreen5; color: $nlBlack;}
+.njsSlides .bg-light4, .njsSlides .bglight .bg-light4 {background-color: $nlRed11; color: $nlBlack;}
+.njsSlides .bg-light5, .njsSlides .bglight .bg-light5 {background-color: $nlYellow2; color: $nlBlack;}
 
 .njsSlides .bg-dark1, .njsSlides .bglight .bg-dark1 {background-color: $nlBlackTransparent50; color: $nlWhite;}
-.njsSlides .bg-dark2, .njsSlides .bglight .bg-dark2 {background-color: rgba(0, 32, 96, 0.8); color: $nlWhite;}
-.njsSlides .bg-dark3, .njsSlides .bglight .bg-dark3 {background-color: rgba(0, 100, 0, 0.8); color: $nlWhite;}
-.njsSlides .bg-dark4, .njsSlides .bglight .bg-dark4 {background-color: rgba(100, 0, 0, 0.8); color: $nlWhite;}
-.njsSlides .bg-dark5, .njsSlides .bglight .bg-dark5 {background-color: rgba(150, 100, 0, 0.8); color: $nlWhite;}
+.njsSlides .bg-dark2, .njsSlides .bglight .bg-dark2 {background-color: $nlBlue9; color: $nlWhite;}
+.njsSlides .bg-dark3, .njsSlides .bglight .bg-dark3 {background-color: $nlGreen6; color: $nlWhite;}
+.njsSlides .bg-dark4, .njsSlides .bglight .bg-dark4 {background-color: $nlRed12; color: $nlWhite;}
+.njsSlides .bg-dark5, .njsSlides .bglight .bg-dark5 {background-color: $nlYellow3; color: $nlWhite;}
 
-.njsSlides .bg-pastel1, .njsSlides .bglight .bg-pastel1 {background-color: rgba(0, 176, 240, 0.8);}
-.njsSlides .bg-pastel2, .njsSlides .bglight .bg-pastel2 {background-color: rgba(154, 205, 50, 0.8);}
-.njsSlides .bg-pastel3, .njsSlides .bglight .bg-pastel3 {background-color: rgba(0, 139, 139, 0.8);}
-.njsSlides .bg-pastel4, .njsSlides .bglight .bg-pastel4 {background-color: rgba(110, 139, 61, 0.8);}
-.njsSlides .bg-pastel5, .njsSlides .bglight .bg-pastel5 {background-color: rgba(69, 139, 116, 0.8);}
+.njsSlides .bg-pastel1, .njsSlides .bglight .bg-pastel1 {background-color: $nlBlue10;}
+.njsSlides .bg-pastel2, .njsSlides .bglight .bg-pastel2 {background-color: $nlGreen7;}
+.njsSlides .bg-pastel3, .njsSlides .bglight .bg-pastel3 {background-color: $nlBlue11;}
+.njsSlides .bg-pastel4, .njsSlides .bglight .bg-pastel4 {background-color: $nlGreen8;}
+.njsSlides .bg-pastel5, .njsSlides .bglight .bg-pastel5 {background-color: $nlGreen9;}
 
-.njsSlides .bg-bright1, .njsSlides .bglight .bg-bright1 {background-color: rgba(0, 0, 255, 0.8);}
-.njsSlides .bg-bright2, .njsSlides .bglight .bg-bright2 {background-color: rgba(0, 255, 0, 0.8);}
-.njsSlides .bg-bright3, .njsSlides .bglight .bg-bright3 {background-color: rgba(255, 0, 0, 0.8);}
-.njsSlides .bg-bright4, .njsSlides .bglight .bg-bright4 {background-color: rgba(255, 255, 0, 0.8);}
-.njsSlides .bg-bright5, .njsSlides .bglight .bg-bright5 {background-color: rgba(255, 192, 0, 0.8);}
+.njsSlides .bg-bright1, .njsSlides .bglight .bg-bright1 {background-color: $nlBlue12;}
+.njsSlides .bg-bright2, .njsSlides .bglight .bg-bright2 {background-color: $nlGreen10;}
+.njsSlides .bg-bright3, .njsSlides .bglight .bg-bright3 {background-color: $nlRed10;}
+.njsSlides .bg-bright4, .njsSlides .bglight .bg-bright4 {background-color: $nlYellow4;}
+.njsSlides .bg-bright5, .njsSlides .bglight .bg-bright5 {background-color: $nlOrange4;}
 
 /*----------------------------------------------------------------------------------------------------*/
 /* Shapes */
