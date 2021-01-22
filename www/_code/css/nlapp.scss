@@ -41,7 +41,7 @@ $nlBorderGrey1:                    #EEEEEE !default;
 $nlBorderGrey2:                    #CCCCCC !default;
 // White used throughout the file/app
 // Black used throughout the file/app
-
+$nlBlack:                          #000000;
 
 // Padding definition
 $nlpad_x:                         20px !default; 
@@ -771,7 +771,7 @@ tr.summary {
 }
 
 a.black {
-  color: #000000;
+  color: $nlBlack;
 }
 
 .nl-fixed-width {
@@ -853,7 +853,7 @@ a.black {
     opacity: 1;
   }
   .nl-toolbar-icon {
-    color: black;
+    color: $nlBlack;
   }
 }
 
@@ -1534,13 +1534,13 @@ nl-cards {
   top: 50%;
   height: 40%;
   text-align: left;
-  color: black;
+  color: $nlBlack;
   overflow: hidden;
 }
 
 .nl-card-header {
   text-align: left;
-  color: black;
+  color: $nlBlack;
   font-size: 130%;
   padding: 4px 16px;
 }
@@ -1624,7 +1624,7 @@ nl-cards {
   }
   
   .nl-card-more-icon {
-    color: black;
+    color: $nlBlack;
     padding: 4px;
     display: inline-block;
     border-radius: 50%;
@@ -2051,7 +2051,7 @@ img.nl-icon {
 
 .nl-forum-header2 {
   font-weight: bold;
-  color: #000000;
+  color: $nlBlack;
 }
 
 .nl-forum-ts, .nl-forum-msg-details {
@@ -2275,7 +2275,7 @@ nl-course-canvas-view .holder1 {
 
 .nl-hover {
   &:hover, &:focus, &:active {
-    border: 1px solid black;
+    border: 1px solid $nlBlack;
   }
 }
 
@@ -2289,7 +2289,7 @@ nl-course-canvas-view .holder1 {
   display: inline-block;
   
   .nl-thumbnail {
-    border: 1px solid black;
+    border: 1px solid $nlBlack;
     padding: 4px;
     border-radius: 4px;
     width: 110px;
@@ -2479,7 +2479,7 @@ img.nl-full-width {
   color: inherit;
 }
 
-.fblack {color: black;}
+.fblack {color: $nlBlack;}
 .fwhite {color: white;}
 
 .fblue {color: $nlBlue1;}
@@ -2533,11 +2533,11 @@ img.nl-full-width {
     text-decoration: none;
   }
   &:hover {
-    color: black;
+    color: $nlBlack;
     background-color: rgba($nlBlue3, 0.5);
   }
   &:focus, &:active {
-    color: black;
+    color: $nlBlack;
     background-color: rgba($nlBlue3, 0.7);
   }
 }
@@ -2548,11 +2548,11 @@ img.nl-full-width {
     text-decoration: none;
   }
   &:hover {
-    color: black;
+    color: $nlBlack;
     background-color: rgba($nlGrey1, 0.3);
   }
   &:focus, &:active {
-    color: black;
+    color: $nlBlack;
     background-color: rgba($nlGrey1, 0.5);
   }
 }
@@ -2923,7 +2923,7 @@ img.nl-full-width {
 }
 
 .anim-highlight-on {
-  color: black;
+  color: $nlBlack;
 }
 
 /**
@@ -3424,7 +3424,7 @@ a.enabled {
   height: auto;
   bottom: 0;
   background-color: #DDDDFF;
-  color: #000000;
+  color: $nlBlack;
   padding: 4px;
   width: 98%;
   margin: 0 0 4px 4px;
@@ -3541,11 +3541,11 @@ a.enabled {
 
 /*----------------------------------------------------------------------------------------------------*/
 /* Background colors */
-.njsSlides .bg-light1, .njsSlides .bglight .bg-light1 {background-color: rgba(255, 255, 255, 0.6); color: black;}
-.njsSlides .bg-light2, .njsSlides .bglight .bg-light2 {background-color: rgba(143,170,220,0.8); color: black;}
-.njsSlides .bg-light3, .njsSlides .bglight .bg-light3 {background-color: rgba(143,220,170,0.8); color: black;}
-.njsSlides .bg-light4, .njsSlides .bglight .bg-light4 {background-color: rgba(220,170,170,0.8); color: black;}
-.njsSlides .bg-light5, .njsSlides .bglight .bg-light5 {background-color: rgba(255,255,170,0.8); color: black;}
+.njsSlides .bg-light1, .njsSlides .bglight .bg-light1 {background-color: rgba(255, 255, 255, 0.6); color: $nlBlack;}
+.njsSlides .bg-light2, .njsSlides .bglight .bg-light2 {background-color: rgba(143,170,220,0.8); color: $nlBlack;}
+.njsSlides .bg-light3, .njsSlides .bglight .bg-light3 {background-color: rgba(143,220,170,0.8); color: $nlBlack;}
+.njsSlides .bg-light4, .njsSlides .bglight .bg-light4 {background-color: rgba(220,170,170,0.8); color: $nlBlack;}
+.njsSlides .bg-light5, .njsSlides .bglight .bg-light5 {background-color: rgba(255,255,170,0.8); color: $nlBlack;}
 
 .njsSlides .bg-dark1, .njsSlides .bglight .bg-dark1 {background-color: rgba(0, 0, 0, 0.5); color: white;}
 .njsSlides .bg-dark2, .njsSlides .bglight .bg-dark2 {background-color: rgba(0, 32, 96, 0.8); color: white;}
