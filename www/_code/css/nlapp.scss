@@ -15,35 +15,39 @@ $royal:                           #886aea !default;
 $dark:                            #444 !default;
 */
 
+// Blue used throughout the file/app
 $nlBlue1:                         #153673 !default;
 $nlBlue2:                         #2461cc !default;
 $nlBlue3:                         #c2e3fc !default;
-
+// Orange used throughout the file/app
 $nlOrange1:                       #e84c3d !default; 
 $nlOrange2:                       #ed7000 !default;
 $nlOrange3:                       #eab01f !default; 
-
+// Yellow used throughout the file/app
+// Red used throughout the file/app
 $nlRed:                           #770000 !default;
+// Green used throughout the file/app
 $nlGreen1:                        #007700 !default;
 $nlGreen2:                        #44BB44 !default; // Light green
-$nlGreen3:                        #BBFFBB !default; // Light green
+$nlGreen3:                        #BBFFBB !default; // Light green 
+// Grey used throughout the file/app
+$nlGrey1:                         #A0A0C0 !default; // Darkest of light greys
+$nlGrey2:                         #CCCCDD !default; 
+$nlGrey3:                         #EEEEFF !default; 
+$nlGrey4:                         #f5f5f5 !default; // Lightest of light greys
+$nlDaryGrey1:                     #575B5E !default; // Darkest of dark greys
+$nlDaryGrey2:                     #707172 !default; // Lightest of dark greys
+$nlBorderGrey1:                    #EEEEEE !default;
+$nlBorderGrey2:                    #CCCCCC !default;
+// White used throughout the file/app
+// Black used throughout the file/app
+
 
 // Padding definition
 $nlpad_x:                         20px !default; 
 $nlpad_y:                         20px !default; 
 $nlpad_x_small:                   10px !default; 
-$nlpad_y_small:                   10px !default; 
-
-$nlGrey1:                         #A0A0C0 !default; // Darkest of light greys
-$nlGrey2:                         #CCCCDD !default; 
-$nlGrey3:                         #EEEEFF !default; 
-$nlGrey4:                         #f5f5f5 !default; // Lightest of light greys
-
-$nlDaryGrey1:                     #575B5E !default; // Darkest of dark greys
-$nlDaryGrey2:                     #707172 !default; // Lightest of dark greys
-
-$nlBorderGrey1:                    #EEEEEE !default;
-$nlBorderGrey2:                    #CCCCCC !default;
+$nlpad_y_small:                   10px !default;
 
 // The path for our ionicons font files, relative to the built CSS in www/css
 $ionicons-font-path: "../_external_bundles/ionicfonts" !default;
