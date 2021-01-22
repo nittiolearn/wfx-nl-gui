@@ -36,6 +36,7 @@ $nlRed:                           #770000 !default;
 $nlRed1:                          #FF0000;
 $nlRed2:                          #402000;
 $nlRed3:                          #FF8080;
+$nlRed4:                          #800000;
 // Green used throughout the file/app
 $nlGreen1:                        #007700 !default;
 $nlGreen2:                        #44BB44 !default; // Light green
@@ -48,6 +49,9 @@ $nlGrey4:                         #f5f5f5 !default; // Lightest of light greys
 $nlGrey5:                         #DDDDDD;
 $nlGrey6:                         #AAAAAA;
 $nlGrey7:                         #f8f8f8;
+$nlGrey8:                         #c9c9c9;
+$nlGrey9:                         #bbbbbb;
+$nlGrey10:                        #b9b9b9;
 $nlDaryGrey1:                     #575B5E !default; // Darkest of dark greys
 $nlDaryGrey2:                     #707172 !default; // Lightest of dark greys
 $nlDarkGrey3:                     #777777;
@@ -3188,7 +3192,7 @@ a.enabled {
 #countdown_timer.countdown_timer_warning {
   display: inline;
   font-size: 150%;
-  background-color: #800000;
+  background-color: $nlRed4;
 }
 
 #audioHolder {
@@ -3593,7 +3597,7 @@ a.enabled {
 
 /*----------------------------------------------------------------------------------------------------*/
 /* Font sizes */
-.njsSlides .size-title1 p, .njsSlides .title p {font-size: 200%; text-shadow: 0 1px 0 $nlBorderGrey2, 0 2px 0 #c9c9c9, 0 3px 0 #bbbbbb, 0 4px 0 #b9b9b9, 0 5px 0 #$nlGrey6, 0 6px 1px rgba(0, 0, 0, 0.1), 0 0 5px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.3), 0 3px 5px rgba(0, 0, 0, 0.2), 0 5px 10px rgba(0, 0, 0, 0.25), 0 20px 20px rgba(0, 0, 0, 0.15);}
+.njsSlides .size-title1 p, .njsSlides .title p {font-size: 200%; text-shadow: 0 1px 0 $nlBorderGrey2, 0 2px 0 $nlGrey8, 0 3px 0 $nlGrey9, 0 4px 0 $nlGrey10, 0 5px 0 $nlGrey6, 0 6px 1px rgba(0, 0, 0, 0.1), 0 0 5px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.3), 0 3px 5px rgba(0, 0, 0, 0.2), 0 5px 10px rgba(0, 0, 0, 0.25), 0 20px 20px rgba(0, 0, 0, 0.15);}
 .njsSlides .size-title2 p {font-size: 180%}
 .njsSlides .size-title3 p {font-size: 150%}
 .njsSlides .size-title4 p {font-size: 120%;}
