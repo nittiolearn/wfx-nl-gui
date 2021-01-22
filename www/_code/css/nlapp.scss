@@ -63,6 +63,16 @@ $nlWhite:                          #ffffff;
 $nlWhite1:                         #F0F0F0;
 // Black used throughout the file/app
 $nlBlack:                          #000000;
+$nlBlackTransparent:               rgba(0, 0, 0, 0);
+$nlBlackTransparent80:             rgba(0, 0, 0, 0.08);
+$nlBlackTransparent60:             rgba(0, 0, 0, 0.6);
+$nlBlackTransparent50:             rgba(0, 0, 0, 0.5);
+$nlBlackTransparent40:             rgba(0, 0, 0, 0.4);
+$nlBlackTransparent30:             rgba(0, 0, 0, 0.3);
+$nlBlackTransparent25:             rgba(0, 0, 0, 0.25);
+$nlBlackTransparent20:             rgba(0, 0, 0, 0.2);
+$nlBlackTransparent15:             rgba(0, 0, 0, 0.15);
+$nlBlackTransparent10:             rgba(0, 0, 0, 0.1);
 
 // Padding definition
 $nlpad_x:                         20px !default; 
@@ -380,7 +390,7 @@ $animation-duration: 200ms !default;
  * Loading-background specific overrides
  *-----------------------------------------------------------------------------------------*/
 .loading-container .loading {
-  background-color: rgba(0, 0, 0, 0);
+  background-color: $nlBlackTransparent;
 }
 
 .nl-spinner-centered {
@@ -431,15 +441,15 @@ $animation-duration: 200ms !default;
 // nl specific styling - lib_ui modules
 //-----------------------------------------------------------------------------------------
 .nl-border {
-  border: 1px solid rgba(0, 0, 0, 0.08);
+  border: 1px solid $nlBlackTransparent80;
 }
 
 .nl-border-bottom {
-  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  border-bottom: 1px solid $nlBlackTransparent80;
 }
 
 .nl-border-right {
-  border-right: 1px solid rgba(0, 0, 0, 0.08);
+  border-right: 1px solid $nlBlackTransparent80;
 }
 
 .nl-border-forange3 {
@@ -497,7 +507,7 @@ $animation-duration: 200ms !default;
   td *, th * {
     vertical-align: middle;
   }
-  tr { border-bottom: 1px solid rgba(0, 0, 0, 0.1);}
+  tr { border-bottom: 1px solid $nlBlackTransparent10;}
 }
 
 .nl-table-styled3 {
@@ -850,12 +860,12 @@ a.black {
 .nl-toolbar-icon.no-hover {
   i.icon:hover {
     color: $nlBlue1;
-    background-color: rgba(0,0,0,0);
+    background-color: $nlBlackTransparent;
     box-shadow: none;
   }
   i.icon:focus, i.icon:active, &.activated > i.icon, i.icon.activated {
     color: $nlBlue1;
-    background-color: rgba(0,0,0,0);
+    background-color: $nlBlackTransparent;
     box-shadow: none;
   }
 }
@@ -1224,7 +1234,7 @@ input.nl-dlg-field-error, .nl-dlg-field-error {
 
 .nl-dlg-field-errormsg {
   padding: 5px;
-  color: red;
+  color: $nlRed;
 }
 
 .nl-dlg-field-greyedmsg {
@@ -1268,12 +1278,12 @@ input.nl-dlg-field-error, .nl-dlg-field-error {
 .page_format_tab_selected {
     background-color: $nlGrey2;
     border-radius: 8px 8px 0 0;
-    border-top: 1px solid rgba(0, 0, 0, 0.2);
-    border-left: 1px solid rgba(0, 0, 0, 0.2);
-    border-right: 1px solid rgba(0, 0, 0, 0.2);
+    border-top: 1px solid $nlBlackTransparent20;
+    border-left: 1px solid $nlBlackTransparent20;
+    border-right: 1px solid $nlBlackTransparent20;
 }
 .page_format_tab_not_selected {
-    border-bottom: 1px solid rgba(0, 0, 0, 0.2);
+    border-bottom: 1px solid $nlBlackTransparent20;
 }
 
 /*-----------------------------------------------------------------------------------------*
@@ -1536,7 +1546,7 @@ nl-cards {
   width: 100%;
   
   border-radius: 2px;
-  box-shadow: inset 0 0 2px rgba(0,0,100,0.2), 1px 1px 2px rgba(0,0,100,0.4);
+  box-shadow: inset 0 0 2px $nlBlackTransparent20, 1px 1px 2px $nlBlackTransparent40;
   background-color: $nlWhite;
 }
 
@@ -1615,7 +1625,7 @@ nl-cards {
 }
 
 .nl-card-desc .nl-link-text {
-  color: rgba(0, 0, 0, 1);
+  color: $nlBlackTransparent10;
 }
 
 .nl-card-fullDesc {
@@ -1741,7 +1751,7 @@ nl-summary-box {
   min-width: 200px;
   max-width: 300px;
   height: 90px;
-  box-shadow: 2px 4px 5px 0px rgba(0, 0, 0, 0.06);
+  box-shadow: 2px 4px 5px 0px $nlBlackTransparent60;
   .infographic {
     min-width: 80px; 
     white-space: nowrap;
@@ -1782,7 +1792,7 @@ nl-summary-box.small-summary-box {
   min-width: 100px;
   padding-top: 4px;
   border-radius: 20px;
-  box-shadow: 2px 4px 5px 0px rgba(0, 0, 0, 0.06);
+  box-shadow: 2px 4px 5px 0px $nlBlackTransparent60;
   background-color: $nlWhite;
   text-align: center;
   span {
@@ -1804,7 +1814,7 @@ nl-summary-box.small-summary-box {
   border: 2px solid $nlBlue2;
   background-color: $nlBlue2;
   color: $nlWhite;
-  box-shadow: 2px 4px 5px 0px rgba(0, 0, 0, 0.5);
+  box-shadow: 2px 4px 5px 0px $nlBlackTransparent50;
 }
 //-----------------------------------------------------------------------------------------
 // search-box css code
@@ -1859,9 +1869,9 @@ nl-summary-box.small-summary-box {
 .nl-left-tab-selected {
   background-color: $nlGrey2;
   border-radius: 8px 0px 0px 8px;
-  border-top: 1px solid rgba(0, 0, 0, 0.1);
-  border-left: 1px solid rgba(0, 0, 0, 0.1);
-  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  border-top: 1px solid $nlBlackTransparent10;
+  border-left: 1px solid $nlBlackTransparent10;
+  border-bottom: 1px solid $nlBlackTransparent10;
 }
 
 //-----------------------------------------------------------------------------------------
@@ -3159,7 +3169,7 @@ a.enabled {
 
 .toolBar .toolbarIcon > img:hover, 
 .sectiontoolbarIcon > img:hover, .sectiontoolbarIcon > img:focus, .sectiontoolbarIcon > img:active {
-  box-shadow: inset 0 0 0 rgba(170,0,0,0.1), 0 0 5px rgba(0,0,0,1);
+  box-shadow: inset 0 0 0 rgba(170,0,0,0.1), 0 0 5px $nlBlackTransparent10;
   opacity: 1;
 }
 
@@ -3303,7 +3313,7 @@ a.enabled {
 }
 
 .aspect_wrt_with_imglink:hover {
-  box-shadow: 0 0 20px rgba(0, 0, 0, 0.55);
+  box-shadow: 0 0 20px $nlBlackTransparent50;
   border-radius: 8px;
 }
 
@@ -3450,7 +3460,7 @@ a.enabled {
   width: 98%;
   margin: 0 0 4px 4px;
   text-align: left;
-  box-shadow: inset 0 0 5px rgba(170,0,0,0.1), 0 0 10px rgba(0,0,0,1);
+  box-shadow: inset 0 0 5px rgba(170,0,0,0.1), 0 0 10px $nlBlackTransparent10;
 }
 
 .dlgFieldName {
@@ -3568,7 +3578,7 @@ a.enabled {
 .njsSlides .bg-light4, .njsSlides .bglight .bg-light4 {background-color: rgba(220,170,170,0.8); color: $nlBlack;}
 .njsSlides .bg-light5, .njsSlides .bglight .bg-light5 {background-color: rgba(255,255,170,0.8); color: $nlBlack;}
 
-.njsSlides .bg-dark1, .njsSlides .bglight .bg-dark1 {background-color: rgba(0, 0, 0, 0.5); color: $nlWhite;}
+.njsSlides .bg-dark1, .njsSlides .bglight .bg-dark1 {background-color: $nlBlackTransparent50; color: $nlWhite;}
 .njsSlides .bg-dark2, .njsSlides .bglight .bg-dark2 {background-color: rgba(0, 32, 96, 0.8); color: $nlWhite;}
 .njsSlides .bg-dark3, .njsSlides .bglight .bg-dark3 {background-color: rgba(0, 100, 0, 0.8); color: $nlWhite;}
 .njsSlides .bg-dark4, .njsSlides .bglight .bg-dark4 {background-color: rgba(100, 0, 0, 0.8); color: $nlWhite;}
@@ -3597,7 +3607,10 @@ a.enabled {
 
 /*----------------------------------------------------------------------------------------------------*/
 /* Font sizes */
-.njsSlides .size-title1 p, .njsSlides .title p {font-size: 200%; text-shadow: 0 1px 0 $nlBorderGrey2, 0 2px 0 $nlGrey8, 0 3px 0 $nlGrey9, 0 4px 0 $nlGrey10, 0 5px 0 $nlGrey6, 0 6px 1px rgba(0, 0, 0, 0.1), 0 0 5px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.3), 0 3px 5px rgba(0, 0, 0, 0.2), 0 5px 10px rgba(0, 0, 0, 0.25), 0 20px 20px rgba(0, 0, 0, 0.15);}
+.njsSlides .size-title1 p, .njsSlides .title p {font-size: 200%; text-shadow: 0 1px 0 $nlBorderGrey2,
+   0 2px 0 $nlGrey8, 0 3px 0 $nlGrey9, 0 4px 0 $nlGrey10, 0 5px 0 $nlGrey6, 0 6px 1px $nlBlackTransparent10,
+    0 0 5px $nlBlackTransparent10, 0 1px 3px $nlBlackTransparent30, 0 3px 5px $nlBlackTransparent20,
+     0 5px 10px $nlBlackTransparent25, 0 20px 20px $nlBlackTransparent15;}
 .njsSlides .size-title2 p {font-size: 180%}
 .njsSlides .size-title3 p {font-size: 150%}
 .njsSlides .size-title4 p {font-size: 120%;}
@@ -3760,7 +3773,8 @@ a.enabled {
   min-width: 175px;
   background-color:$nlWhite; 
   border-radius: 5px;
-  box-shadow: 0 8px 10px 1px rgba(0,0,0,0.14), 0 3px 14px 2px rgba(0,0,0,0.12), 0 5px 5px -3px rgba(0,0,0,0.2);
+  box-shadow: 0 8px 10px 1px $nlBlackTransparent15, 0 3px 14px 2px $nlBlackTransparent10, 
+  0 5px 5px -3px $nlBlackTransparent20;
 }
 
 .nl-nav-dropdown-option{
