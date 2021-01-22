@@ -15,39 +15,123 @@ $royal:                           #886aea !default;
 $dark:                            #444 !default;
 */
 
-$nlBlue1:                         #001221 !default; //dark blue
-$nlBlue2:                         #0D324D !default; // medium blue
-$nlBlue3:                         #0D324D !default; // light blue
+// primary colours for background and colour palate throughout the application
+$nlPrimary1:                       #001221 !default; //dark blue
+$nlPrimary1Transparent20:          rgba(128, 128, 255, 0.2);
+$nlPrimary2:                       #0D324D !default; // medium blue
+$nlPrimary2Transparent30:            rgba($nlPrimary2, 0.3);
+$nlPrimary2Transparent50:            rgba($nlPrimary2, 0.5);
+$nlPrimary3:                       #002748 !default; // light blue
+$nlPrimary3Transparent70:            rgba($nlPrimary3, 0.7);
+$nlPrimary3Transparent50:            rgba($nlPrimary3, 0.5);
 
-$nlOrange1:                       #F98E36 !default; // 
-$nlOrange2:                       #ed7000 !default; // 
-$nlOrange3:                       #FFE17D !default; // in progress status
+// font, background and accent colours used throughout the application
+$nlGrey1:                          #A0A0C0 !default; // Darkest of light greys
+$nlGrey1Transparent30:               rgba($nlGrey1, 0.3);
+$nlGrey1Transparent50:               rgba($nlGrey1, 0.5);
+$nlGrey2:                          #CCCCDD !default; 
+$nlGrey3:                          rgba(255, 255, 255, 0.6) !default; 
+$nlGrey4:                          #f5f5f5 !default;
+$nlGrey5:                          #DDDDFF !default; // Lightest of light greys
+$nlGrey6:                          rgba(200,200,200,1);
+$nlGrey7:                          rgba(240, 240, 255, 0.7);
+$nlGrey8:                          rgba(170, 170, 170, 1);
+$nlGrey9:                          rgba(255,255,255,0.7); 
+$nlGrey10:                         #AAAAAA;
+$nlGrey11:                         #c9c9c9;
+$nlGrey12:                         #b9b9b9;
+$nlGrey13:                         #bbbbbb;
+$nlDarkGrey1:                      #575B5E !default; // Darkest of dark greys
+$nlDarkGrey2:                      #707172 !default; 
+$nlDarkGrey3:                      rgba(128,128,128,0.8);
+$nlDarkGrey4:                      rgba(128,128,128,0.7);
+$nlDarkGrey5:                      #777777;
+$nlDarkGrey6:                      #888888;
+$nlBorderGrey1:                    #EEEEEE !default;
+$nlBorderGrey2:                    #CCCCCC !default;
+$nlWhite:                          #ffffff !default;
+$nlWhiteTransparent70:             rgba(255, 255, 255, 0.7);
+$nlWhiteTransparent50:             rgba(255, 255, 255, 0.5);
+$nlWhiteTransparent40:             rgba(255, 255, 255, 0.4);
+$nlWhiteTransparent30:             rgba(255, 255, 255, 0.3);
+$nlWhiteTransparent10:             rgba(255, 255, 255, 0.1);
+$nlWhite1:                         #F0F0F0;
+$nlWhite2:                         #DDDDDD;
+$nlWhite3:                         #f8f8f8;
+$nlBlack:                          #000000 !default;
+$nlBlackTransparent:               rgba(0, 0, 0, 0) !default;
+$nlBlackTransparent80:             rgba(0, 0, 0, 0.8);
+$nlBlackTransparent60:             rgba(0, 0, 0, 0.6);
+$nlBlackTransparent50:             rgba(0, 0, 0, 0.5);
+$nlBlackTransparent55:             rgba(0, 0, 0, 0.55);
+$nlBlackTransparent30:             rgba(0, 0, 0, 0.3);
+$nlBlackTransparent25:             rgba(0, 0, 0, 0.25);
+$nlBlackTransparent20:             rgba(0, 0, 0, 0.2);
+$nlBlackTransparent15:             rgba(0, 0, 0, 0.15);
+$nlBlackTransparent14:             rgba(0, 0, 0, 0.14);
+$nlBlackTransparent12:             rgba(0, 0, 0, 0.12);
+$nlBlackTransparent10:             rgba(0, 0, 0, 0.1);
+$nlWhiteBackground:                rgba(255,255,255,0.2) !default; // glass effect 
 
-$nlRed:                           #FF646A !default; // failed status
-$nlGreen1:                        #2FB885 !default; // completed status
-$nlGreen2:                        #44BB44 !default; // Light green
-$nlGreen3:                        #BBFFBB !default; // Light green
+// status colours for course & module progress tracking
+$nlDelayed:                       #F98E36 !default; // 
+$nlPending:                       #E8658F !default; // 
+$nlInProgress:                       #FFE17D !default; // in progress status
+$nlFailed:                           #FF646A !default; // red - failed status
+$nlCompleted:                        #2FB885 !default; // completed status
+//unused colour removed - $nlGreen2:                        #44BB44 !default; // Light green
+//unused colour removed - $nlGreen3:                        #BBFFBB !default; // Light green
 
+// extra colours 
+$nlRed:                           rgba(255, 128, 128, 1);
+$nlRed1:                          rgba(255, 178, 178, 1);
+$nlRed2:                          rgba(180, 0, 0, 0.5);
+$nlRed3:                          rgba(180, 0, 0, 1);
+$nlRed4:                          rgba(128, 0, 0, 0.1);
+$nlRedTransparent10:              rgba(170,0,0,0.1);
+$nlRedTransparent80:              rgba(255,0,0,0.8);
+$nlRed5:                          rgba(220,170,170,0.8);
+$nlRed6:                          rgba(100, 0, 0, 0.8);
+$nlRed7:                          #FF8080;
+$nlRed8:                          #800000;
+$nlBlue:                          rgba(81, 203, 238, 1);
+$nlBlue1Tranpsarent40:            rgba(0,0,100,0.4);
+$nlBlue1Transparent20:            rgba(0,0,100,0.2);
+$nlBlue2:                         rgba(0, 176, 240, 0.8); 
+$nlBlue3:                         rgba(229, 229, 255, 1);
+$nlBlue4:                         rgba(245, 245, 255, 1);
+$nlBlue5:                         rgba(194, 227, 252, 1);
+$nlBlue6:                         rgba(230, 230, 255, 0.9);
+$nlBlue7:                         rgba(170,170,255,0.1);
+$nlBlue8Transparent50:            rgba(128,255,255,0.5);
+$nlBlue8Transparent80:            rgba(128,255,255,0.8);
+$nlBlue9Transparent50:            rgba(0,128,128,0.5);
+$nlBlue9Transparent80:            rgba(0,128,128,0.8);
+$nlBlue10:                        #EEEEFF;
+$nlBlue11:                        rgba(143,170,220,0.8);
+$nlBlue12:                        rgba(0, 32, 96, 0.8);
+$nlBlue13:                        rgba(0, 139, 139, 0.8);
+$nlBlue14Transparent80:           rgba(0, 0, 255, 0.8);
+$nlBlue14:                        #0000FF;
+$nlGreen:                         rgba(0, 128, 0, 0.1);
+$nlGreen1:                        rgba(143,220,170,0.8);
+$nlGreen2:                        rgba(0, 100, 0, 0.8);
+$nlGreen3:                        rgba(154, 205, 50, 0.8);
+$nlGreen4:                        rgba(110, 139, 61, 0.8);
+$nlGreen5:                        rgba(69, 139, 116, 0.8);
+$nlGreen6:                        rgba(0, 255, 0, 0.8);
+$nlYellow:                        rgba(255,255,170,0.8);
+$nlYellow1:                       rgba(255, 255, 0, 0.8);
+$nlYellow2:                       rgba(255, 192, 0, 0.8);
+$nlYellow3:                       #FFFF80;
+$nlYellow4:                       #E5FF80;
+$nlOrange:                        rgba(150, 100, 0, 0.8);
+$nlOrange1:                       #402000;
 // Padding definition
 $nlpad_x:                         20px !default; 
 $nlpad_y:                         20px !default; 
 $nlpad_x_small:                   10px !default; 
 $nlpad_y_small:                   10px !default; 
-
-$nlGrey1:                         #A0A0C0 !default; // Darkest of light greys
-$nlGrey2:                         #CCCCDD !default; 
-$nlGrey3:                         #EEEEFF !default; 
-$nlGrey4:                         #f5f5f5 !default; // Lightest of light greys
-
-$nlDaryGrey1:                     #575B5E !default; // Darkest of dark greys
-$nlDaryGrey2:                     #707172 !default; // Lightest of dark greys
-
-$nlBorderGrey1:                    #EEEEEE !default;
-$nlBorderGrey2:                    #CCCCCC !default;
-
-$nlWhite:                    #ffffff !default;
-$nlBlack:                    #000000 !default;
-$nlWhiteBakcground:          rgba(255,255,255,0.2) !default;
 
 // The path for our ionicons font files, relative to the built CSS in www/css
 $ionicons-font-path: "../_external_bundles/ionicfonts" !default;
@@ -242,25 +326,25 @@ textarea, input[type="text"], input[type="password"], input[type="datetime"], in
   padding-left: 8px;
   padding-right: 8px;
   background-color: $nlWhite;
-  border: 1px solid #DDDDFF;
+  border: 1px solid $nlGrey5;
   border-radius: 0px;
   display:inline;
 }
 
 .default-input {
   background-color: $nlWhite;
-  border: 1px solid #DDDDFF;
+  border: 1px solid $nlGrey5;
 }
 
 select {
   background-color: $nlWhite;
-  border: 1px solid #DDDDFF;
+  border: 1px solid $nlGrey5;
   border-radius: 0px;
 }
 
-ion-nav-view, ion-view {
-  /*border-radius: 8px;*/
-}
+/*ion-nav-view, ion-view {
+  /*border-radius: 8px;
+}*/
 
 ol, ul {
     display: inline-block;
@@ -299,8 +383,8 @@ ul ul, ul ol, ol ol, ol ul {
 }
 
 .pane, .view {
-    //background-color: $nlBlue2;
-    background-image: radial-gradient($nlBlue3, $nlBlue2, $nlBlue1);
+    //background-color: $nlPrimary2;
+    background-image: radial-gradient($nlPrimary3, $nlPrimary2, $nlPrimary1);
 }
 
 .iframeActive .pane {
@@ -347,7 +431,7 @@ $animation-duration: 200ms !default;
 
 .pgNoStyle {
   color: $nlWhite;
-  background-color: $nlBlue1;
+  background-color: $nlPrimary1;
   border-radius: 50%;
   text-align: center;
   font-size: 16px;
@@ -360,7 +444,7 @@ $animation-duration: 200ms !default;
  * Loading-background specific overrides
  *-----------------------------------------------------------------------------------------*/
 .loading-container .loading {
-  background-color: rgba(0, 0, 0, 0);
+  background-color: $nlBlackTransparent;
 }
 
 .nl-spinner-centered {
@@ -371,7 +455,7 @@ $animation-duration: 200ms !default;
   
 .nl-spinner {
   border: 10px solid $nlGrey4 !important;
-  border-top: 10px solid $nlBlue2 !important;
+  border-top: 10px solid $nlPrimary2 !important;
   border-radius: 50%;
   width: 75px;
   height: 75px;
@@ -411,23 +495,23 @@ $animation-duration: 200ms !default;
 // nl specific styling - lib_ui modules
 //-----------------------------------------------------------------------------------------
 .nl-border {
-  border: 1px solid rgba(0, 0, 0, 0.08);
+  border: 1px solid $nlBlackTransparent80;
 }
 
 .nl-border-bottom {
-  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  border-bottom: 1px solid $nlBlackTransparent80;
 }
 
 .nl-border-right {
-  border-right: 1px solid rgba(0, 0, 0, 0.08);
+  border-right: 1px solid $nlBlackTransparent80;
 }
 
 .nl-border-forange3 {
-  border: 2px solid $nlOrange3;
+  border: 2px solid $nlInProgress;
 }
 
 .nl-green {
-  color: $nlGreen1;
+  color: $nlCompleted;
 }
 
 .nl-table {
@@ -458,17 +542,17 @@ $animation-duration: 200ms !default;
 .nl-table-styled {
   td, th {
     text-align: left;
-    border: 1px solid $nlWhiteBakcground;
+    border: 1px solid $nlWhiteBackground;
   }
   td {
-    background-color: $nlWhiteBakcground;
+    background-color: $nlWhiteBackground;
     color: $nlWhite;
   }
   th {
-    background-color: $nlWhiteBakcground;
+    background-color: $nlWhiteBackground;
   }
   tr.alternate td {
-    background-color: $nlWhiteBakcground;
+    background-color: $nlWhiteBackground;
   }
 }
 
@@ -478,7 +562,7 @@ $animation-duration: 200ms !default;
   td *, th * {
     vertical-align: middle;
   }
-  tr { border-bottom: 1px solid rgba(0, 0, 0, 0.1);}
+  tr { border-bottom: 1px solid $nlBlackTransparent10;}
 }
 
 .nl-table-styled3 {
@@ -490,12 +574,12 @@ $animation-duration: 200ms !default;
   }
   tr.header {
     background-color: $nlGrey4;
-    color: $nlDaryGrey1;
+    color: $nlDarkGrey1;
     font-weight: bold;
     border-bottom: 1px solid $nlBorderGrey2;
   }
   tr.alternate {
-    background-color: $nlGrey3;
+    background-color: $nlBlue10;
   }
   tr.clickable {
     cursor: pointer;
@@ -520,7 +604,7 @@ $animation-duration: 200ms !default;
   }
   td.td-hover {
     &:hover, &:focus, &:active {
-      background-color: $nlGrey3;
+      background-color: $nlBlue10;
     }
   }
 }
@@ -530,7 +614,7 @@ $animation-duration: 200ms !default;
 }
 .td-cell-hover {
   &:hover, &:focus, &:active {
-    background-color: $nlGrey3;
+    background-color: $nlBlue10;
   }
 }
 
@@ -539,19 +623,19 @@ $animation-duration: 200ms !default;
 }
 
 .border-top-grey {
-  border-top: 1px solid #CCCCDD;
+  border-top: 1px solid nlGrey2;
 }
 
 .border-circle-forange {
-  border: 1px solid $nlOrange1;
+  border: 1px solid $nlDelayed;
 }
 
 .border-circle-fyellow {
-  border: 1px solid $nlOrange3;
+  border: 1px solid $nlInProgress;
 }
 
 .border-circle-fblue {
-  border: 1px solid $nlBlue1;
+  border: 1px solid $nlPrimary1;
 }
 
 .compact {
@@ -567,12 +651,12 @@ $animation-duration: 200ms !default;
 }
 
 tr.header {
-  background: $nlBlue1;
+  background: $nlPrimary1;
   color: $nlWhite;
 }
 
 tr.summary {
-  background: $nlBlue3;
+  background: $nlPrimary3;
   color: $nlWhite;
 }
 
@@ -673,10 +757,10 @@ tr.summary {
     padding: 8px;
     cursor: pointer;
     &:hover {
-      background-color: rgba(255, 255, 255, 0.5);
+      background-color: $nlWhiteTransparent50;
     }
     &:focus, &:active, &.activated {
-      background-color: rgba(255, 255, 255, 0.3);
+      background-color: $nlWhiteTransparent50;
     }
   }
 }
@@ -698,7 +782,7 @@ tr.summary {
     left: 110%;
     border-radius: 4px;  
     color: $nlWhite;
-    background-color: $nlBlue1;
+    background-color: $nlPrimary1;
     white-space: nowrap;
     padding: 8px;
     font-weight: bold;
@@ -712,7 +796,7 @@ tr.summary {
     margin-top: -6px;
     border-width: 6px;
     border-style: solid;
-    border-color: transparent $nlBlue1 transparent transparent;
+    border-color: transparent $nlPrimary1 transparent transparent;
   }
 }
 
@@ -729,7 +813,7 @@ tr.summary {
     text-decoration: none;
   }
   &:focus, &:active {
-    background-color: rgba(128, 128, 255, 0.2);
+    background-color: $nlPrimary1Transparent20;
   }
 }
 
@@ -750,14 +834,14 @@ tr.summary {
 }
 
 .activated > .nl-link-text, .activated.nl-link-text {
-  background-color: rgba(128, 128, 255, 0.2);
+  background-color: $nlPrimary1Transparent20;
   opacity: 0.5;
 }
 
 .nl-link-img {
   cursor: pointer;
   &:hover, &:focus, &:active {
-    box-shadow: inset 0 0 5px rgba(170,0,0,0.1), 0 0 10px rgba(0,0,0,1);
+    box-shadow: inset 0 0 5px $nlRedTransparent10, 0 0 10px $nlBlackTransparent10;
   }
 }
 
@@ -768,7 +852,7 @@ tr.summary {
 }
 
 .activated > .nl-link-img, .activated.nl-link-img {
-  box-shadow: inset 0 0 5px rgba(170,0,0,0.1), 0 0 10px rgba(0,0,0,1);
+  box-shadow: inset 0 0 5px $nlRedTransparent10, 0 0 10px $nlBlackTransparent10;
   opacity: 0.5;
 }
 
@@ -806,14 +890,14 @@ a.black {
     font-size: 20px;
   }
   i.icon:hover {
-    color: $nlBlue2;
-    background-color: rgba(255, 255, 255, 0.7);
-    box-shadow: inset 0 0 2px $nlBlue1, 0 0 5px $nlBlue1;
+    color: $nlPrimary2;
+    background-color: $nlWhiteTransparent70;
+    box-shadow: inset 0 0 2px $nlPrimary1, 0 0 5px $nlPrimary1;
   }
   i.icon:focus, i.icon:active, &.activated > i.icon, i.icon.activated {
-    color: $nlBlue2;
-    background-color: rgba(255, 255, 255, 1);
-    box-shadow: inset 0 0 5px $nlBlue1, 0 0 2px $nlBlue1;
+    color: $nlPrimary2;
+    background-color: $nlWhiteTransparent10;
+    box-shadow: inset 0 0 5px $nlPrimary1, 0 0 2px $nlPrimary1;
   }
   i.iconsuperscript {
     height: 16px;
@@ -824,19 +908,19 @@ a.black {
     border-radius: 50%;
     text-align: center;
     color: $nlWhite;
-    background-color: $nlBlue1;
+    background-color: $nlPrimary1;
   }
 }
 
 .nl-toolbar-icon.no-hover {
   i.icon:hover {
-    color: $nlBlue1;
-    background-color: rgba(0,0,0,0);
+    color: $nlPrimary1;
+    background-color: $nlBlackTransparent;
     box-shadow: none;
   }
   i.icon:focus, i.icon:active, &.activated > i.icon, i.icon.activated {
-    color: $nlBlue1;
-    background-color: rgba(0,0,0,0);
+    color: $nlPrimary1;
+    background-color:$nlBlackTransparent;
     box-shadow: none;
   }
 }
@@ -891,17 +975,17 @@ a.black {
   }
   
   &::-webkit-scrollbar-track {
-    background: #DDDDDD;
+    background: $nlWhite2;
   }
   
   &::-webkit-scrollbar-thumb {
-    background: #AAAAAA;
-    box-shadow: inset 1px 0 0 rgba(255, 255, 255, 0.4);
+    background: $nlGrey10;
+    box-shadow: inset 1px 0 0 $nlWhiteTransparent40;
   }
   
   &::-webkit-scrollbar-thumb:hover {
-    background: #777777;
-    box-shadow: inset 2px 0 0 rgba(255, 255, 255, 0.4);
+    background: $nlDarkGrey5;
+    box-shadow: inset 2px 0 0 $nlWhiteTransparent40;
   }
 }
 
@@ -984,13 +1068,13 @@ a.black {
     height: auto;
     max-width: 96vw;
     max-height: 96vh;
-    box-shadow: inset 0 0 2px $nlBlue1, 0 0 5px $nlBlue1;
+    box-shadow: inset 0 0 2px $nlPrimary1, 0 0 5px $nlPrimary1;
     text-align: left;
     background-color: $nlWhite;
   }
  
   .popup-head {
-    background-color: $nlBlue1;
+    background-color: $nlPrimary1;
     padding: 4px 62px 4px 4px;
     min-height: 32px;
     height: 32px;
@@ -1027,14 +1111,14 @@ a.black {
   height: 37px;
   width: 100%;
   padding: 2px 5px;
-  border-top: 1px solid $nlBlue1;
+  border-top: 1px solid $nlPrimary1;
 }
 
 .popup-buttons .button, .nl-button {
   text-align: center;
   font-size: 120%;
   color: $nlWhite;
-  background-color: $nlBlue1;
+  background-color: $nlPrimary1;
   min-height: 32px;
   padding: 3px;
   border-radius: 0px;
@@ -1045,17 +1129,17 @@ a.black {
   }
 
   &:hover {
-    background-color: $nlBlue2;
+    background-color: $nlPrimary2;
   }
   &:focus, &:active {
-    background-color: $nlBlue2;
-    box-shadow: inset 0 0 10px $nlBlue1, 0 0 5px $nlBlue1;
+    background-color: $nlPrimary2;
+    box-shadow: inset 0 0 10px $nlPrimary1, 0 0 5px $nlPrimary1;
   }
 }
 
 .popup-buttons .activated.button, .activated > .nl-button, .activated.nl-button {
-    background-color: $nlBlue2;
-    box-shadow: inset 0 0 10px $nlBlue1, 0 0 5px $nlBlue1;
+    background-color: $nlPrimary2;
+    box-shadow: inset 0 0 10px $nlPrimary1, 0 0 5px $nlPrimary1;
 }
 
 .popup-buttons.no-border {
@@ -1065,7 +1149,7 @@ a.black {
 .image-round-button {
   border-radius: 50%;
   background-color: $nlWhite;
-    box-shadow: inset 0 0 0 rgba(170,0,0,0.1), 0 0 10px rgba(200,200,200,1);
+    box-shadow: inset 0 0 0 $nlRedTransparent10, 0 0 10px $nlGrey6;
   z-index: 10;
   opacity: 0.7;
 }
@@ -1090,21 +1174,21 @@ a.black {
     font-size: 175%;
     cursor: pointer;
     &:hover {
-      color: $nlBlue3;
+      color: $nlPrimary3;
     }
     &:focus, &:active {
-      color: $nlBlue3;
+      color: $nlPrimary3;
     }
   }
   i.activated, .activated > i {
-    color: $nlBlue3;
+    color: $nlPrimary3;
   }
 }
 
 nl-inline-help .nl-inline-help, nl-dlg-help, .nl-dlg-help {
-  border: 1px dotted $nlBlue3;
-  background-color: rgba(240, 240, 255, 0.7);
-  color: $nlBlue1;
+  border: 1px dotted $nlPrimary3;
+  background-color: $nlGrey7;
+  color: $nlPrimary1;
 }
 
 nl-dlg-help, .nl-dlg-help {
@@ -1194,27 +1278,27 @@ tr .nl-dlg-field-name {
     height: 10em;
   }
   *:focus {
-    box-shadow: 0 0 5px rgba(81, 203, 238, 1);
+    box-shadow: 0 0 5px $nlBlue;
     outline: none;
   }
 }
 
 input.nl-dlg-field-error, .nl-dlg-field-error {
-  border: 1px solid #FF0000;
+  border: 1px solid $nlFailed;
 }
 
 .nl-dlg-field-errormsg {
   padding: 5px;
-  color: red;
+  color: $nlFailed;
 }
 
 .nl-dlg-field-greyedmsg {
   padding: 2px;
-  color: $nlDaryGrey2;
+  color: $nlDarkGrey2;
 }
 
 .nl-login-darkbg .nl-dlg-field-errormsg {
-  color: rgba(255, 128, 128, 1);
+  color: $nlRed;
 }
 
 .nl-dlg-field-icon {
@@ -1229,7 +1313,7 @@ input.nl-dlg-field-error, .nl-dlg-field-error {
   max-height: 160px;
   background-color: $nlWhite;
   z-index: 15;
-  border: 1px solid #CCCCDD;
+  border: 1px solid nlGrey2;
   overflow: auto;
 }
 
@@ -1237,8 +1321,8 @@ input.nl-dlg-field-error, .nl-dlg-field-error {
   width: 100%;
   height: 32px;
   text-align: left;
-  border: 1px solid #CCCCDD;
-  color: $nlBlue1;
+  border: 1px solid nlGrey2;
+  color: $nlPrimary1;
   border-radius: 5px;
   background: $nlWhite;
 }
@@ -1247,21 +1331,21 @@ input.nl-dlg-field-error, .nl-dlg-field-error {
  * nl-dlg tab format styles
  *-----------------------------------------------------------------------------------------*/
 .page_format_tab_selected {
-    background-color: #CCCCDD;
+    background-color: nlGrey2;
     border-radius: 8px 8px 0 0;
-    border-top: 1px solid rgba(0, 0, 0, 0.2);
-    border-left: 1px solid rgba(0, 0, 0, 0.2);
-    border-right: 1px solid rgba(0, 0, 0, 0.2);
+    border-top: 1px solid $nlBlackTransparent20;
+    border-left: 1px solid $nlBlackTransparent20;
+    border-right: 1px solid $nlBlackTransparent20;
 }
 .page_format_tab_not_selected {
-    border-bottom: 1px solid rgba(0, 0, 0, 0.2);
+    border-bottom: 1px solid $nlBlackTransparent20;
 }
 
 /*-----------------------------------------------------------------------------------------*
  * nl-date-time-select, nl-module-select, nl-tree-select styles
  *-----------------------------------------------------------------------------------------*/
 .nl-xxx-select {
-  background-color: #EEEEFF;
+  background-color: $nlBlue10;
   min-height: 34px;
 }
 
@@ -1285,8 +1369,8 @@ input.nl-dlg-field-error, .nl-dlg-field-error {
    width: 100%;
    height: 32px;
    text-align: left;
-   border: 1px solid #CCCCDD;
-   color: $nlBlue1;
+   border: 1px solid nlGrey2;
+   color: $nlPrimary1;
    border-radius: 5px;
    background: $nlWhite;
  }
@@ -1307,25 +1391,25 @@ input.nl-dlg-field-error, .nl-dlg-field-error {
    max-height: 50vh;
    background-color: $nlWhite;
    z-index: 15;
-   border: 1px solid #CCCCDD;
+   border: 1px solid nlGrey2;
    overflow: auto;
  }
  
  .add-new-cls {
-   color: $nlBlue2;
+   color: $nlPrimary2;
    background-color: $nlWhite;
-   border-top: 1px solid #CCCCDD;
+   border-top: 1px solid nlGrey2;
    height: 36px;
  }
  .add-new-button-style{
    border: 1px solid;
    padding: 6px 18px;
    border-radius: 15px;
-   background-color: $nlBlue2;
+   background-color: $nlPrimary2;
    color: $nlWhite;
  }
  .dropdown-selected {
-   background-color: $nlBlue2;
+   background-color: $nlPrimary2;
    color: $nlWhite;
  }
  
@@ -1347,12 +1431,12 @@ input.nl-dlg-field-error, .nl-dlg-field-error {
   right: 8px;
   width: auto;
   height: auto;
-  box-shadow: 2px 2px 10px 5px #402000;
+  box-shadow: 2px 2px 10px 5px $nlOrange1;
 }
  
 .nl-form-head {
   position: absolute;
-  background-color: $nlBlue1;
+  background-color: $nlPrimary1;
   padding: 4px;
   height: 32px;
   width: 100%;
@@ -1393,7 +1477,7 @@ input.nl-dlg-field-error, .nl-dlg-field-error {
   height: auto;
   width: auto;
   max-width: 90%;
-  background: $nlBlue1;
+  background: $nlPrimary1;
   color: $nlWhite;
   padding: 8px;
   div {
@@ -1408,9 +1492,9 @@ input.nl-dlg-field-error, .nl-dlg-field-error {
     top: -16px;
     background-color: $nlWhite;
     border-radius: 50%;
-    border: 2px solid $nlBlue1;
-    box-shadow: inset 0 0 2px $nlBlue1, 0 0 5px $nlBlue1;
-    color: $nlBlue1;
+    border: 2px solid $nlPrimary1;
+    box-shadow: inset 0 0 2px $nlPrimary1, 0 0 5px $nlPrimary1;
+    color: $nlPrimary1;
     padding: 4px 8px;
   }
   .sbicon.icon {
@@ -1441,12 +1525,12 @@ input.nl-dlg-field-error, .nl-dlg-field-error {
 }
 
 #statusBox.red {
-  background: $nlRed;
+  background: $nlFailed;
   
   .close_button {
-    border: 2px solid $nlRed;
-    box-shadow: inset 0 0 2px $nlRed, 0 0 5px $nlRed;
-    color: $nlRed;
+    border: 2px solid $nlFailed;
+    box-shadow: inset 0 0 2px $nlFailed, 0 0 5px $nlFailed;
+    color: $nlFailed;
   }
   .sbicon.icon {
     font-size: 200%;
@@ -1454,12 +1538,12 @@ input.nl-dlg-field-error, .nl-dlg-field-error {
 }
 
 #statusBox.green {
-  background: $nlGreen1;
+  background: $nlCompleted;
   
   .close_button {
-    border: 2px solid $nlGreen1;
-    box-shadow: inset 0 0 2px $nlGreen1, 0 0 5px $nlGreen1;
-    color: $nlGreen1;
+    border: 2px solid $nlCompleted;
+    box-shadow: inset 0 0 2px $nlCompleted, 0 0 5px $nlCompleted;
+    color: $nlCompleted;
   }
 }
 
@@ -1468,7 +1552,7 @@ input.nl-dlg-field-error, .nl-dlg-field-error {
   box-shadow: none;
   .sbicon.icon {
     font-size: 125%;
-    background-color: $nlGreen1;
+    background-color: $nlCompleted;
     color: $nlWhite;
     border-radius: 50%;
   }
@@ -1479,7 +1563,7 @@ input.nl-dlg-field-error, .nl-dlg-field-error {
   box-shadow: none;
   .sbicon.icon {
     font-size: 125%;
-    background-color: $nlRed;
+    background-color: $nlFailed;
     color: $nlWhite;
     border-radius: 50%;
   }
@@ -1517,8 +1601,8 @@ nl-cards {
   width: 100%;
   
   border-radius: 8px;
-  box-shadow: inset 0 0 2px rgba(0,0,100,0.2), 1px 1px 2px rgba(0,0,100,0.4);
-  background-color:$nlWhiteBakcground;
+  box-shadow: inset 0 0 2px $nlBlue1Tranpsarent20, 1px 1px 2px $nlBlue1Tranpsarent40;
+  background-color:$nlWhiteBackground;
 }
 
 .nl-card-url {
@@ -1592,11 +1676,11 @@ nl-cards {
   padding: 0 16px 16px 16px;
   font-size: 100%;
   text-align: left;
-  color: rgba(170, 170, 170, 1);
+  color: $nlGrey8;
 }
 
 .nl-card-desc .nl-link-text {
-  color: #fff;
+  color: $nlWhite;
 }
 
 .nl-card-fullDesc {
@@ -1626,7 +1710,7 @@ nl-cards {
   }
   
   .nl-card-more-icon {
-    color: #fff;
+    color: $nlWhite;
     padding: 4px;
     display: inline-block;
     border-radius: 50%;
@@ -1635,7 +1719,7 @@ nl-cards {
   span {
     cursor:pointer;
     padding: 2px 4px 2px 4px;
-    border-right: 1px solid #0000FF;
+    border-right: 1px solid $nlBlue14;
     
     &:last-child {
       border-right: none;
@@ -1659,15 +1743,15 @@ nl-cards {
 }
 
 .nl-bg-red {
-  background-color: rgba(255, 178, 178, 1);
+  background-color: $nlRed1;
 }
 
 .nl-bg-blue {
-  background-color: rgba(229, 229, 255, 1); 
+  background-color: $nlBlue3; 
 }
 
 .module_popup_img {
-  background-color: rgba(245, 245, 255, 1) !important;
+  background-color: $nlBlue4 !important;
 }
 
 .njsSlides > section > .bgimg, .page_format_preview > .bgimg {
@@ -1679,10 +1763,10 @@ nl-cards {
   margin: 0;
   border: 0;
   padding: 0;
-  box-shadow: inset 0 0 2px $nlBlue1, 0 0 5px $nlBlue1;
+  box-shadow: inset 0 0 2px $nlPrimary1, 0 0 5px $nlPrimary1;
   z-index: -1;
   outline: none;
-  background-color: rgba(255, 255, 255, 0.3);
+  background-color:$nlWhiteTransparent30;
 }
 
 .page_format_preview > .bgimg {
@@ -1700,13 +1784,13 @@ nl-cards {
 .progress-bar-bar {
   width: 0px;
   height: 10px;
-  color: #fff;
+  color:$nlWhite;
   font-weight: normal;
   border-radius: 50px;
-  background-image: -webkit-linear-gradient(-5deg, $nlBlue2 0%, rgba(194, 227, 252, 1) 100%);
-  background-image: -moz-linear-gradient(-5deg, $nlBlue2 0%, rgba(194, 227, 252, 1) 100%);
-  background-image: -o-linear-gradient(-5deg, $nlBlue2 0%, rgba(194, 227, 252, 1) 100%);
-  background-image: linear-gradient(-5deg, $nlBlue2 0%, rgba(194, 227, 252, 1) 100%);
+  background-image: -webkit-linear-gradient(-5deg, $nlPrimary2 0%, $nlBlue5 100%);
+  background-image: -moz-linear-gradient(-5deg, $nlPrimary2 0%, $nlBlue5 100%);
+  background-image: -o-linear-gradient(-5deg, $nlPrimary2 0%,$nlBlue5 100%);
+  background-image: linear-gradient(-5deg, $nlPrimary2 0%,$nlBlue5 100%);
 }
 
 nl-summary-box {
@@ -1718,11 +1802,11 @@ nl-summary-box {
 
 .nl-summary-box{
   padding: 10px;
-  background-color: $nlWhiteBakcground;
+  background-color: $nlWhiteBackground;
   min-width: 200px;
   max-width: 300px;
   height: 90px;
-  box-shadow: 2px 4px 5px 0px rgba(0, 0, 0, 0.06);
+  box-shadow: 2px 4px 5px 0px $nlBlackTransparent60;
   border-radius: 6px;
   .infographic {
     min-width: 80px; 
@@ -1764,7 +1848,7 @@ nl-summary-box.small-summary-box {
   min-width: 100px;
   padding-top: 4px;
   border-radius: 20px;
-  box-shadow: 2px 4px 5px 0px rgba(0, 0, 0, 0.06);
+  box-shadow: 2px 4px 5px 0px $nlBlackTransparent60;
   background-color: $nlWhite;
   text-align: center;
   span {
@@ -1773,20 +1857,20 @@ nl-summary-box.small-summary-box {
 }
 
 .nl-button-highlight {
-  color: $nlBlue2;
-  border: 2px solid $nlGrey3;
+  color: $nlPrimary2;
+  border: 2px solid $nlBlue10;
 }
 
 .nl-button-lowlight {
-  color: $nlBlue1;
-  border: 2px solid $nlGrey3;
+  color: $nlPrimary1;
+  border: 2px solid $nlBlue10;
 }
 
 .nl-button-review {
-  border: 2px solid $nlBlue2;
-  background-color: $nlBlue2;
+  border: 2px solid $nlPrimary2;
+  background-color: $nlPrimary2;
   color: $nlWhite;
-  box-shadow: 2px 4px 5px 0px rgba(0, 0, 0, 0.5);
+  box-shadow: 2px 4px 5px 0px $nlBlackTransparent50;
 }
 //-----------------------------------------------------------------------------------------
 // search-box css code
@@ -1795,12 +1879,12 @@ nl-summary-box.small-summary-box {
   padding:3px;
   margin: 0;
   border-radius:4px;
-  background: #f8f8f8;
-  color:#888;
+  background:$nlWhite3;
+  color:$nlDarkGrey6;
   outline:none;
   cursor:pointer;
   &:focus {
-    box-shadow: 0 0 5px rgba(81, 203, 238, 1);
+    box-shadow: 0 0 5px $nlBlue;
   }
 }
 
@@ -1808,7 +1892,7 @@ nl-summary-box.small-summary-box {
   width: 100%;
   max-width: 250px;
   .nl-searchbox2 {
-    border: 1px solid #CCC; 
+    border: 1px solid $nlBorderGrey2; 
     border-radius: 4px; 
     background-color: $nlWhite;
   }
@@ -1839,11 +1923,11 @@ nl-summary-box.small-summary-box {
 }
 
 .nl-left-tab-selected {
-  background-color: #CCCCDD;
+  background-color: nlGrey2;
   border-radius: 8px 0px 0px 8px;
-  border-top: 1px solid rgba(0, 0, 0, 0.1);
-  border-left: 1px solid rgba(0, 0, 0, 0.1);
-  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  border-top: 1px solid $nlBlackTransparent10;
+  border-left: 1px solid $nlBlackTransparent10;
+  border-bottom: 1px solid $nlBlackTransparent10;
 }
 
 //-----------------------------------------------------------------------------------------
@@ -1925,7 +2009,7 @@ nl-summary-box.small-summary-box {
   left: 0;
   right: 0;
   height: 40px;
-  background-color: $nlWhiteBakcground;
+  background-color: $nlWhiteBackground;
   color: $nlWhite;
 
   .nltb-logo img {
@@ -1943,11 +2027,11 @@ nl-summary-box.small-summary-box {
   }
   
   .nltb-title small a {
-    color: #FFFF80;
+    color: $nlYellow3;
   }
   
   .nltb-title small a:hover {
-    color: #FF8080;
+    color: $nlRed7;
   }
   
   .nltb-tab {
@@ -1955,7 +2039,7 @@ nl-summary-box.small-summary-box {
   }
 
   .nltb-tab.selected {
-      background-color: $nlBlue2;
+      background-color: $nlPrimary2;
   }
 }
 
@@ -2064,7 +2148,7 @@ img.nl-icon {
 .nl-forum-msg {
   border-radius: 0 8px 8px 8px;
   width: 95%;
-  background-color: $nlGrey3;
+  background-color: $nlBlue10;
   border: 1px solid $nlGrey2;
   .njs_img {
     max-width: 100%;
@@ -2073,7 +2157,7 @@ img.nl-icon {
 
 .nl-forum-msg.me {
   border-radius: 8px 0 8px 8px;
-  background-color: $nlGreen3;
+  background-color: $nlCompleted;
   margin-left: 5%;
 }
 
@@ -2209,7 +2293,7 @@ img.nl-icon {
  *-----------------------------------------------------------------------------------------*/
 .nl-cv-item {
   border-radius: 8px;
-  background-color: $nlWhiteBakcground;
+  background-color: $nlWhiteBackground;
   border: 1px solid $nlGrey2;
 }
 
@@ -2320,10 +2404,10 @@ nl-course-canvas-view .holder1 {
       font-size: 20px;
       border-radius: 50%;
       background-color: $nlWhite;
-      color: rgba(180, 0, 0, 0.5);
+      color: $nlRed2;
       cursor: pointer;
       &:hover, &:focus, &:active {
-        color: rgba(180, 0, 0, 1);
+        color: $nlRed3;
       }
     }
     .nl-thumbnail-txt {
@@ -2485,35 +2569,35 @@ img.nl-full-width {
 
 .fblack {color: $nlBlack;}
 .fwhite {color: $nlWhite;}
-.fwhiteBackground {color: $nlWhiteBakcground;}
+.fwhiteBackground {color: $nlWhiteBackground;}
 
-.fblue {color: $nlBlue1;}
-.fblue2 {color: $nlBlue2;}
-.fblue3 {color: $nlBlue3;}
+.fblue {color: $nlPrimary1;}
+.fblue2 {color: $nlPrimary2;}
+.fblue3 {color: $nlPrimary3;}
 
-.forange {color: $nlOrange1;}
-.forange2 {color: $nlOrange2;}
-.forange3 {color: $nlOrange3;}
+.forange {color: $nlDelayed;}
+.forange2 {color: $nlPending;}
+.forange3 {color: $nlInProgress;} // duplicate
+.fred {color: $nlFailed;}
+.fyellow {color: $nlInProgress;}
 
-.fyellow {color: $nlOrange3;}
+.fgreen {color: $nlCompleted;}
+//.fgreen2 {color: $nlGreen2;}
 
-.fgreen {color: $nlGreen1;}
-.fgreen2 {color: $nlGreen2;}
-
-.fdarkgrey1 {color: $nlDaryGrey1;}
-.fdarkgrey2 {color: $nlDaryGrey2;}
+.fdarkgrey1 {color: $nlDarkGrey1;}
+.fdarkgrey2 {color: $nlDarkGrey2;}
 .fgrey {color: $nlGrey1;}
 
 .bgwhite {background-color: $nlWhite;}
 
-.bgblue {background-color: $nlBlue1;}
-.bgblue2 {background-color: $nlBlue2;}
-.bgblue3 {background-color: $nlBlue3;}
+.bgblue {background-color: $nlPrimary1;}
+.bgblue2 {background-color: $nlPrimary2;}
+.bgblue3 {background-color: $nlPrimary3;}
 
 .bggrey {background-color: $nlGrey1;}
-.bgdefault {background-color: $nlBlue2;}
-.bgorange {background-color: $nlOrange1;}
-.bgyellow {background-color: $nlOrange3;}
+.bgdefault {background-color: $nlPrimary2;}
+.bgorange {background-color: $nlDelayed;}
+.bgyellow {background-color: $nlInProgress;}
 
 .bgclear {background-color: none !important;}
 
@@ -2524,11 +2608,11 @@ img.nl-full-width {
   }
   &:hover {
     color: $nlWhite;
-    background-color: rgba($nlBlue2, 0.3);
+    background-color:$nlPrimary2Transparent30;
   }
   &:focus, &:active {
     color: $nlWhite;
-    background-color: rgba($nlBlue2, 0.5);
+    background-color: $nlPrimary2Transparent50;
   }
 }
 
@@ -2539,11 +2623,11 @@ img.nl-full-width {
   }
   &:hover {
     color: $nlBlack;
-    background-color: rgba($nlBlue3, 0.5);
+    background-color: $nlPrimary3Transparent50;
   }
   &:focus, &:active {
     color: $nlBlack;
-    background-color: rgba($nlBlue3, 0.7);
+    background-color: $nlPrimary3Transparent70;
   }
 }
 
@@ -2554,11 +2638,11 @@ img.nl-full-width {
   }
   &:hover {
     color: $nlBlack;
-    background-color: rgba($nlGrey1, 0.3);
+    background-color: $nlGrey1Transparent30;
   }
   &:focus, &:active {
     color: $nlBlack;
-    background-color: rgba($nlGrey1, 0.5);
+    background-color: $nlGrey1Transparent50;
   }
 }
 
@@ -2916,11 +3000,11 @@ img.nl-full-width {
 
 .highlight.ng-move,
 .highlight.ng-enter {
-  background-color: rgba(0, 128, 0, 0.1);
+  background-color:$nlGreen;
 }
 
 .highlight.ng-leave {
-  background-color: rgba(128, 0, 0, 0.1);
+  background-color: $nlRed4;
 }
 
 .anim-highlight-off {
@@ -3034,8 +3118,8 @@ img.nl-full-width {
   bottom: 10px;
   height: auto;
   width: auto;
-  background-color: rgba(230, 230, 255, 0.9);
-  box-shadow: 5px 5px 10px rgba(128,128,128,0.8);
+  background-color: $nlBlue6;
+  box-shadow: 5px 5px 10px $nlDarkGrey3;
   transition: 400ms cubic-bezier(0.250, 0.250, 0.750, 0.750) all;
 }
 
@@ -3046,8 +3130,8 @@ img.nl-full-width {
   border-radius: 50%;
   font-size: 15px;
   padding: 2px 6px;
-  background-color: #F0F0F0;
-  border: 1px solid #AAAAAA;
+  background-color: $nlWhite1;
+  border: 1px solid $nlGrey10;
   color: 404040;
   font-weight: 800;
   z-index: 2;
@@ -3077,12 +3161,12 @@ a.enabled {
   max-height: 42px;
   max-width: 99%;
   text-align: right;
-  background-color: rgba(255, 255, 255, 0.7);
+  background-color: $nlWhiteTransparent70;
   z-index: 12;
   overflow-x:hidden;
   overflow-y:auto;
   width: auto;
-  box-shadow: inset 0 0 5px $nlBlue1;
+  box-shadow: inset 0 0 5px $nlPrimary1;
   display: none;
 }
 
@@ -3143,7 +3227,7 @@ a.enabled {
 
 .toolBar .toolbarIcon > img:hover, 
 .sectiontoolbarIcon > img:hover, .sectiontoolbarIcon > img:focus, .sectiontoolbarIcon > img:active {
-  box-shadow: inset 0 0 0 rgba(170,0,0,0.1), 0 0 5px rgba(0,0,0,1);
+  box-shadow: inset 0 0 0$nlRedTransparent10, 0 0 5px $nlBlackTransparent10;
   opacity: 1;
 }
 
@@ -3163,7 +3247,7 @@ a.enabled {
   width: auto;
   height: auto;
   z-index: 11;
-  background-color: $nlBlue1;
+  background-color: $nlPrimary1;
   color: $nlWhite;
   border: 2px solid $nlWhite;
   padding: 5px;
@@ -3176,7 +3260,7 @@ a.enabled {
 #countdown_timer.countdown_timer_warning {
   display: inline;
   font-size: 150%;
-  background-color: #800000;
+  background-color: $nlRed8;
 }
 
 #audioHolder {
@@ -3203,12 +3287,12 @@ a.enabled {
 }
 
 .navigator:hover {
-  background-color: $nlBlue2;
+  background-color: $nlPrimary2;
 }
 
 .navigator:focus, .navigator:active {
-  box-shadow: inset 0 0 5px $nlBlue1, 0 0 2px $nlBlue1;
-  background-color: $nlBlue2;
+  box-shadow: inset 0 0 5px $nlPrimary1, 0 0 2px $nlPrimary1;
+  background-color: $nlPrimary2;
 }
 
 .toolbeltShown #pageNoArea {
@@ -3228,7 +3312,7 @@ a.enabled {
 /* navigator class is used by page navigator and voice button */
 .navigator {
   text-align: center;
-  background-color: $nlBlue1;
+  background-color: $nlPrimary1;
   border-radius: 50%;
   border: 2px solid $nlWhite;
   height: 36px;
@@ -3244,19 +3328,19 @@ a.enabled {
 }
 
 .navigator:hover {
-  background-color: $nlBlue2;
+  background-color: $nlPrimary2;
 }
 
 .navigator:focus, .navigator:active {
-  box-shadow: inset 0 0 5px $nlBlue1, 0 0 2px $nlBlue1;
-  background-color: $nlBlue2;
+  box-shadow: inset 0 0 5px $nlPrimary1, 0 0 2px $nlPrimary1;
+  background-color: $nlPrimary2;
 }
 
 .nl-nav-inactive,
 .nl-nav-inactive:hover,
 .nl-nav-inactive:focus,
 .nl-nav-inactive:active {
-  background-color: #CCCCDD;
+  background-color: nlGrey2;
   cursor: default;
   pointer-events: none;
 }
@@ -3266,11 +3350,11 @@ a.enabled {
 }
 
 .moreImgCls {
-  background-color: $nlBlue1;
+  background-color: $nlPrimary1;
 } 
 
 .topBarBg .aspect_wrt {
-  background-color:$nlBlue1;
+  background-color:$nlPrimary1;
   font-size: 100%;
   color: $nlWhite; 
   border-radius: 8px;
@@ -3287,7 +3371,7 @@ a.enabled {
 }
 
 .aspect_wrt_with_imglink:hover {
-  box-shadow: 0 0 20px rgba(0, 0, 0, 0.55);
+  box-shadow: 0 0 20px $nlBlackTransparent55;
   border-radius: 8px;
 }
 
@@ -3309,7 +3393,7 @@ a.enabled {
   right: 50%;
   bottom: 50%;
   display: none;
-  box-shadow: inset 0 0 2px $nlBlue1, 0 0 5px $nlBlue1;
+  box-shadow: inset 0 0 2px $nlPrimary1, 0 0 5px $nlPrimary1;
   text-align: center;
   z-index: 22;
 }
@@ -3320,7 +3404,7 @@ a.enabled {
   left: 10px;
   right: 10px;
   bottom: 10px;
-  box-shadow: inset 0 0 2px $nlBlue1, 0 0 5px $nlBlue1;
+  box-shadow: inset 0 0 2px $nlPrimary1, 0 0 5px $nlPrimary1;
   text-align: center;
   z-index: 12;
   background-color: $nlWhite;
@@ -3333,7 +3417,7 @@ a.enabled {
   right: 1px;
   width: auto;
   height: 32px;
-  background-color: $nlBlue1;
+  background-color: $nlPrimary1;
 }
 
 .njsDialogTitle > div {
@@ -3378,7 +3462,7 @@ a.enabled {
   width: auto;
   height: 40px;
   text-align: right;
-  border-top: 1px solid $nlBlue1;
+  border-top: 1px solid $nlPrimary1;
   background: $nlWhite;
 }
 
@@ -3386,20 +3470,20 @@ a.enabled {
   text-align: center;
   margin: 4px;
   color: $nlWhite;
-  background: $nlBlue1;
+  background: $nlPrimary1;
   text-shadow: none;
   border-radius: 0;
 }
 
 .njsDialogButtons button:hover{
   color: $nlWhite;
-  background: $nlBlue2;
+  background: $nlPrimary2;
 }
 
 .njsDialogButtons button:active, .njsDialogButtons button:focus {
   color: $nlWhite;
-  background: $nlBlue2;
-  box-shadow: inset 0 0 10px $nlBlue1, 0 0 5px $nlBlue1;
+  background: $nlPrimary2;
+  box-shadow: inset 0 0 10px $nlPrimary1, 0 0 5px $nlPrimary1;
 }
 
 .njsDialogHelp {
@@ -3417,7 +3501,7 @@ a.enabled {
   top: 0;
   height: 0;
   width: 0;
-  border-bottom: 10px solid #E5FF80;
+  border-bottom: 10px solid $nlYellow4;
   border-left: 10px dotted transparent;
   border-right: 10px dotted transparent;
 }
@@ -3428,13 +3512,13 @@ a.enabled {
   top: 0;
   height: auto;
   bottom: 0;
-  background-color: #DDDDFF;
+  background-color: $nlGrey5;
   color: $nlBlack;
   padding: 4px;
   width: 98%;
   margin: 0 0 4px 4px;
   text-align: left;
-  box-shadow: inset 0 0 5px rgba(170,0,0,0.1), 0 0 10px rgba(0,0,0,1);
+  box-shadow: inset 0 0 5px $nlRedTransparent10, 0 0 10px $nlBlackTransparent10;
 }
 
 .dlgFieldName {
@@ -3446,7 +3530,7 @@ a.enabled {
 }
 
 .dlgFieldName.mand {
-  color: #FF0000; 
+  color: $nlFailed; 
 }
 
 .dlgField {
@@ -3470,7 +3554,7 @@ a.enabled {
   padding-left: 8px;
     padding-right: 8px;
     background-color: $nlWhite;
-    border: 1px solid #DDDDFF;
+    border: 1px solid $nlGrey5;
     border-radius: 0px;
     margin:4px;
 }
@@ -3484,8 +3568,8 @@ a.enabled {
 }
 
 .dlgField.mand textarea:focus, .dlgField.mand select:focus, .dlgField.mand input:focus {
-  border-color: #FF0000;
-  box-shadow: inset 0 0 0 rgba(170,170,255,0.1), 0 0 10px rgba(255,0,0,0.8);
+  border-color: $nlFailed;
+  box-shadow: inset 0 0 0 $nlBlue7, 0 0 10px $nlRedTransparent80;
 }
 
 /*----------------------------------------------------------------------------------------------------------------------
@@ -3537,38 +3621,38 @@ a.enabled {
 
 /*----------------------------------------------------------------------------------------------------*/
 /* Shadow */
-.njsSlides .shadow-1 {box-shadow: 0 0 5px rgba(128,255,255,0.5);}
-.njsSlides .bglight .shadow-1 {box-shadow: 0 0 5px rgba(0,128,128,0.5);}
-.njsSlides .shadow-2 {box-shadow: 0 0 10px rgba(128,255,255,0.8);}
-.njsSlides .bglight .shadow-2 {box-shadow: 0 0 10px rgba(0,128,128,0.8);}
-.njsSlides .shadow-3 {box-shadow: 10px 15px 10px rgba(255,255,255,0.7);}
-.njsSlides .bglight .shadow-3 {box-shadow: 10px 15px 10px rgba(128,128,128,0.7);}
+.njsSlides .shadow-1 {box-shadow: 0 0 5px $nlBlue8Transparent50;}
+.njsSlides .bglight .shadow-1 {box-shadow: 0 0 5px $nlBlue9Transparent50;}
+.njsSlides .shadow-2 {box-shadow: 0 0 10px $nlBlue8Transparent80;}
+.njsSlides .bglight .shadow-2 {box-shadow: 0 0 10px $nlBlue9Transparent80;}
+.njsSlides .shadow-3 {box-shadow: 10px 15px 10px $nlGrey9;}
+.njsSlides .bglight .shadow-3 {box-shadow: 10px 15px 10px $nlDarkGrey4;}
 
 /*----------------------------------------------------------------------------------------------------*/
 /* Background colors */
-.njsSlides .bg-light1, .njsSlides .bglight .bg-light1 {background-color: rgba(255, 255, 255, 0.6); color: $nlBlack;}
-.njsSlides .bg-light2, .njsSlides .bglight .bg-light2 {background-color: rgba(143,170,220,0.8); color: $nlBlack;}
-.njsSlides .bg-light3, .njsSlides .bglight .bg-light3 {background-color: rgba(143,220,170,0.8); color: $nlBlack;}
-.njsSlides .bg-light4, .njsSlides .bglight .bg-light4 {background-color: rgba(220,170,170,0.8); color: $nlBlack;}
-.njsSlides .bg-light5, .njsSlides .bglight .bg-light5 {background-color: rgba(255,255,170,0.8); color: $nlBlack;}
+.njsSlides .bg-light1, .njsSlides .bglight .bg-light1 {background-color: $nlGrey3; color: $nlBlack;}
+.njsSlides .bg-light2, .njsSlides .bglight .bg-light2 {background-color: $nlBlue11; color: $nlBlack;}
+.njsSlides .bg-light3, .njsSlides .bglight .bg-light3 {background-color: $nlGreen1; color: $nlBlack;}
+.njsSlides .bg-light4, .njsSlides .bglight .bg-light4 {background-color: $nlRed5; color: $nlBlack;}
+.njsSlides .bg-light5, .njsSlides .bglight .bg-light5 {background-color: $nlYellow; color: $nlBlack;}
 
-.njsSlides .bg-dark1, .njsSlides .bglight .bg-dark1 {background-color: rgba(0, 0, 0, 0.5); color: $nlWhite;}
-.njsSlides .bg-dark2, .njsSlides .bglight .bg-dark2 {background-color: rgba(0, 32, 96, 0.8); color: $nlWhite;}
-.njsSlides .bg-dark3, .njsSlides .bglight .bg-dark3 {background-color: rgba(0, 100, 0, 0.8); color: $nlWhite;}
-.njsSlides .bg-dark4, .njsSlides .bglight .bg-dark4 {background-color: rgba(100, 0, 0, 0.8); color: $nlWhite;}
-.njsSlides .bg-dark5, .njsSlides .bglight .bg-dark5 {background-color: rgba(150, 100, 0, 0.8); color: $nlWhite;}
+.njsSlides .bg-dark1, .njsSlides .bglight .bg-dark1 {background-color:$nlBlackTransparent50; color: $nlWhite;}
+.njsSlides .bg-dark2, .njsSlides .bglight .bg-dark2 {background-color: $nlBlue12; color: $nlWhite;}
+.njsSlides .bg-dark3, .njsSlides .bglight .bg-dark3 {background-color:$nlGreen2; color: $nlWhite;}
+.njsSlides .bg-dark4, .njsSlides .bglight .bg-dark4 {background-color: $nlRed6; color: $nlWhite;}
+.njsSlides .bg-dark5, .njsSlides .bglight .bg-dark5 {background-color: $nlOrange; color: $nlWhite;}
 
-.njsSlides .bg-pastel1, .njsSlides .bglight .bg-pastel1 {background-color: rgba(0, 176, 240, 0.8);}
-.njsSlides .bg-pastel2, .njsSlides .bglight .bg-pastel2 {background-color: rgba(154, 205, 50, 0.8);}
-.njsSlides .bg-pastel3, .njsSlides .bglight .bg-pastel3 {background-color: rgba(0, 139, 139, 0.8);}
-.njsSlides .bg-pastel4, .njsSlides .bglight .bg-pastel4 {background-color: rgba(110, 139, 61, 0.8);}
-.njsSlides .bg-pastel5, .njsSlides .bglight .bg-pastel5 {background-color: rgba(69, 139, 116, 0.8);}
+.njsSlides .bg-pastel1, .njsSlides .bglight .bg-pastel1 {background-color:$nlBlue2;}
+.njsSlides .bg-pastel2, .njsSlides .bglight .bg-pastel2 {background-color: $nlGreen3;}
+.njsSlides .bg-pastel3, .njsSlides .bglight .bg-pastel3 {background-color: $nlBlue13;}
+.njsSlides .bg-pastel4, .njsSlides .bglight .bg-pastel4 {background-color: $nlGreen4;}
+.njsSlides .bg-pastel5, .njsSlides .bglight .bg-pastel5 {background-color:$nlGreen5;}
 
-.njsSlides .bg-bright1, .njsSlides .bglight .bg-bright1 {background-color: rgba(0, 0, 255, 0.8);}
-.njsSlides .bg-bright2, .njsSlides .bglight .bg-bright2 {background-color: rgba(0, 255, 0, 0.8);}
-.njsSlides .bg-bright3, .njsSlides .bglight .bg-bright3 {background-color: rgba(255, 0, 0, 0.8);}
-.njsSlides .bg-bright4, .njsSlides .bglight .bg-bright4 {background-color: rgba(255, 255, 0, 0.8);}
-.njsSlides .bg-bright5, .njsSlides .bglight .bg-bright5 {background-color: rgba(255, 192, 0, 0.8);}
+.njsSlides .bg-bright1, .njsSlides .bglight .bg-bright1 {background-color: $nlBlue14Transparent80;}
+.njsSlides .bg-bright2, .njsSlides .bglight .bg-bright2 {background-color: $nlGreen6;}
+.njsSlides .bg-bright3, .njsSlides .bglight .bg-bright3 {background-color: $nlRedTransparent80;}
+.njsSlides .bg-bright4, .njsSlides .bglight .bg-bright4 {background-color: $nlYellow1;}
+.njsSlides .bg-bright5, .njsSlides .bglight .bg-bright5 {background-color: $nlYellow2;}
 
 /*----------------------------------------------------------------------------------------------------*/
 /* Shapes */
@@ -3581,7 +3665,7 @@ a.enabled {
 
 /*----------------------------------------------------------------------------------------------------*/
 /* Font sizes */
-.njsSlides .size-title1 p, .njsSlides .title p {font-size: 200%; text-shadow: 0 1px 0 #cccccc, 0 2px 0 #c9c9c9, 0 3px 0 #bbbbbb, 0 4px 0 #b9b9b9, 0 5px 0 #aaaaaa, 0 6px 1px rgba(0, 0, 0, 0.1), 0 0 5px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.3), 0 3px 5px rgba(0, 0, 0, 0.2), 0 5px 10px rgba(0, 0, 0, 0.25), 0 20px 20px rgba(0, 0, 0, 0.15);}
+.njsSlides .size-title1 p, .njsSlides .title p {font-size: 200%; text-shadow: 0 1px 0 $nlBorderGrey2, 0 2px 0 $nlGrey11, 0 3px 0 $nlGrey13, 0 4px 0 $nlGrey12, 0 5px 0 $nlGrey10, 0 6px 1px $nlBlackTransparent10, 0 0 5px $nlBlackTransparent10, 0 1px 3px $nlBlackTransparent30, 0 3px 5px $nlBlackTransparent20, 0 5px 10px $nlBlackTransparent25, 0 20px 20px $nlBlackTransparent15;}
 .njsSlides .size-title2 p {font-size: 180%}
 .njsSlides .size-title3 p {font-size: 150%}
 .njsSlides .size-title4 p {font-size: 120%;}
@@ -3619,7 +3703,7 @@ a.enabled {
   display: inline-block;
   width: 100%;
   .inactive-bg {
-    background-color: $nlGrey3;
+    background-color: $nlBlue10;
   }
   select {
     position: absolute;
@@ -3673,7 +3757,7 @@ a.enabled {
   height: auto;
   padding: 0;
   color: $nlWhite;
-  background: $nlBlue1;
+  background: $nlPrimary1;
   display: none;
   .nl-zoom-button {
     cursor: pointer;
@@ -3750,7 +3834,7 @@ a.enabled {
   min-width: 175px;
   background-color:$nlWhite; 
   border-radius: 5px;
-  box-shadow: 0 8px 10px 1px rgba(0,0,0,0.14), 0 3px 14px 2px rgba(0,0,0,0.12), 0 5px 5px -3px rgba(0,0,0,0.2);
+  box-shadow: 0 8px 10px 1px $nlBlackTransparent14, 0 3px 14px 2px $nlBlackTransparent12, 0 5px 5px -3px $nlBlackTransparent20;
 }
 
 .nl-nav-dropdown-option{

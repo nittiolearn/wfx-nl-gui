@@ -31,8 +31,8 @@ var _nl = {
         pending: '#E8658F',       // $nlOrange3
         waiting: '#A0A0C0',       // $nlGrey1
         delayed: '#F98E36',       // $nlOrange1
-        blue1: '#008AFF',         // $nlBlue1
-        blue2: '#2461cc'          // $nlBlue2
+        blue1: '#001221',         // $nlBlue1
+        blue2: '#002748'          // $nlBlue2
     }
 };
 

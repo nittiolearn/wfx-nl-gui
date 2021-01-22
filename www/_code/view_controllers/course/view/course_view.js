@@ -984,10 +984,10 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlCourseEditor, nlC
         none:    {icon: 'ion-information-circled fblue', title: ''},
         waiting: {icon: 'ion-locked fgrey', title: 'waiting'},
         delayed: {icon: 'ion-alert-circled forange', title: 'delayed'},
-        pending: {icon: 'ion-ios-circle-filled fyellow', title: 'pending'},
-        started: {icon: 'ion-ios-circle-filled fgreen2', title: 'started'},
-        failed:  {icon: 'icon ion-close-circled forange', title: 'failed'},
-        expired:  {icon: 'icon ion-close-circled forange', title: 'certificate expired'},
+        pending: {icon: 'ion-ios-circle-filled forange2', title: 'pending'},
+        started: {icon: 'ion-ios-circle-filled fyellow', title: 'started'},
+        failed:  {icon: 'icon ion-close-circled fred', title: 'failed'},
+        expired:  {icon: 'icon ion-close-circled fred', title: 'certificate expired'},
         success: {icon: 'ion-checkmark-circled fgreen', title: 'done'},
         partial_success: {icon: 'ion-checkmark-circled fyellow', title: 'partially done'} // Only folder status
     };
