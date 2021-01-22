@@ -1328,7 +1328,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 	}
 
 	//---------------------------------------------------------------------------------------------------------------------------------------------------------
-	// Drilldown tab
+	// Pagelevel report visualistion tab
 	//---------------------------------------------------------------------------------------------------------------------------------------------------------
 	function _updatePageLevelRecordsTab() {
 		var records = $scope.tabData.records; 
@@ -1356,32 +1356,46 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			var report = records[i];
 			if (!report.raw_record.completed) continue;
 			var pages = report.repcontent.learningData.pages;
-			for(var key in pages) { 
-				var page = pages[key];
+			var filteredPages = report.repcontent.learningData.pagesFiltered;
+			for(var j=0; j<filteredPages.length; j++) { 
+				var key = filteredPages[j];
+				var page = pages[key] || null;
+				if (!page) continue;
 				var pageNo = page.pageNo;
-				if (!pageNo || page.maxScore === 0) continue;
-				if (page.maxScore > 0 && !(pageNo in pageLevelQuestionsObj))
-					pageLevelQuestionsObj[pageNo] = {pageno: pageNo, title:nl.t('Page no{} - {}', pageNo, page.title), userAttempt:0, maxScore:0, score:0, correct:0, partial:0, incorrect:0, skipped:0, totalAttempt: 0}										
-				_updatePageLevelData(pageLevelQuestionsObj[pageNo], page);
+				var maxScore = page.maxScore + page.popupMaxScore;
+				if (!pageNo || maxScore === 0) continue;
+				if (!(key in pageLevelQuestionsObj)) {
+					pageLevelQuestionsObj[key] = {pageno: pageNo, title:nl.t('Page {} - {}', pageNo, page.title), userAttempt:0, maxScore:0, score:0, correct:0, partial:0, incorrect:0, skipped:0, totalAttempt: 0, updated: report.repcontent.updated};
+				} else {
+					if(pageLevelQuestionsObj[key].updated < report.repcontent.updated) pageLevelQuestionsObj[key].title = nl.t('Page {} - {}', pageNo, page.title);
+				}
+				_updatePageLevelData(pageLevelQuestionsObj[key], page);
 			}
 	    }
 		return pageLevelQuestionsObj;
 	}
 
 	function _updatePageLevelData(questionObj, page) {
-		questionObj.maxScore += page.maxScore;
+		var maxScore = page.maxScore + page.popupMaxScore;
+		questionObj.maxScore += maxScore;
 		questionObj.totalAttempt += 1;
 		if (page.answerStatus == 0) {
 			questionObj.skipped++
 			return;
 		}
 		questionObj.userAttempt++;
-		if (page.score == page.maxScore) {
+		var score = page.score + page.popupScore;
+		if (score == maxScore) {
 			questionObj.correct += 1;
-			questionObj.score += page.score; 
+			questionObj.score += score; 
+			return;
 		}
-		if(page.score > 0 && page.score < page.maxScore) questionObj.partial++;
-		if (page.score == 0) questionObj.incorrect++;
+		if(score > 0 && score < maxScore) {
+			questionObj.score += score; 
+			questionObj.partial++;
+			return;
+		}
+		if (score == 0) questionObj.incorrect++;
 	}
 
 	function _getPlrColumns() { 
@@ -1426,7 +1440,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 								  }
 								}
 							}
-						}, colors: [_nl.colorsCodes.done, _nl.colorsCodes.failed, _nl.colorsCodes.pending],
+						}, colors: [_nl.colorsCodes.done, _nl.colorsCodes.pending, _nl.colorsCodes.failed,],
 						title: "Completion percentage based on question solved.",
 						currentpos: 0,
 						maxvisible: 10
@@ -1456,7 +1470,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		$scope.pageLevelInfo.selectedChart.onClickOnPrevPl = function(selectedChart){
 			if (!selectedChart || !_canShowPrevCharts(selectedChart)) return;
 			_onClickOnPrevCharts(selectedChart, 'page'); 
-	}	
+		}	
 	};
 
 	//---------------------------------------------------------------------------------------------------------------------------------------------------------
