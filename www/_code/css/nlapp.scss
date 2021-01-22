@@ -19,13 +19,20 @@ $dark:                            #444 !default;
 $nlBlue1:                         #153673 !default;
 $nlBlue2:                         #2461cc !default;
 $nlBlue3:                         #c2e3fc !default;
+$nlBlue4:                         #000077;
+$nlBlue5:                         #0000FF;
+$nlLightBlue1:                    #DDDDFF;
+$nlLightBlue2:                    rgba(194, 227, 252, 1);
+$nlLightBlue3:                    rgba(81, 203, 238, 1);
 // Orange used throughout the file/app
 $nlOrange1:                       #e84c3d !default; 
 $nlOrange2:                       #ed7000 !default;
 $nlOrange3:                       #eab01f !default; 
 // Yellow used throughout the file/app
+$nlYellow:                        #E5FF80;
 // Red used throughout the file/app
 $nlRed:                           #770000 !default;
+$nlRed1:                           #FF0000;
 // Green used throughout the file/app
 $nlGreen1:                        #007700 !default;
 $nlGreen2:                        #44BB44 !default; // Light green
@@ -35,11 +42,13 @@ $nlGrey1:                         #A0A0C0 !default; // Darkest of light greys
 $nlGrey2:                         #CCCCDD !default; 
 $nlGrey3:                         #EEEEFF !default; 
 $nlGrey4:                         #f5f5f5 !default; // Lightest of light greys
+$nlGrey5:                         #DDDDDD;
 $nlDaryGrey1:                     #575B5E !default; // Darkest of dark greys
 $nlDaryGrey2:                     #707172 !default; // Lightest of dark greys
 $nlBorderGrey1:                    #EEEEEE !default;
 $nlBorderGrey2:                    #CCCCCC !default;
 // White used throughout the file/app
+$nlWhite:                          #ffffff;
 // Black used throughout the file/app
 $nlBlack:                          #000000;
 
@@ -241,20 +250,20 @@ body {
 textarea, input[type="text"], input[type="password"], input[type="datetime"], input[type="datetime-local"], input[type="date"], input[type="month"], input[type="time"], input[type="week"], input[type="number"], input[type="email"], input[type="url"], input[type="search"], input[type="tel"], input[type="color"] {
   padding-left: 8px;
   padding-right: 8px;
-  background-color: #FFFFFF;
-  border: 1px solid #DDDDFF;
+  background-color: $nlWhite;
+  border: 1px solid $nlLightBlue1;
   border-radius: 0px;
   display:inline;
 }
 
 .default-input {
-  background-color: #FFFFFF;
-  border: 1px solid #DDDDFF;
+  background-color: $nlWhite;
+  border: 1px solid $nlLightBlue1;
 }
 
 select {
-  background-color: #FFFFFF;
-  border: 1px solid #DDDDFF;
+  background-color: $nlWhite;
+  border: 1px solid $nlLightBlue1;
   border-radius: 0px;
 }
 
@@ -345,13 +354,13 @@ $animation-duration: 200ms !default;
 }
 
 .pgNoStyle {
-  color: #FFFFFF;
+  color: $nlWhite;
   background-color: $nlBlue1;
   border-radius: 50%;
   text-align: center;
   font-size: 16px;
   line-height: 125%;
-  border: 2px solid #FFFFFF;
+  border: 2px solid $nlWhite;
   padding: 0 4px;
 }
 
@@ -457,7 +466,7 @@ $animation-duration: 200ms !default;
 .nl-table-styled {
   td, th {
     text-align: left;
-    border: 1px solid #FFFFFF;
+    border: 1px solid $nlWhite;
   }
   td {
     background-color: $nlGrey3;
@@ -484,7 +493,7 @@ $animation-duration: 200ms !default;
   margin: 0;
   text-align: left;
   tr {
-    background-color: white;
+    background-color: $nlWhite;
   }
   tr.header {
     background-color: $nlGrey4;
@@ -537,7 +546,7 @@ $animation-duration: 200ms !default;
 }
 
 .border-top-grey {
-  border-top: 1px solid #CCCCDD;
+  border-top: 1px solid $nlGrey2;
 }
 
 .border-circle-forange {
@@ -566,12 +575,12 @@ $animation-duration: 200ms !default;
 
 tr.header {
   background: $nlBlue1;
-  color: white;
+  color: $nlWhite;
 }
 
 tr.summary {
   background: $nlBlue3;
-  color: white;
+  color: $nlWhite;
 }
 
 .nl-16 {
@@ -664,7 +673,7 @@ tr.summary {
 
 .nl-menuitems {
   text-align: right;
-  color: #FFFFFF;
+  color: $nlWhite;
   font-weight: bold;
   font-size: 120%;
   a, span {
@@ -695,7 +704,7 @@ tr.summary {
     top: 1em;
     left: 110%;
     border-radius: 4px;  
-    color: white;
+    color: $nlWhite;
     background-color: $nlBlue1;
     white-space: nowrap;
     padding: 8px;
@@ -734,16 +743,16 @@ tr.summary {
 .nl-link-text-without-background {
   cursor: pointer;
   &, a, &:visited {
-    color: #000077;
+    color: $nlBlue4;
     text-decoration: none;
   }
   &:focus, &:active {
-    background-color: #FFFFFF;
+    background-color: $nlWhite;
   }
 }
 .nl-link-text {
   &, a, &:visited {
-    color: #000077;
+    color: $nlBlue4;
   }
 }
 
@@ -821,7 +830,7 @@ a.black {
     padding: 2px;
     border-radius: 50%;
     text-align: center;
-    color: white;
+    color: $nlWhite;
     background-color: $nlBlue1;
   }
 }
@@ -889,7 +898,7 @@ a.black {
   }
   
   &::-webkit-scrollbar-track {
-    background: #DDDDDD;
+    background: $nlGrey5;
   }
   
   &::-webkit-scrollbar-thumb {
@@ -984,7 +993,7 @@ a.black {
     max-height: 96vh;
     box-shadow: inset 0 0 2px $nlBlue1, 0 0 5px $nlBlue1;
     text-align: left;
-    background-color: #FFFFFF;
+    background-color: $nlWhite;
   }
  
   .popup-head {
@@ -1006,7 +1015,7 @@ a.black {
   }
 
   .popup-title {
-    color: #FFFFFF;
+    color: $nlWhite;
     font-size: 120%;
   }
   
@@ -1031,7 +1040,7 @@ a.black {
 .popup-buttons .button, .nl-button {
   text-align: center;
   font-size: 120%;
-  color: #FFFFFF;
+  color: $nlWhite;
   background-color: $nlBlue1;
   min-height: 32px;
   padding: 3px;
@@ -1062,7 +1071,7 @@ a.black {
 
 .image-round-button {
   border-radius: 50%;
-  background-color: white;
+  background-color: $nlWhite;
     box-shadow: inset 0 0 0 rgba(170,0,0,0.1), 0 0 10px rgba(200,200,200,1);
   z-index: 10;
   opacity: 0.7;
@@ -1077,9 +1086,9 @@ a.black {
 }
 
 .nl-white-icons {
-  color: #FFFFFF;
+  color: $nlWhite;
   a {
-    color: #FFFFFF;
+    color: $nlWhite;
   }
   i {
     display: inline-block;
@@ -1192,13 +1201,13 @@ tr .nl-dlg-field-name {
     height: 10em;
   }
   *:focus {
-    box-shadow: 0 0 5px rgba(81, 203, 238, 1);
+    box-shadow: 0 0 5px $nlLightBlue3;
     outline: none;
   }
 }
 
 input.nl-dlg-field-error, .nl-dlg-field-error {
-  border: 1px solid #FF0000;
+  border: 1px solid $nlRed1;
 }
 
 .nl-dlg-field-errormsg {
@@ -1225,9 +1234,9 @@ input.nl-dlg-field-error, .nl-dlg-field-error {
 .marker-select-dropdown {
   display: block;
   max-height: 160px;
-  background-color: #FFFFFF;
+  background-color: $nlWhite;
   z-index: 15;
-  border: 1px solid #CCCCDD;
+  border: 1px solid $nlGrey2;
   overflow: auto;
 }
 
@@ -1235,17 +1244,17 @@ input.nl-dlg-field-error, .nl-dlg-field-error {
   width: 100%;
   height: 32px;
   text-align: left;
-  border: 1px solid #CCCCDD;
+  border: 1px solid $nlGrey2;
   color: $nlBlue1;
   border-radius: 5px;
-  background: #FFFFFF;
+  background: $nlWhite;
 }
 
 /*-----------------------------------------------------------------------------------------*
  * nl-dlg tab format styles
  *-----------------------------------------------------------------------------------------*/
 .page_format_tab_selected {
-    background-color: #CCCCDD;
+    background-color: $nlGrey2;
     border-radius: 8px 8px 0 0;
     border-top: 1px solid rgba(0, 0, 0, 0.2);
     border-left: 1px solid rgba(0, 0, 0, 0.2);
@@ -1283,10 +1292,10 @@ input.nl-dlg-field-error, .nl-dlg-field-error {
    width: 100%;
    height: 32px;
    text-align: left;
-   border: 1px solid #CCCCDD;
+   border: 1px solid $nlGrey2;
    color: $nlBlue1;
    border-radius: 5px;
-   background: #FFFFFF;
+   background: $nlWhite;
  }
  .dropdown {
    position: relative;
@@ -1303,16 +1312,16 @@ input.nl-dlg-field-error, .nl-dlg-field-error {
    top: 36px;
    width: 246px;
    max-height: 50vh;
-   background-color: #FFFFFF;
+   background-color: $nlWhite;
    z-index: 15;
-   border: 1px solid #CCCCDD;
+   border: 1px solid $nlGrey2;
    overflow: auto;
  }
  
  .add-new-cls {
    color: $nlBlue2;
-   background-color: #FFFFFF;
-   border-top: 1px solid #CCCCDD;
+   background-color: $nlWhite;
+   border-top: 1px solid $nlGrey2;
    height: 36px;
  }
  .add-new-button-style{
@@ -1320,11 +1329,11 @@ input.nl-dlg-field-error, .nl-dlg-field-error {
    padding: 6px 18px;
    border-radius: 15px;
    background-color: $nlBlue2;
-   color: #FFFFFF;
+   color: $nlWhite;
  }
  .dropdown-selected {
    background-color: $nlBlue2;
-   color: #FFFFFF;
+   color: $nlWhite;
  }
  
 .button-inner-style{
@@ -1359,7 +1368,7 @@ input.nl-dlg-field-error, .nl-dlg-field-error {
     position: absolute;
     left: 0;
     right: 70px;
-    color: #FFFFFF;
+    color: $nlWhite;
     font-size: 120%;
     text-align: center;
   }
@@ -1392,7 +1401,7 @@ input.nl-dlg-field-error, .nl-dlg-field-error {
   width: auto;
   max-width: 90%;
   background: $nlBlue1;
-  color: #ffffff;
+  color: $nlWhite;
   padding: 8px;
   div {
     height: auto;
@@ -1404,7 +1413,7 @@ input.nl-dlg-field-error, .nl-dlg-field-error {
     position: absolute;
     right: -16px;
     top: -16px;
-    background-color: white;
+    background-color: $nlWhite;
     border-radius: 50%;
     border: 2px solid $nlBlue1;
     box-shadow: inset 0 0 2px $nlBlue1, 0 0 5px $nlBlue1;
@@ -1467,7 +1476,7 @@ input.nl-dlg-field-error, .nl-dlg-field-error {
   .sbicon.icon {
     font-size: 125%;
     background-color: $nlGreen1;
-    color: white;
+    color: $nlWhite;
     border-radius: 50%;
   }
 }
@@ -1478,7 +1487,7 @@ input.nl-dlg-field-error, .nl-dlg-field-error {
   .sbicon.icon {
     font-size: 125%;
     background-color: $nlRed;
-    color: white;
+    color: $nlWhite;
     border-radius: 50%;
   }
 }
@@ -1516,7 +1525,7 @@ nl-cards {
   
   border-radius: 2px;
   box-shadow: inset 0 0 2px rgba(0,0,100,0.2), 1px 1px 2px rgba(0,0,100,0.4);
-  background-color: #FFFFFF;
+  background-color: $nlWhite;
 }
 
 .nl-card-url {
@@ -1633,7 +1642,7 @@ nl-cards {
   span {
     cursor:pointer;
     padding: 2px 4px 2px 4px;
-    border-right: 1px solid #0000FF;
+    border-right: 1px solid $nlBlue5;
     
     &:last-child {
       border-right: none;
@@ -1698,13 +1707,13 @@ nl-cards {
 .progress-bar-bar {
   width: 0px;
   height: 10px;
-  color: #fff;
+  color: $nlWhite;
   font-weight: normal;
   border-radius: 50px;
-  background-image: -webkit-linear-gradient(-5deg, $nlBlue2 0%, rgba(194, 227, 252, 1) 100%);
-  background-image: -moz-linear-gradient(-5deg, $nlBlue2 0%, rgba(194, 227, 252, 1) 100%);
-  background-image: -o-linear-gradient(-5deg, $nlBlue2 0%, rgba(194, 227, 252, 1) 100%);
-  background-image: linear-gradient(-5deg, $nlBlue2 0%, rgba(194, 227, 252, 1) 100%);
+  background-image: -webkit-linear-gradient(-5deg, $nlBlue2 0%, $nlLightBlue2 100%);
+  background-image: -moz-linear-gradient(-5deg, $nlBlue2 0%, $nlLightBlue2 100%);
+  background-image: -o-linear-gradient(-5deg, $nlBlue2 0%, $nlLightBlue2 100%);
+  background-image: linear-gradient(-5deg, $nlBlue2 0%, $nlLightBlue2 100%);
 }
 
 nl-summary-box {
@@ -1716,7 +1725,7 @@ nl-summary-box {
 
 .nl-summary-box{
   padding: 10px;
-  background-color: #fff;
+  background-color: $nlWhite;
   min-width: 200px;
   max-width: 300px;
   height: 90px;
@@ -1762,7 +1771,7 @@ nl-summary-box.small-summary-box {
   padding-top: 4px;
   border-radius: 20px;
   box-shadow: 2px 4px 5px 0px rgba(0, 0, 0, 0.06);
-  background-color: white;
+  background-color: $nlWhite;
   text-align: center;
   span {
     display: inline-block;
@@ -1782,7 +1791,7 @@ nl-summary-box.small-summary-box {
 .nl-button-review {
   border: 2px solid $nlBlue2;
   background-color: $nlBlue2;
-  color: #ffffff;
+  color: $nlWhite;
   box-shadow: 2px 4px 5px 0px rgba(0, 0, 0, 0.5);
 }
 //-----------------------------------------------------------------------------------------
@@ -1797,7 +1806,7 @@ nl-summary-box.small-summary-box {
   outline:none;
   cursor:pointer;
   &:focus {
-    box-shadow: 0 0 5px rgba(81, 203, 238, 1);
+    box-shadow: 0 0 5px $nlLightBlue3;
   }
 }
 
@@ -1805,9 +1814,9 @@ nl-summary-box.small-summary-box {
   width: 100%;
   max-width: 250px;
   .nl-searchbox2 {
-    border: 1px solid #CCC; 
+    border: 1px solid $nlBorderGrey2; 
     border-radius: 4px; 
-    background-color: #FFFFFF;
+    background-color: $nlWhite;
   }
 }
 
@@ -1836,7 +1845,7 @@ nl-summary-box.small-summary-box {
 }
 
 .nl-left-tab-selected {
-  background-color: #CCCCDD;
+  background-color: $nlGrey2;
   border-radius: 8px 0px 0px 8px;
   border-top: 1px solid rgba(0, 0, 0, 0.1);
   border-left: 1px solid rgba(0, 0, 0, 0.1);
@@ -1923,7 +1932,7 @@ nl-summary-box.small-summary-box {
   right: 0;
   height: 40px;
   background-color: $nlBlue1;
-  color: #ffffff;
+  color: $nlWhite;
 
   .nltb-logo img {
     max-width: 120px; 
@@ -2075,7 +2084,7 @@ img.nl-icon {
 }
 
 .nl-forum-msg.editing {
-  background-color: #FFFFFF;
+  background-color: $nlWhite;
 }
 
 .nl-forum-msg-content {
@@ -2111,7 +2120,7 @@ img.nl-icon {
 .nl-hcard2 .card2 {
   position: relative;
   border-radius: 8px;
-  background-color: white;
+  background-color: $nlWhite;
   height: 120px;
   width: 100%;
   overflow: hidden;
@@ -2164,7 +2173,7 @@ img.nl-icon {
 .nl-vcard2 .card2 {
   position: relative;
   border-radius: 8px;
-  background-color: white;
+  background-color: $nlWhite;
   height: 300px;
   width: 100%;
   max-width: 250px;
@@ -2237,8 +2246,8 @@ nl-course-canvas-view .holder1 {
   .pin {
     position: absolute;
     border-radius: 4px;
-    border: 2px solid white;
-    background-color: white;
+    border: 2px solid $nlWhite;
+    background-color: $nlWhite;
     & > div {
       border-radius: 4px;
       background-color: $nlGrey2;
@@ -2247,7 +2256,7 @@ nl-course-canvas-view .holder1 {
       border-color: $nlGrey2;
     }
     &.selected > div {
-      background-color: white;
+      background-color: $nlWhite;
     }
     &.expanded {
       z-index: 1;
@@ -2315,7 +2324,7 @@ nl-course-canvas-view .holder1 {
       padding: 2px 4px;
       font-size: 20px;
       border-radius: 50%;
-      background-color: white;
+      background-color: $nlWhite;
       color: rgba(180, 0, 0, 0.5);
       cursor: pointer;
       &:hover, &:focus, &:active {
@@ -2480,7 +2489,7 @@ img.nl-full-width {
 }
 
 .fblack {color: $nlBlack;}
-.fwhite {color: white;}
+.fwhite {color: $nlWhite;}
 
 .fblue {color: $nlBlue1;}
 .fblue2 {color: $nlBlue2;}
@@ -2499,7 +2508,7 @@ img.nl-full-width {
 .fdarkgrey2 {color: $nlDaryGrey2;}
 .fgrey {color: $nlGrey1;}
 
-.bgwhite {background-color: #FFFFFF;}
+.bgwhite {background-color: $nlWhite;}
 
 .bgblue {background-color: $nlBlue1;}
 .bgblue2 {background-color: $nlBlue2;}
@@ -2518,11 +2527,11 @@ img.nl-full-width {
     text-decoration: none;
   }
   &:hover {
-    color: white;
+    color: $nlWhite;
     background-color: rgba($nlBlue2, 0.3);
   }
   &:focus, &:active {
-    color: white;
+    color: $nlWhite;
     background-color: rgba($nlBlue2, 0.5);
   }
 }
@@ -3143,7 +3152,7 @@ a.enabled {
 }
 
 .toolBar .toolbarIcon.current {
-  background: white;
+  background: $nlWhite;
 }
 
 .toolBar .toolbarIcon.current > img {
@@ -3159,8 +3168,8 @@ a.enabled {
   height: auto;
   z-index: 11;
   background-color: $nlBlue1;
-  color: #FFFFFF;
-  border: 2px solid #FFFFFF;
+  color: $nlWhite;
+  border: 2px solid $nlWhite;
   padding: 5px;
 }
 
@@ -3225,7 +3234,7 @@ a.enabled {
   text-align: center;
   background-color: $nlBlue1;
   border-radius: 50%;
-  border: 2px solid #FFFFFF;
+  border: 2px solid $nlWhite;
   height: 36px;
   width: 36px;
   cursor: pointer;
@@ -3233,7 +3242,7 @@ a.enabled {
 }
 
 .navigator i {
-  color: #FFFFFF;
+  color: $nlWhite;
   font-size: 25px;
   cursor: pointer;
 }
@@ -3251,7 +3260,7 @@ a.enabled {
 .nl-nav-inactive:hover,
 .nl-nav-inactive:focus,
 .nl-nav-inactive:active {
-  background-color: #CCCCDD;
+  background-color: $nlGrey2;
   cursor: default;
   pointer-events: none;
 }
@@ -3267,7 +3276,7 @@ a.enabled {
 .topBarBg .aspect_wrt {
   background-color:$nlBlue1;
   font-size: 100%;
-  color: #ffffff; 
+  color: $nlWhite; 
   border-radius: 8px;
 }
 
@@ -3318,7 +3327,7 @@ a.enabled {
   box-shadow: inset 0 0 2px $nlBlue1, 0 0 5px $nlBlue1;
   text-align: center;
   z-index: 12;
-  background-color: #FFFFFF;
+  background-color: $nlWhite;
 }
 
 .njsDialogTitle {
@@ -3339,7 +3348,7 @@ a.enabled {
   height: 100%;
   text-align: center;
   margin: 8px;
-  color: #FFFFFF;
+  color: $nlWhite;
   font-size: 120%;
 }
 
@@ -3349,7 +3358,7 @@ a.enabled {
   bottom: 41px;
   left: 1px;
   right: 1px;
-  background: #FFFFFF;
+  background: $nlWhite;
   overflow:auto;
   text-align: left;
 }
@@ -3374,25 +3383,25 @@ a.enabled {
   height: 40px;
   text-align: right;
   border-top: 1px solid $nlBlue1;
-  background: #FFFFFF;
+  background: $nlWhite;
 }
 
 .njsDialogButtons button {
   text-align: center;
   margin: 4px;
-  color: #FFFFFF;
+  color: $nlWhite;
   background: $nlBlue1;
   text-shadow: none;
   border-radius: 0;
 }
 
 .njsDialogButtons button:hover{
-  color: #FFFFFF;
+  color: $nlWhite;
   background: $nlBlue2;
 }
 
 .njsDialogButtons button:active, .njsDialogButtons button:focus {
-  color: #FFFFFF;
+  color: $nlWhite;
   background: $nlBlue2;
   box-shadow: inset 0 0 10px $nlBlue1, 0 0 5px $nlBlue1;
 }
@@ -3412,7 +3421,7 @@ a.enabled {
   top: 0;
   height: 0;
   width: 0;
-  border-bottom: 10px solid #E5FF80;
+  border-bottom: 10px solid $nlYellow;
   border-left: 10px dotted transparent;
   border-right: 10px dotted transparent;
 }
@@ -3423,7 +3432,7 @@ a.enabled {
   top: 0;
   height: auto;
   bottom: 0;
-  background-color: #DDDDFF;
+  background-color: $nlLightBlue1;
   color: $nlBlack;
   padding: 4px;
   width: 98%;
@@ -3441,7 +3450,7 @@ a.enabled {
 }
 
 .dlgFieldName.mand {
-  color: #FF0000; 
+  color: $nlRed1; 
 }
 
 .dlgField {
@@ -3464,8 +3473,8 @@ a.enabled {
   height: 28px;
   padding-left: 8px;
     padding-right: 8px;
-    background-color: #FFFFFF;
-    border: 1px solid #DDDDFF;
+    background-color: $nlWhite;
+    border: 1px solid $nlLightBlue1;
     border-radius: 0px;
     margin:4px;
 }
@@ -3479,7 +3488,7 @@ a.enabled {
 }
 
 .dlgField.mand textarea:focus, .dlgField.mand select:focus, .dlgField.mand input:focus {
-  border-color: #FF0000;
+  border-color: $nlRed1;
   box-shadow: inset 0 0 0 rgba(170,170,255,0.1), 0 0 10px rgba(255,0,0,0.8);
 }
 
@@ -3547,11 +3556,11 @@ a.enabled {
 .njsSlides .bg-light4, .njsSlides .bglight .bg-light4 {background-color: rgba(220,170,170,0.8); color: $nlBlack;}
 .njsSlides .bg-light5, .njsSlides .bglight .bg-light5 {background-color: rgba(255,255,170,0.8); color: $nlBlack;}
 
-.njsSlides .bg-dark1, .njsSlides .bglight .bg-dark1 {background-color: rgba(0, 0, 0, 0.5); color: white;}
-.njsSlides .bg-dark2, .njsSlides .bglight .bg-dark2 {background-color: rgba(0, 32, 96, 0.8); color: white;}
-.njsSlides .bg-dark3, .njsSlides .bglight .bg-dark3 {background-color: rgba(0, 100, 0, 0.8); color: white;}
-.njsSlides .bg-dark4, .njsSlides .bglight .bg-dark4 {background-color: rgba(100, 0, 0, 0.8); color: white;}
-.njsSlides .bg-dark5, .njsSlides .bglight .bg-dark5 {background-color: rgba(150, 100, 0, 0.8); color: white;}
+.njsSlides .bg-dark1, .njsSlides .bglight .bg-dark1 {background-color: rgba(0, 0, 0, 0.5); color: $nlWhite;}
+.njsSlides .bg-dark2, .njsSlides .bglight .bg-dark2 {background-color: rgba(0, 32, 96, 0.8); color: $nlWhite;}
+.njsSlides .bg-dark3, .njsSlides .bglight .bg-dark3 {background-color: rgba(0, 100, 0, 0.8); color: $nlWhite;}
+.njsSlides .bg-dark4, .njsSlides .bglight .bg-dark4 {background-color: rgba(100, 0, 0, 0.8); color: $nlWhite;}
+.njsSlides .bg-dark5, .njsSlides .bglight .bg-dark5 {background-color: rgba(150, 100, 0, 0.8); color: $nlWhite;}
 
 .njsSlides .bg-pastel1, .njsSlides .bglight .bg-pastel1 {background-color: rgba(0, 176, 240, 0.8);}
 .njsSlides .bg-pastel2, .njsSlides .bglight .bg-pastel2 {background-color: rgba(154, 205, 50, 0.8);}
@@ -3657,17 +3666,17 @@ a.enabled {
 }
 
 #nl-zoombar {
-  background-color: #FFFFFF;
+  background-color: $nlWhite;
   position: absolute;
   bottom: 8px;
   right: 8px;
-  border: 2px solid #FFFFFF;
+  border: 2px solid $nlWhite;
   border-radius: 16px;
   z-index: 12;
   width: auto;
   height: auto;
   padding: 0;
-  color: white;
+  color: $nlWhite;
   background: $nlBlue1;
   display: none;
   .nl-zoom-button {
@@ -3737,7 +3746,7 @@ a.enabled {
   position:absolute; 
   padding: 6px 0px;
   min-width: 175px;
-  background-color:#ffffff; 
+  background-color:$nlWhite; 
   border-radius: 5px;
   box-shadow: 0 8px 10px 1px rgba(0,0,0,0.14), 0 3px 14px 2px rgba(0,0,0,0.12), 0 5px 5px -3px rgba(0,0,0,0.2);
 }
