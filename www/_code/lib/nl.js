@@ -11,8 +11,8 @@ function module_init() {
 }
 
 //-------------------------------------------------------------------------------------------------
-var Nl = ['nlLog', '$http', '$q', '$timeout', '$location', '$window', '$rootScope',
-function(nlLog, $http, $q, $timeout, $location, $window, $rootScope) {
+var Nl = ['nlLog', '$http', '$q', '$timeout', '$location', '$window', '$rootScope', '$anchorScroll',
+function(nlLog, $http, $q, $timeout, $location, $window, $rootScope, $anchorScroll) {
     //---------------------------------------------------------------------------------------------
     // All logging calls within nittioapp is made via nl.log
     this.log = nlLog;
@@ -36,6 +36,10 @@ function(nlLog, $http, $q, $timeout, $location, $window, $rootScope) {
     //---------------------------------------------------------------------------------------------
     // All $window calls within nittioapp is made via nl.window
     this.rootScope = $rootScope;
+
+    //---------------------------------------------------------------------------------------------
+    // All $anchorScroll calls within nittioapp is made via nl.anchorScroll
+    this.anchorScroll = $anchorScroll;
 
     //---------------------------------------------------------------------------------------------
     // All timeout calls within nittioapp is made via nl.timeout

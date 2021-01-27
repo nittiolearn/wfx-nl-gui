@@ -326,6 +326,7 @@ function Permission(nl) {
         '/admin_group': {login: true, permission: 'admin_group', termRestriction: TR_CLOSED},
         '/recyclebin': {login: true, permission: 'lesson_approve', termRestriction: TR_CLOSED},
 		'/learner_view': {login:true, permission: 'basic_access', termRestriction: TR_RESTRICTED},
+		'/learner_view2': {login:true, permission: 'basic_access', termRestriction: TR_RESTRICTED},
         '/announcement': {login: true, permission: 'basic_access', termRestriction: TR_CLOSED},        
 
         // Operation permissions
