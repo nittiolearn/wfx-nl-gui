@@ -413,13 +413,16 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlServerA
 		card.type = recordStateObj.type;
 		card.title = record.repcontent.name;
 		card.desc = record.repcontent.remarks || record.repcontent.assign_remarks;
-		card.icon = record.repcontent.icon;
-		card.url = record.recStateObj.url;
+		var icon = record.repcontent.icon || '';
+		if (icon.indexOf('icon:') == 0) card.icon2 = 'ion-ios-bookmarks fblue';
+		else card.icon = icon;
+		card.url = record.recStateObj.url || null;
 		card.isreport = true;
 		card.not_before = record.raw_record.not_before;
 		card.not_after = record.raw_record.not_after || '';
 		card.upated = record.raw_record.updated || '';
 		card.detailsavps = record.detailsavps;
+		//_updateLaunchIcon(card);		
 		return card;
 	}
 

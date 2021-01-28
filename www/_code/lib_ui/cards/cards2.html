@@ -28,9 +28,9 @@
                     ng-repeat="card in cards.cardslist" nlta='{{card.title}}'
                     ng-style="{height: h + 'px', width: w + 'px', 'font-size': fs + '%', 'margin-left': ml + 'px'} ">
                     <div class='nl-card-url'>
-                        <nl-card card='card'
+                        <nl-card2 card='card'
                             class='nl-card-holder {{card.style}} {{card.url || card.internalUrl ? "nl-link-img" : ""}}'
-                            ng-click='onCardInternalUrlClicked(card, card.internalUrl || null)'></nl-card>
+                            ng-click='onCardInternalUrlClicked(card, card.internalUrl || null)'></nl-card2>
                     </div>
                 </div>
             </div>

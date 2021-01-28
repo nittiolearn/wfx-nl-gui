@@ -5,8 +5,9 @@
 // Models a list of cards (e.g. dashboard view, view approved lessons, ...)
 //-------------------------------------------------------------------------------------------------
 function module_init() {
-    angular.module('nl.ui.cards2', [])
-    .directive('nlCards2', Cards2Directive) 
+    angular.module('nl.ui.cards2', ['nl.ui.cards'])
+    .directive('nlCards2', Cards2Directive)
+    .directive('nlCard2', Card2Directive)
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -79,6 +80,46 @@ function _canCoverImg(url) {
 }
 
 
+var Card2Directive = ['nl', 'nlDlg',
+function(nl, nlDlg) {
+    return {
+        restrict: 'E',
+        transclude: true,
+        templateUrl: 'lib_ui/cards/card2.html',
+        scope: {
+            card: '='
+        },
+        link: function($scope, iElem, iAttrs) {
+        	// $scope.canCover = function(e) {
+        	// 	if (!$scope.card || !$scope.card.icon) return false;
+        	// 	return _canCoverImg($scope.card.icon);
+        	// };
+        	
+            $scope.noPropogate = function(e) {
+				e.stopImmediatePropagation();
+            };
+            
+            $scope.onCardInternalUrlClicked = function(e, card, internalUrl) {
+            	e.preventDefault();
+				e.stopImmediatePropagation();
+            	$scope.$parent.onCardInternalUrlClicked(card, internalUrl);
+            };
+
+            $scope.onCardLinkClicked = function(e, card, linkid) {
+            	e.preventDefault();
+				e.stopImmediatePropagation();
+				if (linkid !== 'details') {
+	            	$scope.$parent.onCardLinkClicked(card, linkid);
+					return;
+				}
+                var detailsDlg = nlDlg.create($scope);
+				detailsDlg.setCssClass('nl-width-max');
+                detailsDlg.scope.card = card;
+                detailsDlg.show('lib_ui/cards/details_dlg.html');
+            };
+         }
+    };
+}];
 //-------------------------------------------------------------------------------------------------
 module_init();
 })();
