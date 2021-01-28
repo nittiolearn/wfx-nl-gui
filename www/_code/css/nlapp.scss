@@ -1961,9 +1961,8 @@ nl-cards {
   background-image: linear-gradient(-5deg, $nlPrimary 0%, $nlPrimaryLight 100%);
   background-image: linear-gradient(-5deg, var(--nlPrimary) 0%, var(--nlPrimaryLight) 100%);
 }
-}
 
-nl-summary-box {
+.nl-summary-box {
   text-align: -webkit-center;
   .sb-padding {
     padding: 20px;
@@ -2586,7 +2585,6 @@ nl-course-canvas-view .holder1 {
     border: 1px solid var(--nlBlack);
   }
   }
-}
 
 /*-----------------------------------------------------------------------------------------*
  * resource elements
@@ -2647,7 +2645,6 @@ nl-course-canvas-view .holder1 {
       white-space: nowrap;
       text-align: center;
     }
-  }
 }
 
 img.nl-full-width {
