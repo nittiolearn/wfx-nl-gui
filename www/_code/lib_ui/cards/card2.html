@@ -8,5 +8,9 @@
 <div class='nl-card-links'>
 	<div class='nl-card-more-links'>
 	</div>
-    <i class='nl-card-more-icon nl-link-img ion-more icon fsh2'></i>
+	<div ng-click='onCardInternalUrlClicked($event, card, card.url)'>
+		<span class="nl-card-more-icon nl-link-img material-icons {{getLaunchIconClass(card)}}">
+			{{getLaunchIcon(card)}}
+		</span>
+	</div>
 </div>    

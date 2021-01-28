@@ -9,8 +9,10 @@ function module_init() {
     .service('nlCardsSrv', CardsSrv)
     .filter('nlFilter', NlFilter)
     .directive('nlCards', CardsDirective)
+    .directive('nlCards2', Cards2Directive)
     .directive('nlListview', ListviewDirective)
     .directive('nlCard', CardDirective)
+    .directive('nlCard2', Card2Directive)
     .directive('nlComputeImgInfo', ComputeImgInfoDirective)
     .directive('nlCardTitle', CardTitleDirective)
     .directive('nlCardImage', CardImageDirective)
@@ -191,13 +193,27 @@ function(nl, nlDlg) {
     };
 }];
 
+
 //-------------------------------------------------------------------------------------------------
 var CardsDirective = ['nl', 'nlDlg', '$filter', 'nlCardsSrv', 'nlExporter',
 function(nl, nlDlg, $filter, nlCardsSrv, nlExporter) {
+    return _cardsDirectiveImpl(nl, nlDlg, $filter, nlCardsSrv, nlExporter,
+        'lib_ui/cards/cards.html');
+}];
+
+//-------------------------------------------------------------------------------------------------
+var Cards2Directive = ['nl', 'nlDlg', '$filter', 'nlCardsSrv', 'nlExporter',
+function(nl, nlDlg, $filter, nlCardsSrv, nlExporter) {
+    return _cardsDirectiveImpl(nl, nlDlg, $filter, nlCardsSrv, nlExporter,
+        'lib_ui/cards/cards2.html');
+}];
+
+//-------------------------------------------------------------------------------------------------
+function _cardsDirectiveImpl(nl, nlDlg, $filter, nlCardsSrv, nlExporter, templateUrl) {
     return {
         restrict: 'E',
         transclude: true,
-        templateUrl: 'lib_ui/cards/cards.html',
+        templateUrl: templateUrl,
         scope: {
             cards: '='
         },
@@ -233,7 +249,9 @@ function(nl, nlDlg, $filter, nlCardsSrv, nlExporter) {
             };
 
             $scope.onCardLinkClicked = function(card, linkid) {
-				$scope.$parent.onCardLinkClicked(card, linkid);
+                if ($scope.$parent.onCardLinkClicked) $scope.$parent.onCardLinkClicked(card, linkid);
+                else if ($scope.$parent.$parent.onCardLinkClicked) $scope.$parent.$parent.onCardLinkClicked(card, linkid)
+                else if ($scope.$parent.$parent.$parent.onCardLinkClicked) $scope.$parent.$parent.$parent.onCardLinkClicked(card, linkid)
             };
 
             $scope.onSearchButton = function() {
@@ -282,25 +300,50 @@ function(nl, nlDlg, $filter, nlCardsSrv, nlExporter) {
             }
          }
     };
-}];
+};
 
 var SCROLL_WIDTH = 8;
+var _HZ_SCREEN = 36;
 var _defCardWidth = 280;
 var _defCardAr = 1.4;
 var _minMarginX = 32; // px
+var _cardsSize = {"L": {cardWidth: 470, cardHeight: 480, ar: 1},
+                  "M": {cardWidth: 370, cardHeight: 400, ar: 1},
+                  "S": {cardWidth: 225, cardHeight: 270, ar: 1.3}}
+
 function _updateCardDimensions(nl, $scope, cardsContainer) {
-    var w = _getCardWidth(cardsContainer);
-    $scope.w = w;
-    $scope.h = _defCardAr*w;
-    $scope.fs = w/_defCardWidth*100;
-    
-    // It seems indeterminstic when scroll bar width is computed.
-    // So clientWidth is not a solution here. offsetWidth - scrollBarWidth is used here.
-    var contWidth = cardsContainer[0].offsetWidth - SCROLL_WIDTH;
-    var cardsPerRow = Math.floor(contWidth/(w+_minMarginX));
-    if (cardsPerRow == 0) cardsPerRow = 1;
-    var margins = cardsPerRow+1;
-    $scope.ml = (contWidth - w*cardsPerRow) / margins;
+    if ($scope.cards.card2) {
+        var size = $scope.cards.size;
+        var cardHWDict = _cardsSize[size];
+        var ar = cardHWDict.ar;
+        var w = _getCardForCard2Width(nl, cardHWDict);
+        $scope.w = w;
+        $scope.h = ar*w;
+        $scope.fs = 100;
+        
+        $scope.ml = 16;
+    } else {
+        var w = _getCardWidth(cardsContainer);
+        $scope.w = w;
+        $scope.h = _defCardAr*w;
+        $scope.fs = w/_defCardWidth*100;
+        
+        // It seems indeterminstic when scroll bar width is computed.
+        // So clientWidth is not a solution here. offsetWidth - scrollBarWidth is used here.
+        var contWidth = cardsContainer[0].offsetWidth - SCROLL_WIDTH;
+        var cardsPerRow = Math.floor(contWidth/(w+_minMarginX));
+        if (cardsPerRow == 0) cardsPerRow = 1;
+        var margins = cardsPerRow+1;
+        $scope.ml = (contWidth - w*cardsPerRow) / margins;    
+    }
+}
+
+function _getCardForCard2Width(nl, cardSizeDict) {
+    var w = cardSizeDict.cardWidth;
+    var screenW = nl.rootScope.screenWidth;
+    var contWidth = screenW - _HZ_SCREEN;
+    if (contWidth < w) w = contWidth;
+    return w;
 }
 
 function _getCardWidth(cardsContainer) {
@@ -342,10 +385,21 @@ function(nl, nlDlg) {
 //-------------------------------------------------------------------------------------------------
 var CardDirective = ['nl', 'nlDlg',
 function(nl, nlDlg) {
+    return _cardDirectiveImpl(nl, nlDlg, 'lib_ui/cards/card.html');
+}];
+
+//-------------------------------------------------------------------------------------------------
+var Card2Directive = ['nl', 'nlDlg',
+function(nl, nlDlg) {
+    return _cardDirectiveImpl(nl, nlDlg, 'lib_ui/cards/card2.html');
+}];
+
+//-------------------------------------------------------------------------------------------------
+function _cardDirectiveImpl(nl, nlDlg, templateUrl) {
     return {
         restrict: 'E',
         transclude: true,
-        templateUrl: 'lib_ui/cards/card.html',
+        templateUrl: templateUrl,
         scope: {
             card: '='
         },
@@ -361,7 +415,8 @@ function(nl, nlDlg) {
             
             $scope.onCardInternalUrlClicked = function(e, card, internalUrl) {
             	e.preventDefault();
-				e.stopImmediatePropagation();
+                e.stopImmediatePropagation();
+                if (card.type == 'expired') internalUrl = 'details';
             	$scope.$parent.onCardInternalUrlClicked(card, internalUrl);
             };
 
@@ -377,9 +432,31 @@ function(nl, nlDlg) {
                 detailsDlg.scope.card = card;
                 detailsDlg.show('lib_ui/cards/details_dlg.html');
             };
+
+            $scope.getLaunchIconClass = function(card) {
+                if (card.type == 'progress' || card.type == 'pending') {
+                    return "fsh1";
+                } else if (card.type == 'completed') {
+                    return "fsh3"
+                } else if (card.type == 'expired') {
+                    return "fsh3"
+                }
+
+            }
+
+            $scope.getLaunchIcon = function(card) {
+                if (card.type == 'progress' || card.type == 'pending') {
+                    return "play_circle_outline";
+                } else if (card.type == 'completed') {
+                    return "arrow_back_ios";
+                } else if (card.type == 'expired') {
+                    return "info";
+                }
+
+            }
          }
     };
-}];
+};
 
 //-------------------------------------------------------------------------------------------------
 var CardTitleDirective = [

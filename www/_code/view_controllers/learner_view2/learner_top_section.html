@@ -1,6 +1,6 @@
 <style>
 .nl-limitwidth-learner-view {
-  max-width: 1100px;
+  max-width: 1000px;
   margin-left: auto;
   margin-right: auto;
 }
@@ -56,8 +56,8 @@
     <div class='nl-limitwidth-learner-view padding-mid'>
         <div class='row row-center row-wrap margin0 padding0-mid'>
             <div class='padding-mid' ng-repeat='button in tabdata.tabs'>
-                <div class='nl-learner-button nl-link-text {{button.class}}' 
-                    ng-click='toScroll(button.id)'>
+                <div class='nl-learner-button {{button.count > 0 ? "nl-link-text" : ""}} {{button.class}}' 
+                    ng-click='toScroll(button)'>
                     {{button.title}}: {{button.count}}
                 </div>
             </div>

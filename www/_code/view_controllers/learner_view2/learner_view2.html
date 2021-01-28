@@ -10,20 +10,20 @@
             <nl-learner-view-top-section tabData='tabData'></nl-learner-view-top-section>        
         </div>
         <div class='padding'></div>
-        <div id="anchor-progress">
-            <nl-cards2 type='progress' cards='tabData.cards[0]'></nl-cards2>
+        <div ng-if='tabData.sectionData[0].cardlist.length > 0' id="anchor-progress">
+            <nl-cards cards='tabData.sectionData[0]'></nl-cards>
         </div>
-        <div id="anchor-pending">
-            <nl-cards2 type='pending' cards='tabData.cards[1]'></nl-cards2>
+        <div ng-if='tabData.sectionData[1].cardlist.length > 0' id="anchor-pending">
+            <nl-cards cards='tabData.sectionData[1]'></nl-cards>
         </div>
-        <div id="anchor-upcoming">
-            <nl-cards2 type='upcoming' cards='tabData.cards[2]'></nl-cards2>
+        <div ng-if='tabData.sectionData[2].cardlist.length > 0' id="anchor-upcoming">
+            <nl-cards cards='tabData.sectionData[2]'></nl-cards>
         </div>
-        <div id="anchor-completed">
-            <nl-cards2 type='completed' cards='tabData.cards[3]'></nl-cards2>
+        <div ng-if='tabData.sectionData[3].cardlist.length > 0' id="anchor-completed">
+            <nl-cards cards='tabData.sectionData[3]'></nl-cards>
         </div>
-        <div id="anchor-expired">
-            <nl-cards2 type='expired' cards='tabData.cards[4]'></nl-cards2>
+        <div ng-if='tabData.sectionData[4].cardlist.length > 0' id="anchor-expired">
+            <nl-cards cards='tabData.sectionData[4]'></nl-cards>
         </div>
     </div>
 </div>

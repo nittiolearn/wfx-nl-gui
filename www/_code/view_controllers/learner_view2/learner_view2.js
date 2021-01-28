@@ -45,7 +45,9 @@ function(nl, nlDlg) {
                 detailsDlg.scope.record = record;
                 detailsDlg.show('view_controllers/learner_view/learner_view_details.html');
 			}
-			$scope.toScroll = function(anchorid) {
+			$scope.toScroll = function(button) {
+				if (button.count == 0) return;
+				var anchorid = button.id;
 				var scrollid = nl.t('anchor-{}', anchorid);
 				if (scrollid) nl.location.hash(scrollid);
 				nl.anchorScroll();
@@ -179,20 +181,39 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlServerA
 			resolve(true);
 		});
 	}
-	// Private members
+
 	function _init(userInfo) {
 		nlLearnerViewRecords2.init(userInfo);
-		$scope.tabData = _initTabData();
+		$scope.tabData = _initData();
+		$scope.onCardLinkClicked = _onCardLinkClickedFn;
+		$scope.onCardInternalUrlClicked = _onCardInternalUrlClickedFn;
+		for(var i=0; i<$scope.tabData.sectionData.length; i++) {
+			var cards = $scope.tabData.sectionData[i];
+			nlCardsSrv.initCards(cards);
+		}
 		$scope.userName = userInfo.displayname;
-		//TODO: Naveen remove the set to remove links on topbar
-		//nlTopbarSrv.setPageMenus($scope.tabData.tabs, $scope.tabData.selectedTab.id);
-		//_initChartData();
-		_onResize();
 		nlGetManyStore.init();
-		//_getFilteredRecords();
 	}
 
-	function _initTabData() {
+	function _onCardLinkClickedFn(card, linkid) {
+		if (!card.url) return;
+		_showDetailsDlg(card);
+	}
+
+	function _onCardInternalUrlClickedFn(card) {
+		if (card.url) 
+			nl.window.location.href = card.url;
+		else 
+			_showDetailsDlg(card);
+	}
+
+	function _showDetailsDlg(card) {
+		var detailsDlg = nlDlg.create($scope);
+		detailsDlg.setCssClass('');
+		detailsDlg.scope.record = card;
+		detailsDlg.show('view_controllers/learner_view/learner_view_details.html');
+	}
+	function _initData() {
 		var ret = {};
 		ret.dataLoaded = false;
 		ret.learningCounts = {};
@@ -207,12 +228,12 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlServerA
 		ret.onSearch = _onSearch;
 		ret.onFilter = _onFilter;
 		ret.fetchMore = _fetchMore;
-		ret.cards = [
-						{name: 'Continue Learning', type: 'progress', cardslist: []},
-						{name: 'New assignments', type: 'pending', cardslist: []},
-						{name: 'Upcoming assignments', type: 'upcoming', cardslist: []}, 
-						{name: 'Completed', type: 'completed', cardslist: []},
-						{name: 'Expired', type: 'expired', cardslist: []}		
+		ret.sectionData = [
+						{name: 'Continue Learning', card2: true, cardlist: []},
+						{name: 'New Assignments', card2: true, cardlist: []},
+						{name: 'Upcoming Assignments', card2: true, cardlist: []}, 
+						{name: 'Completed Assignments', card2: true, cardlist: []},
+						{name: 'Expired Assignments', card2: true, cardlist: []}		
 					];
 		ret.tabs = [{id:'progress', title: 'In progress', count: 0, class: 'learner-yellow'}, 
 					{id: 'pending', title: 'Not started', count: 0, class: 'learner-red'},
@@ -220,49 +241,6 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlServerA
 					{id:'completed', title: 'Completed', count: 0, class: 'learner-green'},
 					{id:'expired', title: 'Expired', count: 0, class: 'learner-orange'}]
 		return ret;
-
-		//TODO: Naveen (Removal of the links on topbar)
-		var assignedTab = {id: 'assigned', type: 'tab', iconCls : 'ion-play',
-			name: 'Learn', text: 'My learning items', updated: false,
-			onClick: _onTabSelect};
-		var summaryTab = {id: 'summary', type: 'tab', iconCls : 'ion-stats-bars',
-			name: 'Summary', text: 'My learning summary', updated: false,
-			onClick: _onTabSelect};
-		var exploreTab = {id: 'explore', type: 'tab', iconCls : 'ion-ios-navigate',
-			name: 'Explore', text:'Click to view explore links', updated: false,
-			onClick: _onTabSelect};
-		var adminTab = {id: 'admin', type: 'tab', iconCls : 'ion-ios-gear', 
-			name: 'Admin', text:'Click here for admin view', updated: false, 
-			onClick: _onTabSelect};
-
-		var ret =  {tabs: []};
-		var isAdminTabAvailable = _userInfo.dashboard && _userInfo.dashboard.length > 0;
-		var isAdminFirst = _userInfo.dashboard_props && _userInfo.dashboard_props.adminFirst;
-		var isExploreTabAvailable = _userInfo.dashboard_props && 
-			_userInfo.dashboard_props.explore && 
-			(_userInfo.dashboard_props.explore.length > 0);
-		
-		if (isAdminTabAvailable && isAdminFirst) ret.tabs.push(adminTab);
-		ret.tabs.push(assignedTab);
-		ret.tabs.push(summaryTab);
-		if (isExploreTabAvailable) ret.tabs.push(exploreTab);
-		if (isAdminTabAvailable && !isAdminFirst) ret.tabs.push(adminTab);
-
-	}
-
-	var _lastScreenSize = '';
-	function _onResize() {
-		var screenSize = (nl.rootScope.screenSize == 'small') ? 'small' : 'large';
-		if (_lastScreenSize == screenSize) return;
-		$scope.tabData.cls = (screenSize == 'small') ? 'nl-hcard2' : 'nl-vcard2';
-		_lastScreenSize = screenSize;
-	}
-
-    nl.resizeHandler.onResize(_onResize);
-
-	function _onTabSelect(tab) {
-		$scope.tabData.selectedTab = tab;
-		_fetchDataIfNeededAndUpdateScope(false, null);
 	}
 
 	function _onSearch(event) {
@@ -336,24 +314,28 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlServerA
 		}, dontHideLoading);
 	}
 
-	function _updateCurrentTab(tabid) {
-		//TOD: Naveen Updatecards has to be called
+	function _updateCurrentTab() {
 		_updateLearningRecords();
+		for(var i=0; i<$scope.tabData.sectionData.length; i++) {
+			var cards = $scope.tabData.sectionData[i];
+			nlCardsSrv.updateCards(cards, {});
+		}
+
 	}
 
 	function _updateLearningRecords() {
 		//TODO: Naveen - Rename and change this to UpdateLearningCards
-		$scope.tabData.cards = _getFilteredRecords();
+		$scope.tabData.sectionData = _getFilteredRecords();
 	}
 
 	var SEC_POS = {'progress': 0, 'pending': 1, 'upcoming': 2, 'completed': 3, 'expired': 4};
 	var CARD_SIZE = {0: 'L', 1: 'M', 2: 'M', 3: 'S', 4: 'S'};
 	function _getFilteredRecords() {
 		var records = $scope.tabData.records;
-		var cards = $scope.tabData.cards;
+		var cards = $scope.tabData.sectionData;
 		var tabItemCount = $scope.tabData.tabs;
 		for (var type in SEC_POS) {
-			cards[SEC_POS[type]].cardslist = [];
+			cards[SEC_POS[type]].cardlist = [];
 			tabItemCount[SEC_POS[type]].count = 0;
 			cards[SEC_POS[type]].size = CARD_SIZE[SEC_POS[type]];
 
@@ -371,18 +353,18 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlServerA
 			var type = record.recStateObj.type;
 			var secNo = SEC_POS[type];
 			var card = _createLearnerCard(record);
-			cards[SEC_POS[type]].cardslist.push(card);
+			cards[SEC_POS[type]].cardlist.push(card);
 			tabItemCount[SEC_POS[type]].count += 1;
 		}
 
 		for (var key in SEC_POS) {
 			if (key == 'upcoming' || key == 'expired' || key == 'pending') {
-				cards[SEC_POS[key]].cardslist.sort(function(a, b) {
+				cards[SEC_POS[key]].cardlist.sort(function(a, b) {
 					// ASCENDING
 					return (a.not_before - b.not_before);
 				});		
 			} else {
-				cards[SEC_POS[key]].cardslist.sort(function(a, b) {
+				cards[SEC_POS[key]].cardlist.sort(function(a, b) {
 					// DESCENDING
 					return (b.updated - a.updated);
 				});
@@ -410,6 +392,7 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlServerA
 	function _createLearnerCard(record) {
 		var recordStateObj = record.recStateObj;
 		var card = {};
+		card.repcontent = record.repcontent;
 		card.type = recordStateObj.type;
 		card.title = record.repcontent.name;
 		card.desc = record.repcontent.remarks || record.repcontent.assign_remarks;
@@ -422,7 +405,6 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlServerA
 		card.not_after = record.raw_record.not_after || '';
 		card.upated = record.raw_record.updated || '';
 		card.detailsavps = record.detailsavps;
-		//_updateLaunchIcon(card);		
 		return card;
 	}
 
