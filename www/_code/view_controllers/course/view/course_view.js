@@ -985,7 +985,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlCourseEditor, nlC
         waiting: {icon: 'ion-locked fgrey', title: 'waiting'},
         delayed: {icon: 'ion-alert-circled forange', title: 'delayed'},
         pending: {icon: 'ion-ios-circle-filled fyellow', title: 'pending'},
-        started: {icon: 'ion-ios-circle-filled fgreen2', title: 'started'},
+        started: {icon: 'ion-ios-circle-filled fgreen', title: 'started'},
         failed:  {icon: 'icon ion-close-circled forange', title: 'failed'},
         expired:  {icon: 'icon ion-close-circled forange', title: 'certificate expired'},
         success: {icon: 'ion-checkmark-circled fgreen', title: 'done'},
