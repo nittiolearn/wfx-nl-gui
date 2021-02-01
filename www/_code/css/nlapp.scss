@@ -116,7 +116,7 @@ $ionicons-font-path: "../_external_bundles/ionicfonts" !default;
   --nlFontOrange2: $nlFontOrange2;
   --nlFontOrange3: $nlFontOrange3;
   --nlFontYellow1: $nlFontYellow1;
-  --nlFontOrange2: $nlFontOrange2;
+  --nlFontYellow2: $nlFontYellow2;
   --nlFontYellow: $nlFontYellow;
   --nlStatusRed: $nlStatusRed;
   --nlBorderRed: $nlBorderRed;
@@ -135,11 +135,12 @@ $ionicons-font-path: "../_external_bundles/ionicfonts" !default;
   --nlWhite: $nlWhite;
   --nlBgWhiteTransparent70: $nlBgWhiteTransparent70;
   --nlBgWhiteTransparent40: $nlBgWhiteTransparent40;
+  --nlWhiteBackground:rgba(255,255,255,0.2);
   --nlBlack: $nlBlack;
   --nlBlackTransparent: $nlBlackTransparent;
   --nlBlackTransparent80: $nlBlackTransparent80;
   --nlBorderBlackTransparent20: $nlBorderBlackTransparent20;
-  --nlBgWhiteTransparent70: $nlBgWhiteTransparent70;
+  --nlBoxShadowBlackTransparent60: $nlBoxShadowBlackTransparent60;
   --nlBoxShadowBlackTransparent10: $nlBoxShadowBlackTransparent10;
   --nlFBgGrey: $nlFBgGrey;
   --nlFBgGreyTransparent30: $nlFBgGreyTransparent30;
@@ -150,6 +151,63 @@ $ionicons-font-path: "../_external_bundles/ionicfonts" !default;
   --nlShadowGrey: $nlShadowGrey;
   --nlBorderGrey1: $nlBorderGrey1;
   --nlBorderGrey2: $nlBorderGrey2;
+}
+
+body.nldarkmode{
+  :root{
+    --nlPrimary: #002748;
+    --nlPrimaryDark: #001221;
+    --nlPrimaryLight: #0D324D;
+    --nlFontOrange1: #F98E36;
+    --nlFontOrange2: $nlFontOrange2;
+    --nlFontOrange3: $nlFontOrange3;
+    --nlFontYellow1: $nlFontYellow1;
+    --nlFontYellow2: $nlFontYellow2;
+    --nlFontYellow: #FFE17D;
+    --nlStatusRed: #FF646A;
+    --nlBorderRed: $nlBorderRed;
+    --nlStatusRedLight: $nlStatusRedLight;
+    --nlBoxShadowRedDark: $nlBoxShadowRedDark;
+    --nlStatusGreen: #2FB885;
+    --nlForumMsgBg: $nlForumMsgBg;
+    --nlLinkTextBg: $nlLinkTextBg;
+    --nlBgTextArea: $nlBgTextArea;
+    --nlSlideShadowLight: $nlSlideShadowLight;
+    --nlSlideShadowDark: $nlSlideShadowDark;
+    --nlPrimaryTransparent30: $nlPrimaryTransparent30;
+    --nlPrimaryTransparent50: $nlPrimaryTransparent50;
+    --nlPrimaryLightTransparent70: $nlPrimaryLightTransparent70;
+    --nlPrimaryLightTransparent50: $nlPrimaryLightTransparent50;
+    --nlWhite: $nlWhite;
+    --nlBgWhiteTransparent70: $nlBgWhiteTransparent70;
+    --nlBgWhiteTransparent40: $nlBgWhiteTransparent40;
+    --nlWhiteBackground:rgba(255,255,255,0.2);
+    --nlBlack: $nlBlack;
+    --nlBlackTransparent: $nlBlackTransparent;
+    --nlBlackTransparent80: $nlBlackTransparent80;
+    --nlBorderBlackTransparent20: $nlBorderBlackTransparent20;
+    --nlBoxShadowBlackTransparent60: $nlBoxShadowBlackTransparent60;
+    --nlBoxShadowBlackTransparent10: $nlBoxShadowBlackTransparent10;
+    --nlFBgGrey: $nlFBgGrey;
+    --nlFBgGreyTransparent30: $nlFBgGreyTransparent30;
+    --nlFBgGreyTransparent50: $nlFBgGreyTransparent50;
+    --nlBgGrey1: $nlBgGrey1;
+    --nlFontDarkGrey1: $nlFontDarkGrey1;
+    --nlFontDarkGrey2: $nlFontDarkGrey2;
+    --nlShadowGrey: $nlShadowGrey;
+    --nlBorderGrey1: $nlBorderGrey1;
+    --nlBorderGrey2: $nlBorderGrey2;
+  }
+  .pane, .view {
+    background-image: radial-gradient(var(--nlPrimaryLight), var(--nlPrimary), var(--nlPrimaryDark));
+  }
+  .nl-pagecanvas-bgimg {
+    background-image: radial-gradient(var(--nlPrimaryLight), var(--nlPrimary), var(--nlPrimaryDark));
+  }
+  .nl-card-holder {
+    border-radius: 8px;
+    background-color: var(--nlWhiteBackground);
+  }
 }
 
 //-------------------------------------------------------------------------------------------
@@ -4171,4 +4229,22 @@ a.enabled {
     background-color: $nlBorderGrey2;
     background-color: var(--nlBorderGrey2);
 }
+}
+
+.nl-pagecanvas-bg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  height: auto;
+  width: auto;
+  z-index: -100;
+  background-size: cover;
+}
+.nl-pagecanvas-bgimg {
+  background-image: url({{pgBgimg}});
+}
+.nl-showAnnouncement {
+  width: 70%;
 }
