@@ -202,11 +202,50 @@ body.nldarkmode{
     background-image: radial-gradient(var(--nlPrimaryLight), var(--nlPrimary), var(--nlPrimaryDark));
   }
   .nl-pagecanvas-bgimg {
-    background-image: radial-gradient(var(--nlPrimaryLight), var(--nlPrimary), var(--nlPrimaryDark));
+    background-color: var(--nlPrimaryDark);
   }
   .nl-card-holder {
     border-radius: 8px;
     background-color: var(--nlWhiteBackground);
+  }
+  .nl-card-url {
+    color: var(--nlWhite);
+  }
+  .nl-card-text-section {
+    color: var(--nlWhite);
+  }
+  .nl-card-header {
+    color: var(--nlWhite);
+  }
+  .nl-card-desc .nl-link-text{
+    color: var(--nlWhite);
+  }
+  .nl-card-more-icon{
+    color: var(--nlWhite);
+  }
+  .nl-summary-box{
+    background-color: var(--nlWhite);
+  }
+  .title{
+    color: var(--nlWhite);
+  }
+  .nl-button-highlight {
+    border: 2px solid var(--nlBgGrey1);
+  }
+  .nl-button-lowlight{
+    border: 2px solid var(--nlPrimary);
+  }
+  .nl-cv-item {
+    background-color: var(--nlWhiteBackground);
+    border: 1px solid var(--nlWhite);
+  }
+  .bgdefault {background-color: var(--nlPrimary);}
+  .anim-highlight-on {
+    color: var(--nlFontDarkGrey1);
+  }
+  .nl-nav-arrow{
+    width: 26px; 
+    height: 24px;   
   }
 }
 
