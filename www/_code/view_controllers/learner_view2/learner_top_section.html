@@ -1,0 +1,82 @@
+<style>
+.nl-limitwidth-learner-view {
+  max-width: 1000px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.nl-learner-button{
+  min-width: 100px;
+  height: 32px;
+  padding: 6px 12px 6px 12px;
+  border-radius: 20px;
+}
+.learner-yellow{
+    color: #ffe17d;
+    border: 2px solid #ffe17d;
+}
+
+.learner-red{
+    color: #ff646a;
+    border: 2px solid #ff646a;
+}
+.learner-blue{
+    color: #008aff;
+    border: 2px solid #008aff;
+}
+.learner-green{
+    color: #0ce191;
+    border: 2px solid #0ce191;
+}
+.learner-orange{
+    color: #fca45b;
+    border: 2px solid #fca45b;
+}
+
+.learner-top-section {
+  -webkit-backdrop-filter: blur(30px);
+  backdrop-filter: blur(30px);
+  border: solid 0.5px #ffffff;
+  background-image: linear-gradient(to right, rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0.25));
+}
+
+.learner-view-searchbox{
+    width: 100%;
+    max-width: 400px;
+}
+
+.learner-view-searchbox2 {
+    border: 1px solid #CCC; 
+    border-radius: 4px; 
+    background-color: #FFFFFF;
+}
+
+</style>
+<div class='bgblue3'>
+    <div class='nl-limitwidth-learner-view padding-mid'>
+        <div class='row row-center row-wrap margin0 padding0-mid'>
+            <div class='padding-mid' ng-repeat='button in tabdata.tabs'>
+                <div class='nl-learner-button {{button.count > 0 ? "nl-link-text" : ""}} {{button.class}}' 
+                    ng-click='toScroll(button)'>
+                    {{button.title}}: {{button.count}}
+                </div>
+            </div>
+            <div class='col'></div>
+        </div>
+        <div class='padding-small'></div>
+        <div class='row row-top row-wrap margin0 padding-mid'>
+            <div class='padding0 learner-view-searchbox' style='padding: 0px 4px'>
+                <div class='row row-center margin0 padding0 learner-view-searchbox2'>
+                    <span style='padding: 0px 6px'><i class='icon ion-ios-search-strong fsh5'></i></span>
+                    <div class='col padding0'>
+                        <input class='padding-small w100'
+                            ng-model='tabdata.search'
+                            ng-attr-placeholder='{{tabdata.searchPlaceholder}}'
+                            ng-keydown='tabdata.onSearch($event)'
+                            style='border: none; height: 32px; background-color:inherit'>
+                    </div>
+                </div>
+            </div>
+        <div>
+    </div>    
+</div>
