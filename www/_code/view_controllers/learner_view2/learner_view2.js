@@ -189,10 +189,28 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlServerA
 		$scope.onCardInternalUrlClicked = _onCardInternalUrlClickedFn;
 		for(var i=0; i<$scope.tabData.sectionData.length; i++) {
 			var cards = $scope.tabData.sectionData[i];
+			cards.onClickOnNextFn = _onClickOnNextFn;
+			cards.onClickOnPrevFn = _onClickOnPrevFn;
 			nlCardsSrv.initCards(cards);
 		}
 		$scope.userName = userInfo.displayname;
 		nlGetManyStore.init();
+	}
+
+	function _onClickOnNextFn(cards) {
+		if (!cards) return;
+		var document = nl.window.document;
+		var className = nl.t('nl-card-section-scroll-{}', cards.type);
+		var element = document.getElementsByClassName(className);
+		element[0].scrollLeft += element[0].clientWidth - 30;
+	}
+
+	function _onClickOnPrevFn(cards) {
+		if (!cards) return;
+		var document = nl.window.document;
+		var className = nl.t('nl-card-section-scroll-{}', cards.type);
+		var element = document.getElementsByClassName(className);
+		element[0].scrollLeft -= element[0].clientWidth + 30;
 	}
 
 	function _onCardLinkClickedFn(card, linkid) {
@@ -229,11 +247,11 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlServerA
 		ret.onFilter = _onFilter;
 		ret.fetchMore = _fetchMore;
 		ret.sectionData = [
-						{name: 'Continue Learning', card2: true, cardlist: []},
-						{name: 'New Assignments', card2: true, cardlist: []},
-						{name: 'Upcoming Assignments', card2: true, cardlist: []}, 
-						{name: 'Completed Assignments', card2: true, cardlist: []},
-						{name: 'Expired Assignments', card2: true, cardlist: []}		
+						{name: 'Continue Learning', type: 'progress', card2: true, cardlist: []},
+						{name: 'New Assignments', type: 'pending', card2: true, cardlist: []},
+						{name: 'Upcoming Assignments', type: 'upcoming', card2: true, cardlist: []}, 
+						{name: 'Completed Assignments', type: 'completed', card2: true, cardlist: []},
+						{name: 'Expired Assignments', type: 'expired', card2: true, cardlist: []}		
 					];
 		ret.tabs = [{id:'progress', title: 'In progress', count: 0, class: 'learner-yellow'}, 
 					{id: 'pending', title: 'Not started', count: 0, class: 'learner-red'},

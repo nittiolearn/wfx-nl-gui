@@ -286,7 +286,15 @@ function _cardsDirectiveImpl(nl, nlDlg, $filter, nlCardsSrv, nlExporter, templat
                 nlCardsSrv.updateInternal($scope.cards, MAX_KEYSEARCH_DELAY, justShowHint);
 			};
 
-			function _onSearchParamChange(filter, category) {
+            $scope.onClickOnNext = function(cards) {
+                cards.onClickOnNextFn(cards)
+            };
+
+            $scope.onClickOnPrev = function(cards) {
+                cards.onClickOnPrevFn(cards);
+            };
+
+            function _onSearchParamChange(filter, category) {
                 $scope.cards._internal.search.filter = filter || '';
                 $scope.cards._internal.search.category = {id: category || null};
             }
