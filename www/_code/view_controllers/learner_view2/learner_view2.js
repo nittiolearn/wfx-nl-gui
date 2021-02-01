@@ -197,20 +197,24 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlServerA
 		nlGetManyStore.init();
 	}
 
-	function _onClickOnNextFn(cards) {
+	function _onClickOnNextFn(cards, scope) {
 		if (!cards) return;
+		var cardWidth = scope.w;
 		var document = nl.window.document;
 		var className = nl.t('nl-card-section-scroll-{}', cards.type);
 		var element = document.getElementsByClassName(className);
-		element[0].scrollLeft += element[0].clientWidth - 30;
+		var num = Math.floor(element[0].clientWidth/cardWidth);
+		element[0].scrollLeft += num*cardWidth + num*16;
 	}
 
-	function _onClickOnPrevFn(cards) {
+	function _onClickOnPrevFn(cards, scope) {
 		if (!cards) return;
+		var cardWidth = scope.w;
 		var document = nl.window.document;
 		var className = nl.t('nl-card-section-scroll-{}', cards.type);
 		var element = document.getElementsByClassName(className);
-		element[0].scrollLeft -= element[0].clientWidth + 30;
+		var num = Math.floor(element[0].clientWidth/cardWidth);
+		element[0].scrollLeft -= num*cardWidth + num*16;
 	}
 
 	function _onCardLinkClickedFn(card, linkid) {

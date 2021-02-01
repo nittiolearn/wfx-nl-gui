@@ -1480,6 +1480,90 @@ input.nl-dlg-field-error, .nl-dlg-field-error {
 }
 
 /*-----------------------------------------------------------------------------------------*
+ * nl-card2
+ *-----------------------------------------------------------------------------------------*/
+ .nl-card2 {
+  display: inline-block;
+  text-align: center;
+  position: relative;
+  font-family: Roboto, Verdana, Helvetica, Arial, sans-serif;
+  
+  /* Stuff changed in javascript*/
+  height: 240px;
+  width: 360px;
+  font-size: 100%;
+  line-height: 170%;
+}
+
+
+ .nl-card-holder2 {
+  position: absolute;
+  top: 4%;
+  left: 0;
+  height: 92%;
+  width: 100%;
+  
+  border-radius: 10px;
+  box-shadow: inset 0 0 2px rgba(0,0,100,0.2), 1px 1px 2px rgba(0,0,100,0.4);
+  background-color: #FFFFFF;
+}
+
+.nl-card2-img {
+  position: absolute;
+  top: 0%;
+  left: 0%;
+  height: 60%;
+  width: 100%;
+  padding: 2px;
+  text-align: center;
+  nl-card2-image {
+    height: 100%;
+  }
+  img {
+    max-width: 100%;
+    border-radius: 10px;
+  }
+  .icon-tl, .icon-tr, .icon-bl, .icon-br {
+    position: absolute;
+  }
+  .icon-tl {top: 5%; left: 3%;}
+  .icon-tr {top: 5%; right: 3%;}
+  .icon-bl {bottom: 5%; left: 3%;}
+  .icon-br {bottom: 5%; right: 3%;}
+}
+
+.nl-card2-img.cover {
+  padding: 0;
+  img {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 100%;
+    object-fit: cover;
+    object-position: top;
+  }
+}
+
+.nl-card2-text-section {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  top: 65%;
+  height: 40%;
+  text-align: left;
+  color: black;
+  overflow: hidden;
+}
+
+.nl-card2-header {
+  text-align: left;
+  color: black;
+  font-size: 130%;
+  padding: 4px 16px;
+}
+
+ /*-----------------------------------------------------------------------------------------*
  * nl-card
  *-----------------------------------------------------------------------------------------*/
 nl-cards {

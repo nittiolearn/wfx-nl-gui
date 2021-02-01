@@ -1,8 +1,7 @@
-<nl-card-image ng-show='!card.fullDesc'
-	class='nl-card-img row row-center margin0 {{canCover() ? "cover" : ""}}'></nl-card-image>
-<div class='nl-card-text-section'>
-	<nl-card-title></nl-card-title>
-	<nl-card-desc ng-show='!card.fullDesc'></nl-card-desc>
+<nl-card-image2
+	class='nl-card2-img row row-center margin0 padding0 {{canCover($event, true) ? "cover" : ""}}'></nl-card-image2>
+<div class='nl-card2-text-section'>
+	<div class='nl-card2-header'>{{card.title}}</div>	
 	<div ng-show='card.fullDesc' class='nl-card-fullDesc' nl-compile='card.help'></div>
 </div>
 <div class='nl-card-links'>

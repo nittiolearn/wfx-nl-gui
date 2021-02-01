@@ -16,6 +16,7 @@ function module_init() {
     .directive('nlComputeImgInfo', ComputeImgInfoDirective)
     .directive('nlCardTitle', CardTitleDirective)
     .directive('nlCardImage', CardImageDirective)
+    .directive('nlCardImage2', CardImageDirective2)
     .directive('nlCardDesc', CardDescDirective);
 }
 
@@ -287,11 +288,11 @@ function _cardsDirectiveImpl(nl, nlDlg, $filter, nlCardsSrv, nlExporter, templat
 			};
 
             $scope.onClickOnNext = function(cards) {
-                cards.onClickOnNextFn(cards)
+                cards.onClickOnNextFn(cards, $scope)
             };
 
             $scope.onClickOnPrev = function(cards) {
-                cards.onClickOnPrevFn(cards);
+                cards.onClickOnPrevFn(cards, $scope);
             };
 
             function _onSearchParamChange(filter, category) {
@@ -364,10 +365,15 @@ function _getCardWidth(cardsContainer) {
     return w;
 }
 
-function _canCoverImg(url) {
+function _canCoverImg(url, isCard2) {
 	var info = _imgInfo[url];
 	if (!info) return false;
-	if ('canCover' in info) return info.canCover;
+    if ('canCover' in info) return info.canCover;
+    if (isCard2) {
+        var ar = info.w ? info.h/info.w : 0;
+        info.canCover = (ar > 0.51 && ar < 0.77);
+        return;
+    }
     var ar = info.w ? info.h/info.w : 0;
     info.canCover = (ar > 0.51 && ar < 0.77);
     return info.canCover;
@@ -384,7 +390,7 @@ function(nl, nlDlg) {
         	iElem.bind('load', function(params) {
 			    var w = iElem[0].offsetWidth;
 			    var h = iElem[0].offsetHeight;
-			    _imgInfo[iAttrs.src] = {w:w, h:h,};
+			    _imgInfo[iAttrs.src] = {w:w, h:h};
         	});
          }
     };
@@ -412,9 +418,9 @@ function _cardDirectiveImpl(nl, nlDlg, templateUrl) {
             card: '='
         },
         link: function($scope, iElem, iAttrs) {
-        	$scope.canCover = function(e) {
+        	$scope.canCover = function(e, isCard2) {
         		if (!$scope.card || !$scope.card.icon) return false;
-        		return _canCoverImg($scope.card.icon);
+        		return _canCoverImg($scope.card.icon, isCard2);
         	};
         	
             $scope.noPropogate = function(e) {
@@ -473,6 +479,9 @@ function() { return {restrict: 'E', templateUrl: 'lib_ui/cards/card-title.html'}
 var CardImageDirective = [
 function() { return {restrict: 'E', templateUrl: 'lib_ui/cards/card-image.html'}; }];
 
+var CardImageDirective2 = [
+    function() { return {restrict: 'E', templateUrl: 'lib_ui/cards/card-image2.html'}; }];
+    
 var CardDescDirective = [
 function() { return {restrict: 'E', templateUrl: 'lib_ui/cards/card-desc.html'}; }];
 
