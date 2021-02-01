@@ -1,0 +1,15 @@
+<nl-card-image2
+	class='nl-card2-img row row-center margin0 padding0 {{canCover($event, true) ? "cover" : ""}}'></nl-card-image2>
+<div class='nl-card2-text-section'>
+	<div class='nl-card2-header'>{{card.title}}</div>	
+	<div ng-show='card.fullDesc' class='nl-card-fullDesc' nl-compile='card.help'></div>
+</div>
+<div class='nl-card-links'>
+	<div class='nl-card-more-links'>
+	</div>
+	<div ng-click='onCardInternalUrlClicked($event, card, card.url)'>
+		<span class="nl-card-more-icon nl-link-img material-icons {{getLaunchIconClass(card)}}">
+			{{getLaunchIcon(card)}}
+		</span>
+	</div>
+</div>    

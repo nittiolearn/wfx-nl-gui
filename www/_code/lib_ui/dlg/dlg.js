@@ -577,7 +577,7 @@ function(nl) {
                     $scope.data.onClickOnPrev($scope.data);
                     return;
                 }
-                if (!nl.utils.getFnFromParentOrGrandParent($scope, 'canShowPrev')($scope.data)) return;
+                if (!($scope.data.canShowPrev() || nl.utils.getFnFromParentOrGrandParent($scope, 'canShowPrev')($scope.data))) return;
                 nl.utils.getFnFromParentOrGrandParent($scope, 'onClickOnPrev')($scope.data);
             };
 
@@ -587,7 +587,7 @@ function(nl) {
                     $scope.data.onClickOnNext($scope.data);
                     return;
                 }
-                if (!nl.utils.getFnFromParentOrGrandParent($scope, 'canShowNext')($scope.data)) return;
+                if (!($scope.data.canShowNext() || nl.utils.getFnFromParentOrGrandParent($scope, 'canShowNext')($scope.data))) return;
                 nl.utils.getFnFromParentOrGrandParent($scope, 'onClickOnNext')($scope.data);
             };
         }
