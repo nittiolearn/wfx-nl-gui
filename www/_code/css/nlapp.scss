@@ -1895,9 +1895,13 @@ input.nl-dlg-field-error, .nl-dlg-field-error {
 
 .nl-card2-header {
   text-align: left;
+  width: 90%;
   color: black;
   font-size: 130%;
   padding: 4px 16px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
  /*-----------------------------------------------------------------------------------------*
@@ -2689,6 +2693,20 @@ img.nl-icon {
     width: auto;
     right: 5px;
   }
+}
+
+.section-header-text {
+  height: 42px;
+  font-size: 160%;
+  font-weight: 500;
+  line-height: 32px;
+  letter-spacing: normal;
+  text-align: left;
+  padding-top:10px;
+  color: #FFFFFF;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /*-----------------------------------------------------------------------------------------*
@@ -4318,10 +4336,11 @@ a.enabled {
 /* Navigation styles
 /*----------------------------------------------------------------------------------------------------*/
 
-.nl-nav-arrow{
+.nl-nav-arrow-icon{
   width: 30px; 
   height: 30px;
-  border-radius: 50%;        
+  border-radius: 50%;
+  color: $nlWhite;       
 }
 
 .nl-nav-text{

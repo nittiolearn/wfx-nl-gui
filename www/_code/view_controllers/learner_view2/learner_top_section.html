@@ -51,6 +51,13 @@
     background-color: #FFFFFF;
 }
 
+.learner-view-stats-button {
+    border: 2px solid #ffffff;   
+    color: #FFFFFF; 
+    min-width: 100px;
+    height: 32px;
+    border-radius: 20px;
+}
 </style>
 <div class='bgblue3'>
     <div class='nl-limitwidth-learner-view padding-mid'>
@@ -62,13 +69,22 @@
                 </div>
             </div>
             <div class='col'></div>
+            <div ng-if='0' class='padding-mid'>
+                <div class='learner-view-stats-button' 
+                    ng-click='viewStatistics()'>
+                    <i class="icon ion-stats-bars fsh3 padding-mid"></i>
+                    <span class='padding-mid'>
+                        Summary
+                    </span>
+                </div>
+            </div>
         </div>
         <div class='padding-small'></div>
         <div class='row row-top row-wrap margin0 padding-mid'>
             <div class='padding0 learner-view-searchbox' style='padding: 0px 4px'>
                 <div class='row row-center margin0 padding0 learner-view-searchbox2'>
                     <span style='padding: 0px 6px'><i class='icon ion-ios-search-strong fsh5'></i></span>
-                    <div class='col padding0'>
+                    <div class='col padding0' style='padding-top: 4px'>
                         <input class='padding-small w100'
                             ng-model='tabdata.search'
                             ng-attr-placeholder='{{tabdata.searchPlaceholder}}'
