@@ -173,6 +173,7 @@ body.nldarkmode{
   --nlBgTextArea: $nlBgTextArea;
   --nlSlideShadowLight: $nlSlideShadowLight;
   --nlSlideShadowDark: $nlSlideShadowDark;
+  --nlStatusBlue: #008aff;
   --nlPrimaryTransparent30: $nlPrimaryTransparent30;
   --nlPrimaryTransparent50: $nlPrimaryTransparent50;
   --nlPrimaryLightTransparent70: $nlPrimaryLightTransparent70;
@@ -246,6 +247,68 @@ body.nldarkmode{
     width: 26px; 
     height: 24px;   
   }
+  /*-----------------------------------------------------------------------------------------*
+ * Learner view 2 section styles (card2)
+ *-----------------------------------------------------------------------------------------*/
+.nl-limitwidth-learner-view {
+  max-width: 1000px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.nl-learner-button{
+  min-width: 100px;
+  height: 32px;
+  padding: 6px 12px 6px 12px;
+  border-radius: 20px;
+}
+.learner-yellow{
+    color: var(--nlFontYellow);
+    border: 2px solid var(--nlFontYellow);
+}
+
+.learner-red{
+    color: var( --nlStatusRed);
+    border: 2px solid var( --nlStatusRed);
+}
+.learner-blue{
+    color: var(--nlStatusBlue);
+    border: 2px solid var(--nlStatusBlue);
+}
+.learner-green{
+    color: var(--nlStatusGreen);
+    border: 2px solid var(--nlStatusGreen);
+}
+.learner-orange{
+    color: var(--nlFontOrange1);
+    border: 2px solid var(--nlFontOrange1);
+}
+
+.learner-top-section {
+  -webkit-backdrop-filter: blur(30px);
+  backdrop-filter: blur(30px);
+  border: solid 0.5px var(--nlWhite);
+  background-image: linear-gradient(to right, var(--nlBgWhiteTransparent70), var(--nlWhiteBackground));
+}
+
+.learner-view-searchbox{
+    width: 100%;
+    max-width: 400px;
+}
+
+.learner-view-searchbox2 {
+    border: 1px solid var(--nlBorderGrey2); 
+    border-radius: 4px; 
+    background-color: var(--nlWhite);
+}
+
+.learner-view-stats-button {
+    border: 2px solid var(--nlWhite);   
+    color: var(--nlWhite); 
+    min-width: 100px;
+    height: 32px;
+    border-radius: 20px;
+}
 }
 
 //-------------------------------------------------------------------------------------------
@@ -1902,6 +1965,15 @@ input.nl-dlg-field-error, .nl-dlg-field-error {
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
+}
+
+.nl-cards-section-hide::-webkit-scrollbar {
+  display: none;
+}
+
+.nl-cards-section-hide{
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
 }
 
  /*-----------------------------------------------------------------------------------------*
