@@ -123,8 +123,7 @@ function(nl, nlDlg, nlConfig, Upload) {
 
     this.courseOrAssignGetMany = function(recordinfos) {
         // return: course, course_assignment and module assignment objects
-        // return server.post('_serverapi/course_or_assign_get_many.json', {recordinfos: recordinfos});
-        return _serverPostToApi3OrApi('_serverapi3/course_or_assign_get_many', {recordinfos: recordinfos});
+        return _serverPostToApi3OrApi('course_or_assign_get_many', {recordinfos: recordinfos});
     };
     
     this.courseCreate = function(data) {
@@ -371,12 +370,12 @@ function(nl, nlDlg, nlConfig, Upload) {
 
 	this.learningReportsGetList = function(data) {
         //data = type, objid, assignor, parentonly, [filterParameters], [mquery parameters]
-        return _serverPostToApi3OrApi('_serverapi3/learning_reports_get_list', data);
+        return _serverPostToApi3OrApi('learning_reports_get_list', data);
 	};
 	
 	this.learningReportsGetCompletedModuleList = function(data) {
 		//data = [mquery parameters]
-		return _serverPostToApi3OrApi('_serverapi3/learning_reports_get_completed_module_list', data);
+		return _serverPostToApi3OrApi('learning_reports_get_completed_module_list', data);
 	};
 
     this.learningReportsImport = function(data) {
@@ -710,43 +709,45 @@ function(nl, nlDlg, nlConfig, Upload) {
     //---------------------------------------------------------------------------------------------
     // Private methods
     //---------------------------------------------------------------------------------------------
-    var _api3ToOldApiUrl = {
-        // All calls to _serverPostToApi3OrApi can post to api3 (python3 server) 
-        // or api (python2 server) depending on 3 arrtibutes:
-        // URL not mentioned in this list: alway use api3
-        // If api3=yes in url: always use api3
-        // If api3=no in url: use old api if mapping is available else api3
-        // If api3 is not present in url: use api3 if useBleadingApi is configured to true in group
-        //    else use old api if mapping is available else api3
-        '_serverapi3/course_or_assign_get_many':'_serverapi/course_or_assign_get_many.json',
-        '_serverapi3/learning_reports_get_list' : '_serverapi/learning_reports_get_list.json',
-        '_serverapi3/learning_reports_get_completed_module_list':'_serverapi/learning_reports_get_completed_module_list.json',
+    var _api3BatchNumbers = {
+        // All calls to _serverPostToApi3OrApi can post to nittio3 api (new/python3/flask) or 
+        // nittio api (old/python2/web2py) depending on below conditions:
+        // if URL not mentioned in this list: use nittio api
+        // else if api3=no in url: use nittio api
+        // else if api3=yes in url: use nittio3 api
+        // else if api's batch number <= group's batch number: use nittio3 api
+        // else: use nittio api
+
+        'learning_reports_get_list' : 1,
+        'learning_reports_get_completed_module_list': 1,
+        'course_or_assign_get_many': 1
     };
 
     var _api3InUrl = undefined;
-	function _serverPostToApi3OrApi(url, data, config) {
+    function _getServerType(url, userInfo) {
+        if (!(url in _api3BatchNumbers)) return 'nittio';
+        if (_api3InUrl === undefined) {
+            _api3InUrl = nl.location.search().api3 || 'guess';
+        }
+        if (_api3InUrl == 'no') return 'nittio';
+        if (_api3InUrl == 'yes') return 'nittio3';
+        var userInfo = server.getCurrentUserInfo() || {};
+        var grpApiBatchLevel = ((userInfo.groupinfo || {}).features || {}).useBleadingApi;
+        if (grpApiBatchLevel === undefined || grpApiBatchLevel === true) grpApiBatchLevel = 1;
+        else if (!grpApiBatchLevel) grpApiBatchLevel = 0;
+
+        if (_api3BatchNumbers[url] <= grpApiBatchLevel) return 'nittio3';
+        return 'nittio';
+    }
+
+    function _serverPostToApi3OrApi(url, data, config) {
         return nl.q(function(resolve, reject) {
             _getUserInfoFromCacheOrServer().then(function(userInfo) {
                 if (!config) config = {};
                 config.userInfo = userInfo;
-                if (_api3InUrl === undefined) {
-                    _api3InUrl = nl.location.search().api3 || 'guess';
-                }
-                var useApi3 = true;
-                var oldUrl = _api3ToOldApiUrl[url];
-                if (_api3InUrl == 'yes' || !oldUrl) {
-                    useApi3 = true;
-                } else if (_api3InUrl == 'no') {
-                    useApi3 = false;
-                } else {
-                    var userInfo = server.getCurrentUserInfo() || {};
-                    useApi3 = ((userInfo.groupinfo || {}).features || {}).useBleadingApi || false;
-                }
-                if (useApi3) {
-                    config.serverType = 'api3';
-                } else {
-                    url = oldUrl;
-                }
+                var serverType = _getServerType(url, userInfo);
+                url = serverType == 'nittio3' ? '_serverapi3/' + url : '_serverapi/' + url + '.json';
+                if (serverType == 'nittio3') config.serverType = 'api3';
                 server.post(url, data, config).then(resolve, reject);
             });
         });
