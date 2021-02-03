@@ -186,8 +186,16 @@ function(nl, nlGetManyStore, nlReportHelper) {
             stats.status.txt = 'failed'; 
 
         _updateDateFormats(report);
+        var recState = _getRecordStateLearnerRec(repcontent, report, stats, 'course');
+        if (recState.type == 'progress' || recState.type == 'expired') {
+            var total = stainf.cnttotal;
+            var completed = stainf.nCompletedItems;
+            stats.progressPerc = Math.round(100*completed/total);
+        } 
+        if (recState.type == 'completed') stats.progressPerc = 100;
+
         var ret = {raw_record: report, repcontent: repcontent, user: user, stats: stats,
-            recStateObj: _getRecordStateLearnerRec(repcontent, report, stats, 'course'),
+            recStateObj: recState,
             detailsavps : _getRecordAvps(repcontent, report, 'course'), type: 'course'
             };
         return ret;
@@ -271,9 +279,19 @@ function(nl, nlGetManyStore, nlReportHelper) {
 
         _updateDateFormats(raw_record);
         stats.nLessonsDone = stats.nLessonsPassed + stats.nLessonsFailed;
+        var recState = _getRecordStateLearnerRec(repcontent, raw_record, stats, 'module');
+        if (recState.type == 'progress' || recState.type == 'expired') {
+            var pages = repcontent.pagesFiltered.length;
+            var notAnswered = repcontent.notAnswered.length
+            var answered = pages - notAnswered;
+            stats.progressPerc = Math.round(100*answered/pages);
+        } 
+
+        if (recState.type == 'completed') stats.progressPerc = 100;
         var ret = {raw_record: raw_record, repcontent: repcontent, user: user, stats: stats,
-            recStateObj: _getRecordStateLearnerRec(repcontent, raw_record, stats, 'module'),
+            recStateObj: recState,
             detailsavps : _getRecordAvps(repcontent, raw_record, 'module'), type: 'module'};
+        
         return ret;
     }
 

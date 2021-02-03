@@ -109,48 +109,48 @@ $ionicons-font-path: "../_external_bundles/ionicfonts" !default;
 @import "www/_extern/ionic/scss/ionic";
 
 :root{
-  --nlPrimary: $nlPrimary;
-  --nlPrimaryDark: $nlPrimaryDark;
-  --nlPrimaryLight: $nlPrimaryLight;
-  --nlFontOrange1: $nlFontOrange1;
-  --nlFontOrange2: $nlFontOrange2;
-  --nlFontOrange3: $nlFontOrange3;
-  --nlFontYellow1: $nlFontYellow1;
-  --nlFontYellow2: $nlFontYellow2;
-  --nlFontYellow: $nlFontYellow;
-  --nlStatusRed: $nlStatusRed;
-  --nlBorderRed: $nlBorderRed;
-  --nlStatusRedLight: $nlStatusRedLight;
-  --nlBoxShadowRedDark: $nlBoxShadowRedDark;
-  --nlStatusGreen: $nlStatusGreen;
-  --nlForumMsgBg: $nlForumMsgBg;
-  --nlLinkTextBg: $nlLinkTextBg;
-  --nlBgTextArea: $nlBgTextArea;
-  --nlSlideShadowLight: $nlSlideShadowLight;
-  --nlSlideShadowDark: $nlSlideShadowDark;
-  --nlPrimaryTransparent30: $nlPrimaryTransparent30;
-  --nlPrimaryTransparent50: $nlPrimaryTransparent50;
-  --nlPrimaryLightTransparent70: $nlPrimaryLightTransparent70;
-  --nlPrimaryLightTransparent50: $nlPrimaryLightTransparent50;
-  --nlWhite: $nlWhite;
-  --nlBgWhiteTransparent70: $nlBgWhiteTransparent70;
-  --nlBgWhiteTransparent40: $nlBgWhiteTransparent40;
+  --nlPrimary: #{$nlPrimary};
+  --nlPrimaryDark: #{$nlPrimaryDark};
+  --nlPrimaryLight: #{$nlPrimaryLight};
+  --nlFontOrange1: #{$nlFontOrange1};
+  --nlFontOrange2: #{$nlFontOrange2};
+  --nlFontOrange3: #{$nlFontOrange3};
+  --nlFontYellow1: #{$nlFontYellow1};
+  --nlFontYellow2: #{$nlFontYellow2};
+  --nlFontYellow: #{$nlFontYellow};
+  --nlStatusRed: #{$nlStatusRed};
+  --nlBorderRed: #{$nlBorderRed};
+  --nlStatusRedLight: #{$nlStatusRedLight};
+  --nlBoxShadowRedDark: #{$nlBoxShadowRedDark};
+  --nlStatusGreen: #{$nlStatusGreen};
+  --nlForumMsgBg: #{$nlForumMsgBg};
+  --nlLinkTextBg: #{$nlLinkTextBg};
+  --nlBgTextArea: #{$nlBgTextArea};
+  --nlSlideShadowLight: #{$nlSlideShadowLight};
+  --nlSlideShadowDark: #{$nlSlideShadowDark};
+  --nlPrimaryTransparent30: #{$nlPrimaryTransparent30};
+  --nlPrimaryTransparent50: #{$nlPrimaryTransparent50};
+  --nlPrimaryLightTransparent70: #{$nlPrimaryLightTransparent70};
+  --nlPrimaryLightTransparent50: #{$nlPrimaryLightTransparent50};
+  --nlWhite: #{$nlWhite};
+  --nlBgWhiteTransparent70: #{$nlBgWhiteTransparent70};
+  --nlBgWhiteTransparent40: #{$nlBgWhiteTransparent40};
   --nlWhiteBackground:rgba(255,255,255,0.2);
-  --nlBlack: $nlBlack;
-  --nlBlackTransparent: $nlBlackTransparent;
-  --nlBlackTransparent80: $nlBlackTransparent80;
-  --nlBorderBlackTransparent20: $nlBorderBlackTransparent20;
-  --nlBoxShadowBlackTransparent60: $nlBoxShadowBlackTransparent60;
-  --nlBoxShadowBlackTransparent10: $nlBoxShadowBlackTransparent10;
-  --nlFBgGrey: $nlFBgGrey;
-  --nlFBgGreyTransparent30: $nlFBgGreyTransparent30;
-  --nlFBgGreyTransparent50: $nlFBgGreyTransparent50;
-  --nlBgGrey1: $nlBgGrey1;
-  --nlFontDarkGrey1: $nlFontDarkGrey1;
-  --nlFontDarkGrey2: $nlFontDarkGrey2;
-  --nlShadowGrey: $nlShadowGrey;
-  --nlBorderGrey1: $nlBorderGrey1;
-  --nlBorderGrey2: $nlBorderGrey2;
+  --nlBlack: #{$nlBlack};
+  --nlBlackTransparent: #{$nlBlackTransparent};
+  --nlBlackTransparent80: #{$nlBlackTransparent80};
+  --nlBorderBlackTransparent20: #{$nlBorderBlackTransparent20};
+  --nlBoxShadowBlackTransparent60: #{$nlBoxShadowBlackTransparent60};
+  --nlBoxShadowBlackTransparent10: #{$nlBoxShadowBlackTransparent10};
+  --nlFBgGrey: #{$nlFBgGrey};
+  --nlFBgGreyTransparent30: #{$nlFBgGreyTransparent30};
+  --nlFBgGreyTransparent50: #{$nlFBgGreyTransparent50};
+  --nlBgGrey1: #{$nlBgGrey1};
+  --nlFontDarkGrey1: #{$nlFontDarkGrey1};
+  --nlFontDarkGrey2: #{$nlFontDarkGrey2};
+  --nlShadowGrey: #{$nlShadowGrey};
+  --nlBorderGrey1: #{$nlBorderGrey1};
+  --nlBorderGrey2: #{$nlBorderGrey2};
 }
 
 body.nldarkmode{
@@ -158,45 +158,45 @@ body.nldarkmode{
   --nlPrimaryDark: #001221;
   --nlPrimaryLight: #0D324D;
   --nlFontOrange1: #F98E36;
-  --nlFontOrange2: $nlFontOrange2;
-  --nlFontOrange3: $nlFontOrange3;
-  --nlFontYellow1: $nlFontYellow1;
-  --nlFontYellow2: $nlFontYellow2;
+  --nlFontOrange2: #{$nlFontOrange2};
+  --nlFontOrange3: #{$nlFontOrange3};
+  --nlFontYellow1: #{$nlFontYellow1};
+  --nlFontYellow2: #{$nlFontYellow2};
   --nlFontYellow: #FFE17D;
   --nlStatusRed: #FF646A;
-  --nlBorderRed: $nlBorderRed;
-  --nlStatusRedLight: $nlStatusRedLight;
-  --nlBoxShadowRedDark: $nlBoxShadowRedDark;
+  --nlBorderRed: #{$nlBorderRed};
+  --nlStatusRedLight: #{$nlStatusRedLight};
+  --nlBoxShadowRedDark: #{$nlBoxShadowRedDark};
   --nlStatusGreen: #2FB885;
-  --nlForumMsgBg: $nlForumMsgBg;
-  --nlLinkTextBg: $nlLinkTextBg;
-  --nlBgTextArea: $nlBgTextArea;
-  --nlSlideShadowLight: $nlSlideShadowLight;
-  --nlSlideShadowDark: $nlSlideShadowDark;
+  --nlForumMsgBg: #{$nlForumMsgBg};
+  --nlLinkTextBg: #{$nlLinkTextBg};
+  --nlBgTextArea: #{$nlBgTextArea};
+  --nlSlideShadowLight: #{$nlSlideShadowLight};
+  --nlSlideShadowDark: #{$nlSlideShadowDark};
   --nlStatusBlue: #008aff;
-  --nlPrimaryTransparent30: $nlPrimaryTransparent30;
-  --nlPrimaryTransparent50: $nlPrimaryTransparent50;
-  --nlPrimaryLightTransparent70: $nlPrimaryLightTransparent70;
-  --nlPrimaryLightTransparent50: $nlPrimaryLightTransparent50;
-  --nlWhite: $nlWhite;
-  --nlBgWhiteTransparent70: $nlBgWhiteTransparent70;
-  --nlBgWhiteTransparent40: $nlBgWhiteTransparent40;
+  --nlPrimaryTransparent30: #{$nlPrimaryTransparent30};
+  --nlPrimaryTransparent50: #{$nlPrimaryTransparent50};
+  --nlPrimaryLightTransparent70: #{$nlPrimaryLightTransparent70};
+  --nlPrimaryLightTransparent50: #{$nlPrimaryLightTransparent50};
+  --nlWhite: #{$nlWhite};
+  --nlBgWhiteTransparent70: #{$nlBgWhiteTransparent70};
+  --nlBgWhiteTransparent40: #{$nlBgWhiteTransparent40};
   --nlWhiteBackground:rgba(255,255,255,0.2);
-  --nlBlack: $nlBlack;
-  --nlBlackTransparent: $nlBlackTransparent;
-  --nlBlackTransparent80: $nlBlackTransparent80;
-  --nlBorderBlackTransparent20: $nlBorderBlackTransparent20;
-  --nlBoxShadowBlackTransparent60: $nlBoxShadowBlackTransparent60;
-  --nlBoxShadowBlackTransparent10: $nlBoxShadowBlackTransparent10;
-  --nlFBgGrey: $nlFBgGrey;
-  --nlFBgGreyTransparent30: $nlFBgGreyTransparent30;
-  --nlFBgGreyTransparent50: $nlFBgGreyTransparent50;
-  --nlBgGrey1: $nlBgGrey1;
-  --nlFontDarkGrey1: $nlFontDarkGrey1;
-  --nlFontDarkGrey2: $nlFontDarkGrey2;
-  --nlShadowGrey: $nlShadowGrey;
-  --nlBorderGrey1: $nlBorderGrey1;
-  --nlBorderGrey2: $nlBorderGrey2;
+  --nlBlack: #{$nlBlack};
+  --nlBlackTransparent: #{$nlBlackTransparent};
+  --nlBlackTransparent80: #{$nlBlackTransparent80};
+  --nlBorderBlackTransparent20: #{$nlBorderBlackTransparent20};
+  --nlBoxShadowBlackTransparent60: #{$nlBoxShadowBlackTransparent60};
+  --nlBoxShadowBlackTransparent10: #{$nlBoxShadowBlackTransparent10};
+  --nlFBgGrey: #{$nlFBgGrey};
+  --nlFBgGreyTransparent30: #{$nlFBgGreyTransparent30};
+  --nlFBgGreyTransparent50: #{$nlFBgGreyTransparent50};
+  --nlBgGrey1: #{$nlBgGrey1};
+  --nlFontDarkGrey1: #{$nlFontDarkGrey1};
+  --nlFontDarkGrey2: #{$nlFontDarkGrey2};
+  --nlShadowGrey: #{$nlShadowGrey};
+  --nlBorderGrey1: #{$nlBorderGrey1};
+  --nlBorderGrey2: #{$nlBorderGrey2};
   
   .pane, .view {
     background-image: radial-gradient(var(--nlPrimaryLight), var(--nlPrimary), var(--nlPrimaryDark));
@@ -268,20 +268,20 @@ body.nldarkmode{
 }
 
 .learner-red{
-    color: var( --nlStatusRed);
-    border: 2px solid var( --nlStatusRed);
+  color: var(--nlStatusRed);
+  border: 2px solid var( --nlStatusRed);
 }
 .learner-blue{
-    color: var(--nlStatusBlue);
-    border: 2px solid var(--nlStatusBlue);
+  color: var(--nlStatusBlue);
+  border: 2px solid var(--nlStatusBlue);
 }
 .learner-green{
-    color: var(--nlStatusGreen);
-    border: 2px solid var(--nlStatusGreen);
+  color: var(--nlStatusGreen);
+  border: 2px solid var(--nlStatusGreen);
 }
 .learner-orange{
-    color: var(--nlFontOrange1);
-    border: 2px solid var(--nlFontOrange1);
+  color: var(--nlFontOrange1);
+  border: 2px solid var(--nlFontOrange1);
 }
 
 .learner-top-section {
@@ -297,17 +297,30 @@ body.nldarkmode{
 }
 
 .learner-view-searchbox2 {
-    border: 1px solid var(--nlBorderGrey2); 
-    border-radius: 4px; 
-    background-color: var(--nlWhite);
+  border: 1px solid var(--nlBorderGrey2); 
+  border-radius: 4px; 
+  background-color: var(--nlWhite);
 }
 
 .learner-view-stats-button {
-    border: 2px solid var(--nlWhite);   
-    color: var(--nlWhite); 
-    min-width: 100px;
-    height: 32px;
-    border-radius: 20px;
+  border: 2px solid var(--nlWhite);
+  color: var(--nlWhite); 
+  min-width: 100px;
+  height: 32px;
+  border-radius: 20px;
+}
+//-------------------------------------------------------------------------------------------
+// Card2 in darkmode
+//-------------------------------------------------------------------------------------------
+.nl-card-holder2{
+  background-color: var(--nlWhiteBackground);
+}
+
+//-------------------------------------------------------------------------------------------
+// border styles in the darkmode
+//-------------------------------------------------------------------------------------------
+.nl-border-bottom {
+  border-bottom: 1px solid var(--nlBorderGrey2);
 }
 }
 
@@ -680,12 +693,12 @@ $animation-duration: 200ms !default;
 
 .nl-border-bottom {
   border-bottom: 1px solid $nlBlackTransparent80;
-  border: 1px solid var(--nlBlackTransparent80);
+  border-bottom: 1px solid var(--nlBlackTransparent80);
 }
 
 .nl-border-right {
   border-right: 1px solid $nlBlackTransparent80;
-  border: 1px solid var(--nlBlackTransparent80);
+  border-right: 1px solid var(--nlBlackTransparent80);
 }
 
 .nl-border-forange3 {
@@ -1902,10 +1915,12 @@ input.nl-dlg-field-error, .nl-dlg-field-error {
   left: 0;
   height: 92%;
   width: 100%;
+  color: $nlWhite;
   color: var(--nlWhite);
   border-radius: 10px;
   box-shadow: inset 0 0 2px rgba(0,0,100,0.2), 1px 1px 2px rgba(0,0,100,0.4);
-  background-color: var(--nlWhiteBackground);
+  background-color: $nlWhite;
+  background-color: var(--nlWhite);
 }
 
 .nl-card2-img {
@@ -1973,6 +1988,48 @@ input.nl-dlg-field-error, .nl-dlg-field-error {
   scrollbar-width: none;  /* Firefox */
 }
 
+.nl-card2-links {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  height: auto;
+  padding: 8px;
+  font-size: 100%;
+  opacity: 0.8;
+  color: $nlWhite;
+  
+  .nl-card-more-links {
+    display: inline-block;
+    opacity: 0;
+  }
+  
+  .nl-card-more-icon {
+    color: $nlBlack;
+    color: var(--nlBlack);
+    padding: 4px;
+    display: inline-block;
+    border-radius: 50%;
+  }
+
+  span {
+    cursor:pointer;
+    padding: 2px 4px 2px 4px;
+    border-right: 1px solid $nlPrimary;
+    border-right: 1px solid var(--nlPrimary);
+    
+    &:last-child {
+      border-right: none;
+    }
+  }
+
+  &:hover, &:focus, &:active {
+    opacity: 1;
+    .nl-card-more-links {
+      opacity: 1;
+    }
+  }
+}
 .nl-card2-progress-bar {
   height: 4px;
   border-width: 1px;

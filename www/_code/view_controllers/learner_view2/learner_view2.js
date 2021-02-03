@@ -361,7 +361,6 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlServerA
 			cards[SEC_POS[type]].cardlist = [];
 			tabItemCount[SEC_POS[type]].count = 0;
 			cards[SEC_POS[type]].size = CARD_SIZE[SEC_POS[type]];
-
 			cards[SEC_POS[type]].getVisibleString = _getVisibleString;
 			cards[SEC_POS[type]].canShowNext = _canShowNext;
 			cards[SEC_POS[type]].canShowPrev = _canShowPrev;
@@ -432,6 +431,8 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlServerA
 		card.not_after = record.raw_record.not_after || '';
 		card.upated = record.raw_record.updated || '';
 		card.detailsavps = record.detailsavps;
+		if (card.type == 'progress' || card.type == 'expired') 
+			card.progressPerc = record.stats.progressPerc;
 		return card;
 	}
 
