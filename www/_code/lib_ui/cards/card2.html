@@ -1,6 +1,27 @@
+<style>
+.nl-card-progress-area {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  height: 5%;
+  text-align: left;
+  color: black;
+  overflow: hidden;
+}
+</style>
 <nl-card-image2
-	class='nl-card2-img row row-center margin0 padding0 {{canCover($event, true) ? "cover" : ""}}'></nl-card-image2>
-<div class='nl-card2-text-section'>
+class='nl-card2-img row row-center margin0 padding0 {{canCover($event, true) ? "cover" : ""}}' style='height: {{getComputedHeightStyle(card)}}%'></nl-card-image2>
+<div class='padding-mid nl-card-progress-area' style='top: {{getComputedHeightStyle(card)}}%'>
+	<div class='row row-center margin0 padding0'
+		ng-hide='percval=="-"'>
+		<div class='nl-card2-progress-bar col padding0 margin0'>
+			<div class='nl-card2-progress-bar-bar'
+					style='width: 50%'>
+			</div>
+		</div>
+	</div>   
+</div>
+<div class='nl-card2-text-section' style='top: {{getTextAreaHeight(card)}}%'>
 	<div class='nl-card2-header'>{{card.title}}</div>	
 	<div ng-show='card.fullDesc' class='nl-card-fullDesc' nl-compile='card.help'></div>
 </div>
@@ -8,8 +29,8 @@
 	<div class='nl-card-more-links'>
 	</div>
 	<div ng-click='onCardInternalUrlClicked($event, card, card.url)'>
-		<span class="nl-card-more-icon nl-link-img material-icons {{getLaunchIconClass(card)}}">
-			{{getLaunchIcon(card)}}
+		<span class="nl-card-more-icon nl-link-img {{getLaunchIconClass(card)}}">
+			<img ng-src='{{card.buttonUrl}}'></img>
 		</span>
 	</div>
 </div>    

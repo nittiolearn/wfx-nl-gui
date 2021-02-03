@@ -421,8 +421,29 @@ function _cardDirectiveImpl(nl, nlDlg, templateUrl) {
         	$scope.canCover = function(e, isCard2) {
         		if (!$scope.card || !$scope.card.icon) return false;
         		return _canCoverImg($scope.card.icon, isCard2);
-        	};
-        	
+            };
+            
+            $scope.getComputedHeightStyle = function(card) {
+                if (!card) return;
+                if (card.size == 'L') return 60;
+                if (card.size == 'M') return 55;
+                if (card.size == 'S') return 50;
+            };
+
+            $scope.getTextAreaHeight = function(card) {
+                if (!card) return;
+                if (card.size == 'L') return 65;
+                if (card.size == 'M') return 60;
+                if (card.size == 'S') return 55;
+            };
+            
+            $scope.getProgressBarTop = function() {
+                if (!card) return;
+                if (card.size == 'L') return 60;
+                if (card.size == 'M') return 55;
+                if (card.size == 'S') return 50;
+            };
+
             $scope.noPropogate = function(e) {
 				e.stopImmediatePropagation();
             };

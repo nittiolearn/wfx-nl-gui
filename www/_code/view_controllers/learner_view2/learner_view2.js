@@ -352,6 +352,7 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlServerA
 
 	var SEC_POS = {'progress': 0, 'pending': 1, 'upcoming': 2, 'completed': 3, 'expired': 4};
 	var CARD_SIZE = {0: 'L', 1: 'M', 2: 'M', 3: 'S', 4: 'S'};
+	var LAUNCH_BUTTON = {'progress': 'start.png', 'pending': 'start.png', 'upcoming': '', 'completed': 'preview.png', 'expired': 'info.png'};
 	function _getFilteredRecords() {
 		var records = $scope.tabData.records;
 		var cards = $scope.tabData.sectionData;
@@ -375,8 +376,9 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlServerA
 			var type = record.recStateObj.type;
 			var secNo = SEC_POS[type];
 			var card = _createLearnerCard(record);
-			cards[SEC_POS[type]].cardlist.push(card);
-			tabItemCount[SEC_POS[type]].count += 1;
+			card.size = cards[secNo].size;
+			cards[secNo].cardlist.push(card);
+			tabItemCount[secNo].count += 1;
 		}
 
 		for (var key in SEC_POS) {
@@ -416,6 +418,9 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlServerA
 		var card = {};
 		card.repcontent = record.repcontent;
 		card.type = recordStateObj.type;
+		if (LAUNCH_BUTTON[card.type]) {
+			card.buttonUrl = nl.url.lessonIconUrl(LAUNCH_BUTTON[card.type]);
+		}
 		card.title = record.repcontent.name;
 		card.desc = record.repcontent.remarks || record.repcontent.assign_remarks;
 		var icon = record.repcontent.icon || '';
