@@ -10,7 +10,7 @@
 		padding: 0px 8px 20px 8px;
 	}
 </style>
-<div ng-show='editor.targetLang != "en"'>
+<div class='nl-dkonlg-lgondk-text' ng-show='editor.targetLang != "en"'>
     <div class='padding-mid'><nl-inline-help>
         Please select the primary language (English) to see all course attributes.
     </nl-inline-help></div>
@@ -93,11 +93,11 @@
         </div>
     </div>
 </div>
-<div ng-show='editor.targetLang == "en"' >
+<div class='nl-dkonlg-lgondk-text' ng-show='editor.targetLang == "en"' >
     <div class='row row-top row-wrap margin0 padding0'
         ng-repeat='attr in attrs'
         ng-if='(!attr.fields || attr.fields.indexOf(values[attr.stored_at].type) >= 0) && (!attr.debug || editor.debug) && (!attr.canShow || attr.canShow(attr)) && (!attr.group || editor.showGroup[attr.group])'>
-        <div class='w100 nl-link-text padding-mid' 
+        <div class='w100 nl-link-text-dklg padding-mid' 
             ng-if='attr.type === "group"'
             ng-click='editor.showGroup[attr.name] = !editor.showGroup[attr.name]'
             tabindex='0'
@@ -112,7 +112,7 @@
             class='padding-mid' ng-click='attr.showHelp = !attr.showHelp'>
             <div class='row row-center row-wrap margin0 padding0'>
                 <span class='col padding0'>{{attr.text||attr.name}}</span>
-                <i class='padding-mid nl-link-text icon fsh4 fgrey ion-ios-help'></i>
+                <i class='padding-mid nl-link-text-dklg icon fsh4 fgrey ion-ios-help'></i>
             </div>
         </div>
         <div ng-class='$root.resp2Col67'
@@ -171,7 +171,7 @@
             ng-focus="attr.focus=true" ng-blur="attr.focus=false"
             tabindex="0"
             ng-keypress='$event.keyCode == 32 ? values[attr.stored_at][attr.name] = !values[attr.stored_at][attr.name] : ""'>
-            <div class='padding-mid nl-link-text'>
+            <div class='padding-mid nl-link-text-dklg'>
                 <span>
                     <i ng-show='values[attr.stored_at][attr.name]' class="icon ion-android-checkbox-outline black"></i>
                     <i ng-hide='values[attr.stored_at][attr.name]' class="icon ion-android-checkbox-outline-blank black"></i>

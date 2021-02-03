@@ -96,12 +96,12 @@
                     placeholder='{{tabData.searchPlaceholder}}'
                     ng-keydown='tabData.onSearch($event)'>
                 <div class='padding-small'></div>
-                <i class='nl-link-text icon fsh4 fblue padding-mid ion-ios-search'
+                <i class='nl-link-text nl-toolbar-icon2 fsh3 icon fblue padding-mid ion-ios-search'
                     ng-click='tabData.onSearch(null)'>
                 </i>
                 <div class='padding-small'></div>
                 <div ng-click='tabData.onFilter(null)'
-                     class='{{filterCount > 0 ? "forange" : "fblue"}} nl-link-text padding-mid'>
+                     class='{{filterCount > 0 ? "forange" : "nl-toolbar-icon2"}} nl-link-text padding-mid'>
                      <div class='row row-top padding0 margin0'>
                         <i class='icon fsh4 ion-funnel'></i>
                         <span ng-if='filterCount' class='nl-superscript'>{{filterCount}}</span>
@@ -139,7 +139,7 @@
                 Nothing to display tab
             ******************************************************************* -->
             <div ng-if='tabData.nothingToDisplay'
-                class='anim-enter fade fsh5 padding'>
+                class='anim-enter fade fsh5 padding nl-dkonlg-lgondk-text'>
                 <span>No data is available to display.</span>
                 <span ng-show='tabData.isFilterApplied'>Check for applied filters by clicking on the filter button.</span>
             </div>
@@ -207,7 +207,7 @@
                 <div class='row row-top row-wrap margin0 padding0'>
                     <div ng-class='$root.respCol221' class='text-center padding-mid'>
                         <div class='padding-small'></div>
-                        <div class='fsh5 padding-mid'>{{charts[0].title}}</div>
+                        <div class='fsh5 padding-mid nl-dkonlg-lgondk-text'>{{charts[0].title}}</div>
                         <div class='padding-small'></div>
                         <div style='margin: auto; display:block; max-height:300px; max-width:300px'>
                             <canvas class='chart chart-doughnut'
@@ -223,7 +223,7 @@
                     </div>
                     <div ng-class='$root.respCol221' class='text-center padding-mid'>
                         <div class='padding-small'></div>
-                        <div class='fsh5 padding-mid'>{{charts[1].title}}</div>
+                        <div class='fsh5 padding-mid nl-dkonlg-lgondk-text'>{{charts[1].title}}</div>
                         <div class='padding-mid'></div>
                         <div style='margin: auto; display:block; height:300px; width:450px'>
                             <canvas class='chart chart-bar'
@@ -304,7 +304,7 @@
                     <div ng-class='$root.resp3Col20'
                         style='min-width: 150px;min-height:150px' class='text-center'>
                         <div ng-show='nhtOverviewInfo.showChart'>
-                            <div class='fsh5 padding-mid' style='text-align: center'>Initial HC split</div>
+                            <div class='fsh5 padding-mid nl-dkonlg-lgondk-text' style='text-align: center'>Initial HC split</div>
                             <div style='margin: auto; display:block; max-height:300px; max-width:300px'>
                                 <canvas class='chart chart-doughnut'
                                         height='150'
@@ -352,7 +352,7 @@
                         <div class='col col-80' style='width: 100%; max-width: 900px;min-width: 300px;''>
                             <div class=' padding-small'></div>
                             <div class='row row-center margin0 padding0 text-left'>
-                                <div class='col fsh5 padding-mid'>
+                                <div class='col fsh5 padding-mid nl-dkonlg-lgondk-text'>
                                     {{pageLevelInfo.selectedChart.title}}
                                 </div>
                                 <div>
@@ -419,7 +419,7 @@
                 class='anim-enter1 flyfrom-l padding-mid'>
                 <div ng-repeat='timeSummaryChart in timeSummaryCharts'>
                     <div class='padding-small'></div>
-                    <div class='fsh5 padding-mid'>{{timeSummaryChart.title}}</div>
+                    <div class='fsh5 padding-mid nl-dkonlg-lgondk-text'>{{timeSummaryChart.title}}</div>
                     <div ng-if='timeSummaryChart.subtitle' class='fgrey padding-mid'><i>({{timeSummaryChart.subtitle}})</i></div>
                     <div class='padding-small'></div>
                     <div style='overflow-x: {{timeSummaryChart.data[0].length > 50 ? "scroll" : "none"}};'>

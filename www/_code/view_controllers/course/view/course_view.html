@@ -63,8 +63,7 @@
 </div>
 <div ng-if='ext.isStaticMode()'>
 	<nl-course-view-toolbar></nl-course-view-toolbar>
-	<div ng-show='vp.t' class='{{vp.i || vp.c || vp.d ? "frame1" : "frame0"}}'
-		 style='border-right: 1px solid rgba(0, 0, 0, 0.1)'>
+	<div ng-show='vp.t' class='{{vp.i || vp.c || vp.d ? "frame1" : "frame0"}} nl-border-right-dklg'>
 	    <nl-course-view-list></nl-course-view-list>
 	</div>
 	<div ng-show='vp.i || vp.c || vp.d'

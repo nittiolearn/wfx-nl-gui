@@ -657,7 +657,7 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
                     iconBr: 'fsh3 ion-plus-round fwhite bgblue round padding-small-h', 
 					internalUrl: 'course_create',
 					help: nl.t('You can create a new course by clicking on this card'), 
-					children: [], style: 'nl-bg-blue', links: []};
+					children: [], style: 'nl-create-card', links: []};
 		ret.push(card);
 		return ret;
 	}

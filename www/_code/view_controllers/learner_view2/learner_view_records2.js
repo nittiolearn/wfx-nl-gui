@@ -188,8 +188,8 @@ function(nl, nlGetManyStore, nlReportHelper) {
         _updateDateFormats(report);
         var recState = _getRecordStateLearnerRec(repcontent, report, stats, 'course');
         if (recState.type == 'progress' || recState.type == 'expired') {
-            var total = stainf.cnttotal;
-            var completed = stainf.nCompletedItems;
+            var total = stainf.cnttotal || 0;
+            var completed = stainf.nCompletedItems || 0;
             stats.progressPerc = Math.round(100*completed/total);
         } 
         if (recState.type == 'completed') stats.progressPerc = 100;
@@ -281,8 +281,8 @@ function(nl, nlGetManyStore, nlReportHelper) {
         stats.nLessonsDone = stats.nLessonsPassed + stats.nLessonsFailed;
         var recState = _getRecordStateLearnerRec(repcontent, raw_record, stats, 'module');
         if (recState.type == 'progress' || recState.type == 'expired') {
-            var pages = repcontent.pagesFiltered.length;
-            var notAnswered = repcontent.notAnswered.length
+            var pages = repcontent.pagesFiltered ? repcontent.pagesFiltered.length : [];
+            var notAnswered = repcontent.notAnswered ? repcontent.notAnswered.length : [];
             var answered = pages - notAnswered;
             stats.progressPerc = Math.round(100*answered/pages);
         } 

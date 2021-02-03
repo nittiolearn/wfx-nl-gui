@@ -321,7 +321,7 @@ var _cardsSize = {"L": {cardWidth: 470, cardHeight: 480, ar: 1},
                   "S": {cardWidth: 225, cardHeight: 270, ar: 1.3}}
 
 function _updateCardDimensions(nl, $scope, cardsContainer) {
-    if ($scope.cards.card2) {
+    if ($scope.cards && $scope.cards.card2) {
         var size = $scope.cards.size;
         var cardHWDict = _cardsSize[size];
         var ar = cardHWDict.ar;

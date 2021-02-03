@@ -252,7 +252,7 @@ this.show = function($scope, initialUserInfo, params) {
                 linkId : "admin_group",
                 children : []
             }],
-			style : 'nl-bg-blue',
+			style : 'nl-create-card',
 			links: []
 		};
         if (_userInfo.permissions.nittio_support) {

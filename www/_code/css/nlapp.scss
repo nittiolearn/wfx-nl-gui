@@ -204,7 +204,11 @@ body.nldarkmode{
   .nl-pagecanvas-bgimg {
     background-color: var(--nlPrimaryDark);
   }
-  .nl-card-holder {
+
+/*-----------------------------------------------------------------------------------------*
+ * darkmode style for the cards
+ *-----------------------------------------------------------------------------------------*/
+ .nl-card-holder {
     border-radius: 8px;
     background-color: var(--nlWhiteBackground);
   }
@@ -217,27 +221,73 @@ body.nldarkmode{
   .nl-card-header {
     color: var(--nlWhite);
   }
+  .nl-card-desc{
+    color: var(--nlWhite);
+  }
   .nl-card-desc .nl-link-text{
     color: var(--nlWhite);
   }
-  .nl-card-more-icon{
+  .nl-link-text-dklg{
     color: var(--nlWhite);
   }
+  .nl-create-card{
+    background-color: var(--nlFBgGrey);    
+  }
+  .nl-card-links {
+    .nl-card-more-links {
+      display: inline-block;
+      opacity: 0;
+    }
+    .nl-link-text, .nl-link-text2 {
+      cursor: pointer;
+      color: var(--nlWhite);
+      &, a, &:visited {
+        text-decoration: none;
+      }
+      &:focus, &:active {
+        color: var(--nlWhite);
+      }
+    }
+  
+    .nl-card-more-icon {
+      color: var(--nlWhite);
+    }
+  
+    span {
+      border-right: 1px solid var(--nlWhite);
+      
+      &:last-child {
+        border-right: none;
+      }
+    }
+  
+    &:hover, &:focus, &:active {
+      opacity: 1;
+      color: var(--nlWhite);
+      .nl-card-more-links {
+        opacity: 1;
+      }
+    }
+  }  
   .nl-summary-box{
     background-color: var(--nlWhite);
   }
   .title{
     color: var(--nlWhite);
   }
-  .nl-button-highlight {
-    border: 2px solid var(--nlBgGrey1);
-  }
-  .nl-button-lowlight{
-    border: 2px solid var(--nlPrimary);
-  }
   .nl-cv-item {
-    background-color: var(--nlWhiteBackground);
+    background-color: var(--nlShadowGrey);
     border: 1px solid var(--nlWhite);
+    .nl-cv-item-text{
+      color: var(--nlWhite);
+    }
+  }
+  .nl-cv-item.selected {
+    background-color: var(--nlWhiteBackground);
+  }
+  .popup-body.nl-cv-item{
+    background-color: var(--nlFBgGreyTransparent50);
+    border: 1px solid var(--nlFontDarkGrey1);
   }
   .bgdefault {background-color: var(--nlPrimary);}
   .anim-highlight-on {
@@ -246,6 +296,25 @@ body.nldarkmode{
   .nl-nav-arrow{
     width: 26px; 
     height: 24px;   
+  }
+
+/*-----------------------------------------------------------------------------------------*
+ * toolbar icons section styles (card2)
+ *-----------------------------------------------------------------------------------------*/
+
+  .nl-toolbar-icon{
+    color: var(--nlWhite);
+    i.icon:hover {
+      color: var(--nlWhite);
+    }
+  }
+  
+  .nl-toolbar-icon2 {
+    color: var(--nlWhite);
+  }
+
+  .image-round-button {
+    color: var(--nlPrimaryDark);
   }
   /*-----------------------------------------------------------------------------------------*
  * Learner view 2 section styles (card2)
@@ -322,8 +391,45 @@ body.nldarkmode{
 .nl-border-bottom {
   border-bottom: 1px solid var(--nlBorderGrey2);
 }
+.nl-border-right-dklg{
+  border-right: 1px solid var(--nlWhite); 
+}
+.nl-dkonlg-lgondk-text{
+  color: var(--nlWhite);
 }
 
+.nl-table-styled3 {
+  tr {
+    color: var(--nlBlack);
+    background-color: var(--nlWhite);
+  }
+  tr.header {
+    color: var(--nlBlack);
+  }
+  td.td-hover {
+    color: var(--nlBlack);
+    &:hover, &:focus, &:active {
+      background-color: var(--nlBorderGrey1);
+    }
+  }
+  td.nl-link-text{
+    color: var(--nlBlack);
+  }
+}
+
+.nl-nav-text{
+  color: var(--nlWhite);
+}
+
+.nl-nav-arrow-icon{
+  color: var(--nlWhite);
+}
+
+.nav-clickable-text {
+  color: var(--nlWhite);
+}
+}
+//$darkmodeclasses end
 //-------------------------------------------------------------------------------------------
 // All fonts imported from google fonts
 //-------------------------------------------------------------------------------------------
@@ -683,6 +789,10 @@ $animation-duration: 200ms !default;
   height: 100%;
 }
 
+.nl-dkonlg-lgondk-text{
+  color: $nlBlack;
+  color: var(var(--nlBlack));
+}
 //-----------------------------------------------------------------------------------------
 // nl specific styling - lib_ui modules
 //-----------------------------------------------------------------------------------------
@@ -699,6 +809,11 @@ $animation-duration: 200ms !default;
 .nl-border-right {
   border-right: 1px solid $nlBlackTransparent80;
   border-right: 1px solid var(--nlBlackTransparent80);
+}
+
+.nl-border-right-dklg {
+  border-right: 1px solid $nlBoxShadowBlackTransparent10;
+  border-right: 1px solid var(--nlBoxShadowBlackTransparent10);
 }
 
 .nl-border-forange3 {
@@ -1043,6 +1158,23 @@ tr.summary {
   }
 }
 
+.nl-link-text-dklg{
+  cursor: pointer;
+  color: $nlBlack;
+  color: var(--nlBlack);
+  &, a, &:visited {
+    text-decoration: none;
+  }
+  &:focus, &:active {
+    background-color:$nlLinkTextBg;
+    background-color: var(--nlLinkTextBg);
+  }
+  &, a, &:visited {
+    color: $nlBlack;
+    color: var(--nlBlack);
+  }
+}
+
 .nl-link-text-without-background {
   cursor: pointer;
   &, a, &:visited {
@@ -1154,6 +1286,23 @@ a.black {
   }
 }
 
+.nl-toolbar-icon2 {
+  color: $nlPrimaryDark;
+  color: var(--nlPrimaryDark);
+  cursor: pointer;
+  font-weight: bold;
+  i.icon {
+    display: inline-flex;
+    font-size: 26px;
+    padding: 4px 0;
+    width: 32px;
+    height: 32px;
+    justify-content: center;
+  }
+  i.icon.nl-icon-font {
+    font-size: 20px;
+  }
+}
 .nl-toolbar-icon.no-hover {
   i.icon:hover {
     color: $nlPrimaryDark;
@@ -1457,6 +1606,15 @@ a.black {
 }
 
 nl-inline-help .nl-inline-help, nl-dlg-help, .nl-dlg-help {
+  border: 1px dotted $nlPrimaryLight;
+  border: 1px dotted var(--nlPrimaryLight);
+  background-color: $nlBgTextArea;
+  background-color: var(--nlBgTextArea);
+  color: $nlPrimaryDark;
+  color: var(--nlPrimaryDark);
+}
+
+.nl-inline-help2{
   border: 1px dotted $nlPrimaryLight;
   border: 1px dotted var(--nlPrimaryLight);
   background-color: $nlBgTextArea;
@@ -2244,6 +2402,10 @@ nl-cards {
   background-color: var(--nlBgTextArea); 
 }
 
+.nl-create-card {
+  background-color: $nlBgTextArea;
+  background-color: var(--nlBgTextArea); 
+}
 .module_popup_img {
   background-color: $nlBgGrey1 !important;
   background-color: var(--nlBgGrey1);
@@ -2867,6 +3029,20 @@ img.nl-icon {
   min-width: 50%;
   max-height: 5em;
   overflow: hidden;
+}
+
+
+.nl-cv-item-on-dlg {
+  border-radius: 8px;
+  background-color: $nlBorderGrey1;
+  background-color: var(--nlBorderGrey1);
+  border: 1px solid $nlBorderGrey2;
+  border: 1px solid var(--nlBorderGrey2);
+}
+
+.nl-cv-item-on-dlg.selected {
+  background-color: $nlBorderGrey2;
+  background-color: var(--nlBorderGrey2);
 }
 
 nl-course-canvas-view .holder1 {
@@ -4478,7 +4654,8 @@ a.enabled {
   width: 30px; 
   height: 30px;
   border-radius: 50%;
-  color: $nlWhite;       
+  color: $nlFontDarkGrey2;
+  color: var(--nlFontDarkGrey2);
 }
 
 .nl-nav-text{
@@ -4522,6 +4699,9 @@ a.enabled {
 }
 }
 
+.nav-clickable-text{
+  color: #CCCCDD;
+}
 .nl-pagecanvas-bg {
   position: absolute;
   top: 0;
