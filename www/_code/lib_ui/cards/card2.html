@@ -21,7 +21,7 @@ class='nl-card2-img row row-center margin0 padding0 {{canCover($event, true) ? "
 		</div>
 	</div>   
 </div>
-<div class='nl-card2-text-section' style='top: {{getTextAreaHeight(card)}}%'>
+<div class='nl-card2-text-section' style='top: {{getTextAreaHeight(card)}}%; height: {{100-getTextAreaHeight(card)}}%'>
 	<div class='nl-card2-header'>{{card.title}}</div>	
 	<div ng-show='card.fullDesc' class='nl-card-fullDesc' nl-compile='card.help'></div>
 </div>
