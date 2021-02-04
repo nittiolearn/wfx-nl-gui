@@ -2,12 +2,12 @@
     class='row row-wrap row-stretch margin0 padding0 text-center page_format_tab_not_selected'
     style='height:34px'>
     <div style='width:36px'>
-        <span class='padding-small nl-link-text' title='Customize Drilldown'
+        <span class='padding-small nl-toolbar-icon2 nl-link-text' title='Customize Drilldown'
             ng-click='updatePivotTable()'>
             <i class="icon ion-gear-b bold fsh3"></i>
         </span>
     </div>
-    <div class='nl-min-250 padding-mid {{(drilldowndata.selectedtab.id == tab.id) ? "page_format_tab_selected" : ""}} nl-link-text'
+    <div class='nl-min-250 nl-dkonlg-lgondk-text fbold padding-mid {{(drilldowndata.selectedtab.id == tab.id) ? "page_format_tab_selected" : ""}} nl-link-text'
         ng-click='changeTab(drilldowndata, tab)'
         ng-repeat='tab in drilldowndata.tabs'>
         {{tab.name}}

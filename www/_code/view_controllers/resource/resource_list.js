@@ -82,7 +82,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlResourceUploade
 				help: nl.t('You can upload new resource by clicking on this card'), 
 				internalUrl: "resource_upload",
 				children: [],
-				style: 'nl-bg-blue'
+				style: 'nl-create-card'
 				};
 		ret.push(card);
 		return ret;

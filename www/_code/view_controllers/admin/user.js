@@ -168,19 +168,19 @@ nlAdminUserExport, nlAdminUserImport, nlTreeSelect, nlOuUserSelect, nlServerApi)
 					icon: nl.url.resUrl('dashboard/cruser.png'), 
 					internalUrl: 'adminuser_create',
 					help: nl.t('Add a new user by clicking on this card'), 
-					children: [], link: [], style: 'nl-bg-blue'};
+					children: [], link: [], style: 'nl-create-card'};
         ret.push(card);
 
         card.children.push({title: nl.t('Create user'), internalUrl: 'adminuser_create',
-            children: [], link: [], style: 'nl-bg-blue'});
+            children: [], link: [], style: 'nl-create-card'});
 
         card.children.push({title: nl.t('Export'), internalUrl: 'adminuser_export',
-            children: [], link: [], style: 'nl-bg-blue'});
+            children: [], link: [], style: 'nl-create-card'});
         card.children.push({title: nl.t('Import'), internalUrl: 'adminuser_import',
-            children: [], link: [], style: 'nl-bg-blue'});
+            children: [], link: [], style: 'nl-create-card'});
         if(_doesPastUserExist) {
             card.children.push({title: nl.t('Unarchive'), internalUrl: 'adminuser_unarchive',
-            children: [], link: [], style: 'nl-bg-blue'});
+            children: [], link: [], style: 'nl-create-card'});
         }
 		return ret;
 	}

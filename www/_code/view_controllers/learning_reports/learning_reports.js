@@ -915,7 +915,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			labels: [],
 			series: ['Assigned', 'Completed'],
 			colors: [_nl.colorsCodes.blue2, _nl.colorsCodes.done],
-			options:{scales: {yAxes: [{ticks: {beginAtZero:true}}]}}
+			options:{}
 		}];
 		var brackets = typeStr == 'Courses' ? '(within courses) ': '';
 		$scope.timeSummaryCharts = [{
@@ -927,7 +927,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 				labels: [],
 				series: [],
 				colors: [_nl.colorsCodes.blue2],
-				options:{scales: {yAxes: [{ticks: {beginAtZero:true}}]}}
+				options:{}
 			},
 			{
 				type: 'bar',
@@ -937,7 +937,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 				labels: [],
 				series: [],
 				colors: [_nl.colorsCodes.blue2],
-				options:{scales: {yAxes: [{ticks: {beginAtZero:true}}]}}
+				options:{}
 			},
 			{
 				type: 'bar',
@@ -947,7 +947,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 				labels: [],
 				series: [],
 				colors: [_nl.colorsCodes.blue2],
-				options:{scales: {yAxes: [{ticks: {beginAtZero:true}}]}}
+				options:{}
 			}],
 			$scope.drillDownInfo = {};
 			$scope.nhtOverviewInfo = {};

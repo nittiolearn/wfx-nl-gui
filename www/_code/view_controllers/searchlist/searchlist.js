@@ -122,7 +122,7 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv) {
 					icon: nl.url.resUrl('dashboard/crgroup.png'), 
 					internalUrl: 'searchlist_create',
 					help: nl.t('Click here to create custom search lists'), 
-					children: [], style: 'nl-bg-blue'};
+					children: [], style: 'nl-create-card'};
 		card.links = [];
 		ret.push(card);
 		return ret;

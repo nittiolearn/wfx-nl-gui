@@ -87,7 +87,7 @@ function(nl, nlDlg, nlRouter, $scope, nlServerApi, nlResourceUploader, nlProgres
                     icon: nl.url.resUrl('dashboard/crnewwsheet.png'), 
                     internalUrl: 'new_sco',
                     help: nl.t('Import a new scorm module zip file'), 
-                    children: [], style: 'nl-bg-blue'};
+                    children: [], style: 'nl-create-card'};
         card.links = [];
         return [card];
     }

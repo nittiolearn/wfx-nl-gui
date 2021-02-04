@@ -152,12 +152,11 @@ function(nl) {
 
 //-------------------------------------------------------------------------------------------------
 var AppCtrl = ['nl', '$scope', '$anchorScroll', 'nlKeyboardHandler', 'nlAnnouncementSrv', 'nlRouter',
-'nlLogViewer', 'nlOldCodeBridge', 'nlTopbarSrv', 'nlServerSideUserSettings',
-function(nl, $scope, $anchorScroll, nlKeyboardHandler, nlAnnouncementSrv, nlRouter, nlLogViewer,
-    nlOldCodeBridge, nlTopbarSrv, nlServerSideUserSettings) {
+'nlLogViewer', 'nlOldCodeBridge', 'nlTopbarSrv', 'nlServerSideUserSettings', 'ChartJSSrv',
+function(nl, $scope, $anchorScroll, nlKeyboardHandler, nlAnnouncementSrv, nlRouter, nlLogViewer, 
+    nlOldCodeBridge, nlTopbarSrv, nlServerSideUserSettings, ChartJSSrv) {
     nl.log.info('UserAgent: ', navigator.userAgent);
     if (NL_SERVER_INFO.oldCode) nlOldCodeBridge.expose();
-
     nl.rootScope.imgBasePath = nl.url.resUrl();
     nl.rootScope.pgInfo = nl.pginfo;
     nl.rootScope.pgBgimg = null;
@@ -176,6 +175,10 @@ function(nl, $scope, $anchorScroll, nlKeyboardHandler, nlAnnouncementSrv, nlRout
     // Called from child scope on page enter
     $scope.onPageEnter = function(userInfo) {
         nl.log.debug('app:onPageEnter - enter');
+        if (userInfo.groupinfo.groupCustomClass == 'nldarkmode') 
+            _initChartsForDarkMode();
+        else 
+            _initChartsForLightMode();
         nl.rootScope.bodyClass = 'showbody';
         nlAnnouncementSrv.initAnnouncements(userInfo, $scope);
         $scope.logo = userInfo.groupicon == '' ? nl.url.resUrl('general/top-logo2.png') : userInfo.groupicon;
@@ -199,6 +202,46 @@ function(nl, $scope, $anchorScroll, nlKeyboardHandler, nlAnnouncementSrv, nlRout
         nl.resizeHandler.broadcast('ESC');
     };
     
+    function _initChartsForDarkMode() {
+        var ChartJSProvider = ChartJSSrv.getChartJSProvider();
+        ChartJSProvider.setOptions("bar",{
+            scales: {
+                xAxes: [{
+                        gridLines: {
+                                display: true ,
+                                color: "#A0A0C0"
+                        },
+                        ticks: {
+                        fontColor: "#FFFFFF",
+                        }
+                }],
+                yAxes: [{
+                    gridLines: {
+                        display: true ,
+                        color: "#A0A0C0"
+                            },
+                    ticks: {
+                        fontColor: "#FFFFFF",
+                        beginAtZero:true,
+                    }
+                }],
+            }
+        });
+    }
+
+    function _initChartsForLightMode() {
+        var ChartJSProvider = ChartJSSrv.getChartJSProvider();
+        ChartJSProvider.setOptions("bar",{
+            scales: {
+                yAxes: [{
+                    ticks: {
+                        beginAtZero:true,
+                    }
+                }],
+            }
+        });
+
+    }
     function _updateTopbarMenus(userInfo) {
         var topbarMenus = [];
         if (nlRouter.isPermitted(userInfo, 'change_password')) {

@@ -112,7 +112,7 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlCardsSrv) {
 					icon: nl.url.resUrl('dashboard/crgroup.png'), 
 					internalUrl: 'dashboard_create',
 					help: nl.t('You can create a new custom dashboard by clicking on this card'), 
-					children: [], style: 'nl-bg-blue'};
+					children: [], style: 'nl-create-card'};
 		card.links = [];
 		ret.push(card);
 		return ret;
