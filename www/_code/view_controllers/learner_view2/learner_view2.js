@@ -204,6 +204,7 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlServerA
 		var className = nl.t('nl-card-section-scroll-{}', cards.type);
 		var element = document.getElementsByClassName(className);
 		var num = Math.floor(element[0].clientWidth/cardWidth);
+		cards.animClass = 'flyfrom-l';
 		element[0].scrollLeft += num*cardWidth + num*16;
 	}
 
@@ -214,6 +215,7 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlServerA
 		var className = nl.t('nl-card-section-scroll-{}', cards.type);
 		var element = document.getElementsByClassName(className);
 		var num = Math.floor(element[0].clientWidth/cardWidth);
+		cards.animClass = 'flyfrom-r';
 		element[0].scrollLeft -= num*cardWidth + num*16;
 	}
 
@@ -421,7 +423,6 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlServerA
 			card.buttonUrl = nl.url.lessonIconUrl(LAUNCH_BUTTON[card.type]);
 		}
 		card.title = record.repcontent.name;
-		card.desc = record.repcontent.remarks || record.repcontent.assign_remarks;
 		var icon = record.repcontent.icon || '';
 		if (icon.indexOf('icon:') == 0) card.icon2 = 'ion-ios-bookmarks fblue';
 		else card.icon = icon;
@@ -431,8 +432,50 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlServerA
 		card.not_after = record.raw_record.not_after || '';
 		card.upated = record.raw_record.updated || '';
 		card.detailsavps = record.detailsavps;
-		if (card.type == 'progress' || card.type == 'expired') 
+		card.help = '';
+		if (card.type == 'expired') {
 			card.progressPerc = record.stats.progressPerc;
+			card.prgClass = 'nl-card2-progress-bar-barRed';	
+			var date = nl.fmt.date2StrDDMMYYCard(card.not_after);
+			if (date)
+				card.help = nl.t('<div>Expired on {}</div>', date);
+		}
+		if (card.type == 'completed') {
+			var date = null;
+			if (card.not_after)	date = card.not_after;
+			else if (record.raw_record.ended) date = record.raw_record.ended;
+			if (!date) date = record.raw_record.updated;
+			date = nl.fmt.date2StrDDMMYYCard(date);
+			if (date)
+				card.help = nl.t('<div>Finished on {}</div>', date);
+		}
+		if (card.type == 'upcoming') {
+			var date = nl.fmt.date2StrDDMMYYCard(card.not_before);
+			if (date)
+				card.help = nl.t('<div>Starts on {}</div>', date);
+			var duration = record.repcontent.maxDuration;
+			if (duration)
+				card.help += nl.t('<div>Duration: {} mins</div>', duration);
+		}
+		if (card.type == 'pending') {
+			var date = nl.fmt.date2StrDDMMYYCard(card.not_after);
+			if (date)
+				card.help = nl.t('<div>Ends on {}</div>', date);
+			var duration = record.repcontent.maxDuration;
+			if (duration)
+				card.help += nl.t('<div>Duration: {} mins</div>', duration);
+		}
+		if (card.type == 'progress') {
+			card.prgClass = 'nl-card2-progress-bar-barGreen';	
+			card.progressPerc = record.stats.progressPerc;		
+			var date = nl.fmt.date2StrDDMMYYCard(card.not_after);
+			if (date)
+				card.help = nl.t('<div>Ends on {}</div>', date);
+			var duration = record.repcontent.minsLeft || 0;
+			if (duration)
+				card.help += nl.t('<div>{} mins remaining</div>', duration);
+		}
+
 		return card;
 	}
 

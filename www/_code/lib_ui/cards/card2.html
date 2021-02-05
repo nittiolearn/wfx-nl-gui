@@ -15,20 +15,19 @@ class='nl-card2-img row row-center margin0 padding0 {{canCover($event, true) ? "
 	<div class='row row-center margin0 padding0'
 		ng-if='card.progressPerc'>
 		<div class='nl-card2-progress-bar col padding0 margin0'>
-			<div class='nl-card2-progress-bar-bar'
-					style='width: {{card.progressPerc}}%'>
+			<div class='{{card.prgClass}}'
+					style='width: {{card.progressPerc}}%; c'>
 			</div>
 		</div>
 	</div>   
 </div>
-<div class='nl-card2-text-section' style='top: {{getTextAreaHeight(card)}}%; height: {{100-getTextAreaHeight(card)}}%'>
+<div class='nl-card2-text-section' style='top: {{getTextAreaHeight(card)}}%; height: {{90-getTextAreaHeight(card)}}%'>
 	<div class='nl-card2-header'>{{card.title}}</div>	
-	<div class='nl-card-fullDesc' nl-compile='card.help'></div>
 </div>
 <div class='nl-card2-links'>
-	<div class='row row-center margin0 padding0'>
+	<div class='row row-bottom margin0 padding0'>
 		<div class='col' style='text-align: left'>
-			<div class='' nl-compile='card.help'></div>
+			<div class='nl-card2-desc' nl-compile='card.help'></div>
 		</div>
 		<div ng-click='onCardInternalUrlClicked($event, card, card.url)'>
 			<span class="nl-card-more-icon nl-link-img {{getLaunchIconClass(card)}}">

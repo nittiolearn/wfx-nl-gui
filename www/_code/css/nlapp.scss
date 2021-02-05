@@ -1915,6 +1915,9 @@ input.nl-dlg-field-error, .nl-dlg-field-error {
   opacity: 0.8;
   color: $nlWhite;
   
+  .nl-card2-desc{
+    font-size: 90%;
+  }
   .nl-card-more-links {
     display: inline-block;
     opacity: 0;
@@ -1953,23 +1956,37 @@ input.nl-dlg-field-error, .nl-dlg-field-error {
   border-radius: 50px;
 }
 
-.nl-card2-progress-bar-bar {
+.nl-card2-progress-bar-barGreen {
   width: 0px;
   height: 4px;
   color: $nlWhite;
   font-weight: normal;
   border-radius: 50px;
-  background-image: -webkit-linear-gradient(-5deg, $nlPrimary 0%, $nlPrimaryLight 100%);
-  background-image: -webkit-linear-gradient(-5deg, var(--nlPrimary) 0%, var(--nlPrimaryLight) 100%);
-  background-image: -moz-linear-gradient(-5deg, $nlPrimary 0%, $nlPrimaryLight 100%);
-  background-image: -moz-linear-gradient(-5deg, var(--nlPrimary) 0%, var(--nlPrimaryLight) 100%);
-  background-image: -o-linear-gradient(-5deg, $nlPrimary 0%, $nlPrimaryLight 100%);
-  background-image: -o-linear-gradient(-5deg, var(--nlPrimary) 0%, var(--nlPrimaryLight) 100%);
-  background-image: linear-gradient(-5deg, $nlPrimary 0%, $nlPrimaryLight 100%);
-  background-image: linear-gradient(-5deg, var(--nlPrimary) 0%, var(--nlPrimaryLight) 100%);
+  background-image: -webkit-linear-gradient(-5deg, $nlStatusGreen 0%, $nlStatusGreen 100%);
+  background-image: -webkit-linear-gradient(-5deg, var(--nlStatusGreen) 0%, var(--nlStatusGreen) 100%);
+  background-image: -moz-linear-gradient(-5deg, $nlStatusGreen 0%, $nlStatusGreen 100%);
+  background-image: -moz-linear-gradient(-5deg, var(--nlStatusGreen) 0%, var(--nlStatusGreen) 100%);
+  background-image: -o-linear-gradient(-5deg, $nlStatusGreen 0%, $nlStatusGreen 100%);
+  background-image: -o-linear-gradient(-5deg, var(--nlStatusGreen) 0%, var(--nlStatusGreen) 100%);
+  background-image: linear-gradient(-5deg, $nlStatusGreen 0%, $nlStatusGreen 100%);
+  background-image: linear-gradient(-5deg, var(--nlStatusGreen) 0%, var(--nlStatusGreen) 100%);
 }
 
-
+.nl-card2-progress-bar-barRed {
+  width: 0px;
+  height: 4px;
+  color: $nlWhite;
+  font-weight: normal;
+  border-radius: 50px;
+  background-image: -webkit-linear-gradient(-5deg, $nlStatusRed 0%, $nlStatusRed 100%);
+  background-image: -webkit-linear-gradient(-5deg, var(--nlStatusRed) 0%, var(--nlStatusRed) 100%);
+  background-image: -moz-linear-gradient(-5deg, $nlStatusRed 0%, $nlStatusRed 100%);
+  background-image: -moz-linear-gradient(-5deg, var(--nlStatusRed) 0%, var(--nlStatusRed) 100%);
+  background-image: -o-linear-gradient(-5deg, $nlStatusRed 0%, $nlStatusRed 100%);
+  background-image: -o-linear-gradient(-5deg, var(--nlStatusRed) 0%, var(--nlStatusRed) 100%);
+  background-image: linear-gradient(-5deg, $nlStatusRed 0%, $nlStatusRed 100%);
+  background-image: linear-gradient(-5deg, var(--nlStatusRed) 0%, var(--nlStatusRed) 100%);
+}
  /*-----------------------------------------------------------------------------------------*
  * nl-card
  *-----------------------------------------------------------------------------------------*/

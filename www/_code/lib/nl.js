@@ -234,6 +234,17 @@ function Formatter() {
         var shortYear = getYearMini(d);        
         return  _fmt2Impl('{}-{}-{}', [_pad2(d.getDate()), monthObj[d.getMonth()+1], shortYear]);
     };
+    var dateStr = {1: 'st', 2: 'nd', 3: 'rd', 31: 'st'}
+    this.date2StrDDMMYYCard = function(d) {
+        if (!d) return '';
+        var shortYear = getYearMini(d);        
+        return  _fmt2Impl('{}{} {} {}', [d.getDate(), _getStr(d.getDate()), monthObj[d.getMonth()+1], shortYear]);
+    };
+
+    function _getStr(date) {
+        if (date in dateStr) return dateStr[date];
+        return 'th';
+    };
 
     function getYearMini(d) {
         var xdate = new Date(d);

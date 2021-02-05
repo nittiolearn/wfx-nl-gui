@@ -30,6 +30,13 @@
                             ng-keydown='tabdata.onSearch($event)'
                             style='border: none; height: 32px; background-color:inherit'>
                     </div>
+                    <div class='bgblue3 nl-link-text fbold fwhite padding-mid'
+                        ng-show='tabdata.canFetchMore'
+                        title='Fetch more learning records from the server'
+                        ng-click='tabdata.fetchMore($event)'>
+                        <i class='icon ion-refresh'></i>
+                        <span ng-if='$root.screenSize != "small"' style='font-size:80%'>Fetch more</span>
+                    </div>
                 </div>
             </div>
         <div>
