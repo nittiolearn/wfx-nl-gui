@@ -175,10 +175,13 @@ function(nl, $scope, $anchorScroll, nlKeyboardHandler, nlAnnouncementSrv, nlRout
     // Called from child scope on page enter
     $scope.onPageEnter = function(userInfo) {
         nl.log.debug('app:onPageEnter - enter');
-        if (userInfo.groupinfo.groupCustomClass == 'nldarkmode') 
-            _initChartsForDarkMode();
-        else 
-            _initChartsForLightMode();
+        if (userInfo.groupinfo) {
+            if (userInfo.groupinfo.groupCustomClass == 'nldarkmode') 
+                _initChartsForDarkMode();
+            else 
+                _initChartsForLightMode();
+
+        }
         nl.rootScope.bodyClass = 'showbody';
         nlAnnouncementSrv.initAnnouncements(userInfo, $scope);
         $scope.logo = userInfo.groupicon == '' ? nl.url.resUrl('general/top-logo2.png') : userInfo.groupicon;
