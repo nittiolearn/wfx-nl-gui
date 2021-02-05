@@ -1,0 +1,10 @@
+{
+  "name": "NittioApp",
+  "short_name": "NittioApp",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#fff",
+  "theme_color": "#153673",
+  "orientation": "portrait-primary",
+  "desctiption": "A PWA version of the Nittio Learn SaaS"
+}

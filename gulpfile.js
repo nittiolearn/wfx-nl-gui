@@ -95,7 +95,7 @@ gulp.task('clean', function(done) {
 
 gulp.task('build', ['nl_html', 'nl_css', 'nl_js', 'nl_js_old', 'nl_js_old_scorm', 
     'nl_css_old1', 'nl_css_old2', 'nl_generate_index', 'nl_generate_index_min', 
-    'nl_generate_mversion']);
+    'nl_generate_mversion', 'pwa']);
 
 gulp.task('watch', function() {
     gulp.watch(inPaths.html, ['nl_html']);
@@ -104,7 +104,7 @@ gulp.task('watch', function() {
     gulp.watch(inPaths.js, ['nl_js']);
     gulp.watch(inPaths.oldJs, ['nl_js_old', 'nl_js_old_scorm']);
     gulp.watch(inPaths.oldCss, ['nl_css_old1', 'nl_css_old2']);
-    gulp.watch(inPaths.htmlTemplate + '**', ['nl_generate_index', 'nl_generate_index_min', 'nl_generate_mversion']);
+    gulp.watch(inPaths.htmlTemplate + '**', ['nl_generate_index', 'nl_generate_index_min', 'nl_generate_mversion', 'pwa']);
 });
 
 //-------------------------------------------------------------------------------------------------
@@ -279,3 +279,23 @@ gulp.task('nl_copy_icon', function(done) {
 gulp.task('nl_copy_template', function(done) {
     nittioCopyResouce(done, 'template');
 });
+
+//------------------------------------------
+// Copying PWA Files into _script_bundles
+//------------------------------------------
+gulp.task('copy-manifest', function() {
+    return gulp.src('./www/_htmlTemplate/manifest.json')
+        .pipe(gulp.dest('../nittio/applications/nittiolearn/static/_script_bundles/'));
+  });
+  
+  gulp.task('copy-entry_script', function() {
+    return gulp.src('./www/_htmlTemplate/sw_entry.js')
+        .pipe(gulp.dest('../nittio/applications/nittiolearn/static/_script_bundles/'));
+  });
+
+  gulp.task('copy-service_worker', function() {
+    return gulp.src('./www/_htmlTemplate/service_worker.js')
+        .pipe(gulp.dest('../nittio/applications/nittiolearn/static/_script_bundles/'));
+  });
+  
+gulp.task('pwa', ['copy-manifest', 'copy-entry_script', 'copy-service_worker']);
