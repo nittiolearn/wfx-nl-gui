@@ -1,6 +1,6 @@
 <div class='padding-mid'>
-	<div style='border:1px solid #FFFFFF; box-shadow: 4px -2px 5px 0px rgba(0, 0, 0, 0.06)'>
-		<div class='row row-center padding-mid margin0' style='background-color: #FFFFFF;border-bottom: 1px solid #EFEFF5;'
+	<div style='border:1px solid fwhite; box-shadow: 4px -2px 5px 0px rgba(0, 0, 0, 0.06)'>
+		<div class='row row-center padding-mid margin0 nl-row'
 			ng-show='rootStat.folderCount > 0'>
 			<div class='col padding-mid'></div>
 			<div style='padding-right: 10px'>
@@ -10,17 +10,16 @@
 		        </div>
 			</div>
 		</div>
-		<div ng-repeat='cm in modules' class='anim fade'
-			style='background-color: #FFFFFF; border-bottom: 1px solid #EFEFF5' ng-hide='cm.hideItem'>
+		<div ng-repeat='cm in modules' class='anim fade nl-row' ng-hide='cm.hideItem'>
 	        <div ng-click='onRowClick($event, cm)'
-	        	class='row row-center row-wrap margin0 padding0 fdarkgrey1 {{ext.item.id == cm.id ? "item-selected" : ""}} {{cm.type != "certificate" ? "nl-link-text" : ""}}'>
+	        	class='row row-center row-wrap margin0 padding0 {{ext.item.id == cm.id ? "item-selected" : ""}} {{cm.type != "certificate" ? "nl-link-text" : ""}}'>
 				<div ng-class='resp2Col67' class='margin0 padding-mid' style='padding-left: {{cm.indentationLevel*16 + 8}}px'>
 					<div class='row row-center margin0 padding-mid'>
 						<div ng-if="cm.type == 'module'" style="width: 20px;">
 			                <i ng-show="!cm.isOpen" class="icon ion-arrow-right-b bold fsh3"></i>
 			                <i ng-show="cm.isOpen" class="icon ion-arrow-down-b bold fsh3 ng-hide"></i>
 			            </div>
-						<div class='col padding0 {{cm.asdSession ? "forange3" : ""}}' style='font-size: 16px; padding-right: 8px'>
+						<div class='col padding0 {{cm.asdSession ? "forange3" : ""}} nl-row-text'>
 							{{courseContent.targetLang == "en" ? cm.name : (courseContent.languageInfo[courseContent.targetLang][cm.id].name || cm.name)}}
 						</div>
 						<div class=''>
