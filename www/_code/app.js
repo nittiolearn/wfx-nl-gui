@@ -236,8 +236,22 @@ function(nl, $scope, $anchorScroll, nlKeyboardHandler, nlAnnouncementSrv, nlRout
         var ChartJSProvider = ChartJSSrv.getChartJSProvider();
         ChartJSProvider.setOptions("bar",{
             scales: {
+                xAxes: [{
+                        gridLines: {
+                                display: true ,
+                                color: "#CCCCCC"
+                        },
+                        ticks: {
+                        fontColor: "#000000",
+                        }
+                }],
                 yAxes: [{
+                    gridLines: {
+                        display: true ,
+                        color: "#CCCCCC"
+                            },
                     ticks: {
+                        fontColor: "#000000",
                         beginAtZero:true,
                     }
                 }],

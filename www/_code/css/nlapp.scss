@@ -4621,6 +4621,25 @@ box-shadow: inset 0 0 0 var(--nlStatusRed), 0 0 5px var(--nlBoxShadowBlackTransp
 
 .nl-forum-msg.me {background-color: var(--nlStatusGreen);}
   
+
+.nl-xxx-select {
+  background-color: var(--nlBgWhiteTransparent70);
+  min-height: 34px;
+  color: var(--nlPrimary);
+  span {
+    i.icon:hover {
+      color: var(--nlPrimary);
+      background-color: var(--nlBgWhiteTransparent70);
+      box-shadow: inset 0 0 2px var(--nlPrimaryDark), 0 0 5px var(--nlPrimaryDark);
+    }
+    i.icon:focus, i.icon:active, &.activated > i.icon, i.icon.activated {
+      color: var(--nlPrimary);
+      background-color: var(--nlWhite);
+      box-shadow: inset 0 0 5px var(--nlPrimaryDark), 0 0 2px var(--nlPrimaryDark);
+    }  
+  }
+}
+
   /*-----------------------------------------------------------------------------------------*
  * darkmode background for all screens
  *-----------------------------------------------------------------------------------------*/
@@ -4740,7 +4759,25 @@ box-shadow: inset 0 0 0 var(--nlStatusRed), 0 0 5px var(--nlBoxShadowBlackTransp
           opacity: 1;
         }
       }
-    }  
+    }
+    .nl-xxx-select {
+      background-color: var(--nlBorderGrey1);
+      min-height: 34px;
+      color: var(--nlPrimary);
+      span {
+        i.icon:hover {
+          color: var(--nlPrimary);
+          background-color: var(--nlBgWhiteTransparent70);
+          box-shadow: inset 0 0 2px var(--nlPrimaryDark), 0 0 5px var(--nlPrimaryDark);
+        }
+        i.icon:focus, i.icon:active, &.activated > i.icon, i.icon.activated {
+          color: var(--nlPrimary);
+          background-color: var(--nlWhite);
+          box-shadow: inset 0 0 5px var(--nlPrimaryDark), 0 0 2px var(--nlPrimaryDark);
+        }  
+      }
+    }
+      
   }
 
   .nl-dlg{
@@ -4790,6 +4827,11 @@ box-shadow: inset 0 0 0 var(--nlStatusRed), 0 0 5px var(--nlBoxShadowBlackTransp
     }
   }
   
+  nl-summary-box{
+    .sb-padding {
+      padding: 20px;
+    }
+  }
   .nl-summary-box{
       background-color: var(--nlPrimary);
     .infographic {
@@ -4804,6 +4846,7 @@ box-shadow: inset 0 0 0 var(--nlStatusRed), 0 0 5px var(--nlBoxShadowBlackTransp
     border: 1px solid var(--nlWhite);
     .nl-cv-item-text{
       color: var(--nlWhite);
+      font-weight: 600;
     }
   }
   .nl-cv-item.selected {
@@ -4821,7 +4864,29 @@ box-shadow: inset 0 0 0 var(--nlStatusRed), 0 0 5px var(--nlBoxShadowBlackTransp
     width: 26px; 
     height: 24px;   
   }
-
+  nl-course-view-icon, .icon{
+    i.icon{
+      color: var(--nlWhite);
+    }
+  }
+  nl-dlg{
+    .nl-cv-item {
+      border-radius: 8px;
+      background-color: $nlBorderGrey1;
+      background-color: var(--nlBorderGrey1);
+      border: 1px solid $nlBorderGrey2;
+      border: 1px solid var(--nlBorderGrey2);
+      .nl-cv-item-text{
+        color: var(--nlPrimary);
+      }
+    }
+    
+    .nl-cv-item.selected {
+      background-color: $nlBorderGrey2;
+      background-color: var(--nlBorderGrey2);
+    }
+    
+  }
 /*-----------------------------------------------------------------------------------------*
  * toolbar icons section styles (card2)
  *-----------------------------------------------------------------------------------------*/
@@ -4972,6 +5037,7 @@ box-shadow: inset 0 0 0 var(--nlStatusRed), 0 0 5px var(--nlBoxShadowBlackTransp
 .nl-dlg{
   .nl-thumbnail-container {  
     .nl-thumbnail {
+      border: 1px solid var(--nlBlack);
       .nl-thumbnail-close {
         color: var(--nlStatusRed);
         cursor: pointer;
@@ -5002,6 +5068,15 @@ color: var(--nlBgGrey1);
 }
 .nl-details{
   color: var(--nlBgGrey1);
+}
+
+.page_format_tab_not_selected {
+  border-bottom: 1px solid var(--nlWhite);
+}
+nl-dlg {
+  .page_format_tab_not_selected {
+    border-bottom: 1px solid var(--nlBorderBlackTransparent20);
+  }  
 }
 }
 /*-----------------------------------------------------------------------------------------*

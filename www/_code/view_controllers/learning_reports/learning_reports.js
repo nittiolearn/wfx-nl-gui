@@ -37,7 +37,7 @@ function module_init() {
 		'nl.learning_reports.lr_report_records', 'nl.learning_reports.lr_summary_stats', 'nl.learning_reports.lr_import',
 		'nl.learning_reports.lr_drilldown', 'nl.learning_reports.lr_nht_srv',
 		'nl.learning_reports.others.lr_completed_modules',
-		'nl.learning_reports.lr_course_assign_view', 'nl.learning_reports.lr_update_batch_dlg'])
+		'nl.learning_reports.lr_course_assign_view', 'nl.learning_reports.lr_update_batch_dlg', 'nl.learning_reports.lr_pagelevelscore'])
 	.config(configFn)
 	.controller('nl.LearningReportsCtrl', LearningReportsCtrl)
 	.service('nlLearningReports', NlLearningReports);
@@ -1410,6 +1410,8 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 	}
 
 	function _updatePageLevelCharts(plrRows) { 
+		var darkmode = false;
+		if (_userInfo.groupinfo.groupCustomClass == 'nldarkmode') darkmode = true;
 		var charts = {labels: [], series: ['Correct', 'Partially correct', 'Incorrect'],
 					  	options: {scales: {
 							xAxes: [{
@@ -1445,7 +1447,13 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 						currentpos: 0,
 						maxvisible: 10
 					};
-
+		if (darkmode) {
+			charts.options.scales.xAxes[0].gridLines = {display: true, color: "#A0A0C0"},
+			charts.options.scales.xAxes[0].ticks.fontColor = "#FFFFFF"
+			charts.options.scales.yAxes[0].gridLines = {display: true, color: "#A0A0C0"},
+			charts.options.scales.xAxes[0].ticks = {fontColor: "#FFFFFF", 'beginAtZero': true}
+		}
+			
 		var chartArray = [charts];
 		$scope.pageLevelInfo.selectedChart = chartArray[0];
 		charts.graphData = [];
@@ -1460,17 +1468,9 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		}
 	   
 		_updatePageCharts(charts);
-		$scope.pageLevelInfo.selectedChart.visibleStr = _getVisibleStringCharts;
-		$scope.pageLevelInfo.selectedChart.canShowNext = _canShowNextCharts;
-		$scope.pageLevelInfo.selectedChart.canShowPrev = _canShowPrevCharts;
-		$scope.pageLevelInfo.selectedChart.onClickOnNextPl = function(selectedChart){
-			if (!selectedChart || !_canShowNextCharts(selectedChart)) return;
-			_onClickOnNextCharts(selectedChart, 'page'); 
-		}
-		$scope.pageLevelInfo.selectedChart.onClickOnPrevPl = function(selectedChart){
-			if (!selectedChart || !_canShowPrevCharts(selectedChart)) return;
-			_onClickOnPrevCharts(selectedChart, 'page'); 
-		}	
+		$scope.pageLevelInfo.charts = {getVisibleStringFn: _getVisibleStringCharts, canShowNext: _canShowNextCharts,
+									  canShowPrev: _canShowPrevCharts, onClickOnNext: _onClickOnNextCharts,
+									  onClickOnPrev: _onClickOnPrevCharts};
 	};
 
 	//---------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -1653,6 +1653,8 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		var level1pivotName = $scope.pivotConfig.level1Field.name || lrColNamesDict[$scope.pivotConfig.level1Field.id].name;
 		$scope.drillDownInfo.charts = {options: [{id: $scope.pivotConfig.level1Field.id, name: nl.t('{} (A-Z)', level1pivotName)}, {id: 'completed', name: 'Highest completion'}, {id: 'pending', name: 'Lowest completion'}]};
 		var summaryRow = (_drilldownStatsCountDict[0] && _drilldownStatsCountDict[0].children) ? _drilldownStatsCountDict[0].children : {};
+		var darkmode = false;
+		if (_userInfo.groupinfo.groupCustomClass == 'nldarkmode') darkmode = true;
 		var charts = {labels: [], series: ['Certified/Done', 'Failed', 'Pending'],
 					  	options: {scales: {
 							xAxes: [{
@@ -1688,7 +1690,12 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 						currentpos: 0,
 						maxvisible: 10
 					};
-		
+		if (darkmode) {
+			charts.options.scales.xAxes[0].gridLines = {display: true, color: "#A0A0C0"},
+			charts.options.scales.xAxes[0].ticks.fontColor = "#FFFFFF"
+			charts.options.scales.yAxes[0].gridLines = {display: true, color: "#A0A0C0"},
+			charts.options.scales.xAxes[0].ticks = {fontColor: "#FFFFFF", 'beginAtZero': true}
+		}
 		charts.graphData = [];
 		for (var key in summaryRow) {
 			var statsDict = summaryRow[key].cnt;

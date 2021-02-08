@@ -46,7 +46,7 @@
     <div class='nl-topsection'>
         <div class='row row-center margin0 padding0 bb1'
             style='height: 36px; overflow: hidden;'>
-            <div class='col text-center padding-mid' style='height: 36px; overflow: hidden'>
+            <div class='col text-center padding-mid nl-dkonlg-lgondk-text' style='height: 36px; overflow: hidden'>
                 <span ng-show='filterStr && screenSize == "large"'>{{filterStr}}</span>
                 <span ng-show='fetchInProgress' class='forange fsh6 anim fade fsmall1'
                     title='Fetching the data from server. Please wait ...'>
@@ -83,7 +83,7 @@
             </span>
         </div>
         <div class='padding-small'></div>
-        <div ng-show='filterStr && screenSize != "large"' class='fsh6 padding-mid anim fade'>
+        <div ng-show='filterStr && screenSize != "large"' class='fsh6 nl-dkonlg-lgondk-text padding-mid anim fade'>
             {{filterStr}} 
         </div>    
 
@@ -347,68 +347,7 @@
                     <span>No completed module, page level score is not available.</span>
                 </div>
                 <div ng-if='pageLevelInfo.visibleRows.length > 0' class='anim-enter {{getAnimClass("charts")}}'>
-                    <div class='row row-center text-center margin0 padding0'>
-                        <div class='col'></div>
-                        <div class='col col-80' style='width: 100%; max-width: 900px;min-width: 300px;''>
-                            <div class=' padding-small'></div>
-                            <div class='row row-center margin0 padding0 text-left'>
-                                <div class='col fsh5 padding-mid nl-dkonlg-lgondk-text'>
-                                    {{pageLevelInfo.selectedChart.title}}
-                                </div>
-                                <div>
-                                    <div class='row row-center margin0 padding-small' style='height:36px'>
-                                        <div class=''>
-                                            <span>{{pageLevelInfo.selectedChart.visibleStr(pageLevelInfo.selectedChart)}}</span>
-                                        </div>
-                                        <div class='padding-small'></div>
-                                        <div class='{{pageLevelInfo.selectedChart.canShowPrev(pageLevelInfo.selectedChart) ? "nl-nav-button" : "fgrey"}} nl-nav-arrow'
-                                            ng-click='pageLevelInfo.selectedChart.onClickOnPrevPl(pageLevelInfo.selectedChart)'>
-                                            <span style='padding-left: 8px' title='Prev'>
-                                                <i class="icon ion-ios-arrow-back fbold fsh4"></i>
-                                            </span>
-                                        </div>
-                                        <div class='padding-small'></div>
-                                        <div class='{{pageLevelInfo.selectedChart.canShowNext(pageLevelInfo.selectedChart) ? "nl-nav-button" : "fgrey"}} nl-nav-arrow'
-                                            ng-click='pageLevelInfo.selectedChart.onClickOnNextPl(pageLevelInfo.selectedChart)'>
-                                            <span style='padding-left: 12px' title='Next'>
-                                                <i class="icon ion-ios-arrow-forward fbold fsh4"></i>
-                                            </span>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class='padding-mid'></div>
-                            </div>
-                            <div class='padding-small'></div>
-                            <div style='width: auto; height: {{pageLevelInfo.selectedChart.data[0].length > 3 ?  pageLevelInfo.selectedChart.data[0].length*45 : 200}}px'>
-                                <canvas class="chart chart-horizontal-bar ng-isolate-scope" 
-                                        chart-data="pageLevelInfo.selectedChart.data"
-                                        chart-labels="pageLevelInfo.selectedChart.labels" 
-                                        chart-options="pageLevelInfo.selectedChart.options"
-                                        chart-series="pageLevelInfo.selectedChart.series" 
-                                        chart-colors="pageLevelInfo.selectedChart.colors">
-                                </canvas>
-                            </div>
-                        </div>
-                        <div class='col'></div>
-                    </div>
-                </div>
-                <div ng-if='pageLevelInfo.visibleRows.length > 0' 
-                     class='padding-mid anim-enter1 flyfrom-l' 
-                     style='width: {{checkOverflow($event) ? "fit-content" : ""}}'>
-                    <table class='nl-table nl-table-styled3 cellborder padding-mid' style='min-width:900px'>
-                        <tr class='header'>
-                            <td  ng-repeat='col in pageLevelInfo.columns track by $index'
-                                class='{{col.id == "question"? "nl-plHeader":""}}'>
-                                <div>{{col.name || '-'}}</div>
-                            </td> 
-                        </tr>
-                        <tr ng-repeat='rec in pageLevelInfo.visibleRows track by $index' class='{{}}'>
-                            <td title="{{rec[col.id] || '-'}}" ng-repeat='col in pageLevelInfo.columns track by $index'
-                                class="{{col.id == 'question'? 'nl-plLengthCompress':''}}">
-                                {{rec[col.id] || '-'}}
-                            </td>
-                        </tr>
-                    </table>
+                    <nl-page-level-score pageleveldata='pageLevelInfo'></nl-page-level-score>
                 </div>
             </div>
          
