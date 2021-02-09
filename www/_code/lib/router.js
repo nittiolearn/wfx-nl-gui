@@ -127,11 +127,17 @@ function(nl, nlDlg, nlServerApi, nlMarkup, $state, nlTopbarSrv, nlMobileConnecto
         _getUserInfo(pageUrl, function(userInfo) {
             _sendGoogleAnalytics(userInfo);
             nl.rootScope.pgBgimg = null;
+            nl.rootScope.groupCustomClass = '';
             nl.pginfo.username = (userInfo.username == '') ? '' : userInfo.displayname;
             nlMarkup.setGid((userInfo.username == '') ? 0 : userInfo.groupinfo.id);
             nl.pginfo.groupCustomCss = userInfo.groupinfo && userInfo.groupinfo.groupCustomCss
                 ? userInfo.groupinfo.groupCustomCss : '';
             var pagePerm = permission.getPermObj(pageUrl);
+            nl.pginfo.groupCustomCss = userInfo.groupinfo && userInfo.groupinfo.groupCustomCss
+            var groupCustomClass = userInfo.groupinfo && userInfo.groupinfo.groupCustomClass ? userInfo.groupinfo.groupCustomClass : '';
+            if (!groupCustomClass && pagePerm.pageMode) {
+                nl.rootScope.groupCustomClass = pagePerm.pageMode;
+            }
             if (pagePerm == null) {
                 nlDlg.popupStatus(nl.t('Cannot access the page'));
                 return _done('/home');
@@ -326,7 +332,7 @@ function Permission(nl) {
         '/admin_group': {login: true, permission: 'admin_group', termRestriction: TR_CLOSED},
         '/recyclebin': {login: true, permission: 'lesson_approve', termRestriction: TR_CLOSED},
 		'/learner_view': {login:true, permission: 'basic_access', termRestriction: TR_RESTRICTED},
-		'/learner_view2': {login:true, permission: 'basic_access', termRestriction: TR_RESTRICTED},
+		'/learner_view2': {login:true, permission: 'basic_access', termRestriction: TR_RESTRICTED, pageMode: 'nldarkmode'},
         '/announcement': {login: true, permission: 'basic_access', termRestriction: TR_CLOSED},        
 
         // Operation permissions

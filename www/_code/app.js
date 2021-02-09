@@ -160,6 +160,7 @@ function(nl, $scope, $anchorScroll, nlKeyboardHandler, nlAnnouncementSrv, nlRout
     nl.rootScope.imgBasePath = nl.url.resUrl();
     nl.rootScope.pgInfo = nl.pginfo;
     nl.rootScope.pgBgimg = null;
+    nl.rootScope.groupCustomClass = '';
     nl.rootScope.gotoAnchor = function(anchor) {
         if (anchor) nl.location.hash(anchor);
         $anchorScroll();
