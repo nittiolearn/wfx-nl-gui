@@ -26,6 +26,10 @@ function(nl, nlDlg, nlConfig, Upload) {
         g_noPopup = bNoPopup;
     };
 
+    this.isLoginError = function() {
+        return server.isLoginError();
+    };
+
     this.clearCache = function() {
         return nl.db.clear().then(function(res) {
             server.reinitUserInfo();
@@ -697,7 +701,7 @@ function(nl, nlDlg, nlConfig, Upload) {
     //---------------------------------------------------------------------------------------------
 
     this.getPageFetcher = function(attrs) {
-        return new PageFetcher(nl, nlDlg, attrs);
+        return new PageFetcher(nl, nlDlg, attrs, server);
     };
 
     //---------------------------------------------------------------------------------------------
@@ -908,6 +912,10 @@ function NlServerInterface(nl, nlDlg, nlConfig, Upload, brandingInfoHandler) {
             });
         });
     };
+
+    this.isLoginError = function() {
+        return _isLoginError;
+    };
     
     //----------------------------------------------------------------------------------------------
     // Private methods
@@ -1014,6 +1022,7 @@ function NlServerInterface(nl, nlDlg, nlConfig, Upload, brandingInfoHandler) {
         }
     }
 
+    var _isLoginError = false;
     function _displayErrorMessage(status, data, reject, noPopup) {
         var errorMsg = data._errorMsg || ET_ERROR_MESSAGES[status];
         var extendedStatusCode = data._extendedStatusCode;
@@ -1021,7 +1030,8 @@ function NlServerInterface(nl, nlDlg, nlConfig, Upload, brandingInfoHandler) {
         if (data._extendedStatusCode) rejectData = {msg: errorMsg, extendedStatusCode: extendedStatusCode};
 
         nl.log.warn('_displayErrorMessage:', errorMsg, status);
-        if (noPopup) {
+        _isLoginError = status == ET_LOGINERROR || (extendedStatusCode || '').indexOf('LOGIN') == 0;
+        if (noPopup && !_isLoginError) {
             reject(rejectData);
             return;
         }
@@ -1053,7 +1063,7 @@ function NlServerInterface(nl, nlDlg, nlConfig, Upload, brandingInfoHandler) {
 }
 
 //----------------------------------------------------------------------------------------------
-function PageFetcher(nl, nlDlg, attrs) {
+function PageFetcher(nl, nlDlg, attrs, server) {
     if (!attrs) attrs = {};
     var urlParams = nl.location.search();
     var _max = ('max' in urlParams) ? parseInt(urlParams.max) : attrs.defMax || 50;
@@ -1102,7 +1112,7 @@ function PageFetcher(nl, nlDlg, attrs) {
                 _retryCount = 0;
                 return false;
             }
-            if (_retryCount >= params._jsMaxRetries) {
+            if (_retryCount >= params._jsMaxRetries || server.isLoginError()) {
                 nlDlg.popdownStatus(0);
                 _fetchInProgress = false;
                 _canFetchMore = true;

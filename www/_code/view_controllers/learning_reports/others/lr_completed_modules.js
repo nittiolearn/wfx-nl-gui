@@ -121,7 +121,11 @@ function($scope, nl, nlDlg, nlRouter, nlGroupInfo, nlLrFilter, nlServerApi, nlEx
         _pageFetcher.fetchBatchOfPages(nlServerApi.learningReportsGetCompletedModuleList, params, fetchMore, 
         function(results, batchDone, promiseHolder) {
             if (!results) {
-                nlDlg.popupAlert({title: 'Error', template: 'Error connecting to the server. Press the <i class="ion-refresh"></i> (fetch more) toolbar icon to resume fetching.'});
+                var msg = 'Error connecting to the server. Press the <i class="ion-refresh"></i> (fetch more) toolbar icon to resume fetching.';
+                if (nlServerApi.isLoginError()) {
+                    msg = 'You could login in another browser tab and Press the <i class="ion-refresh"></i> (fetch more) toolbar icon to resume fetching.';
+                }
+                nlDlg.popupAlert({title: 'Error', template: msg});
                 return;
             }
             for (var i=0; i<results.length; i++) _addRecord(results[i]);
