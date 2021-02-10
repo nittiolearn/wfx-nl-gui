@@ -23,8 +23,8 @@ function UrlString(location) {
     this.init();
 }
 
-var NlRouter = ['nl', 'nlDlg', 'nlServerApi', 'nlMarkup', '$state', 'nlTopbarSrv', 'nlMobileConnector',
-function(nl, nlDlg, nlServerApi, nlMarkup, $state, nlTopbarSrv, nlMobileConnector) {
+var NlRouter = ['nl', 'nlDlg', 'nlServerApi', 'nlMarkup', '$state', 'nlTopbarSrv', 'nlMobileConnector', 'nlGroupInfo',
+function(nl, nlDlg, nlServerApi, nlMarkup, $state, nlTopbarSrv, nlMobileConnector, nlGroupInfo) {
     var permission = new Permission(nl);
     var defaultFn = function() {return function(resolve, reject) {resolve(true);};};
 
@@ -168,6 +168,7 @@ function(nl, nlDlg, nlServerApi, nlMarkup, $state, nlTopbarSrv, nlMobileConnecto
             } else if(userInfo.groupinfo && ('features' in userInfo.groupinfo)) {
                 nlMobileConnector.enableScreenshot();
             }
+            nlGroupInfo.onPageEnter(userInfo);
             if ('onPageEnter' in $scope.$parent) $scope.$parent.onPageEnter(userInfo);
             pageEnterFn(userInfo, e).then(function(status) {
                 if (status) return _done(null);

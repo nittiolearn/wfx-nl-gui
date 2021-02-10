@@ -9,14 +9,21 @@ function module_init() {
 }
 
 //-------------------------------------------------------------------------------------------------
-var NlGroupInfo = ['nl', 'nlDlg', 'nlImporter', 'nlGroupCache',
-function(nl, nlDlg, nlImporter, nlGroupCache) {
+var NlGroupInfo = ['nl', 'nlDlg', 'nlImporter', 'nlGroupCache', 'nlGroupCache4',
+function(nl, nlDlg, nlImporter, nlGroupCache, nlGroupCache4) {
     var self = this;
     
     this.get = function(grpid) {
         return _groupInfos[grpid||''] || null;
     };
     
+    var _myNlGroupCache = nlGroupCache;
+    this.onPageEnter = function(userInfo) {
+        var params = nl.location.search();
+        _myNlGroupCache = params.gc4 != 'disable' && ((userInfo.groupinfo || {}).features || {}).gc4 ?
+            nlGroupCache4 : nlGroupCache;
+    };
+
     var _groupInfos = {};
     this.init1 = function() {
         // Init only group data: least time consuming
@@ -35,7 +42,7 @@ function(nl, nlDlg, nlImporter, nlGroupCache) {
     };
 
     function _initImpl(skipUsers, reload, grpid, max) {
-    	return nlGroupCache.get(skipUsers, reload, grpid, max).then(function(result) {
+    	return _myNlGroupCache.get(skipUsers, reload, grpid, max).then(function(result) {
             _groupInfos[grpid || ''] = result;
         }, function(e) {
             return e;

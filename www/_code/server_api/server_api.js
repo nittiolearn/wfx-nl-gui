@@ -711,6 +711,17 @@ function(nl, nlDlg, nlConfig, Upload) {
     };    
     
     //---------------------------------------------------------------------------------------------
+    // Json Field and Json Cache
+    //---------------------------------------------------------------------------------------------
+    this.jsonFieldStream = function(data) {
+        return server.post('_serverapi/jsonfield_stream.json', data);
+    };    
+    
+    this.jsonCacheGet = function(data) {
+        return _serverPostToApi3OrApi('json_cache_get', data);
+    };    
+    
+    //---------------------------------------------------------------------------------------------
     // Private methods
     //---------------------------------------------------------------------------------------------
     var _api3BatchNumbers = {
@@ -724,7 +735,10 @@ function(nl, nlDlg, nlConfig, Upload) {
 
         'learning_reports_get_list' : 1,
         'learning_reports_get_completed_module_list': 1,
-        'course_or_assign_get_many': 1
+        'course_or_assign_get_many': 1,
+
+        // Only available in api3
+        'json_cache_get': 0
     };
 
     var _api3InUrl = undefined;
@@ -733,12 +747,15 @@ function(nl, nlDlg, nlConfig, Upload) {
         if (_api3InUrl === undefined) {
             _api3InUrl = nl.location.search().api3 || 'guess';
         }
-        if (_api3InUrl == 'no') return 'nittio';
-        if (_api3InUrl == 'yes') return 'nittio3';
-        var userInfo = server.getCurrentUserInfo() || {};
-        var grpApiBatchLevel = ((userInfo.groupinfo || {}).features || {}).useBleadingApi;
-        if (grpApiBatchLevel === undefined || grpApiBatchLevel === true) grpApiBatchLevel = 1;
-        else if (!grpApiBatchLevel) grpApiBatchLevel = 0;
+        var grpApiBatchLevel = 0;
+        if (_api3InUrl == 'no') grpApiBatchLevel = 0;
+        else if (_api3InUrl == 'yes') grpApiBatchLevel = 100;
+        else {
+            var userInfo = server.getCurrentUserInfo() || {};
+            grpApiBatchLevel = ((userInfo.groupinfo || {}).features || {}).useBleadingApi;
+            if (grpApiBatchLevel === true) grpApiBatchLevel = 1;
+            else if (!grpApiBatchLevel) grpApiBatchLevel = 0;
+        }
 
         if (_api3BatchNumbers[url] <= grpApiBatchLevel) return 'nittio3';
         return 'nittio';
