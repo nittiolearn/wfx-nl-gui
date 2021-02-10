@@ -24,7 +24,8 @@ function module_init() {
     .directive('nlElastic', ElasticTextareaDirective)
     .directive('nlDateSelect', DateSelectDirective)
     .directive('nlDateTimeSelect', DateTimeSelectDirective)
-    .directive('nlNavigationSection', NavigationSection);
+    .directive('nlNavigationSection', NavigationSection)
+    .directive('nlDisableRightClick', NlDisableRightClickDirective);
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -592,6 +593,18 @@ function(nl) {
             };
         }
     };
+}];
+
+var NlDisableRightClickDirective =[
+function() {  
+    return {  
+        restrict: 'A',  
+        link: function(scope, element, attr) {  
+            element.bind('contextmenu', function(e) {  
+                e.preventDefault();  
+            })  
+        }  
+    }  
 }];
 
 var _preventMultiCallsInProgress = false;

@@ -99,6 +99,7 @@ function ModeHandler(nl, nlCourse, nlServerApi, nlDlg, nlGroupInfo, $scope, nlRe
             this._userName = nl.t('({})', nlGroupInfo.formatUserNameFromRecord(course));
             nl.pginfo.pageSubTitle = this._userName;
         } else if (this.mode === MODES.DO) {
+            this._userName = nl.pginfo.username;
             nl.pginfo.pageSubTitle = nl.t('({})', nl.pginfo.username);
         } 
     };

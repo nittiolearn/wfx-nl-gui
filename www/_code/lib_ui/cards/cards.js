@@ -371,8 +371,8 @@ function _canCoverImg(url, isCard2) {
     if ('canCover' in info) return info.canCover;
     if (isCard2) {
         var ar = info.w ? info.h/info.w : 0;
-        info.canCover = (ar > 0.51 && ar < 0.77);
-        return;
+        info.canCover = (ar > 0.40 && ar < 0.85);
+        return info.canCover;
     }
     var ar = info.w ? info.h/info.w : 0;
     info.canCover = (ar > 0.51 && ar < 0.77);
@@ -501,7 +501,23 @@ var CardImageDirective = [
 function() { return {restrict: 'E', templateUrl: 'lib_ui/cards/card-image.html'}; }];
 
 var CardImageDirective2 = [
-    function() { return {restrict: 'E', templateUrl: 'lib_ui/cards/card-image2.html'}; }];
+function() { 
+    return {
+        restrict: 'E', 
+        transclude: true,
+        templateUrl: 'lib_ui/cards/card-image2.html',
+        scope: {
+            card: '='
+        },
+        link: function($scope, iElem, iAttrs) {
+            $scope.getImgMaxHeight = function(card) {
+                if(card.size == 'L') return 260;
+                if(card.size == 'M') return 200;
+                if(card.size == 'S') return 150;
+            };
+        }
+    }    
+}];
     
 var CardDescDirective = [
 function() { return {restrict: 'E', templateUrl: 'lib_ui/cards/card-desc.html'}; }];

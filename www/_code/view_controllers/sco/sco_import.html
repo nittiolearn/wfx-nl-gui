@@ -35,24 +35,24 @@
             </span>
         </span>
     </div>
-    <div class='nl-form-body' ng-if='!viewer.data'>
+    <div class='nl-form-body nl-dkonlg-lgondk-text' ng-if='!viewer.data'>
         Please wait ...
     </div>
     <div class='nl-form-body' ng-if='viewer.data'>
-        <div class='padding-small row row-center margin0'>
+        <div class='padding-small row row-center margin0 nl-dkonlg-lgondk-text'>
             <b class='col col-20'>Template:</b>
             <span class='col'>{{viewer.data.template}}</span>
         </div>
-        <div class='padding-small row row-center margin0'>
+        <div class='padding-small row row-center margin0 nl-dkonlg-lgondk-text'>
             <b class='col col-20'>Base version:</b>
             <span class='col'>{{viewer.data.baseVersion}}</span>
         </div>
-        <div class='padding-small row row-center margin0'>
+        <div class='padding-small row row-center margin0 nl-dkonlg-lgondk-text'>
             <span class='col col-20'>Search: </span>
             <input ng-model='viewer.search' class='col nl-dlg-field-value'></input>
         </div>
         <div class='padding-small'>
-            <H3>{{viewer.active.scos}} of {{viewer.data.scos.length}} SCO are uploaded</H3>
+            <H3 class='nl-dkonlg-lgondk-text'>{{viewer.active.scos}} of {{viewer.data.scos.length}} SCO are uploaded</H3>
             <table class='nl-table nl-table-styled'>
                 <tr>
                     <th>ID</th>
@@ -69,7 +69,7 @@
                     </td>                    
                 </tr>
             </table>
-            <H3>{{viewer.active.assets}} of {{viewer.data.assets.length}} ASSETS are uploaded</H3>
+            <H3 class='nl-dkonlg-lgondk-text'>{{viewer.active.assets}} of {{viewer.data.assets.length}} ASSETS are uploaded</H3>
             <table class='nl-table nl-table-styled'>
                 <tr>
                     <th>Resid</th>
@@ -85,11 +85,11 @@
                     </td>                    
                 </tr>
             </table>
-            <H3>Manifest XML</H3>
-            <pre>{{viewer.data.manifestXml}}</pre>
+            <H3 class='nl-dkonlg-lgondk-text'>Manifest XML</H3>
+            <pre class='nl-dkonlg-lgondk-text'>{{viewer.data.manifestXml}}</pre>
             <div class='padding forange'>
                 <p><b>Note:</b> You could delete the complete manifest and all the resources (ASSETS) uploaded as part of this SCORM import. The SCO modules generated as part of this import will not be deleted. You could retain the SCO modules if you wish and modify it with new manifest links or manually delete them.</p>
-                <div class='nl-link-text' ng-click='onDeleteManifest(viewer.card)'>Delete manifest</div>
+                <div class='nl-link-text nl-dkonlg-lgondk-text'' ng-click='onDeleteManifest(viewer.card)'>Delete manifest</div>
             </div>
         </div>
     </div>

@@ -1866,13 +1866,9 @@ input.nl-dlg-field-error, .nl-dlg-field-error {
 .nl-card2-img.cover {
   padding: 0;
   img {
-    position: absolute;
-    top: 0;
-    left: 0;
-    height: 100%;
-    width: 100%;
-    object-fit: cover;
+    width: inherit;
     object-position: top;
+    border-radius: 10px 10px 0px 0px;  
   }
 }
 
@@ -2069,8 +2065,8 @@ nl-cards {
     height: 100%;
   }
   img {
-    max-height: 164px; /* computed based on card size of width 280px and aspect ratio of 1.4 */
     max-width: 100%;
+    border-radius: 10px 10px 0px 0px;
   }
   .icon-tl, .icon-tr, .icon-bl, .icon-br {
     position: absolute;
@@ -3256,6 +3252,9 @@ background-color: var(--nlFontYellow);}
   font-size: 150%;
 }
   
+.fsh160{
+  font-size: 160%;
+}
 .fsh5 {
   font-size: 120%;
   font-weight: bold;
