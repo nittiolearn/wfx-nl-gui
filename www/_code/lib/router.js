@@ -135,9 +135,11 @@ function(nl, nlDlg, nlServerApi, nlMarkup, $state, nlTopbarSrv, nlMobileConnecto
             var pagePerm = permission.getPermObj(pageUrl);
             nl.pginfo.groupCustomCss = userInfo.groupinfo && userInfo.groupinfo.groupCustomCss
             var groupCustomClass = userInfo.groupinfo && userInfo.groupinfo.groupCustomClass ? userInfo.groupinfo.groupCustomClass : '';
-            if (!groupCustomClass && pagePerm.pageMode) {
+            if (groupCustomClass) 
+                nl.rootScope.groupCustomClass = groupCustomClass;
+            if (!groupCustomClass && pagePerm.pageMode) 
                 nl.rootScope.groupCustomClass = pagePerm.pageMode;
-            }
+
             if (pagePerm == null) {
                 nlDlg.popupStatus(nl.t('Cannot access the page'));
                 return _done('/home');

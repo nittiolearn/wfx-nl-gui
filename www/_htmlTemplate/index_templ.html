@@ -1,5 +1,4 @@
 {{import mversion}}
-{{import mgroup}}
 <!DOCTYPE html>
 <html ng-app='nl.app' ng-controller='nl.AppCtrl'>
     <head>
@@ -26,7 +25,7 @@
         <script async src='//www.google-analytics.com/analytics.js'></script>
    </head>
 
-    <body ng-class='{"nl-print": pgInfo.isPrintable}' class='{{=mgroup.getCustomClass()}} {{=mush("groupCustomClass")}} {{=mush("bodyClass")}} nl-screen-{{=mush("screenSize")}} {{=mush("nlBrowserClasses")}}'>
+    <body ng-class='{"nl-print": pgInfo.isPrintable}' class='{{=mush("groupCustomClass")}} {{=mush("bodyClass")}} nl-screen-{{=mush("screenSize")}} {{=mush("nlBrowserClasses")}}'>
         <ion-nav-view></ion-nav-view>
         <script>
             window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;

@@ -88,7 +88,11 @@ function(nl, nlRouter, $scope, nlServerApi, nlPrinter, nlMobileConnector, nlDlg,
         nlContainer.init({version: 0});
         
         var course = nlContainer.getCourse();
-        $scope.userName = nlGroupInfo.formatUserNameFromRecord(course);
+        var username = nlContainer.getUsername()
+        if (username)
+            $scope.userName = username.replace(/[{()}]/g, '');
+        else 
+            $scope.userName = nlGroupInfo.formatUserNameFromRecord(course);
         var courseData = nlContainer.getComputedData();
         $scope.avgQuizScore = courseData['avgQuizScore'];
         if (!course || !course.content || !course.content.modules) return;

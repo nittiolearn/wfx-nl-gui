@@ -57,6 +57,7 @@ function ModeHandler(nl, nlCourse, nlServerApi, nlDlg, nlGroupInfo, $scope, nlRe
     this.debug = false;
     this.userInfo = null;
     this.restoreid = null;
+    this._userName = null;
     this.initMode = function(userInfo) {
         this.userInfo = userInfo;
         var params = nl.location.search();
@@ -95,7 +96,8 @@ function ModeHandler(nl, nlCourse, nlServerApi, nlDlg, nlGroupInfo, $scope, nlRe
         } else if (this.mode === MODES.PUBLISHED) {
             nl.pginfo.pageSubTitle = nl.t('(published)');
         } else if (this.mode === MODES.REPORT_VIEW) {
-            nl.pginfo.pageSubTitle = nl.t('({})', nlGroupInfo.formatUserNameFromRecord(course));
+            this._userName = nl.t('({})', nlGroupInfo.formatUserNameFromRecord(course));
+            nl.pginfo.pageSubTitle = this._userName;
         } else if (this.mode === MODES.DO) {
             nl.pginfo.pageSubTitle = nl.t('({})', nl.pginfo.username);
         } 
@@ -1803,6 +1805,10 @@ function NlContainer(nl, nlDlg, nlServerApi, $scope, modeHandler) {
     this.getCourse = function() {
         return modeHandler.course;
     };
+
+    this.getUsername = function() {
+        return modeHandler._userName;
+    }
     
     this.getCurrentModule = function() {
         return $scope.ext.item;
