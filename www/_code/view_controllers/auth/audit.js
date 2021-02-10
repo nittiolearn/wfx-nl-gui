@@ -27,7 +27,7 @@ function($stateProvider) {
 // Same object is defined in server side. Please update in both places.
 var AUDIT_TYPES = {1: 'LOGIN', 2: 'LOGIN_FAILED', 3: 'LOGOUT', 4: 'IMPERSONATE', 5: 'IMPERSONATE_FAILED',
     6: 'IMPERSONATE_END', 7: 'LOGIN_USER_DISABLED', 8: 'LOGIN_GROUP_DISABLED', 9: 'LOGIN_IP_RESTRICTED',
-    10: 'LOGIN_TERM_RESTRICTED', 11: 'LOGIN_PW_EXPIRED'};
+    10: 'LOGIN_TERM_RESTRICTED', 11: 'LOGIN_PW_EXPIRED', 12: 'LOGIN_EXPIRED'};
 
 var AuditCtrl = ['nl', 'nlRouter', '$scope', 'nlServerApi', 'nlDlg', 'nlExporter',
 function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlExporter) {
@@ -157,6 +157,7 @@ function(nl, nlRouter, $scope, nlServerApi, nlDlg, nlExporter) {
         dlg.scope.options.type.push({id: '9', name: 'LOGIN_IP_RESTRICTED'});
         dlg.scope.options.type.push({id: '10', name: 'LOGIN_TERM_RESTRICTED'});
         dlg.scope.options.type.push({id: '11', name: 'LOGIN_PW_EXPIRED'});
+        dlg.scope.options.type.push({id: '12', name: 'LOGIN_EXPIRED'});
 
         dlg.scope.show = $scope.showInFilterDlg;
         dlg.scope.help = {
