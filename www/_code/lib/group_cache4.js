@@ -78,28 +78,29 @@ function(nl, nlServerApi, nlConfig, nlDlg) {
 			pendingFetches.push(finfo);
 		}
 
-		_fetchCacheFilesFromPos(0, pendingFetches, resolve);
+		var grpObj = _getConsolidatedData(context.grpCache);
+		_fetchCacheFilesFromPos(0, pendingFetches, grpObj.grpid, resolve);
 	}
 
-	function _fetchCacheFilesFromPos(pos, pendingFetches, resolve) {
+	function _fetchCacheFilesFromPos(pos, pendingFetches, grpid, resolve) {
 		if (pos >= pendingFetches.length) return resolve();
 		progressTracker.serverCall(pos, pendingFetches.length);
 
 		var finfo = pendingFetches[pos];
-		var data = {table: 'group_cache4', recid: finfo.genid, field: nl.fmt2('id{}.json', finfo.id)};
+		var data = {grpid: grpid, table: 'group_cache4', recid: finfo.genid, field: nl.fmt2('id{}.json', finfo.id)};
 		nlServerApi.jsonFieldStream(data).then(function(resp) {
 			if (!resp || !resp.data) {
-				_fetchCacheFilesFromPos(pos+1, pendingFetches, resolve);
+				_fetchCacheFilesFromPos(pos+1, pendingFetches, grpid, resolve);
 				return;
 			}
 			var users = resp.data;
 			_mergeUsers(context.grpCache.users, users);
 			context.grpCache.fetchedCacheFiles[finfo.vstamp] = true;
 			_saveToDb(function() {
-				_fetchCacheFilesFromPos(pos+1, pendingFetches, resolve);
+				_fetchCacheFilesFromPos(pos+1, pendingFetches, grpid, resolve);
 			});
 		}, function(error) {
-			_fetchCacheFilesFromPos(pos+1, pendingFetches, resolve);
+			_fetchCacheFilesFromPos(pos+1, pendingFetches, grpid, resolve);
 		});
 	}
 
@@ -144,7 +145,7 @@ function(nl, nlServerApi, nlConfig, nlDlg) {
 		if (!finfos) finfos = [];
 		for (var i=0; i<finfos.length; i++) {
 			var finfo = finfos[i];
-			allFileInfos[finfo.id] = finfo;
+			allFileInfos[finfo.vstamp] = finfo;
 		}
 	}
 
@@ -171,6 +172,7 @@ function(nl, nlServerApi, nlConfig, nlDlg) {
 	function _mergeUsers(allUsers, users) {
 		for (var userId in users) {
 			var user = users[userId];
+			userId = '' + userId;
 			user[UPDATED_COL_POS] = nl.fmt.json2Date(user[UPDATED_COL_POS]);
 			if (userId in allUsers && allUsers[userId][UPDATED_COL_POS] > 
 				user[UPDATED_COL_POS]) continue;

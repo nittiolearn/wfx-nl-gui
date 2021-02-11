@@ -16,6 +16,7 @@ function(nlLog, $http, $q, $timeout, $location, $window, $rootScope, $anchorScro
     //---------------------------------------------------------------------------------------------
     // All logging calls within nittioapp is made via nl.log
     this.log = nlLog;
+    this.l = nlDebugLogFunction;
 
     //---------------------------------------------------------------------------------------------
     // All $q/promise calls within nittioapp is made via nl.q
@@ -698,6 +699,20 @@ function _Debouncer(nl) {
     };
 }
 
+var _dStart = new Date();
+var _dLastCall = new Date();
+function nlDebugLogFunction() {
+    // For quickly checking performance issues. Uncomment the return statement
+    return;
+    var now = new Date();
+    var t1 = (now - _dStart)/1000;
+    var t2 = (now - _dLastCall)/1000;
+    _dLastCall = now;
+    var prefix = '' + t1 + 's, ' + t2 + 's: ';
+    var args = [];
+    for (var i in arguments) args.push(arguments[i]);
+    console.log(prefix, args);
+}
 //-------------------------------------------------------------------------------------------------
 module_init();
 })();
