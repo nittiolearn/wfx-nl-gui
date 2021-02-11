@@ -1,22 +1,22 @@
 <div class='nl-thin-scroll padding-small'>
     <div ng-hide='scoType == "offline"'>
-        <div class='nl-dlg-field-name'>Package Title</div>
+        <div class='nl-dlg-field-name nl-dkonlg-lgondk-text'>Package Title</div>
         <div class='nl-dlg-field-value nl-forum'>
             <nl-input fieldmodel='title' fieldtype='text'></nl-input>
         </div>
-        <div class='nl-dlg-field-name'>SCORM version</div>
+        <div class='nl-dlg-field-name nl-dkonlg-lgondk-text'>SCORM version</div>
         <div class='nl-dlg-field-value nl-forum'>
             <nl-select fieldmodel='version'></nl-select>
         </div>
     </div>
     <div ng-hide='data.courseid'>
-        <div class='nl-dlg-field-name'>Enter comma separated list of module ids to export</div>
+        <div class='nl-dlg-field-name nl-dkonlg-lgondk-text'>Enter comma separated list of module ids to export</div>
         <div class='nl-dlg-field-value nl-forum'>
             <nl-textarea fieldmodel='lessonIds'></nl-textarea>
         </div>
     </div>
     <div ng-show='data.courseid'>
-        <div class='nl-dlg-field-name'>List of modules</div>
+        <div class='nl-dlg-field-name nl-dkonlg-lgondk-text'>List of modules</div>
         <div ng-repeat='module in data.courseModules.names' class='padding-mid'>{{module}}</div>
         <div class='padding-mid'></div>
     </div>

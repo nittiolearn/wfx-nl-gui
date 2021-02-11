@@ -287,6 +287,14 @@ function _cardsDirectiveImpl(nl, nlDlg, $filter, nlCardsSrv, nlExporter, templat
                 nlCardsSrv.updateInternal($scope.cards, MAX_KEYSEARCH_DELAY, justShowHint);
 			};
 
+            $scope.canShowNext = function(cards) {
+                cards.canShowNext(cards)
+            };
+
+            $scope.canShowPrev = function(cards) {
+                cards.canShowPrev(cards);
+            };
+
             $scope.onClickOnNext = function(cards) {
                 cards.onClickOnNextFn(cards, $scope)
             };

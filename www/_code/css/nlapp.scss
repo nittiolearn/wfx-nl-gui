@@ -1027,6 +1027,29 @@ a.black {
   }
 }
 
+.nl-toolbar-icon3 {
+  color: $nlPrimaryDark;
+  color: var(--nlPrimaryDark);
+  cursor: pointer;
+  font-weight: bold;
+  i.icon {
+    display: inline-flex;
+    font-size: 135%;
+    padding: 4px 0;
+    width: 32px;
+    height: 32px;
+    justify-content: center;
+    &:hover {
+      color: $nlPrimary;
+      color: var(--nlPrimary);
+      background-color:$nlBgWhiteTransparent70;
+      background-color: var(--nlBgWhiteTransparent70);
+      box-shadow: inset 0 0 2px $nlPrimaryDark, 0 0 5px $nlPrimaryDark;
+      box-shadow: inset 0 0 2px var(--nlPrimaryDark), 0 0 5px var(--nlPrimaryDark);
+    }
+  }
+}
+
 .nl-toolbar-icon-constant {
   color: $nlPrimaryDark;
   color: var(--nlPrimaryDark);
@@ -4935,6 +4958,19 @@ box-shadow: inset 0 0 0 var(--nlStatusRed), 0 0 5px var(--nlBoxShadowBlackTransp
   .nl-toolbar-icon2 {
     color: var(--nlWhite);
   }
+  
+  .nl-toolbar-icon3 {
+    color: var(--nlWhite);
+    i.icon {
+      color: var(--nlWhite);
+      &:hover {
+        color: var(--nlWhite);
+        background-color: var(--nlBgWhiteTransparent70);
+        box-shadow: inset 0 0 2px var(--nlWhite), 0 0 5px var(--nlWhite);
+      }
+    }
+  }
+  
 
   .image-round-button {
     color: var(--nlPrimaryDark);

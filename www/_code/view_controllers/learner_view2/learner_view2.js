@@ -191,6 +191,11 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlServerA
 			var cards = $scope.tabData.sectionData[i];
 			cards.onClickOnNextFn = _onClickOnNextFn;
 			cards.onClickOnPrevFn = _onClickOnPrevFn;
+			cards.canShowNext = _canShowNext;
+			cards.canShowPrev = _canShowPrev;
+			cards.getVisibleString = _getVisibleString;
+			cards.canSort = _canSort;
+
 			nlCardsSrv.initCards(cards);
 		}
 		$scope.userName = userInfo.displayname;
@@ -204,8 +209,9 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlServerA
 		var className = nl.t('nl-card-section-scroll-{}', cards.type);
 		var element = document.getElementsByClassName(className);
 		var num = Math.floor(element[0].clientWidth/cardWidth);
-		cards.animClass = 'flyfrom-l';
-		element[0].scrollLeft += num*cardWidth + num*16;
+		var widthToScroll = num*cardWidth + num*16;
+		var len = widthToScroll/5;
+		_callInLoop(0, len, element, 'add')
 	}
 
 	function _onClickOnPrevFn(cards, scope) {
@@ -215,8 +221,50 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlServerA
 		var className = nl.t('nl-card-section-scroll-{}', cards.type);
 		var element = document.getElementsByClassName(className);
 		var num = Math.floor(element[0].clientWidth/cardWidth);
-		cards.animClass = 'flyfrom-r';
-		element[0].scrollLeft -= num*cardWidth + num*16;
+		var widthToScroll = num*cardWidth + num*16;
+		var len = widthToScroll/5;
+		_callInLoop(0, len, element, 'sub')
+	}
+
+	function _callInLoop(startpos, len, element, type) {
+		startpos += 1;
+		nl.timeout(function() {
+			if (type == 'add')
+				element[0].scrollLeft += len;
+			else
+				element[0].scrollLeft -= len;
+			if (startpos < 5) _callInLoop(startpos, len, element, type)
+		},50)
+
+	}
+
+	function _getVisibleString(cards) {
+		return '';
+	}
+
+	function _canSort() {
+		return false;
+	}
+
+	function _canShowNext(cards) {
+		if (!cards) return;
+		var document = nl.window.document;
+		var className = nl.t('nl-card-section-scroll-{}', cards.type);
+		var element = document.getElementsByClassName(className);
+		if (!element[0]) return;
+ 		if (element[0].scrollWidth && (element[0].scrollWidth > (element[0].scrollLeft + element[0].clientWidth))) return true;
+		return false;
+	}
+
+	function _canShowPrev(cards) {
+		if (!cards) return;
+		var document = nl.window.document;
+		var className = nl.t('nl-card-section-scroll-{}', cards.type);
+		var element = document.getElementsByClassName(className);
+		if (!element[0]) return;
+		if (element[0].scrollLeft > 0) return true;
+		return false;
+
 	}
 
 	function _onCardLinkClickedFn(card, linkid) {
@@ -363,10 +411,6 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlServerA
 			cards[SEC_POS[type]].cardlist = [];
 			tabItemCount[SEC_POS[type]].count = 0;
 			cards[SEC_POS[type]].size = CARD_SIZE[SEC_POS[type]];
-			cards[SEC_POS[type]].getVisibleString = _getVisibleString;
-			cards[SEC_POS[type]].canShowNext = _canShowNext;
-			cards[SEC_POS[type]].canShowPrev = _canShowPrev;
-			cards[SEC_POS[type]].canSort = _canSort;
 		}
 
 		var tabData = $scope.tabData;
@@ -396,22 +440,6 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlServerA
 			}
 		}
 		return cards;
-	}
-
-	function _getVisibleString(cards) {
-		return '';
-	}
-
-	function _canSort() {
-		return false;
-	}
-
-	function _canShowNext() {
-		return true;
-	}
-
-	function _canShowPrev() {
-		return true;
 	}
 
 	function _createLearnerCard(record) {

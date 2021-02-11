@@ -49,13 +49,13 @@
                     </div>
                     <div style='padding-left: 10px;'
                          title='{{tabData.cls == "nl-hcard2" ? "Switch to card view" : "Switch to list view"}}'>
-                        <div class='lnblue2 fsh5 padding-mid'
+                        <div class='nl-toolbar-icon3 padding-mid'
                             ng-click='tabData.cls = tabData.cls == "nl-hcard2" ? "nl-vcard2" : "nl-hcard2";'>
                             <i ng-show='tabData.cls == "nl-hcard2"' class='icon ion-ios-keypad'></i>
                             <i ng-show='tabData.cls == "nl-vcard2"' class='icon ion-navicon-round'></i>
                         </div>
                     </div>
-                    <div class='lnblue2 fsh5 padding-mid'
+                    <div class='nl-toolbar-icon3 padding-mid'
                         ng-show='tabData.canFetchMore'
                         title='Fetch more learning records from the server'
                         ng-click='tabData.fetchMore($event)'>
