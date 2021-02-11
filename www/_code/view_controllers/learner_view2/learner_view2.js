@@ -282,6 +282,10 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlServerA
 	function _showDetailsDlg(card) {
 		var detailsDlg = nlDlg.create($scope);
 		detailsDlg.setCssClass('');
+		var name = card.repcontent.name;
+		if (name.length > 20)
+			name = name.substring(0, 20) + '...';
+		detailsDlg.scope.pageTitle = name;
 		detailsDlg.scope.record = card;
 		detailsDlg.show('view_controllers/learner_view/learner_view_details.html');
 	}
@@ -461,6 +465,7 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlServerA
 		card.upated = record.raw_record.updated || '';
 		card.detailsavps = record.detailsavps;
 		card.help = '';
+		var date = new Date();
 		if (card.type == 'expired') {
 			card.progressPerc = record.stats.progressPerc;
 			card.prgClass = 'nl-card2-progress-bar-barRed';	
@@ -485,25 +490,31 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlServerA
 			if (duration)
 				card.help += nl.t('<div>Duration: {} mins</div>', duration);
 		}
-		if (card.type == 'pending') {
-			var date = nl.fmt.date2StrDDMMYYCard(card.not_after);
-			if (date)
-				card.help = nl.t('<div>Ends on {}</div>', date);
+		if (card.type == 'pending') {		
+			var not_after = card.not_after;	
+			if (date < not_after) {
+				var date = nl.fmt.date2StrDDMMYYCard(not_after);
+				if (date)
+					card.help = nl.t('<div>Ends on {}</div>', date);	
+			}
+
 			var duration = record.repcontent.maxDuration;
 			if (duration)
 				card.help += nl.t('<div>Duration: {} mins</div>', duration);
 		}
 		if (card.type == 'progress') {
 			card.prgClass = 'nl-card2-progress-bar-barGreen';	
-			card.progressPerc = record.stats.progressPerc;		
-			var date = nl.fmt.date2StrDDMMYYCard(card.not_after);
-			if (date)
-				card.help = nl.t('<div>Ends on {}</div>', date);
+			card.progressPerc = record.stats.progressPerc;	
+			var not_after = card.not_after;	
+			if (date < not_after) {
+				var date = nl.fmt.date2StrDDMMYYCard(not_after);
+				if (date)
+					card.help = nl.t('<div>Ends on {}</div>', date);
+			}
 			var duration = record.repcontent.minsLeft || 0;
 			if (duration)
 				card.help += nl.t('<div>{} mins remaining</div>', duration);
 		}
-
 		return card;
 	}
 

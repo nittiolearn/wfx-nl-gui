@@ -1,11 +1,11 @@
-<nl-dlg dlgtitle='{{record.repcontent.name}}' show-help='0' show-close='1'>
+<nl-dlg dlgtitle='{{pageTitle}}' show-help='0' show-close='0'>
     <nl-dlg-content>
         <div class='row row-center margin0 padding0'>
             <div class='nl-card-details-dlg-img padding0'>
                 <img ng-if='record.repcontent.icon != "icon:"' ng-src='{{record.repcontent.icon}}' nl-compute-img-info></img>
                 <div ng-if='record.repcontent.icon == "icon:"' class='fsh2'><i class='fsh1 ion-ios-bookmarks-outline fblue'></i></div>
             </div>
-            <div class='col padding-mid fblue2'>
+            <div class='col padding-mid fblue2' style='max-width: 300px'>
                 {{record.repcontent.name}}
             </div>
         </div>

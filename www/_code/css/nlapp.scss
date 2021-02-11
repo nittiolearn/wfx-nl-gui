@@ -1907,10 +1907,12 @@ input.nl-dlg-field-error, .nl-dlg-field-error {
 .nl-card2-header {
   text-align: left;
   width: 90%;
+  height: 66px;
   font-size: 130%;
+  line-height: 28px;
   padding: 4px 16px;
   overflow: hidden;
-  white-space: nowrap;
+  white-space: normal;
   text-overflow: ellipsis;
 }
 
@@ -4633,7 +4635,7 @@ a.enabled {
   .nl-link-img {
     cursor: pointer;
     &:hover, &:focus, &:active {
-      box-shadow: inset 0 0 5px var(--nlStatusRed), 0 0 10px var(--nlBoxShadowBlackTransparent10);
+      box-shadow: inset 0 0 5px var(--nlWhite), 0 0 10px var(--nlBoxShadowBlackTransparent10);
     }
   }
   
