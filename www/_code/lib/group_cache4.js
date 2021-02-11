@@ -14,7 +14,13 @@ function(nl, nlServerApi, nlConfig, nlDlg) {
 	var progressTracker = new ProgressTracker(nl, nlDlg);
 	var context = null;
 
-    this.get = function(skipUsers, reload, grpid) {
+    this.isEnabled = function(userInfo) {
+		var grpGc4 = ((userInfo.groupinfo || {}).features || {}).gc4;
+		var params = nl.location.search();
+		return grpGc4 == 'enabled' && params.gc4 != 'disabled'|| grpGc4 == 'test' && params.gc4 == 'enabled';
+	};
+
+	this.get = function(skipUsers, reload, grpid) {
 		context = {skipUsers: skipUsers, reload: reload, grpid: grpid, grpCache: _defGrpCache()};
     	return nl.q(function(resolve, reject) {
 			_loadFromDb(function(data) {
@@ -81,12 +87,12 @@ function(nl, nlServerApi, nlConfig, nlDlg) {
 
 		var finfo = pendingFetches[pos];
 		var data = {table: 'group_cache4', recid: finfo.genid, field: nl.fmt2('id{}.json', finfo.id)};
-		nlServerApi.jsonFieldStream(data).then(function(users) {
-			if (!users) {
+		nlServerApi.jsonFieldStream(data).then(function(resp) {
+			if (!resp || !resp.data) {
 				_fetchCacheFilesFromPos(pos+1, pendingFetches, resolve);
 				return;
 			}
-			users = angular.fromJson(users);
+			var users = resp.data;
 			_mergeUsers(context.grpCache.users, users);
 			context.grpCache.fetchedCacheFiles[finfo.vstamp] = true;
 			_saveToDb(function() {
@@ -128,9 +134,9 @@ function(nl, nlServerApi, nlConfig, nlDlg) {
 
 	function _getAllFileInfosAsDict(gc4) {
 		var allFileInfos = {};
-		_addFileInfosToDict(gc4.delta_info.fileinfos, allFileInfos);
-		_addFileInfosToDict(gc4.info.active, allFileInfos);
-		_addFileInfosToDict(gc4.info.inactive, allFileInfos);
+		_addFileInfosToDict(gc4.delta_info.fileInfos, allFileInfos);
+		_addFileInfosToDict(gc4.info.fileInfos.active, allFileInfos);
+		_addFileInfosToDict(gc4.info.fileInfos.inactive, allFileInfos);
 		return allFileInfos;
 	}
 
@@ -151,6 +157,7 @@ function(nl, nlServerApi, nlConfig, nlDlg) {
 	}
 	
 	function _getConsolidatedData(grpCache) {
+		if (!grpCache.gc4) return {};
 		var ret = (grpCache.gc4.delta_info || {}).grpinfo || {};
 		ret['users'] = grpCache.users;
 		return ret;

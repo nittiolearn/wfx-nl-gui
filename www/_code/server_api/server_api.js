@@ -714,7 +714,9 @@ function(nl, nlDlg, nlConfig, Upload) {
     // Json Field and Json Cache
     //---------------------------------------------------------------------------------------------
     this.jsonFieldStream = function(data) {
-        return server.post('_serverapi/jsonfield_stream.json', data);
+        var url = nl.fmt2('_serverapi/jsonfield_stream.json?table={}&recid={}&field={}', 
+            data.table, data.recid, data.field);
+        return nl.http.get(url);
     };    
     
     this.jsonCacheGet = function(data) {

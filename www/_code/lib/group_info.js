@@ -19,9 +19,7 @@ function(nl, nlDlg, nlImporter, nlGroupCache, nlGroupCache4) {
     
     var _myNlGroupCache = nlGroupCache;
     this.onPageEnter = function(userInfo) {
-        var params = nl.location.search();
-        _myNlGroupCache = params.gc4 != 'disable' && ((userInfo.groupinfo || {}).features || {}).gc4 ?
-            nlGroupCache4 : nlGroupCache;
+        _myNlGroupCache = nlGroupCache4.isEnabled(userInfo) ? nlGroupCache4 : nlGroupCache;
     };
 
     var _groupInfos = {};
