@@ -78,7 +78,7 @@ function(nl, nlServerApi, nlConfig, nlDlg) {
 			pendingFetches.push(finfo);
 		}
 
-		var grpObj = _getConsolidatedData(context.grpCache);
+		var grpObj = _getGroupInfo(context.grpCache);
 		_fetchCacheFilesFromPos(0, pendingFetches, grpObj.grpid, resolve);
 	}
 
@@ -94,7 +94,7 @@ function(nl, nlServerApi, nlConfig, nlDlg) {
 				return;
 			}
 			var users = resp.data;
-			_mergeUsers(context.grpCache.users, users);
+			_mergeUsers(context.grpCache.users, context.grpCache.deletedUsers, users);
 			context.grpCache.fetchedCacheFiles[finfo.vstamp] = true;
 			_saveToDb(function() {
 				_fetchCacheFilesFromPos(pos+1, pendingFetches, grpid, resolve);
@@ -107,7 +107,7 @@ function(nl, nlServerApi, nlConfig, nlDlg) {
 	//--------------------------------------------------------------------------------
 	// Sync Functions 
 	function _defGrpCache() {
-    	return {gc4: null, users: {}, fetchedCacheFiles: {}, clientUpdated: null};
+    	return {gc4: null, users: {}, deletedUsers: {}, fetchedCacheFiles: {}, clientUpdated: null};
     }
 
 	function _loadFromDb(resolve) {
@@ -157,9 +157,20 @@ function(nl, nlServerApi, nlConfig, nlDlg) {
 
 	}
 	
-	function _getConsolidatedData(grpCache) {
+	function _getGroupInfo(grpCache) {
 		if (!grpCache.gc4) return {};
-		var ret = (grpCache.gc4.delta_info || {}).grpinfo || {};
+		return (grpCache.gc4.delta_info || {}).grpinfo || {};
+	}
+
+	function _getConsolidatedData(grpCache) {
+		for (var userId in grpCache.deletedUsers) {
+			var user = grpCache.deletedUsers[userId];
+			if (!(userId in grpCache.users) || 
+				grpCache.users[UPDATED_COL_POS] > user[UPDATED_COL_POS])
+				continue;
+			delete grpCache.users[userId];
+		}
+		var ret = _getGroupInfo(grpCache);
 		ret['users'] = grpCache.users;
 		return ret;
 	}
@@ -169,14 +180,16 @@ function(nl, nlServerApi, nlConfig, nlDlg) {
 	}
 
 	var UPDATED_COL_POS = 6;
-	function _mergeUsers(allUsers, users) {
+	var DELETED_COL_POS = 17;
+	function _mergeUsers(allUsers, deletedUsers, users) {
 		for (var userId in users) {
 			var user = users[userId];
 			userId = '' + userId;
 			user[UPDATED_COL_POS] = nl.fmt.json2Date(user[UPDATED_COL_POS]);
-			if (userId in allUsers && allUsers[userId][UPDATED_COL_POS] > 
+			var masterDict = user[DELETED_COL_POS] ? deletedUsers : allUsers;
+			if (userId in masterDict && masterDict[userId][UPDATED_COL_POS] > 
 				user[UPDATED_COL_POS]) continue;
-			allUsers[userId] = user;
+			masterDict[userId] = user;
 		}
 	}
 

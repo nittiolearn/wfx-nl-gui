@@ -324,6 +324,7 @@ function(nl, nlDlg, nlImporter, nlGroupCache, nlGroupCache4) {
         self.DOJ = 14;
         self.MOBILE = 15;
         self.SECLOGIN = 16;
+        self.DELETED = 17; // only available in group_cache4
 
         // Generic user types    
         self.UT_NITTIOADMIN=10;
