@@ -211,7 +211,8 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlServerA
 		var num = Math.floor(element[0].clientWidth/cardWidth);
 		var widthToScroll = num*cardWidth + num*16;
 		var len = widthToScroll/5;
-		_callInLoop(0, len, element, 'add')
+		var timeout = (cards.type == 'completed' || cards.type == 'expired') ? 120 : 50
+		_callInLoop(0, len, element, 'add', timeout)
 	}
 
 	function _onClickOnPrevFn(cards, scope) {
@@ -223,18 +224,19 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlServerA
 		var num = Math.floor(element[0].clientWidth/cardWidth);
 		var widthToScroll = num*cardWidth + num*16;
 		var len = widthToScroll/5;
-		_callInLoop(0, len, element, 'sub')
+		var timeout = (cards.type == 'completed' || cards.type == 'expired') ? 150 : 70
+		_callInLoop(0, len, element, 'sub', timeout)
 	}
 
-	function _callInLoop(startpos, len, element, type) {
+	function _callInLoop(startpos, len, element, type, timeout) {
 		startpos += 1;
 		nl.timeout(function() {
 			if (type == 'add')
 				element[0].scrollLeft += len;
 			else
 				element[0].scrollLeft -= len;
-			if (startpos < 5) _callInLoop(startpos, len, element, type)
-		},50)
+			if (startpos < 5) _callInLoop(startpos, len, element, type, timeout)
+		}, timeout)
 
 	}
 
@@ -434,7 +436,7 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlServerA
 			if (key == 'upcoming' || key == 'expired' || key == 'pending') {
 				cards[SEC_POS[key]].cardlist.sort(function(a, b) {
 					// ASCENDING
-					return (a.not_before - b.not_before);
+					return (b.not_before - a.not_before);
 				});		
 			} else {
 				cards[SEC_POS[key]].cardlist.sort(function(a, b) {
@@ -462,7 +464,7 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlServerA
 		card.isreport = true;
 		card.not_before = record.raw_record.not_before;
 		card.not_after = record.raw_record.not_after || '';
-		card.upated = record.raw_record.updated || '';
+		card.updated = record.raw_record.updated || '';
 		card.detailsavps = record.detailsavps;
 		card.help = '';
 		var date = new Date();
@@ -486,7 +488,7 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlServerA
 			var date = nl.fmt.date2StrDDMMYYCard(card.not_before);
 			if (date)
 				card.help = nl.t('<div>Starts on {}</div>', date);
-			var duration = record.repcontent.maxDuration;
+			var duration = record.repcontent.max_duration;
 			if (duration)
 				card.help += nl.t('<div>Duration: {} mins</div>', duration);
 		}
@@ -497,8 +499,7 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlServerA
 				if (date)
 					card.help = nl.t('<div>Ends on {}</div>', date);	
 			}
-
-			var duration = record.repcontent.maxDuration;
+			var duration = record.repcontent.max_duration;
 			if (duration)
 				card.help += nl.t('<div>Duration: {} mins</div>', duration);
 		}
@@ -511,9 +512,20 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlServerA
 				if (date)
 					card.help = nl.t('<div>Ends on {}</div>', date);
 			}
-			var duration = record.repcontent.minsLeft || 0;
-			if (duration)
-				card.help += nl.t('<div>{} mins remaining</div>', duration);
+			if (record.type == 'module') {
+				var timeSpentSec = record.stats.timeSpentSeconds;
+				var maxDurationSec = record.repcontent.max_duration*60 || 0;
+				if (maxDurationSec) {
+					var timeLeft = maxDurationSec - timeSpentSec;
+					card.help += nl.t('<div>{} mins remaining</div>', Math.ceil(timeLeft/60));	
+				} else {
+					var timeSpentMins = Math.ceil(timeSpentSec/60)
+					card.help += nl.t('<div>Total time spent: {} mins</div>', timeSpentMins);
+				}
+			} else {
+				if (record.stats.timeSpent)
+					card.help += nl.t('<div>Total time spent: {} mins</div>', Math.ceil(record.stats.timeSpent/60));	
+			}
 		}
 		return card;
 	}

@@ -140,6 +140,7 @@
             } else {
                 repcontent.content.modules = course.content.modules;
                 repcontent.name = course.name;
+                if (course.icon) repcontent.icon = course.icon;
             }
             report.canReview = true;
             if(!course.is_published) report.canReview = false;

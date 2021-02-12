@@ -140,6 +140,7 @@ function(nl, nlGetManyStore, nlReportHelper) {
         } else {
             repcontent.content.modules = course.content.modules;
             repcontent.name = course.name;
+            if (course.icon) repcontent.icon = course.icon;
         }
         report.canReview = true;
         if(!course.is_published) report.canReview = false;
@@ -169,7 +170,7 @@ function(nl, nlGetManyStore, nlReportHelper) {
             feedbackScore: stainf.feedbackScore,
         };
 
-
+        stats.timeSpent = Math.ceil((stats.timeSpentSeconds*60)+stats.iltTimeSpent);
         stats.timeSpentStr = Math.ceil((stats.timeSpentSeconds*60)+stats.iltTimeSpent);
         stats.timeSpentStr = stats.timeSpentStr > 1 ? stats.timeSpentStr + ' minutes' 
             : stats.timeSpentStr == 1 ? stats.timeSpentStr + ' minute' : '';
