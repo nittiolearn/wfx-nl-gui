@@ -27,7 +27,7 @@ function($stateProvider, $urlRouterProvider) {
 		url: '^/admin_user',
 		views: {
 			'appContent': {
-				templateUrl: 'lib_ui/cards/cardsview.html',
+				templateUrl: 'view_controllers/admin/user.html',
 				controller: 'nl.AdminUserCtrl'
 			}
 		}});
@@ -35,28 +35,26 @@ function($stateProvider, $urlRouterProvider) {
 
 var AdminUserCtrl = ['nl', 'nlRouter', 'nlDlg', '$scope', 'nlCardsSrv',
 'nlGroupInfo', 'nlAdminUserExport', 'nlAdminUserImport', 'nlTreeSelect',
-'nlOuUserSelect', 'nlServerApi',
+'nlOuUserSelect', 'nlServerApi', 'nlTable',
 function(nl, nlRouter, nlDlg, $scope, nlCardsSrv, nlGroupInfo,
-nlAdminUserExport, nlAdminUserImport, nlTreeSelect, nlOuUserSelect, nlServerApi) {
+nlAdminUserExport, nlAdminUserImport, nlTreeSelect, nlOuUserSelect, nlServerApi, nlTable) {
 	var _userInfo = null;
 	var _groupInfo = null;
 	var _grpid = null;
 	var _chunksize = 100; // Number of records to send to server for updating in one chunk
     var _debuglog = false;
     var _doesPastUserExist = false;
+    var _expImpOnly = false;
 
 	function _onPageEnter(userInfo) {
 		_userInfo = userInfo;
 		return nl.q(function(resolve, reject) {
 
-            $scope.cards = {staticlist: _getStaticCards(), 
-                largeData: true,
-                search:{placeholder: nl.t('Search user name/email/loginid')}};
-            nlCardsSrv.initCards($scope.cards);
-
             var params = nl.location.search();
             _grpid = params.grpid || null;
             var max = ('max' in params) ? parseInt(params.max) : null;
+            if (params.viewmode = 'list') $scope.listview = new ListView(nlTable);
+            else if (params.viewmode = 'exp_imp') _expImpOnly = true;
             if ('chunksize' in params) _chunksize = parseInt(params.chunksize);
             if ('debuglog' in params) _debuglog = true;
             if (_grpid && !nlRouter.isPermitted(_userInfo, 'admin_group')) {
@@ -65,6 +63,14 @@ nlAdminUserExport, nlAdminUserImport, nlTreeSelect, nlOuUserSelect, nlServerApi)
                     resolve(false);
                 });
                 return;
+            }
+
+            if ($scope.listview) $scope.listview.init();
+            else {
+                $scope.cards = {staticlist: _getStaticCards(), 
+                    largeData: true,
+                    search:{placeholder: nl.t('Search user name/email/loginid')}};
+                nlCardsSrv.initCards($scope.cards);
             }
 
 		    nlGroupInfo.init3(_grpid, max).then(function() {
@@ -188,6 +194,12 @@ nlAdminUserExport, nlAdminUserImport, nlTreeSelect, nlOuUserSelect, nlServerApi)
 	function _updateCards() {
 		var cards = [];
         var users = nlGroupInfo.getKeyToUsers(_groupInfo, _grpid);
+        if ($scope.listview) {
+            $scope.listview.update(users);
+            return;
+        }
+        if (_expImpOnly) return;
+
 		for (var key in users) {
             var card = {_createPending: users[key]};
 			cards.push(card);
@@ -526,6 +538,71 @@ nlAdminUserExport, nlAdminUserImport, nlTreeSelect, nlOuUserSelect, nlServerApi)
         });
     }
 }];
+
+//--------------------------------------------------------------------------------
+function ListView(nlTable) {
+    // TODO-NOW: implement this class - url param ?viewmode=lsit
+    // TODO-NOW: also implement the url param ?viewmode=exp_imp properly
+    this.table = null;
+    this.users = [];
+
+    this.init = function() {
+		this.table = {
+			maxVisible: 100,
+			origColumns: _getColumns(),
+			styleTable: 'nl-table nl-table-styled3 cellborder',
+			styleHeader: ' ',
+			onRowClick: 'expand',
+			detailsTemplate: 'view_controllers/admin/user_details.html',
+			getVisibleString: _getMaxVisibleStringFn,
+			canShowPrev: _canShowPrev,
+			canShowNext: _canShowNext,
+			onClickOnNext: _onClickOnNext,
+			onClickOnPrev: _onClickOnPrev,
+			canSort: _canSort
+		};
+		nlTable.initTableObject(this.table, {}, {});
+    };
+    this.update = function(users) {
+        for (var key in users) {
+            this.users.push({raw_record: users[key]});
+        }
+        nlTable.updateTableRecords(this.table, this.users);        
+    };
+
+    function _getColumns() {
+        var ret = [];
+        ret.push({ id: 'username', name: 'User Name'});
+        ret.push({ id: 'user_id', name: 'User Id'});
+        ret.push({ id: 'state', name: 'Active/Inactive'});
+        return ret;
+    }
+
+    function _getMaxVisibleStringFn() {
+        return 'TODO-NOW';
+	}
+
+    function _canShowPrev() {
+        return true;
+    }
+
+    function _canShowNext() {
+        return true;
+    }
+
+    function _onClickOnNext() {
+        return true;
+    }
+
+    function _onClickOnPrev() {
+        return true;
+    }
+
+    function _canSort() {
+        return true;
+    }
+
+}
 
 module_init();
 })();

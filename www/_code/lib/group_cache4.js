@@ -66,7 +66,7 @@ function(nl, nlServerApi, nlConfig, nlDlg) {
 		var grpCache = context.grpCache;
 
 		var allFileInfos = _getAllFileInfosAsDict(grpCache.gc4);
-		if (_shallClearCache(grpCache.fetchedCacheFiles, allFileInfos)) {
+		if (_shallClearCache(grpCache)) {
 			grpCache.fetchedCacheFiles = {};
 			grpCache.users = {};
 		}
@@ -107,7 +107,8 @@ function(nl, nlServerApi, nlConfig, nlDlg) {
 	//--------------------------------------------------------------------------------
 	// Sync Functions 
 	function _defGrpCache() {
-    	return {gc4: null, users: {}, deletedUsers: {}, fetchedCacheFiles: {}, clientUpdated: null};
+    	return {gc4: null, users: {}, deletedUsers: {}, fetchedCacheFiles: {}, clientUpdated: null,
+				currentGenerationId: 0, data_version: 0};
     }
 
 	function _loadFromDb(resolve) {
@@ -149,12 +150,15 @@ function(nl, nlServerApi, nlConfig, nlDlg) {
 		}
 	}
 
-	function _shallClearCache(fetchedCacheFiles, allFileInfos) {
-		for (var vstamp in fetchedCacheFiles) {
-			if (!(vstamp in allFileInfos)) return true;
+	function _shallClearCache(grpCache) {
+		var info = grpCache.gc4.info || {};
+		if (grpCache.currentGenerationId == info.currentGenerationId &&
+			grpCache.data_version == info.data_version) {
+			return false;
 		}
-		return false;
-
+		grpCache.currentGenerationId = info.currentGenerationId;
+		grpCache.data_version = info.data_version;
+		return true;
 	}
 	
 	function _getGroupInfo(grpCache) {
