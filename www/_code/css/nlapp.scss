@@ -4873,15 +4873,15 @@ box-shadow: inset 0 0 0 var(--nlStatusRed), 0 0 5px var(--nlBoxShadowBlackTransp
     }
   }
   .nl-summary-box{
-    background-color: var(--nlWhite);
+    background-color: var(--nlWhiteBackground);
     .infographic {
-      color: var(--nlPrimary);
+      color: var(--nlWhite);
     }    
     .title{
-      color: var(--nlFontDarkGrey2);
+      color: var(--nlBgGrey1);
     }
     .desc {
-      color: var(--nlFontDarkGrey2);
+      color: var(--nlBgGrey1);
     }
   
   }
@@ -5146,6 +5146,53 @@ nl-dlg {
   .page_format_tab_not_selected {
     border-bottom: 1px solid var(--nlBorderBlackTransparent20);
   }  
+}
+
+// table color ans styling
+.nl-table-styled3 {
+  border: 1px solid var(--nlBgWhiteTransparent40);
+  margin: 0;
+  text-align: left;
+  tr {
+    background-color: var(--nlWhiteBackground);
+    color: var(--nlWhite);
+  }
+  tr.header {
+    color: var(--nlBgGrey1);
+    background-color: var(--nlPrimaryDark);
+    font-weight: bold;
+    border-bottom: 1px solid var(--nlWhite);
+  }
+  tr.alternate {
+    background-color: var(--nlBorderGrey1);
+  }
+  tr.clickable {
+    cursor: pointer;
+  }
+  tr.hover {
+    &:hover, &:focus, &:active {
+      color: var(--nlPrimaryDark);
+      background-color: var(--nlBorderGrey2);
+    }
+  }
+  &.rowlines {
+    tr {
+      border-bottom: 1px solid var(--nlBorderGrey2);
+    }
+  }
+  &.cellborder {
+    td {
+      border: 1px solid var(--nlBorderGrey2);
+    }
+  }
+  td.td-clickable {
+    cursor: pointer;
+  }
+  td.td-hover {
+    &:hover, &:focus, &:active {
+      background-color: var(--nlBorderGrey1);
+    }
+  }
 }
 }
 /*-----------------------------------------------------------------------------------------*
