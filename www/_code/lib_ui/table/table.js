@@ -130,7 +130,7 @@ function(nl, nlExpressionProcessor, $templateCache) {
         var info = $scope.info;
         if (!info.clickHandler) return;
         if (action != 'expand') return info.clickHandler(rec, action);
-        
+
         rec.canShowDetails = !rec.canShowDetails;
         if (!rec.canShowDetails) return;
         

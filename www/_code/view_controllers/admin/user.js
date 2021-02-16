@@ -47,14 +47,13 @@ nlAdminUserExport, nlAdminUserImport, nlTreeSelect, nlOuUserSelect, nlServerApi,
     var _expImpOnly = false;
 
 	function _onPageEnter(userInfo) {
-		_userInfo = userInfo;
+        _userInfo = userInfo;
 		return nl.q(function(resolve, reject) {
-
             var params = nl.location.search();
             _grpid = params.grpid || null;
             var max = ('max' in params) ? parseInt(params.max) : null;
-            if (params.viewmode = 'list') $scope.listview = new ListView(nlTable);
-            else if (params.viewmode = 'exp_imp') _expImpOnly = true;
+            if (params.viewmode == 'list') $scope.listview = new ListView(nl, nlTable);
+            else if (params.viewmode == 'exp_imp') _expImpOnly = true;
             if ('chunksize' in params) _chunksize = parseInt(params.chunksize);
             if ('debuglog' in params) _debuglog = true;
             if (_grpid && !nlRouter.isPermitted(_userInfo, 'admin_group')) {
@@ -540,15 +539,17 @@ nlAdminUserExport, nlAdminUserImport, nlTreeSelect, nlOuUserSelect, nlServerApi,
 }];
 
 //--------------------------------------------------------------------------------
-function ListView(nlTable) {
+function ListView(nl, nlTable) {
     // TODO-NOW: implement this class - url param ?viewmode=lsit
     // TODO-NOW: also implement the url param ?viewmode=exp_imp properly
+    var self = this;
     this.table = null;
     this.users = [];
-
+    var MAX_VISIBLE = 100;
     this.init = function() {
 		this.table = {
-			maxVisible: 100,
+            maxVisible: 100,
+            currentpos: 0,
 			origColumns: _getColumns(),
 			styleTable: 'nl-table nl-table-styled3 cellborder',
 			styleHeader: ' ',
@@ -559,13 +560,18 @@ function ListView(nlTable) {
 			canShowNext: _canShowNext,
 			onClickOnNext: _onClickOnNext,
 			onClickOnPrev: _onClickOnPrev,
-			canSort: _canSort
+            canSort: _canSort,
+            clickHandler: true
 		};
 		nlTable.initTableObject(this.table, {}, {});
     };
     this.update = function(users) {
         for (var key in users) {
-            this.users.push({raw_record: users[key]});
+            var user = users[key];
+            user.raw_record = users[key];
+            user.raw_record.created = nl.fmt.fmtDateDelta(user.raw_record.created || null);
+            user.raw_record.updated = nl.fmt.fmtDateDelta(user.raw_record.updated || null);
+            this.users.push(user);
         }
         nlTable.updateTableRecords(this.table, this.users);        
     };
@@ -579,27 +585,45 @@ function ListView(nlTable) {
     }
 
     function _getMaxVisibleStringFn() {
-        return 'TODO-NOW';
+		var records = self.users || [];
+		var startpos = self.table.currentpos + 1;
+		if (records.length > MAX_VISIBLE) {
+			var endpos = self.table.currentpos + self.table._internal.visibleRecs.length;
+			return nl.t('{} - {} of {}', startpos, endpos, records.length);
+		}
+		return nl.t('{} - {} of {}', startpos, records.length, records.length);
 	}
 
     function _canShowPrev() {
-        return true;
+		if (self.table.currentpos > 0) return true;
+		return false;
     }
 
     function _canShowNext() {
-        return true;
+		var records = self.users || [];
+		if (self.table.currentpos + MAX_VISIBLE < records.length) return true;
+		return false;
     }
 
     function _onClickOnNext() {
-        return true;
+		var records = self.users || [];
+		if (self.table.currentpos + MAX_VISIBLE > records.length) return;
+		if (self.table.currentpos < records.length) {
+			self.table.currentpos += MAX_VISIBLE;
+		}
+		nlTable.updateTablePage(self.table, self.table.currentpos);
     }
 
     function _onClickOnPrev() {
-        return true;
+		if (self.table.currentpos == 0) return;
+		if (self.table.currentpos >= MAX_VISIBLE) {
+			self.table.currentpos -= MAX_VISIBLE;
+		}
+		nlTable.updateTablePage(self.table, self.table.currentpos);
     }
 
     function _canSort() {
-        return true;
+        return false;
     }
 
 }

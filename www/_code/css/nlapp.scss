@@ -5056,25 +5056,6 @@ box-shadow: inset 0 0 0 var(--nlStatusRed), 0 0 5px var(--nlBoxShadowBlackTransp
   color: var(--nlWhite);
 }
 
-.nl-table-styled3 {
-  tr {
-    color: var(--nlBlack);
-    background-color: var(--nlWhite);
-  }
-  tr.header {
-    color: var(--nlBlack);
-  }
-  td.td-hover {
-    color: var(--nlBlack);
-    &:hover, &:focus, &:active {
-      background-color: var(--nlBorderGrey1);
-    }
-  }
-  td.nl-link-text{
-    color: var(--nlBlack);
-  }
-}
-
 .nl-nav-text{
   color: var(--nlWhite);
 }
@@ -5162,6 +5143,9 @@ nl-dlg {
     background-color: var(--nlPrimaryDark);
     font-weight: bold;
     border-bottom: 1px solid var(--nlWhite);
+    .nl-link-text{
+      color: var(--nlBorderGrey1);
+    }
   }
   tr.alternate {
     background-color: var(--nlBorderGrey1);
