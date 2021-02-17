@@ -33,6 +33,30 @@ function(nl, nlServerApi, nlConfig, nlDlg) {
 		});
     };
 
+	this.getDeletedCacheFiles = function() {
+		var gc4 = context.grpCache.gc4;
+		var fileInfos = gc4.info.fileInfos.deleted || [];
+		return fileInfos;
+	};
+
+	this.getUsersFromDeletedCacheFile = function(finfo, resolve) {
+		if (finfo.vstamp in context.grpCache.fetchedCacheFiles) {
+			return resolve(context.grpCache.fetchedCacheFiles[finfo.vstamp]);
+		}
+		var grpObj = _getGroupInfo(context.grpCache);
+		var data = {grpid: grpObj.grpid, table: 'group_cache4', recid: finfo.genid, field: nl.fmt2('id{}.json', finfo.id)};
+		nlServerApi.jsonFieldStream(data).then(function(resp) {
+			if (!resp || !resp.data) {
+				return resolve({});
+			}
+			var users = resp.data;
+			context.grpCache.fetchedCacheFiles[finfo.vstamp] = users;
+			_saveToDb(function() {
+				resolve(users);
+			});
+		});
+	};
+
 	//--------------------------------------------------------------------------------
 	// Async Functions called from get()
 	function _fetchFromServerIfNeeded(resolve) {
@@ -71,44 +95,46 @@ function(nl, nlServerApi, nlConfig, nlDlg) {
 			grpCache.users = {};
 		}
 
-		var pendingFetches = [];
+		var grpObj = _getGroupInfo(context.grpCache);
+		var fetchPromises = [];
 		for (var vstamp in allFileInfos) {
 			var finfo = allFileInfos[vstamp];
 			if (vstamp in grpCache.fetchedCacheFiles) continue;
-			pendingFetches.push(finfo);
-		}
 
-		var grpObj = _getGroupInfo(context.grpCache);
-		_fetchCacheFilesFromPos(0, pendingFetches, grpObj.grpid, resolve);
+			var data = {grpid: grpObj.grpid, table: 'group_cache4', recid: finfo.genid, field: nl.fmt2('id{}.json', finfo.id)};
+			var fetchPromise = nlServerApi.jsonFieldStream(data);
+			fetchPromises.push({promise: fetchPromise, vstamp: finfo.vstamp});
+		}
+		_waitForPromisesFromPos(0, fetchPromises, grpObj.grpid, resolve);
 	}
 
-	function _fetchCacheFilesFromPos(pos, pendingFetches, grpid, resolve) {
-		if (pos >= pendingFetches.length) return resolve();
-		progressTracker.serverCall(pos, pendingFetches.length);
+	function _waitForPromisesFromPos(pos, fetchPromises, grpid, resolve) {
+		if (pos >= fetchPromises.length) return resolve();
+		progressTracker.serverCall(pos, fetchPromises.length);
 
-		var finfo = pendingFetches[pos];
-		var data = {grpid: grpid, table: 'group_cache4', recid: finfo.genid, field: nl.fmt2('id{}.json', finfo.id)};
-		nlServerApi.jsonFieldStream(data).then(function(resp) {
+		var fetchPromise = fetchPromises[pos];
+		fetchPromise.promise.then(function(resp) {
 			if (!resp || !resp.data) {
-				_fetchCacheFilesFromPos(pos+1, pendingFetches, grpid, resolve);
+				_waitForPromisesFromPos(pos+1, fetchPromises, grpid, resolve);
 				return;
 			}
 			var users = resp.data;
 			_mergeUsers(context.grpCache.users, context.grpCache.deletedUsers, users);
-			context.grpCache.fetchedCacheFiles[finfo.vstamp] = true;
+			context.grpCache.fetchedCacheFiles[fetchPromise.vstamp] = true;
 			_saveToDb(function() {
-				_fetchCacheFilesFromPos(pos+1, pendingFetches, grpid, resolve);
+				_waitForPromisesFromPos(pos+1, fetchPromises, grpid, resolve);
 			});
 		}, function(error) {
-			_fetchCacheFilesFromPos(pos+1, pendingFetches, grpid, resolve);
+			_waitForPromisesFromPos(pos+1, fetchPromises, grpid, resolve);
 		});
 	}
 
 	//--------------------------------------------------------------------------------
 	// Sync Functions 
 	function _defGrpCache() {
-    	return {gc4: null, users: {}, deletedUsers: {}, fetchedCacheFiles: {}, clientUpdated: null,
-				currentGenerationId: 0, data_version: 0};
+    	return {gc4: null, users: {}, deletedUsers: {}, 
+				fetchedCacheFiles: {}, // Dict vstamp -> true/false (or dict user in case of deleted users)
+				clientUpdated: null, currentGenerationId: 0, data_version: 0};
     }
 
 	function _loadFromDb(resolve) {

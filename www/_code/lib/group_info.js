@@ -18,10 +18,16 @@ function(nl, nlDlg, nlImporter, nlGroupCache, nlGroupCache4) {
     };
     
     var _myNlGroupCache = nlGroupCache;
+    var _isGc4Enabled = false;
     this.onPageEnter = function(userInfo) {
-        _myNlGroupCache = nlGroupCache4.isEnabled(userInfo) ? nlGroupCache4 : nlGroupCache;
+        _isGc4Enabled = nlGroupCache4.isEnabled(userInfo);
+        _myNlGroupCache =  _isGc4Enabled ? nlGroupCache4 : nlGroupCache;
     };
 
+    this.isGc4Enabled = function() {
+        return _isGc4Enabled;
+    };
+    
     var _groupInfos = {};
     this.init1 = function() {
         // Init only group data: least time consuming
@@ -161,10 +167,12 @@ function(nl, nlDlg, nlImporter, nlGroupCache, nlGroupCache4) {
         return cnt;
     };
 
-    this.getUserObj = function(uid, grpid) {
-        var groupInfo = self.get(grpid);
-        if (!(uid in groupInfo.users)) return null;
-        var uInfo = groupInfo.users[uid];
+    this.getUserObj = function(uid, grpid, uInfo) {
+        if (!uInfo) {
+            var groupInfo = self.get(grpid);
+            if (!(uid in groupInfo.users)) return null;
+            uInfo = groupInfo.users[uid];
+        }
         var ret = {
             username: uInfo[this.USERNAME] || '',
             state: uInfo[this.STATE] || 0,
@@ -267,7 +275,7 @@ function(nl, nlDlg, nlImporter, nlGroupCache, nlGroupCache4) {
     };
     
     this.getPastUserInfosFetcher = function() {
-        return new PastUserInfosFetcher(nl, nlDlg, nlImporter, this);
+        return new PastUserInfosFetcher(nl, nlDlg, nlImporter, nlGroupCache4, this);
     };
 
     this.getUserTableHeaders = function(grpid) {
@@ -521,7 +529,7 @@ function(nl, nlDlg, nlImporter, nlGroupCache, nlGroupCache4) {
 }];
 
 //-------------------------------------------------------------------------------------------------
-function PastUserInfosFetcher(nl, nlDlg, nlImporter, nlGroupInfo) {
+function PastUserInfosFetcher(nl, nlDlg, nlImporter, nlGroupCache4, nlGroupInfo) {
     var _groupInfo = null;
     var _isArchivedUserExist = false;
     var _pastUsersIdToObj = {};
@@ -540,6 +548,9 @@ function PastUserInfosFetcher(nl, nlDlg, nlImporter, nlGroupInfo) {
         var pastUserInfos = _groupInfo.props.pastUserInfos || {};
         _pendingArchived = pastUserInfos.archived || [];
         _pendingImported = pastUserInfos.imported || [];
+        if (nlGroupInfo.isGc4Enabled()) {
+            _pendingArchived = nlGroupCache4.getDeletedCacheFiles();
+        }
     };
 
     this.isArchivedUserExist = function() {
@@ -584,6 +595,10 @@ function PastUserInfosFetcher(nl, nlDlg, nlImporter, nlGroupInfo) {
         }
         if (pendingList.length == 0) return resolve(false);
         var fName = pendingList.shift();
+        if (isArchivedList && nlGroupInfo.isGc4Enabled()) {
+            return _fetchDeletedUsersFromGc4(fName, resolve);
+        }
+
         var xlscfg = {singleSheet: true, toJsonConfig: {header:1}};
         nl.http.get(fName, {responseType: "arraybuffer"})
         .then(function(result) {
@@ -601,6 +616,21 @@ function PastUserInfosFetcher(nl, nlDlg, nlImporter, nlGroupInfo) {
             resolve(false);
         });
     }
+
+    function _fetchDeletedUsersFromGc4(fileInfo, resolve) {
+        nlGroupCache4.getUsersFromDeletedCacheFile(fileInfo, function(users) {
+            for (var uid in users) {
+                var user = nlGroupInfo.getUserObj(uid, null, users[uid]);
+                user.archived = true;
+                _pastUsersIdToObj[user.id] = user;
+                _isArchivedUserExist = true;
+                if (_buildUserIdDict && !(user.user_id in _pastUsersUserIdToObj))
+                    _pastUsersUserIdToObj[user.user_id] = user;
+            }
+            resolve(true);
+        });
+    }
+
     
     function _xlsArrayToDict(xlsArray, isArchivedList) {
     	if (xlsArray.length < 1) return;
