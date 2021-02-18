@@ -98,6 +98,7 @@ function(nl, $filter) {
                 filteredCards = $filter('nlFilter')(filteredCards, search.filter, search.category);
         }
         var matchedLen = filteredCards.length;
+        if (cards.max_visible) _MAX_VISIBLE = cards.max_visible;
         var len = filteredCards.length > _MAX_VISIBLE ? _MAX_VISIBLE : filteredCards.length;
         if (cards.createCardFn) {
             for (var i=0; i<len; i++) {
