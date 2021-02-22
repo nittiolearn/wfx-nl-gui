@@ -44,7 +44,6 @@ nlAdminUserExport, nlAdminUserImport, nlTreeSelect, nlOuUserSelect, nlServerApi)
 	var _chunksize = 100; // Number of records to send to server for updating in one chunk
     var _debuglog = false;
     var _doesPastUserExist = false;
-    var _expImpOnly = false;
 
 	function _onPageEnter(userInfo) {
 		_userInfo = userInfo;
@@ -52,7 +51,6 @@ nlAdminUserExport, nlAdminUserImport, nlTreeSelect, nlOuUserSelect, nlServerApi)
             var params = nl.location.search();
             _grpid = params.grpid || null;
             var max = ('max' in params) ? parseInt(params.max) : null;
-            if (params.viewmode == 'exp_imp') _expImpOnly = true;
             if ('chunksize' in params) _chunksize = parseInt(params.chunksize);
             if ('debuglog' in params) _debuglog = true;
             if (_grpid && !nlRouter.isPermitted(_userInfo, 'admin_group')) {
@@ -189,7 +187,6 @@ nlAdminUserExport, nlAdminUserImport, nlTreeSelect, nlOuUserSelect, nlServerApi)
 	function _updateCards() {
 		var cards = [];
         var users = nlGroupInfo.getKeyToUsers(_groupInfo, _grpid);
-        if (_expImpOnly) return;
 		for (var key in users) {
             var card = {_createPending: users[key]};
 			cards.push(card);
