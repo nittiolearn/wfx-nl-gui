@@ -18,14 +18,14 @@
     </div>
 
     <div class='padding-mid' ng-show='rec._raw.raw_record.url'>
-        <div class='row row-center padding0 margin0 {{rec._raw.raw_record.canReview ? "nl-link-text" : "nl-inactive-link"}}' ng-click='onItemClick(rec, "view_report")'>
+        <div class='row row-center padding0 margin0 {{rec._raw.raw_record.canReview ? "nl-link-text" : "nl-inactive-link"}} icons_in_dark' ng-click='onItemClick(rec, "view_report")'>
            <i class='ion-ios-eye icon nl-dlg-field-icon'></i>
            <span ng-show='$root.screenSize != "small"' class='padding-mid'>{{rec._raw.raw_record.urlTitle}}</span>
         </div>
     </div>
 
     <div class='padding-mid' ng-hide='rec._raw.raw_record.containerid || rec._raw.raw_record.hideDeleteButton'>
-        <div class='row row-center padding0 margin0 nl-link-text' ng-click='onItemClick(rec, "delete")'>
+        <div class='row row-center padding0 margin0 nl-link-text icons_in_dark' ng-click='onItemClick(rec, "delete")'>
            <i class='ion-ios-trash icon nl-dlg-field-icon'></i>
            <span ng-show='$root.screenSize != "small"' class='padding-mid'>Delete</span>
         </div>

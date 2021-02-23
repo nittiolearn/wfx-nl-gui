@@ -354,7 +354,7 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlServerA
 
 	var SEC_POS = {'progress': 0, 'pending': 1, 'upcoming': 2, 'completed': 3, 'expired': 4};
 	var CARD_SIZE = {0: 'L', 1: 'M', 2: 'M', 3: 'S', 4: 'S'};
-	var LAUNCH_BUTTON = {'progress': 'start.png', 'pending': 'start.png', 'upcoming': '', 'completed': 'preview.png', 'expired': 'info.png'};
+	var LAUNCH_BUTTON = {'progress': 'start.svg', 'pending': 'start.svg', 'upcoming': '', 'completed': 'preview.svg', 'expired': 'info.svg'};
 	function _getFilteredRecords() {
 		var records = $scope.tabData.records;
 		var cards = $scope.tabData.sectionData;
