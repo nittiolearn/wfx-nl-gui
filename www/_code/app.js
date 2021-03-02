@@ -328,13 +328,8 @@ function(nl, $scope, $anchorScroll, nlKeyboardHandler, nlAnnouncementSrv, nlRout
                 yAxes: [{
                     gridLines: {
                         display: true ,
-<<<<<<< HEAD
-                        color: "#CCCCCC"
-                            },
-=======
                         color: "#000000"
                         },
->>>>>>> 4d3f0539505c56df707b481d21658e3b91e4daac
                     ticks: {
                         fontColor: "#000000",
                         beginAtZero:true,

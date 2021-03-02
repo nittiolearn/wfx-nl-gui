@@ -1933,14 +1933,7 @@ input.nl-dlg-field-error, .nl-dlg-field-error {
 
 .nl-card2-header {
   text-align: left;
-<<<<<<< HEAD
-  width: 90%;
-  height: 66px;
-  font-size: 130%;
-  line-height: 28px;
-=======
   font-size: 20px;
->>>>>>> 4d3f0539505c56df707b481d21658e3b91e4daac
   padding: 4px 16px;
   overflow: hidden;
   white-space: normal;
@@ -3501,7 +3494,7 @@ background-color: var(--nlFontYellow);}
     margin-left: 0px !important;
   }
   .font-10-in-small {
-    font-size: 10px;
+    font-size: 10px !important;
   }
   .font-16-in-small {
     font-size:16px;
@@ -5172,9 +5165,6 @@ box-shadow: inset 0 0 0 var(--nlStatusRed), 0 0 5px var(--nlBoxShadowBlackTransp
 .nl-dkonlg-lgondk-text{
   color: var(--nlWhite);
 }
-<<<<<<< HEAD
-
-=======
 .nl-table-styled3 {
     border: 1px solid var(--nlBgWhiteTransparent40);
     margin: 0;
@@ -5232,15 +5222,12 @@ box-shadow: inset 0 0 0 var(--nlStatusRed), 0 0 5px var(--nlBoxShadowBlackTransp
 .minw-number {
     color: var(--nlWhite);
 }
->>>>>>> 4d3f0539505c56df707b481d21658e3b91e4daac
 .nl-nav-text{
   color: var(--nlWhite);
 }
-
 .nl-nav-arrow-icon{
   color: var(--nlWhite);
 }
-
 .nav-clickable-text {
   color: var(--nlWhite);
 }
@@ -5276,7 +5263,6 @@ box-shadow: inset 0 0 0 var(--nlStatusRed), 0 0 5px var(--nlBoxShadowBlackTransp
   }
   
 }
-<<<<<<< HEAD
 .nl-row{
   background-color: var(--nlPrimary);
   border-bottom: 1px solid var(--nlWhite);
@@ -5306,56 +5292,6 @@ nl-dlg {
     border-bottom: 1px solid var(--nlBorderBlackTransparent20);
   }  
 }
-
-// table color ans styling
-.nl-table-styled3 {
-  border: 1px solid var(--nlBgWhiteTransparent40);
-  margin: 0;
-  text-align: left;
-  tr {
-    background-color: var(--nlWhiteBackground);
-    color: var(--nlWhite);
-  }
-  tr.header {
-    color: var(--nlBgGrey1);
-    background-color: var(--nlPrimaryDark);
-    font-weight: bold;
-    border-bottom: 1px solid var(--nlWhite);
-    .nl-link-text{
-      color: var(--nlBorderGrey1);
-    }
-  }
-  tr.alternate {
-    background-color: var(--nlBorderGrey1);
-  }
-  tr.clickable {
-    cursor: pointer;
-  }
-  tr.hover {
-    &:hover, &:focus, &:active {
-      color: var(--nlPrimaryDark);
-      background-color: var(--nlBorderGrey2);
-    }
-  }
-  &.rowlines {
-    tr {
-      border-bottom: 1px solid var(--nlBorderGrey2);
-    }
-  }
-  &.cellborder {
-    td {
-      border: 1px solid var(--nlBorderGrey2);
-    }
-  }
-  td.td-clickable {
-    cursor: pointer;
-  }
-  td.td-hover {
-    &:hover, &:focus, &:active {
-      background-color: var(--nlBorderGrey1);
-    }
-  }
-=======
   .default-input {
     background-color: var(--nlBgWhiteTransparent70);
     border: 1px solid var(--nlWhite);
@@ -5583,8 +5519,7 @@ nl-dlg {
     margin: 10px 12px 0px 0px;
     border-radius: 50%;
     background-color: var(--nlStatusGreen);
->>>>>>> 4d3f0539505c56df707b481d21658e3b91e4daac
-}
+  }
 }
 /*-----------------------------------------------------------------------------------------*
  * END OF DARKMODE STYLE AND COLOUR SECTION
