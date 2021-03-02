@@ -1,0 +1,124 @@
+<div class='nl-thin-scroll body' style='position:absolute; width: 100%;'>
+    <div class='{{tabData.cls}} padding' style="max-width:1100px;margin: 0 auto;"> <!-- Dummy div to solve scrolled view disappears with popup issue #701 -->
+        <div ng-if='!tabData.dataLoaded' class='nl-limitwidth bgdefault shape-rounded-small fgrey padding'>
+            Hi {{userName}}! Your learning records are being loaded from the server. Please wait ...
+        </div>
+        <div ng-show='tabData.dataLoaded'>
+            <div ng-show='tabData.recordsLen == 0' class='bgdefault fgrey padding shape-rounded-small'>
+                Nothing to display.
+            </div>
+        <div style="margin-left:10px; margin-bottom:10px;">
+            <nl-learner-view-top-section tabData='tabData'></nl-learner-view-top-section>
+        </div>
+         <div class="row row-wrap responsive-md responsive-sm responsive-lg"> 
+            <div ng-class="$root.respCol221" class="col-50 nl-display-flex" style="grid-gap: 13px;justify-content: space-evenly;">
+                <div ng-class="" class="stats_block_background points_container stats-in-small">
+                    <div class="margin-auto"><p class="total_heading">Total Points Earned</p></div>
+                    <div class="margin-auto"><h1 class="total_sub_points">89 Points</h1></div>
+                    <div class="margin-auto"><img class="img-in-small" src="/static/nittio_icon_v41/star.svg" alt=""></div>
+                </div>
+                <div class="stats_block_background points_container stats-in-small">
+                    <div><img class="img-in-small" src="/static/nittio_icon_v41/badge.svg" alt=""></div>
+                    <div class="margin-auto"><h1 class="total_sub_points">15 Points</h1></div>
+                    <div class=""><p class="month_total_points font-10-in-small">Total Points This Month</p></div>
+                </div>
+                <div class="stats_block_background points_container stats-in-small">
+                    <div class="margin-auto"><p class="total_heading">Active Days This Month</p></div>
+                    <div class="margin-auto"><h1 class="total_sub_points">89 Days</h1></div>
+                    <div class="margin-auto"><img class="img-in-small" src="/static/nittio_icon_v41/watch.svg" alt="" class="block3_img"></div>
+                </div>
+            </div>
+            <div class="col col-50 row-justify-evenly mt-in-small nl-display-flex" ng-class="$root.respCol221">
+                <div class="points_container w-in-small" style="width: 100%;">
+                <div class="padding-left row row-justify-evenly "> 
+                    <h2 class="heading-in-small pie_chart_heading">Your Overall Module Progress</h2>
+                </div>
+                <div style="display: flex;justify-content: center;align-items: center; min-height: 200px">
+                <div ng-class='' class='col-50 text-center padding-mid'>
+                    <div ng-if='charts[0].show'
+                        style="position: relative; height:200px;width:160px;margin:0 auto;">
+                            <canvas class='chart chart-pie'
+                                height='150'
+                                width="150"
+                                chart-data='charts[0].data'
+                                chart-labels='charts[0].labels'
+                                chart-colors='charts[0].colors'
+                                chart-series='charts[0].series'
+                                chart-options='charts[0].options'
+                                legend="true">
+                            </canvas>
+                    </div>
+                </div>
+                
+                 <div ng-class='' class='col-50 text-center padding-mid'>
+                     <ul class="pie_chart_label">
+                         <li style="color:#2fb885;"class="complete_label lables">Completed</li>
+                         <li style="color:#ff646a" class="notstarted_label lables">Not Started</li>
+                         <li style="color:#ffe17d" class="inprogress_label lables">In Progress</li>
+                         <li style="color:#008aff" class="upcoming_label lables">Upcoming</li>
+                         <li style="color:#f98e36" class="expired_label lables">Expired</li>
+                     </ul>
+                 </div>
+                </div>
+            </div>
+        </div>
+        </div> 
+        <div style="margin-left: 1rem;">
+            <h2 class="progress_heading show show-in-small" style="display: none;margin-top:15px">Your Module Progress in past 6 Months</h2>
+        </div>    
+        <div class="margin-auto mt-0-in-small responsive-md responsive-sm row points_container stats-graph-container-in-mobile w-in-small" id="dashboard" style="max-width: 98%;">
+            <div class="col col-50 bg-in-small">
+                <div class="row">
+                <div class="col col-50">
+                    <h2 class="progress_heading hide-in-small">Your Module Progress in past 6 Months</h2>
+                </div>
+                <div class="col col-50 completiontime completiontime-heading">
+                    <span>Completion Time</span>
+                </div>
+                </div>
+                <div class='progress_chart text-center padding-mid'>
+                    <div class='padding-small'></div>
+                    <div class='padding-small'></div>
+                    <div class='padding-small'></div>
+                    <div class='padding-small'></div>
+                    <div ng-if='charts[0].show'>
+                        <canvas class='chart chart-line'
+                            height='250'
+                            chart-data='charts[2].data'
+                            chart-labels='charts[2].labels'
+                            chart-colors='charts[2].colors'
+                            chart-series='charts[2].series'
+                            chart-options='charts[2].options'>
+                        </canvas>
+                    </div>
+                </div>
+             </div>
+                <div class="col col-50 bg-in-small">
+                    <div>
+                        <div class="assigned"><span>Assigned</span></div><br>
+                        <div class="completed"><span>Completed</span></div>
+                    </div>
+                    <div class='padding-small'></div>
+                    <div class='padding-small'></div>
+                    <div>
+                        <div class='text-center padding-mid'>
+                            <div class='padding-small'></div>
+                            <div class='padding-small'></div>
+                            <div ng-if='charts[0].show'>
+                                <canvas class='chart chart-bar'
+                                    height='250'
+                                    chart-data='charts[1].data'
+                                    chart-labels='charts[1].labels'
+                                    chart-colors='charts[1].colors'
+                                    chart-series='charts[1].series'
+                                    chart-options='charts[1].options'>
+                                </canvas>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div> 
+        </div>
+    </div>
+</div>
+    

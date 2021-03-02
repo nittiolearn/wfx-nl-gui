@@ -5,7 +5,7 @@
         Hi {{userName}}! Your learning records are being loaded from the server. Please wait ...
     </div>
     <div class='padding-mid'></div>
-    <div ng-if='tabData.dataLoaded'>
+    <div ng-if='tabData.dataLoaded && !tabData.summaryStats'>
         <div>
             <nl-learner-view-top-section tabData='tabData'></nl-learner-view-top-section>        
         </div>
@@ -24,6 +24,9 @@
         <div ng-if='tabData.sectionData[4].cardlist.length > 0' id="anchor-expired" class="mt-40">
             <nl-cards cards='tabData.sectionData[4]'></nl-cards>
         </div>
+    </div>
+    <div ng-if='tabData.summaryStats'> 
+        <nl-learning-stats></nl-learning-stats>
     </div>
 </div>
 </div>

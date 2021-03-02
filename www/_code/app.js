@@ -273,6 +273,29 @@ function(nl, $scope, $anchorScroll, nlKeyboardHandler, nlAnnouncementSrv, nlRout
                 }]
             }
         })
+        ChartJSProvider.setOptions('line',{  
+            showLines: true,
+            spanGaps: false,
+        
+            scales: {
+                xAxes: [{
+                    type: 'category',
+                    id: 'x-axis-0',
+                    ticks: {
+                        fontColor: "#FFFFFF",
+                        beginAtZero:true,
+                    }
+                }],
+                yAxes: [{
+                    type: 'linear',
+                    id: 'y-axis-0',
+                    ticks: {
+                        fontColor: "#FFFFFF",
+                        beginAtZero:true,
+                    }
+                }]
+            }
+      })
     }
 
     function _initChartsForLightMode() {
