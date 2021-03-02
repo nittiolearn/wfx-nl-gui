@@ -334,7 +334,7 @@
             <div ng-show='tabData.selectedTab.id == "pagelevelrecords"  && !tabData.processingOnging'>
                 <div ng-if='pageLevelInfo.visibleRows.length == 0'
                     class='anim-enter fade fsh5 padding'>
-                    <span>No completed module, page level score is not available.</span>
+                    <span class="error-text">No completed module, page level score is not available.</span>
                 </div>
                 <div ng-if='pageLevelInfo.visibleRows.length > 0' class='anim-enter {{getAnimClass("charts")}}'>
                     <nl-page-level-score pageleveldata='pageLevelInfo'></nl-page-level-score>

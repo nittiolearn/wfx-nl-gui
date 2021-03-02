@@ -5,26 +5,28 @@
         Hi {{userName}}! Your learning records are being loaded from the server. Please wait ...
     </div>
     <div class='padding-mid'></div>
-    <div ng-if='tabData.dataLoaded'>
+    <div ng-if='tabData.dataLoaded && !tabData.summaryStats'>
         <div>
             <nl-learner-view-top-section tabData='tabData'></nl-learner-view-top-section>        
         </div>
-        <div class='padding'></div>
-        <div ng-if='tabData.sectionData[0].cardlist.length > 0' id="anchor-progress">
+        <div ng-if='tabData.sectionData[0].cardlist.length > 0' id="anchor-progress" class="mt-32">
             <nl-cards cards='tabData.sectionData[0]'></nl-cards>
         </div>
-        <div ng-if='tabData.sectionData[1].cardlist.length > 0' id="anchor-pending">
+        <div ng-if='tabData.sectionData[1].cardlist.length > 0' id="anchor-pending" class="mt-40">
             <nl-cards cards='tabData.sectionData[1]'></nl-cards>
         </div>
-        <div ng-if='tabData.sectionData[2].cardlist.length > 0' id="anchor-upcoming">
+        <div ng-if='tabData.sectionData[2].cardlist.length > 0' id="anchor-upcoming" class="mt-40">
             <nl-cards cards='tabData.sectionData[2]'></nl-cards>
         </div>
-        <div ng-if='tabData.sectionData[3].cardlist.length > 0' id="anchor-completed">
+        <div ng-if='tabData.sectionData[3].cardlist.length > 0' id="anchor-completed" class="mt-40">
             <nl-cards cards='tabData.sectionData[3]'></nl-cards>
         </div>
-        <div ng-if='tabData.sectionData[4].cardlist.length > 0' id="anchor-expired">
+        <div ng-if='tabData.sectionData[4].cardlist.length > 0' id="anchor-expired" class="mt-40">
             <nl-cards cards='tabData.sectionData[4]'></nl-cards>
         </div>
+    </div>
+    <div ng-if='tabData.summaryStats'> 
+        <nl-learning-stats></nl-learning-stats>
     </div>
 </div>
 </div>

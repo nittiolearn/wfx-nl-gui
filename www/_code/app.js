@@ -207,59 +207,173 @@ function(nl, $scope, $anchorScroll, nlKeyboardHandler, nlAnnouncementSrv, nlRout
     };
     
     function _initChartsForDarkMode() {
+        var colorsCodes= {
+                done: '#2FB885',          
+                failed: '#FF646A',        
+                started: '#FFE17D',       
+                pending: '#E8658F',      
+                waiting: '#A0A0C0',       
+                delayed: '#F98E36',       
+                blue1: '#008AFF',        
+                blue2: '#2461cc'
+            }
+        Object.assign(_nl.colorsCodes,colorsCodes);
         var ChartJSProvider = ChartJSSrv.getChartJSProvider();
-        ChartJSProvider.setOptions("bar",{
+        ChartJSProvider.setOptions('bar',{
+            labels:[],
             scales: {
                 xAxes: [{
                         gridLines: {
                                 display: true ,
-                                color: "#A0A0C0"
+                                color: "#AAAAAA"
                         },
                         ticks: {
                         fontColor: "#FFFFFF",
+                        beginAtZero:true,
                         }
                 }],
                 yAxes: [{
                     gridLines: {
                         display: true ,
-                        color: "#A0A0C0"
-                            },
+                        color: "#AAAAAA"
+                        },
                     ticks: {
                         fontColor: "#FFFFFF",
                         beginAtZero:true,
                     }
                 }],
             }
-        });
+        });                            
+        ChartJSProvider.setOptions('horizontalBar',{  
+              scales: {
+                xAxes: [{
+                    type: 'linear',
+                    position: 'left',
+                    gridLines: {
+                        display: true ,
+                        color: "#AAAAAA"
+                        },
+                        ticks: {
+                            fontColor: "#FFFFFF",
+                            beginAtZero:true,
+                        }
+                }],
+        
+                yAxes: [{
+                    type: 'category',
+                    position: 'bottom',
+                    offset: true,
+                    gridLines: {
+                        offsetGridLines: true,
+                        color: "#AAAAAA"
+                    },
+                    ticks: {
+                        fontColor: "#FFFFFF",
+                        beginAtZero:true,
+                    }
+                }]
+            }
+        })
+        ChartJSProvider.setOptions('line',{  
+            showLines: true,
+            spanGaps: false,
+        
+            scales: {
+                xAxes: [{
+                    type: 'category',
+                    id: 'x-axis-0',
+                    ticks: {
+                        fontColor: "#FFFFFF",
+                        beginAtZero:true,
+                    }
+                }],
+                yAxes: [{
+                    type: 'linear',
+                    id: 'y-axis-0',
+                    ticks: {
+                        fontColor: "#FFFFFF",
+                        beginAtZero:true,
+                    }
+                }]
+            }
+      })
     }
 
     function _initChartsForLightMode() {
+    var colorsCodes= {
+            done: '#007700',          // $nlGreen1
+            failed: '#770000',        // $nlRed
+            started: '#44BB44',       // nlGreen2
+            pending: '#eab01f',       // $nlOrange3
+            waiting: '#A0A0C0',       // $nlGrey1
+            delayed: '#e84c3d',       // $nlOrange1
+            blue1: '#153673',         // $nlBlue1
+            blue2: '#2461cc'          // $nlBlue2
+        }
+        Object.assign(_nl.colorsCodes,colorsCodes);
         var ChartJSProvider = ChartJSSrv.getChartJSProvider();
-        ChartJSProvider.setOptions("bar",{
+        ChartJSProvider.setOptions('bar',{
+            labels:[],
             scales: {
                 xAxes: [{
                         gridLines: {
                                 display: true ,
-                                color: "#CCCCCC"
+                                color: "#000000"
                         },
                         ticks: {
                         fontColor: "#000000",
+                        beginAtZero:true,
                         }
                 }],
                 yAxes: [{
                     gridLines: {
                         display: true ,
+<<<<<<< HEAD
                         color: "#CCCCCC"
                             },
+=======
+                        color: "#000000"
+                        },
+>>>>>>> 4d3f0539505c56df707b481d21658e3b91e4daac
                     ticks: {
                         fontColor: "#000000",
                         beginAtZero:true,
                     }
                 }],
             }
-        });
-
+        });                  
+        ChartJSProvider.setOptions('horizontalBar',{  
+              scales: {
+                xAxes: [{
+                    type: 'linear',
+                    position: 'left',
+                    gridLines: {
+                        display: true ,
+                        color: "#000000"
+                        },
+                        ticks: {
+                            fontColor: "#000000",
+                            beginAtZero:true,
+                        }
+                }],
+        
+                yAxes: [{
+                    type: 'category',
+                    position: 'bottom',
+                    offset: true,
+                    gridLines: {
+                        offsetGridLines: true,
+                        color: "#000000"
+                    },
+                    ticks: {
+                        fontColor: "#000000",
+                        beginAtZero:true,
+                    }
+                }]
+            }
+        })
     }
+
     function _updateTopbarMenus(userInfo) {
         var topbarMenus = [];
         if (nlRouter.isPermitted(userInfo, 'change_password')) {

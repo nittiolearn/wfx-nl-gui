@@ -11,6 +11,7 @@ function module_init() {
 	.directive('nlLearnerViewTopSection', LearnerViewTopSectionDirective)
 	.directive('nlLearnerSection2', LearnerSectionDirective2)
 	.directive('nlLearningStatusCounts2', LearningStatusCountsDirective2)
+	.directive('nlLearningStats', LearningStats)
 	.controller('nl.LearnerViewCtrl2', LearnerViewCtrl2)
 	.service('nlLearnerView2', NlLearnerView2);
 }
@@ -52,6 +53,12 @@ function(nl, nlDlg) {
 				if (scrollid) nl.location.hash(scrollid);
 				nl.anchorScroll();
 			}
+			$scope.viewStatistics =function() {
+				$scope.tabdata.summaryStats= true;
+			}
+			$scope.goback = function() {
+				$scope.tabdata.summaryStats= false;
+			};
 		}
 	}
 }];
@@ -86,7 +93,17 @@ function(nl, nlDlg) {
 }];
 
 //-------------------------------------------------------------------------------------------------
+var LearningStats = ['nl', 'nlDlg',
+function(nl, nlDlg) {
+    return {
+        restrict: 'E',
+        transclude: true,
+        templateUrl: 'view_controllers/learner_view2/learner_view_stats.html',
+	}
+}];
 
+
+//---------------------------------
 var LearningStatusCountsDirective2 = ['nl', 
 function(nl) {
     return {
@@ -133,7 +150,7 @@ function(nl, nlDlg, nlRouter, nlServerApi, nlReportHelper, nlLearnerViewRecords2
         var pos = Math.floor((Math.random() * bgimgs.length));
         nl.rootScope.pgBgimg = bgimgs[pos];
 	};
-
+	
 }];
 
 function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlServerApi, nlReportHelper, 
@@ -181,7 +198,7 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlServerA
 			resolve(true);
 		});
 	}
-
+    
 	function _init(userInfo) {
 		nlLearnerViewRecords2.init(userInfo);
 		$scope.tabData = _initData();
@@ -200,6 +217,62 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlServerA
 		}
 		$scope.userName = userInfo.displayname;
 		nlGetManyStore.init();
+		_initChartData();
+	}
+
+	function _initChartData() {
+		$scope.charts = [{
+			show: false,
+			type: 'pie',
+			title: 'Progress',
+			data: [0, 0, 0, 0],
+			labels: ['Completed', 'Not started', 'Inprogress', 'Upcoming','Expired'],
+			colors: [_nl.colorsCodes.done, _nl.colorsCodes.failed, _nl.colorsCodes.started, _nl.colorsCodes.blue1, _nl.colorsCodes.delayed ],
+			options:{responsive: true, maintainAspectRatio: false},
+		},
+		{
+			show: false,
+			type: 'bar',
+			title: '',
+			data: [[]],
+			labels: [],
+			series: ['Assigned', 'Completed'],
+			colors: [_nl.colorsCodes.failed, _nl.colorsCodes.done],
+			options: {scales: {
+				xAxes: [{
+					gridLines: {
+						color: "rgba(0, 0, 0, 0)",
+					}
+				}],
+				yAxes: [{
+					gridLines: {
+						color: "rgba(0, 0, 0, 0)",
+					}   
+				}]
+			}}
+		},
+		{
+			show: false,
+			type: 'line',
+			backgroundColor: _nl.colorsCodes.started,
+			data: [],
+			labels: [],
+			series: ['Completed'],
+			colors: [_nl.colorsCodes.started],
+			options: {scales: {
+				xAxes: [{
+					gridLines: {
+						color: "rgba(0, 0, 0, 0)",
+					}
+				}],
+				yAxes: [{
+					gridLines: {
+						color: "rgba(0, 0, 0, 0)",
+					}   
+				}]
+			}}
+		}];
+
 	}
 
 	function _onClickOnNextFn(cards, scope) {
@@ -301,7 +374,7 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlServerA
 		ret.searchPlaceholder = 'Search';
 		ret.records = null; 
 		ret.recordsLen = 0;
-		ret.summaryStats = null;
+		ret.summaryStats = false;
 		ret.summaryStatSummaryRow = null;
 		ret.onSearch = _onSearch;
 		ret.onFilter = _onFilter;
@@ -320,7 +393,7 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlServerA
 					{id:'expired', title: 'Expired', count: 0, class: 'learner-orange'}]
 		return ret;
 	}
-
+	
 	function _onSearch(event) {
 		if (event && event.which !== 13) return;
 		var tabData = $scope.tabData;
@@ -398,9 +471,9 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlServerA
 			var cards = $scope.tabData.sectionData[i];
 			nlCardsSrv.updateCards(cards, {});
 		}
-
+		_updateSummaryTab();
 	}
-
+    
 	function _updateLearningRecords() {
 		//TODO: Naveen - Rename and change this to UpdateLearningCards
 		$scope.tabData.sectionData = _getFilteredRecords();
@@ -408,7 +481,8 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlServerA
 
 	var SEC_POS = {'progress': 0, 'pending': 1, 'upcoming': 2, 'completed': 3, 'expired': 4};
 	var CARD_SIZE = {0: 'L', 1: 'M', 2: 'M', 3: 'S', 4: 'S'};
-	var LAUNCH_BUTTON = {'progress': 'start.png', 'pending': 'start.png', 'upcoming': '', 'completed': 'preview.png', 'expired': 'info.png'};
+	var LAUNCH_BUTTON = {'progress': 'start.svg', 'pending': 'start.svg', 'upcoming': '', 'completed': 'preview.svg', 'expired': 'info.svg'};
+    
 	function _getFilteredRecords() {
 		var records = $scope.tabData.records;
 		var cards = $scope.tabData.sectionData;
@@ -477,6 +551,7 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlServerA
 		}
 		if (card.type == 'completed') {
 			var date = null;
+			card.label=record.stats.status.txt;
 			if (card.not_after)	date = card.not_after;
 			else if (record.raw_record.ended) date = record.raw_record.ended;
 			if (!date) date = record.raw_record.updated;
@@ -572,69 +647,104 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlServerA
 		if (!inStr) return false;
 		return (inStr.toLowerCase().indexOf(str) >= 0);
 	}
-
+    
 	function _updateSummaryTab() {
 		for(var i=0; i<$scope.charts.length; i++) $scope.charts[i].show = false;
 		nl.timeout(function() {
 			_updateSummaryTabImpl();
 			for(var i=0; i<$scope.charts.length; i++) $scope.charts[i].show = true;
 		}, 100);
-	}
+	 }
+    
 
 	function _updateSummaryTabImpl() {
 		var learningCounts = {cntTotal: 0, completed: 0, certified: 0, pending: 0, failed: 0, started: 0, scorePerc: 0, 
 								percCompleted: 0, percCerfied: 0, percFailed: 0, percPending: 0, avgScore: 0, 
 								timeSpent: 0};
 		$scope.tabData.learningCounts = learningCounts;
-	
+		
 		var doughnutChart = $scope.charts[0];
 		doughnutChart.data = [0, 0, 0, 0];
-
 		var timeChart = $scope.charts[1];
-		var ranges = nlLearnerViewRecords2.getTimeRanges();
+		var lineChart = $scope.charts[2];
+
+		var ranges = nlLearnerViewRecords2.getTimeRanges('months');
 		var records = $scope.tabData.records;
+		
+		var tabs= $scope.tabData.tabs;
+		for(var tabid in tabs) {
+			var tab = tabs[tabid];
+			if(!tab) continue;
+            if(tab.id == "expired") {
+				doughnutChart.data[4] = tab.count;
+			}
+			else if(tab.id == "upcoming") {
+				doughnutChart.data[3] = tab.count;
+			}
+			else if(tab.id == "progress") {
+				doughnutChart.data[2] = tab.count;
+			}
+			else if(tab.id == "pending") {
+				doughnutChart.data[1] = tab.count;
+			}
+			else {
+				doughnutChart.data[0] = tab.count;
+			}
+		}
 		for (var recid in records) {
 			var rec = records[recid];
 			if(!rec) continue;
-			var statusid = rec.stats.status.id;
-			if (statusid == nlReportHelper.STATUS_PENDING) {
-				doughnutChart.data[3] += 1;
-			} else if(statusid == nlReportHelper.STATUS_STARTED) {
-				doughnutChart.data[2] += 1;
-			} else if (statusid == nlReportHelper.STATUS_FAILED) {
-				doughnutChart.data[1] += 1;
-			} else  {
-				doughnutChart.data[0] += 1;
-			}
+			var ended = isModuleRep ? _getModuleEndedTime(rec.raw_record) : _getCourseEndedTime(rec);
+			//temp failed and completed
+			// if(!ended) continue;
+			// for(var i=0; i<ranges.length; i++) {
+			// 	if (_isTsInRange(rec.raw_record.updated, ranges[i])) {
+			// 		if(rec.stats.status.txt == 'failed') ranges[i].count++;
+			// 		else ranges[i].completed++;
+			// 		break;
+			// 	}
+			// }
+			
+		     for (var i=rangeslength-5; i<=rangeslength; i++) {
+				var r = ranges[i];
+				
+		    }
+
 			_updateCoursesDetailsDict(rec, learningCounts);
 			var isModuleRep = rec.type == 'module';
+			var ended;
 			var ended = isModuleRep ? _getModuleEndedTime(rec.raw_record) : _getCourseEndedTime(rec);
+
 			var isAssignedCountFound = false;
 			var isCompletedCountFound = false;
 			for(var i=0; i<ranges.length; i++) {
 				if (!isAssignedCountFound && _isTsInRange(rec.raw_record.created, ranges[i])) {
-					ranges[i].count++;
-					isAssignedCountFound = true;
+						ranges[i].count++;
+					    isAssignedCountFound = true;
 				}
 				if (ended && !isCompletedCountFound && _isTsInRange(ended, ranges[i])) {
-					ranges[i].completed++;
-					isCompletedCountFound = true;
+						ranges[i].completed++;
+					    isCompletedCountFound = true;
 				}
 				if(isAssignedCountFound && isCompletedCountFound) break;
 			}
 		}
 		$scope.tabData.columns = _getLearningStatusColumns();
-		doughnutChart.title = nl.t('Progress: {} of {} completed', learningCounts.completed, learningCounts.cntTotal);
-
+		
+		lineChart.labels = [];
+		lineChart.data = [];
 		timeChart.labels = [];
 		timeChart.data = [[], []];
-		for (var i=0; i<ranges.length; i++) {
+		var rangeslength=ranges.length-1;
+		//past 6 months data
+		for (var i=rangeslength-5; i<=rangeslength; i++) {
 			var r = ranges[i];
 			timeChart.labels.push(r.label);
 			timeChart.data[0].push(r.count);
 			timeChart.data[1].push(r.completed)
+			lineChart.labels.push(r.label);
+			lineChart.data.push(r.completed)
 		}
-
 	}
 
 	function _getLearningStatusColumns() {

@@ -7,7 +7,7 @@
             <i class="icon ion-gear-b bold fsh3"></i>
         </span>
     </div>
-    <div class='nl-min-250 nl-dkonlg-lgondk-text fbold padding-mid {{(drilldowndata.selectedtab.id == tab.id) ? "page_format_tab_selected" : ""}} nl-link-text'
+    <div class='nl-min-250 nl-dkonlg-lgondk-text fbold padding-mid {{(drilldowndata.selectedtab.id == tab.id) ? "page_format_tab_selected" : ""}} nl-link-text {{(nldarkmode) ? "fblue" : ""}} '
         ng-click='changeTab(drilldowndata, tab)'
         ng-repeat='tab in drilldowndata.tabs'>
         {{tab.name}}
@@ -46,7 +46,7 @@
     </div>
 </div>
 <div class='padding-mid anim-enter {{getAnimClass("data")}}' ng-if='drilldowndata.selectedtab.id == "data"'>
-    <table class='nl-table nl-table-styled3 rowlines'>
+    <table class='nl-table nl-table-styled3 rowlines cellborder'>
         <tr class='header'>
             <td class='minw-name'>
                 <div class='row row-center magin0 padding0'>
@@ -87,7 +87,7 @@
             <td ng-repeat='col in drilldowndata.drilldown.columns track by $index'
                 class='minw-number text-center'  ng-if='($root.screenSize != "small" && col.table) || ($root.screenSize == "small" && col.smallScreen)'>
                 <div class='row row-center {{!col.hidePerc ? "text-right" : "text-center"}}'>
-                    <div class='col'>{{rec[col.id] ? rec[col.id] : rec.showMoreLink ? '' : '-'}}</div>
+                    <div class='col nl-perc-class'>{{rec[col.id] ? rec[col.id] : rec.showMoreLink ? '' : '-'}}</div>
                     <div class='col nl-perc-class text-left' ng-if='!col.hidePerc'>{{(col.percid && rec[col.percid]) ? rec[col.percid]+'%' : ''}}</div>
                 </div>
             </td>
