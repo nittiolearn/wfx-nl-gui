@@ -40,24 +40,29 @@ function(nl, nlDlg) {
 			tabdata: '='
 		},
         link: function($scope, iElem, iAttrs) {
+			$scope.rightArrow = nl.url.lessonIconUrl('right-arrow.svg');
+			$scope.leftArrow = nl.url.lessonIconUrl('left-arrow.svg')
 			$scope.onDetailsLinkClicked = function($event, record, clickAttr) {
                 var detailsDlg = nlDlg.create($scope);
 				detailsDlg.setCssClass('');
                 detailsDlg.scope.record = record;
                 detailsDlg.show('view_controllers/learner_view/learner_view_details.html');
-			}
+			};
 			$scope.toScroll = function(button) {
 				if (button.count == 0) return;
 				var anchorid = button.id;
 				var scrollid = nl.t('anchor-{}', anchorid);
 				if (scrollid) nl.location.hash(scrollid);
 				nl.anchorScroll();
-			}
+			};
 			$scope.viewStatistics =function() {
 				$scope.tabdata.summaryStats= true;
-			}
+			};
 			$scope.goback = function() {
 				$scope.tabdata.summaryStats= false;
+			};
+			$scope.getImageResUrl = function(image) {
+				return nl.url.lessonIconUrl(image);
 			};
 		}
 	}

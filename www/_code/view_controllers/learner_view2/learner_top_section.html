@@ -10,9 +10,9 @@
             <div class='padding-mid'>
                 <div class='learner-view-stats-button tabs-in-small center-in-small' 
                     ng-click='viewStatistics()'>
-                       <span>Statistics
-                          <img src="/static/nittio_icon_v41/right-arrow.svg" style="width: 14px; height: 9px;" alt="right_arrow">
-                        </span> 
+                    <span>Statistics
+                        <img ng-src="{{rightArrow}}" style="width: 14px; height: 9px;" alt="right_arrow">
+                    </span> 
                 </div>
             </div>
         </div>
@@ -42,8 +42,8 @@
 </div>
 <div ng-if="tabdata.summaryStats" ng-click='goback()'>
     <div class='learner-view-stats-button tabs-in-small center-in-small nl-learner-button margin-auto-in-small' 
-        ng-click='toScroll(button)' style="width: 100px;">
-        <img src="/static/nittio_icon_v41/left-arrow.svg" style="width: 14px; height: 9px;" alt="left_arrow">
-        Courses
+        style="width: 100px;">
+        <img ng-src="{{leftArrow}}" style="width: 14px; height: 9px;" alt="left_arrow">
+        Learn
     </div>
 </div>
