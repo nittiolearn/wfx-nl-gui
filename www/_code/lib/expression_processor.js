@@ -43,8 +43,8 @@ function(nl) {
             [null, 'Munni+34'],
 
             // Success Testcases
-            [6, '_id6'],
-            [19, '_id6+_id6+_id7'],
+            [6, '$sum{_id6, 0}'],
+            [19, '$sum{_id6, _id6} + $sum{0, _id7}'],
             [2, '$cnt{_id6, _id12}'],
             [false, 'not $max{_id6, _id7}'],
             [17, '$max{_id3, _id4, _id5,_id17,_id3}'],
@@ -52,16 +52,17 @@ function(nl) {
             [32, '$sum{_id3, _id4, _id5,_id17,_id3}'],
             [6.4, '$avg{_id3, _id4, _id5,_id17,_id3}'],
             [11.5, '$avg_top{2, _id3, _id4, _id6,_id17,_id3}'],
-            [10.5, '$avg_top{2,_id3, _id4, _id5} + _id6'],
+            [10.5, '$avg_top{2,_id3, _id4, _id5} + $sum{_id6, 0}'],
             [6, '$nth_min{3, _id3, _id6, _id4, _id17, _id11}'],
             [4, '$nth_min{2, _id0, _id6, _id4,_id17, _id11}'],
             [0, '$nth_min{2, _id0, _id0, _id4,_id17, _id11}'],
             [7.5, '$if{$nth_min{2, _id1, _id2, _id3, _id4, _id5} > 0, $avg{_id6, _id7, _id8, _id9}, 0}'],
             [0, '$if{$nth_min{3, _id1, _id2, _id3, _id4, _id5} > 3, $avg{_id6, _id7, _id8, _id9}, 0}'],
             [2, '$if{_id55, 1, 2}'],
-            [false, '($max{_id1,_id2} <= $avg_top{2, _id3, _id4, _id5} or _id6) and ($min{_id7, _id8} + $max{_id9, _id10} < $avg{_id11, _id12, _id13, _id14})'],
+            [false, '($max{_id1,_id2} <= $avg_top{2, _id3, _id4, _id5} or $sum{_id6, 0}) and ($min{_id7, _id8} + $max{_id9, _id10} < $avg{_id11, _id12, _id13, _id14})'],
+            [true, '($max{_id1,_id2} <= $avg_top{2, _id3, _id4, _id5} or $sum{_id6, 0}) and ($min{_id7, _id8} + $max{_id9, _id10} < $avg{_id11, _id12, _id13, _id48})'],
 
-            [false, '$max{_id51,_id52} < $avg_top{2, _id53, _id54, _id55} or _id56 or ($cnt{_id56, _id57} + $sum{_id56, _id57} < 0)'],
+            [false, '$max{_id51,_id52} < $avg_top{2, _id53, _id54, _id55} or $sum{_id56, 0} or ($cnt{_id56, _id57} + $sum{_id56, _id57} < 0)'],
             [7, '$max{_id51,_id2,_id53,_id4} + $avg_top{3, _id53, _id54, _id55, _id3, _id6}'],
         ];
 
@@ -86,7 +87,7 @@ function(nl) {
     };
     
     function _testcase(strExpression, expected, dictAvps) {
-        var payload = {'strExpression': strExpression, 'dictAvps': dictAvps};
+        var payload = {'strExpression': strExpression, 'dictAvps': dictAvps, 'sendAsVariableNames': true};
         self.process(payload);
         if (payload['error'] != '' && expected !== null) payload['testResult'] = 'Testcase failed: see error message';
         else if (payload['result'] != expected) payload['testResult'] = 'Testcase failed: result not expected';
