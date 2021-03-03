@@ -4656,6 +4656,10 @@ a.enabled {
   color: $nlFontDarkGrey1;
   color: var(--nlFontDarkGrey1);
 }
+.chart-heading-position {
+  justify-content: flex-end;
+  grid-gap: 20px;
+}
 
 /*******************************************************************/
 /*******************************************************************/
@@ -5490,6 +5494,7 @@ nl-dlg {
 }
 .completed {
   color:var(--nlStatusGreen);
+  margin-right:20px;
 }
 .assigned > span::before {
     content: '';
