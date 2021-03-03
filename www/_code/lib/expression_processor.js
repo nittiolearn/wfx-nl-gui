@@ -58,7 +58,8 @@ function(nl) {
             [0, '$nth_min{2, _id0, _id0, _id4,_id17, _id11}'],
             [7.5, '$if{$nth_min{2, _id1, _id2, _id3, _id4, _id5} > 0, $avg{_id6, _id7, _id8, _id9}, 0}'],
             [0, '$if{$nth_min{3, _id1, _id2, _id3, _id4, _id5} > 3, $avg{_id6, _id7, _id8, _id9}, 0}'],
-            [2, '$if{_id55, 1, 2}'],
+            [2, '$if{$to_int{_id55}, 1, 2}'],
+            [7, '$if{$to_int{_id35}, 7, 2}'],
             [false, '($max{_id1,_id2} <= $avg_top{2, _id3, _id4, _id5} or $sum{_id6, 0}) and ($min{_id7, _id8} + $max{_id9, _id10} < $avg{_id11, _id12, _id13, _id14})'],
             [true, '($max{_id1,_id2} <= $avg_top{2, _id3, _id4, _id5} or $sum{_id6, 0}) and ($min{_id7, _id8} + $max{_id9, _id10} < $avg{_id11, _id12, _id13, _id48})'],
 
@@ -291,7 +292,8 @@ function(nl) {
         if (inputArgs.length != 1) throw(nl.fmt2('${}(...) function takes 1 arguments, {} given.', fn, inputArgs.length));
         _ExpressionProcessor_replace(inputArgs);
         if(!inputArgs[0]) return 0;
-        inputArgs[0] = inputArgs[0].replace(/[\s\-%a-zA-Z]+/g, '');       //removes spaces, % , - characters
+        if (typeof(inputArgs[0]) == 'string')
+            inputArgs[0] = inputArgs[0].replace(/[\s\-%a-zA-Z]+/g, '');       //removes spaces, % , - characters
     }
 
     function _ExpressionProcessor_if(inputArgs) {
