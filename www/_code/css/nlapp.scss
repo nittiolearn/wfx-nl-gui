@@ -910,18 +910,14 @@ tr.summary {
 
 .nl-link-text-dklg{
   cursor: pointer;
-  color: $nlBlack;
-  color: var(--nlBlack);
   &, a, &:visited {
     text-decoration: none;
-  }
+    color: $nlPrimaryDark;
+    color: var(--nlPrimaryDark);
+    }
   &:focus, &:active {
     background-color:$nlLinkTextBg;
     background-color: var(--nlLinkTextBg);
-  }
-  &, a, &:visited {
-    color: $nlBlack;
-    color: var(--nlBlack);
   }
 }
 
