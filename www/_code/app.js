@@ -33,6 +33,16 @@ var _nl = {
         delayed: '#e84c3d',       // $nlOrange1
         blue1: '#153673',         // $nlBlue1
         blue2: '#2461cc'          // $nlBlue2
+    },
+    darkcolorsCodes: {
+        done: '#2FB885',          
+        failed: '#FF646A',        
+        started: '#FFE17D',       
+        pending: '#Ce9bfc',      
+        waiting: '#A0A0C0',       
+        delayed: '#F98E36',       
+        blue1: '#2461cc',        
+        blue2: '#153673' 
     }
 };
 
@@ -178,10 +188,12 @@ function(nl, $scope, $anchorScroll, nlKeyboardHandler, nlAnnouncementSrv, nlRout
         nl.log.debug('app:onPageEnter - enter');
         if (userInfo.groupinfo) {
             if (userInfo.groupinfo.groupCustomClass == 'nldarkmode') 
+            {
+               _nl.colorsCodes = _nl.darkcolorsCodes;
                 _initChartsForDarkMode();
+            }
             else 
                 _initChartsForLightMode();
-
         }
         nl.rootScope.bodyClass = 'showbody';
         nlAnnouncementSrv.initAnnouncements(userInfo, $scope);
@@ -207,17 +219,6 @@ function(nl, $scope, $anchorScroll, nlKeyboardHandler, nlAnnouncementSrv, nlRout
     };
     
     function _initChartsForDarkMode() {
-        var colorsCodes= {
-                done: '#2FB885',          
-                failed: '#FF646A',        
-                started: '#FFE17D',       
-                pending: '#E8658F',      
-                waiting: '#A0A0C0',       
-                delayed: '#F98E36',       
-                blue1: '#008AFF',        
-                blue2: '#2461cc'
-            }
-        Object.assign(_nl.colorsCodes,colorsCodes);
         var ChartJSProvider = ChartJSSrv.getChartJSProvider();
         ChartJSProvider.setOptions('bar',{
             labels:[],
@@ -225,21 +226,19 @@ function(nl, $scope, $anchorScroll, nlKeyboardHandler, nlAnnouncementSrv, nlRout
                 xAxes: [{
                         gridLines: {
                                 display: true ,
-                                color: "#AAAAAA"
+                                color: "#FFFFFF"
                         },
                         ticks: {
                         fontColor: "#FFFFFF",
-                        beginAtZero:true,
                         }
                 }],
                 yAxes: [{
                     gridLines: {
                         display: true ,
-                        color: "#AAAAAA"
+                        color: "#FFFFFF"
                         },
                     ticks: {
                         fontColor: "#FFFFFF",
-                        beginAtZero:true,
                     }
                 }],
             }
@@ -270,17 +269,6 @@ function(nl, $scope, $anchorScroll, nlKeyboardHandler, nlAnnouncementSrv, nlRout
     }
 
     function _initChartsForLightMode() {
-    var colorsCodes= {
-            done: '#007700',          // $nlGreen1
-            failed: '#770000',        // $nlRed
-            started: '#44BB44',       // nlGreen2
-            pending: '#eab01f',       // $nlOrange3
-            waiting: '#A0A0C0',       // $nlGrey1
-            delayed: '#e84c3d',       // $nlOrange1
-            blue1: '#153673',         // $nlBlue1
-            blue2: '#2461cc'          // $nlBlue2
-        }
-        Object.assign(_nl.colorsCodes,colorsCodes);
         var ChartJSProvider = ChartJSSrv.getChartJSProvider();
         ChartJSProvider.setOptions('bar',{
             labels:[],

@@ -48,20 +48,20 @@
 <div class='padding-mid anim-enter {{getAnimClass("data")}}' ng-if='drilldowndata.selectedtab.id == "data"'>
     <table class='nl-table nl-table-styled3 rowlines cellborder'>
         <tr class='header'>
-            <td class='minw-name'>
+            <td class='nl-txt-white nl-txt-dark-hover'>
                 <div class='row row-center magin0 padding0'>
                     <div class='col'></div>
                 </div>
             </td>
             <td ng-repeat='col in drilldowndata.drilldown.columns track by $index'
-                class='minw-number text-center' ng-if='($root.screenSize != "small" && col.table) || ($root.screenSize == "small" && col.smallScreen)'>
+                class='nl-txt-white text-center' ng-if='($root.screenSize != "small" && col.table) || ($root.screenSize == "small" && col.smallScreen)'>
                 <div>{{col.name}}</div>
             </td>
         </tr>
         <tr class='{{rec.isFolder ? "clickable hover" : ""}}'
              ng-repeat='rec in drilldowndata.drilldown.rows track by $index'
              ng-click='generateDrillDownArray(rec)'>
-             <td>
+             <td class="nl-txt-white">
                 <div ng-if='rec.showMoreLink' class='minw-name fgrey td-cell-clickable td-cell-hover'
                     ng-click='onClickOnShowMore(rec);$event.stopImmediatePropagation(); $event.preventDefault();'>
                     <div class='row row-center magin0 padding0'style='padding-left:{{rec.indentation}}px' >
@@ -85,10 +85,10 @@
                 </div>
             </td>
             <td ng-repeat='col in drilldowndata.drilldown.columns track by $index'
-                class='minw-number text-center'  ng-if='($root.screenSize != "small" && col.table) || ($root.screenSize == "small" && col.smallScreen)'>
+                class='nl-txt-white text-center'  ng-if='($root.screenSize != "small" && col.table) || ($root.screenSize == "small" && col.smallScreen)'>
                 <div class='row row-center {{!col.hidePerc ? "text-right" : "text-center"}}'>
-                    <div class='col nl-perc-class'>{{rec[col.id] ? rec[col.id] : rec.showMoreLink ? '' : '-'}}</div>
-                    <div class='col nl-perc-class text-left' ng-if='!col.hidePerc'>{{(col.percid && rec[col.percid]) ? rec[col.percid]+'%' : ''}}</div>
+                    <div class='col nl-perc-class nl-txt-white'>{{rec[col.id] ? rec[col.id] : rec.showMoreLink ? '' : '-'}}</div>
+                    <div class='col nl-perc-class text-left nl-txt-white' ng-if='!col.hidePerc'>{{(col.percid && rec[col.percid]) ? rec[col.percid]+'%' : ''}}</div>
                 </div>
             </td>
         </tr>

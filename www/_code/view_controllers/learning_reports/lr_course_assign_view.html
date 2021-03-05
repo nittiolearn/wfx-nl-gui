@@ -37,8 +37,8 @@
 				<div class='col padding-mid'>
 					<table class='nl-table nl-table-styled3 rowlines'>
 						<tr ng-repeat='item in chartData'>
-							<td>{{item.name}}</td>
-							<td>{{item.val}}</td>
+							<td class="nl-txt-dark">{{item.name}}</td>
+							<td class="nl-txt-dark">{{item.val}}</td>
 						</tr>
 						<tr class='header'>
 							<td>Total</td>
@@ -161,19 +161,19 @@
 					</td>
 				</tr>
 				<tr ng-repeat='user in visibleUsers track by $index'>
-					<td>
+					<td class='nl-txt-dark'>
 						{{user.name}}
 					</td>
-					<td>
+					<td class='nl-txt-dark'>
 						{{user.id}}
 					</td>
-					<td>
+					<td class='nl-txt-dark'>
 						{{user.statusStr}} {{user.statusStr2 ? 'on '+user.statusStr2 : ''}}
 					</td>
-					<td ng-if='selectedModule.showScore'>
+					<td ng-if='selectedModule.showScore' class='nl-txt-dark'>
 						{{user.score || '-'}} {{user.score ? '%' : ''}}
 					</td>
-					<td ng-if='selectedModule.showRemarks'>
+					<td ng-if='selectedModule.showRemarks' class='nl-txt-dark'>
 						{{user.remarks || ''}}
 					</td>
 				</tr>

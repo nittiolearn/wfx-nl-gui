@@ -2,7 +2,7 @@
 	<img ng-show='card.icon' ng-src='{{card.icon}}' nl-compute-img-info></img>
 	<img ng-if='!card.icon' src='/static/nittio_icon_v41/placeholder_large.svg' 
 		 alt='default_placeholder'></img>
-	<div class="label" ng-class="{label_certified: card.label == 'certified',label_failed: card.label == 'failed',label_done: card.label == 'done'}">
+	<div class="label" ng-class="{label_certified: card.label == 'certified',label_failed: card.label == 'failed',label_done: card.label == 'done',label_passed: card.label == 'passed'}">
 		 {{card.label}}
 	</div>
 </div>

@@ -31,7 +31,7 @@
         </td>
     </tr>
     <tr ng-repeat-end ng-if='rec.canShowDetails'>
-        <td colspan='{{info.origColumns.length}}'>
+        <td colspan='{{info.origColumns.length}}' class="nl-txt-white">
             <div class='padding-mid'>
                 <div ng-show='rec.details' nl-compile='rec.details' class="{{info.styleDetail}}"></div>
             </div>

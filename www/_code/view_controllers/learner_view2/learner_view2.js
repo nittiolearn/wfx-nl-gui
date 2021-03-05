@@ -232,7 +232,7 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlServerA
 			title: 'Progress',
 			data: [0, 0, 0, 0],
 			labels: ['Completed', 'Not started', 'Inprogress', 'Upcoming','Expired'],
-			colors: [_nl.colorsCodes.done, _nl.colorsCodes.failed, _nl.colorsCodes.started, _nl.colorsCodes.blue1, _nl.colorsCodes.delayed ],
+			colors: [_nl.colorsCodes.done, _nl.colorsCodes.pending, _nl.colorsCodes.started, _nl.colorsCodes.blue1, _nl.colorsCodes.delayed ],
 			options:{responsive: true, maintainAspectRatio: false},
 		},
 		{
@@ -242,7 +242,7 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlServerA
 			data: [[]],
 			labels: [],
 			series: ['Assigned', 'Completed'],
-			colors: [_nl.colorsCodes.failed, _nl.colorsCodes.done],
+			colors: [_nl.colorsCodes.blue1, _nl.colorsCodes.done],
 			options: {scales: {
 				xAxes: [{
 					gridLines: {
@@ -392,7 +392,7 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlServerA
 						{name: 'Expired Assignments', type: 'expired', card2: true, cardlist: []}		
 					];
 		ret.tabs = [{id:'progress', title: 'In progress', count: 0, class: 'learner-yellow'}, 
-					{id: 'pending', title: 'Not started', count: 0, class: 'learner-red'},
+					{id: 'pending', title: 'Not started', count: 0, class: 'learner-light-purple'},
 					{id:'upcoming', title: 'Upcoming', count: 0, class: 'learner-blue'},
 					{id:'completed', title: 'Completed', count: 0, class: 'learner-green'},
 					{id:'expired', title: 'Expired', count: 0, class: 'learner-orange'}]
@@ -581,7 +581,7 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlServerA
 			}
 			var duration = record.repcontent.max_duration;
 			if (duration)
-				card.help += nl.t('<div>Duration: {} mins</div>', duration);
+				card.help += nl.t('<div>Duration: {}</div>', duration);
 		}
 		if (card.type == 'progress') {
 			card.prgClass = 'nl-card2-progress-bar-barGreen';	
@@ -597,15 +597,30 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlServerA
 				var maxDurationSec = record.repcontent.max_duration*60 || 0;
 				if (maxDurationSec) {
 					var timeLeft = maxDurationSec - timeSpentSec;
-					card.help += nl.t('<div>{} mins remaining</div>', Math.ceil(timeLeft/60));	
+					var timeString=timeinseconds(timeLeft);
+					card.help += nl.t('<div>{} mins remaining</div>', timeString);	
 				} else {
-					var timeSpentMins = Math.ceil(timeSpentSec/60)
-					card.help += nl.t('<div>Total time spent: {} mins</div>', timeSpentMins);
+					var timeSpentMins = timeSpentSec;
+					var timeString=timeinseconds(timeSpentMins);
+					card.help += nl.t('<div>Total time spent: {}</div>', timeString);
 				}
 			} else {
 				if (record.stats.timeSpent)
-					card.help += nl.t('<div>Total time spent: {} mins</div>', Math.ceil(record.stats.timeSpent/60));	
+				    var timeObj=record.stats.timeSpent/60;
+					var timeString=timeinseconds(timeObj);
+					card.help += nl.t('<div>Total time spent: {}</div>', timeString);	
 			}
+		}
+		function timeinseconds(timeObj) {
+			if(!timeObj) return '00:00:00';
+			
+			var hours = Math.floor(timeObj / 3600); 
+            var minutes = Math.floor((timeObj - (hours * 3600)) / 60); 
+           	var seconds = timeObj - (hours * 3600) - (minutes * 60)
+			var timeString = hours.toString().padStart(2, '0') + ':' + 
+    						 minutes.toString().padStart(2, '0') + ':' + 
+    						 seconds.toString().padStart(2, '0');
+			return timeString;
 		}
 		return card;
 	}
@@ -709,11 +724,6 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlServerA
 			// 		break;
 			// 	}
 			// }
-			
-		     for (var i=rangeslength-5; i<=rangeslength; i++) {
-				var r = ranges[i];
-				
-		    }
 
 			_updateCoursesDetailsDict(rec, learningCounts);
 			var isModuleRep = rec.type == 'module';

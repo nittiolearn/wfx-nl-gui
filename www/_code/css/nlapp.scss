@@ -65,6 +65,7 @@ $nlBlackTransparent80:             rgba(0, 0, 0, 0.8);
 $nlBoxShadowBlackTransparent60:             rgba(0, 0, 0, 0.6);
 $nlBorderBlackTransparent20:             rgba(0, 0, 0, 0.2);
 $nlBoxShadowBlackTransparent10:             rgba(0, 0, 0, 0.1);
+$nlStatusLightPurple:               #Ce9bfc;
 // user background colour options for module edit view 
 // light colour palate
 $nlBgLight1:                    rgba(255, 255, 255, 0.6);
@@ -90,6 +91,10 @@ $nlBgBright2:                       rgba(0, 255, 0, 0.8);
 $nlBgBright3:                         rgba(255,0,0,0.8);
 $nlBgBright4:                       rgba(255, 255, 0, 0.8);
 $nlBgBright5:                       rgba(255, 192, 0, 0.8);
+
+//light theme color palate
+$nldarkblue: #3573DF;
+$nllightblue :#3f7ce4;
 
 // Padding definition
 $nlpad_x:                         20px !default; 
@@ -121,6 +126,7 @@ $ionicons-font-path: "../_external_bundles/ionicfonts" !default;
   --nlStatusRed: #{$nlStatusRed};
   --nlBorderRed: #{$nlBorderRed};
   --nlStatusRedLight: #{$nlStatusRedLight};
+  --nlStatusLightPurple: #{$nlStatusLightPurple};
   --nlBoxShadowRedDark: #{$nlBoxShadowRedDark};
   --nlStatusGreen: #{$nlStatusGreen};
   --nlForumMsgBg: #{$nlForumMsgBg};
@@ -151,6 +157,8 @@ $ionicons-font-path: "../_external_bundles/ionicfonts" !default;
   --nlShadowGrey: #{$nlShadowGrey};
   --nlBorderGrey1: #{$nlBorderGrey1};
   --nlBorderGrey2: #{$nlBorderGrey2};
+  --nllightblue: #{$nllightblue};
+  --nldarkblue: #{$nldarkblue};
 }
 
 //-------------------------------------------------------------------------------------------
@@ -1869,8 +1877,6 @@ input.nl-dlg-field-error, .nl-dlg-field-error {
   font-size: 100%;
   line-height: 170%;
 }
-
-
 .nl-card-holder2 {
   position: absolute;
   top: 4%;
@@ -1881,8 +1887,7 @@ input.nl-dlg-field-error, .nl-dlg-field-error {
   color: var(--nlWhite);
   border-radius: 10px;
   box-shadow: inset 0 0 2px rgba(0,0,100,0.2), 1px 1px 2px rgba(0,0,100,0.4);
-  background-color: $nlWhite;
-  background-color: var(--nlWhite);
+  background-color: var(--nllightblue);
 }
 
 .nl-card2-img {
@@ -1934,7 +1939,7 @@ input.nl-dlg-field-error, .nl-dlg-field-error {
   overflow: hidden;
   white-space: normal;
   text-overflow: ellipsis;
-  font-family: Montserrat-Medium;
+  font-family: Montserrat-Regular;
 }
 
 .nl-cards-section-hide::-webkit-scrollbar {
@@ -2838,12 +2843,11 @@ img.nl-icon {
   line-height: 0.75;
   letter-spacing: normal;
   text-align: left;
-  color: $nlWhite;
-  color: var(--nlWhite);
+  color: var(--nlPrimary);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-family: Montserrat-Medium;
+  font-family: Montserrat-Regular;
 }
 
 /*-----------------------------------------------------------------------------------------*
@@ -4770,6 +4774,12 @@ box-shadow: inset 0 0 0 var(--nlStatusRed), 0 0 5px var(--nlBoxShadowBlackTransp
     }  
   }
 }
+.nl-txt-white {
+  color:var(--nlWhite);
+}
+.nl-txt-dark {
+  color:var(--nlPrimaryDark);
+}
 
   /*-----------------------------------------------------------------------------------------*
  * darkmode background for all screens
@@ -5079,45 +5089,11 @@ box-shadow: inset 0 0 0 var(--nlStatusRed), 0 0 5px var(--nlBoxShadowBlackTransp
   /*-----------------------------------------------------------------------------------------*
  * Learner view 2 section styles (card2)
  *-----------------------------------------------------------------------------------------*/
-.nl-limitwidth-learner-view {
-  max-width: 1100px;
-  margin-left: auto;
-  margin-right: auto;
-}
-.nl-limitwidth-learner-view:not(:first-child) {
-  margin-top:64px;
-}
+ .section-header-text {
+   color: var(--nlWhite);
+ }
 .nl-topbar-background {
   background: var(--nlWhiteBackground);
-}
-.nl-learner-button{
-  min-width: 142px;
-  height: 32px;
-  padding: 6px 12px 6px 12px;
-  border-radius: 20px;
-  text-align: center;
-  font-family: Montserrat-Medium;
-  font-size: 15px;
-}
-.learner-yellow{
-    color: var(--nlFontYellow);
-    border: 2px solid var(--nlFontYellow);
-}
-.learner-red{
-  color: var(--nlStatusRed);
-  border: 2px solid var( --nlStatusRed);
-}
-.learner-blue{
-  color: var(--nlStatusBlue);
-  border: 2px solid var(--nlStatusBlue);
-}
-.learner-green{
-  color: var(--nlStatusGreen);
-  border: 2px solid var(--nlStatusGreen);
-}
-.learner-orange{
-  color: var(--nlFontOrange1);
-  border: 2px solid var(--nlFontOrange1);
 }
 .learner-top-section {
   -webkit-backdrop-filter: blur(30px);
@@ -5134,19 +5110,7 @@ box-shadow: inset 0 0 0 var(--nlStatusRed), 0 0 5px var(--nlBoxShadowBlackTransp
   border-radius: 4px; 
   background-color: var(--nlWhite);
 }
-.learner-view-stats-button {
-  background-color: white;
-  color: var(--nlprimarydark);
-  font-family: Montserrat-Medium;
-  min-width: 142px;
-  height: 32px;
-  padding: 7px 12px 6px 12px;
-  border-radius: 20px;
-  text-align: center;
-  font-family: Montserrat-Medium;
-  font-size: 15px;
-  cursor: pointer;
-}
+
 //-------------------------------------------------------------------------------------------
 // Card2 in darkmode
 //-------------------------------------------------------------------------------------------
@@ -5172,7 +5136,7 @@ box-shadow: inset 0 0 0 var(--nlStatusRed), 0 0 5px var(--nlBoxShadowBlackTransp
     text-align: left;
     tr {
       background-color: var(--nlWhiteBackground);
-      color: var(--nlWhite);
+      color: var(--nlPrimaryDark);
     }
   .nl-info-icon {
     color: var(--nlWhite);
@@ -5197,6 +5161,9 @@ box-shadow: inset 0 0 0 var(--nlStatusRed), 0 0 5px var(--nlBoxShadowBlackTransp
           color: var(--nlPrimaryDark);
         }
         .ion-information-circled {
+          color: var(--nlPrimaryDark);
+        }
+        .nl-txt-dark-hover {
           color: var(--nlPrimaryDark);
         }
       }
@@ -5330,17 +5297,8 @@ nl-dlg {
   .icons_in_dark {
     color: var(--nlWhite);
   }
-  .nl-perc-class {
-    color: var(--nlWhite);
-  }
   .error-text {
     color: var(--nlWhite);
-  }
-  .mt-32 {
-    margin-top:20px;
-  }
-  .mt-40 {
-    margin-top:40px;
   }
   .label {
     position:absolute;
@@ -5359,6 +5317,9 @@ nl-dlg {
     background-color: var(--nlStatusRed);
   }
   .label_done {
+    background-color: var(--nlStatusGreen);
+  }
+  .label_passed {
     background-color: var(--nlStatusGreen);
   }
 
@@ -5395,11 +5356,26 @@ nl-dlg {
 .lables {
    list-style: none;
 }
+.complete_label {
+  color: var(--nlStatusGreen);
+}
+.notstarted_label {
+  color: var(--nlStatusLightPurple);
+}
+.inprogress_label {
+  color: var(--nlFontYellow);
+}
+.upcoming_label {
+  color: var(--nlStatusBlue);
+}
+.expired_label {
+  color: var(--nlFontOrange1);
+}
 .complete_label:nth-child(1):before {
     background-color: var(--nlStatusGreen);
 }
 .notstarted_label:nth-child(2):before {
-    background-color:  var(--nlStatusRed);
+    background-color:  var(--nlStatusLightPurple);
 }
 .inprogress_label:nth-child(3):before {
     background-color: var(--nlFontYellow);
@@ -5486,7 +5462,7 @@ nl-dlg {
     color: var(--nlFontYellow);
 }
 .assigned {
-  color: var(--nlStatusRed);
+  color: var(--nlStatusBlue);
 }
 .completed {
   color:var(--nlStatusGreen);
@@ -5505,7 +5481,7 @@ nl-dlg {
     bottom: 0;
     margin: 10px 12px 0px 0px;
     border-radius: 50%;
-    background-color: var(--nlStatusRed);
+    background-color: var(--nlStatusBlue);
 }
 .completed >span::before {
     content: '';
@@ -5522,9 +5498,91 @@ nl-dlg {
     border-radius: 50%;
     background-color: var(--nlStatusGreen);
   }
+  .nl-bg-blue-in-dark {
+    background-color: $nlBgTextArea;
+    background-color: var(--nlBgTextArea); 
+  }
 }
 /*-----------------------------------------------------------------------------------------*
  * END OF DARKMODE STYLE AND COLOUR SECTION
  *-----------------------------------------------------------------------------------------*/
  /*******************************************************************/
  /*******************************************************************/
+
+
+
+/*-----------------------------------------------------------------------------------------*
+ * LIGHT THEME STYLE AND COLOUR SECTION
+ *-----------------------------------------------------------------------------------------*/
+.nl-topbar-background {
+  background: var(--nldarkblue);
+}
+.nl-learner-button{
+  min-width: 142px;
+  height: 32px;
+  padding: 6px 12px 6px 12px;
+  border-radius: 20px;
+  text-align: center;
+  font-family: Montserrat-Regular;
+  font-size: 15px;
+}
+.learner-yellow{
+  color: var(--nlFontYellow);
+  border: 2px solid var(--nlFontYellow);
+}
+.learner-red{
+  color: var(--nlStatusRed);
+  border: 2px solid var( --nlStatusRed);
+}
+.learner-light-purple {
+  color: var(--nlStatusLightPurple);
+  border: 2px solid var( --nlStatusLightPurple);
+}
+.learner-blue{
+  color: var(--nlStatusBlue);
+  border: 2px solid var(--nlStatusBlue);
+}
+.learner-green{
+  color: var(--nlStatusGreen);
+  border: 2px solid var(--nlStatusGreen);
+}
+.learner-orange{
+  color: var(--nlFontOrange1);
+  border: 2px solid var(--nlFontOrange1);
+}
+/*-----------------------------------------------------------------------------------------*
+ * Learner view 2 section styles (card2)
+ *-----------------------------------------------------------------------------------------*/
+.nl-limitwidth-learner-view {
+  max-width: 1100px;
+  margin-left: auto;
+  margin-right: auto;
+}
+.nl-limitwidth-learner-view:not(:first-child) {
+  margin-top:64px;
+}
+.learner-view-stats-button {
+  background-color: white;
+  color: var(--nlprimarydark);
+  font-family: Montserrat-Regular;
+  min-width: 142px;
+  height: 32px;
+  padding: 7px 12px 6px 12px;
+  border-radius: 20px;
+  text-align: center;
+  font-size: 15px;
+  cursor: pointer;
+}
+.search-placeholder::placeholder {
+  color: var(--nlPrimary);
+}
+.mt-32 {
+  margin-top:20px;
+}
+.mt-40 {
+  margin-top:40px;
+}
+/*-----------------------------------------------------------------------------------------*
+ * END OF DARKMODE STYLE AND COLOUR SECTION
+ *-----------------------------------------------------------------------------------------*/
+ 
