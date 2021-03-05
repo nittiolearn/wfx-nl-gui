@@ -1695,6 +1695,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			charts.options.scales.xAxes[0].ticks.fontColor = "#FFFFFF"
 			charts.options.scales.yAxes[0].gridLines = {display: true, color: "#A0A0C0"},
 			charts.options.scales.xAxes[0].ticks = {fontColor: "#FFFFFF", 'beginAtZero': true}
+			charts.options.scales.yAxes[0].ticks = {fontColor: "#FFFFFF", 'beginAtZero': true}
 		}
 		charts.graphData = [];
 		for (var key in summaryRow) {

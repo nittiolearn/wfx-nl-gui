@@ -243,37 +243,7 @@ function(nl, $scope, $anchorScroll, nlKeyboardHandler, nlAnnouncementSrv, nlRout
                     }
                 }],
             }
-        });                            
-        ChartJSProvider.setOptions('horizontalBar',{  
-              scales: {
-                xAxes: [{
-                    type: 'linear',
-                    position: 'left',
-                    gridLines: {
-                        display: true ,
-                        color: "#AAAAAA"
-                        },
-                        ticks: {
-                            fontColor: "#FFFFFF",
-                            beginAtZero:true,
-                        }
-                }],
-        
-                yAxes: [{
-                    type: 'category',
-                    position: 'bottom',
-                    offset: true,
-                    gridLines: {
-                        offsetGridLines: true,
-                        color: "#AAAAAA"
-                    },
-                    ticks: {
-                        fontColor: "#FFFFFF",
-                        beginAtZero:true,
-                    }
-                }]
-            }
-        })
+        }); 
         ChartJSProvider.setOptions('line',{  
             showLines: true,
             spanGaps: false,
@@ -317,56 +287,22 @@ function(nl, $scope, $anchorScroll, nlKeyboardHandler, nlAnnouncementSrv, nlRout
             scales: {
                 xAxes: [{
                         gridLines: {
-                                display: true ,
-                                color: "#000000"
+                                display: true 
                         },
                         ticks: {
-                        fontColor: "#000000",
-                        beginAtZero:true,
+                        beginAtZero:true
                         }
                 }],
                 yAxes: [{
                     gridLines: {
-                        display: true ,
-                        color: "#000000"
+                        display: true
                         },
                     ticks: {
-                        fontColor: "#000000",
-                        beginAtZero:true,
+                        beginAtZero:true
                     }
                 }],
             }
-        });                  
-        ChartJSProvider.setOptions('horizontalBar',{  
-              scales: {
-                xAxes: [{
-                    type: 'linear',
-                    position: 'left',
-                    gridLines: {
-                        display: true ,
-                        color: "#000000"
-                        },
-                        ticks: {
-                            fontColor: "#000000",
-                            beginAtZero:true,
-                        }
-                }],
-        
-                yAxes: [{
-                    type: 'category',
-                    position: 'bottom',
-                    offset: true,
-                    gridLines: {
-                        offsetGridLines: true,
-                        color: "#000000"
-                    },
-                    ticks: {
-                        fontColor: "#000000",
-                        beginAtZero:true,
-                    }
-                }]
-            }
-        })
+        });
     }
 
     function _updateTopbarMenus(userInfo) {
