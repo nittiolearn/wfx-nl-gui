@@ -688,7 +688,7 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlServerA
 		var timeChart = $scope.charts[1];
 		var lineChart = $scope.charts[2];
 
-		var ranges = nlLearnerViewRecords2.getTimeRanges('months');
+		var ranges = nlLearnerViewRecords2.getTimeRanges();
 		var records = $scope.tabData.records;
 		
 		var tabs= $scope.tabData.tabs;
@@ -750,14 +750,8 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlServerA
 		lineChart.data = [];
 		timeChart.labels = [];
 		timeChart.data = [[], []];
-		var rangelength=ranges.length;
-		var range=0;
-		if(rangelength>6) {
-			var rangeslength=rangelength-6;
-			range=rangeslength;
-		}
-		//past 6 months data
-		for (var i=range; i<=rangelength; i++) {
+		
+		for (var i=0; i<ranges.length; i++) {
 			var r = ranges[i];
 			timeChart.labels.push(r.label);
 			timeChart.data[0].push(r.count);
