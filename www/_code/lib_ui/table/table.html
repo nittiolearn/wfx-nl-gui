@@ -2,7 +2,7 @@
     <tr class='header {{info.styleHeader}}'>
         <td ng-repeat='col in info.origColumns track by $index'
             ng-click='sortRows(col.id)'
-            class='nl-link-text minw-number text-left'>
+            class='nl-link-text nl-txt-white text-left'>
             <div class='row margin0 padding0'>
                 <div class='col padding0 margin0'>
                     {{col.name}}
@@ -25,7 +25,7 @@
         class='{{info.onRowClick ? "nl-link-text2" : ""}}'
         ng-click='onItemClick(rec, info.onRowClick)'>
         <td ng-repeat='col in info.origColumns track by $index'
-            class='{{col.styleTd}}'>
+            class='{{col.styleTd}} nl-txt-white'>
              <i ng-show='rec._avps["_id." + col.icon]' class='icon fsh4 {{rec._avps["_id." + col.icon]}}'></i>
              <span>{{rec._avps['_id.' + col.id] || ''}}</span>
         </td>

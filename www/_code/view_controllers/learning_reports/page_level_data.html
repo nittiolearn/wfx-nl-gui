@@ -35,7 +35,7 @@
         </tr>
         <tr ng-repeat='rec in pageleveldata.visibleRows track by $index' class='{{}}'>
             <td title="{{rec[col.id] || '-'}}" ng-repeat='col in pageleveldata.columns track by $index'
-                class="{{col.id == 'question'? 'nl-plLengthCompress':''}}">
+                class="{{col.id == 'question'? 'nl-plLengthCompress':''}} nl-txt-white">
                 {{rec[col.id] || '-'}}
             </td>
         </tr>

@@ -93,8 +93,9 @@ $nlBgBright4:                       rgba(255, 255, 0, 0.8);
 $nlBgBright5:                       rgba(255, 192, 0, 0.8);
 
 //light theme color palate
-$nldarkblue: #3573DF;
+$nlwhitesmoke: #f6f6f6;
 $nllightblue :#3f7ce4;
+$nlStatusBlue:#008aff;
 
 // Padding definition
 $nlpad_x:                         20px !default; 
@@ -158,7 +159,7 @@ $ionicons-font-path: "../_external_bundles/ionicfonts" !default;
   --nlBorderGrey1: #{$nlBorderGrey1};
   --nlBorderGrey2: #{$nlBorderGrey2};
   --nllightblue: #{$nllightblue};
-  --nldarkblue: #{$nldarkblue};
+  --nlwhitesmoke: #{$nlwhitesmoke};
 }
 
 //-------------------------------------------------------------------------------------------
@@ -1886,7 +1887,7 @@ input.nl-dlg-field-error, .nl-dlg-field-error {
   color: $nlWhite;
   color: var(--nlWhite);
   border-radius: 10px;
-  box-shadow: inset 0 0 2px rgba(0,0,100,0.2), 1px 1px 2px rgba(0,0,100,0.4);
+  box-shadow: 0 3px 6px 0 #3f7ce4;
   background-color: var(--nllightblue);
 }
 
@@ -2065,8 +2066,7 @@ nl-cards {
   left: 0;
   height: 92%;
   width: 100%;
-  
-  border-radius: 2px;
+  border-radius: 10px;
   box-shadow: inset 0 0 2px $nlBorderBlackTransparent20, 1px 1px 2px $nlFontDarkGrey2;
   box-shadow: inset 0 0 2px var(--nlBorderBlackTransparent20), 1px 1px 2px var(--nlFontDarkGrey2);
   background-color: $nlWhite;
@@ -2111,7 +2111,7 @@ nl-cards {
   left: 0%;
   height: 50%;
   width: 100%;
-  padding: 2px;
+  padding: 0px;
   text-align: center;
   nl-card-image {
     height: 100%;
@@ -4678,7 +4678,7 @@ a.enabled {
   --nlBgTextArea: #{$nlBgTextArea};
   --nlSlideShadowLight: #{$nlSlideShadowLight};
   --nlSlideShadowDark: #{$nlSlideShadowDark};
-  --nlStatusBlue: #008aff;
+  --nlStatusBlue: $nlStatusBlue;
   --nlPrimaryTransparent30: #{$nlPrimaryTransparent30};
   --nlPrimaryTransparent50: #{$nlPrimaryTransparent50};
   --nlPrimaryLightTransparent70: #{$nlPrimaryLightTransparent70};
@@ -4795,7 +4795,7 @@ box-shadow: inset 0 0 0 var(--nlStatusRed), 0 0 5px var(--nlBoxShadowBlackTransp
  * darkmode style for the cards
  *-----------------------------------------------------------------------------------------*/
  .nl-card-holder {
-    border-radius: 8px;
+    border-radius: 10px;
     background-color: var(--nlWhiteBackground);
   }
   .nl-card-url {
@@ -5116,6 +5116,7 @@ box-shadow: inset 0 0 0 var(--nlStatusRed), 0 0 5px var(--nlBoxShadowBlackTransp
 //-------------------------------------------------------------------------------------------
 .nl-card-holder2{
   background-color: var(--nlWhiteBackground);
+  box-shadow: inset 0 0 2px rgba(0,0,100,0.2), 1px 1px 2px rgba(0,0,100,0.4);
 }
 
 //-------------------------------------------------------------------------------------------
@@ -5147,9 +5148,6 @@ box-shadow: inset 0 0 0 var(--nlStatusRed), 0 0 5px var(--nlBoxShadowBlackTransp
       font-weight: bold;
       border-bottom: 1px solid var(--nlWhite);
     }
-    tr.alternate {
-      background-color: var(--nlBorderGrey1);
-    }
     tr.clickable {
       cursor: pointer;
     }
@@ -5164,6 +5162,9 @@ box-shadow: inset 0 0 0 var(--nlStatusRed), 0 0 5px var(--nlBoxShadowBlackTransp
           color: var(--nlPrimaryDark);
         }
         .nl-txt-dark-hover {
+          color: var(--nlPrimaryDark);
+        }
+        .nl-hover-txt {
           color: var(--nlPrimaryDark);
         }
       }
@@ -5515,7 +5516,7 @@ nl-dlg {
  * LIGHT THEME STYLE AND COLOUR SECTION
  *-----------------------------------------------------------------------------------------*/
 .nl-topbar-background {
-  background: var(--nldarkblue);
+  background: var(--nlwhitesmoke);
 }
 .nl-learner-button{
   min-width: 142px;
@@ -5582,6 +5583,9 @@ nl-dlg {
 .mt-40 {
   margin-top:40px;
 }
+.nl-nav-arrow-icon {
+  color: var(--nllightblue);
+} 
 /*-----------------------------------------------------------------------------------------*
  * END OF DARKMODE STYLE AND COLOUR SECTION
  *-----------------------------------------------------------------------------------------*/

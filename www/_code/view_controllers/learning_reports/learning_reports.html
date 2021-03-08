@@ -403,7 +403,7 @@
                     </tr>
                     <tr ng-repeat='rec in iltBatchInfo.visibleRows track by $index' class='{{rec.class}}'>
                         <td ng-repeat='col in iltBatchInfo.columns track by $index'
-                            class='{{col.class}}'>
+                            class='{{col.class}} nl-txt-white'>
                             {{rec[col.id] || '-'}}
                         </td>
                     </tr>

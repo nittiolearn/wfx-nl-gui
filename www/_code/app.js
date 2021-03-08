@@ -41,8 +41,8 @@ var _nl = {
         pending: '#Ce9bfc',      
         waiting: '#A0A0C0',       
         delayed: '#F98E36',       
-        blue1: '#2461cc',        
-        blue2: '#153673' 
+        blue1: '#3f7ce4',        
+        blue2: '#008aff' 
     }
 };
 
