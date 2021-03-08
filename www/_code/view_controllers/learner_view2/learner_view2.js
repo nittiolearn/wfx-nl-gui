@@ -750,7 +750,6 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlServerA
 		lineChart.data = [];
 		timeChart.labels = [];
 		timeChart.data = [[], []];
-		
 		for (var i=0; i<ranges.length; i++) {
 			var r = ranges[i];
 			timeChart.labels.push(r.label);
