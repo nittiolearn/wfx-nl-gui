@@ -40,8 +40,8 @@
         </div>
      </div>  
 </div>
-<div ng-if="tabdata.summaryStats" ng-click='goback()'>
-    <div class='learner-view-stats-button tabs-in-small center-in-small nl-learner-button margin-auto-in-small' 
+<div ng-if="tabdata.summaryStats">
+    <div ng-click='goback()' class='learner-view-stats-button tabs-in-small center-in-small nl-learner-button margin-auto-in-small' 
         style="width: 100px;">
         <img ng-src="{{leftArrow}}" style="width: 14px; height: 9px;" alt="left_arrow">
         Learn

@@ -750,13 +750,18 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlServerA
 		lineChart.data = [];
 		timeChart.labels = [];
 		timeChart.data = [[], []];
-		var rangeslength=ranges.length-1;
+		var rangelength=ranges.length;
+		var range=0;
+		if(rangelength>6) {
+			var rangeslength=rangelength-6;
+			range=rangeslength;
+		}
 		//past 6 months data
-		for (var i=rangeslength-5; i<=rangeslength; i++) {
+		for (var i=range; i<=rangelength; i++) {
 			var r = ranges[i];
 			timeChart.labels.push(r.label);
 			timeChart.data[0].push(r.count);
-			timeChart.data[1].push(r.completed)
+			timeChart.data[1].push(r.completed);
 			lineChart.labels.push(r.label);
 			lineChart.data.push(r.completed)
 		}

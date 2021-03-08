@@ -160,6 +160,7 @@ $ionicons-font-path: "../_external_bundles/ionicfonts" !default;
   --nlBorderGrey2: #{$nlBorderGrey2};
   --nllightblue: #{$nllightblue};
   --nlwhitesmoke: #{$nlwhitesmoke};
+  --nlStatusBlue: #{$nlStatusBlue};
 }
 
 //-------------------------------------------------------------------------------------------
@@ -5355,6 +5356,7 @@ nl-dlg {
     color: green;
 }
 .lables {
+   font-family: Montserrat-Regular;;
    list-style: none;
 }
 .complete_label {
@@ -5425,6 +5427,7 @@ nl-dlg {
   color: white; 
   margin:0 auto; 
   margin-top:5px;
+  font-family: Montserrat-Regular;
 }
 .month_total_points {
   font-family: Montserrat;
@@ -5585,7 +5588,11 @@ nl-dlg {
 }
 .nl-nav-arrow-icon {
   color: var(--nllightblue);
-} 
+}
+.learner-view-searchbox {
+  width: 100%;
+  max-width: 400px;
+}
 /*-----------------------------------------------------------------------------------------*
  * END OF DARKMODE STYLE AND COLOUR SECTION
  *-----------------------------------------------------------------------------------------*/

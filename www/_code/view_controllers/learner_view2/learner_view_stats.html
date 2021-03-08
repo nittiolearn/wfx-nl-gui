@@ -55,7 +55,7 @@
                         <div class='text-center padding-mid'>
                             <div class='padding-small'></div>
                             <div class='padding-small'></div>
-                            <div ng-if='charts[0].show'>
+                            <div>
                                 <canvas class='chart chart-bar' height='250' chart-data='charts[1].data'
                                     chart-labels='charts[1].labels' chart-colors='charts[1].colors'
                                     chart-series='charts[1].series' chart-options='charts[1].options'>
@@ -72,8 +72,7 @@
                         <div style="display: flex;justify-content: center;align-items: center; min-height: 200px; margin-top:35px;"
                             class="mt-0-in-small">
                             <div ng-class='' class='col-50 text-center padding-mid'>
-                                <div ng-if='charts[0].show'
-                                    style="position: relative; height:200px;width:160px;margin:0 auto;">
+                                <div style="position: relative; height:200px;width:160px;margin:0 auto;">
                                     <canvas class='chart chart-pie' height='150' width="150" chart-data='charts[0].data'
                                         chart-labels='charts[0].labels' chart-colors='charts[0].colors'
                                         chart-series='charts[0].series' chart-options='charts[0].options' legend="true">
