@@ -10,6 +10,7 @@ function module_init() {
 	.controller('nl.CourseListCtrl', CourseListCtrl)
 	.controller('nl.CourseAssignListCtrl', CourseAssignListCtrl)
 	.controller('nl.CourseAssignMyListCtrl', CourseAssignMyListCtrl)
+	.controller('nl.CourseAssignAllListCtrl', CourseAssignAllListCtrl)
 	.controller('nl.CourseReportListCtrl', CourseReportListCtrl);
 }
 
@@ -40,6 +41,15 @@ function($stateProvider, $urlRouterProvider) {
 				controller: 'nl.CourseAssignMyListCtrl'
 			}
 		}});
+	$stateProvider.state('app.course_assign_all_list', {
+		url: '^/course_assign_all_list',
+		views: {
+			'appContent': {
+				templateUrl: 'lib_ui/cards/cardsview.html',
+				controller: 'nl.CourseAssignAllListCtrl'
+			}
+		}});
+			
 	$stateProvider.state('app.course_report_list', {
 		url: '^/course_report_list',
 		views: {
@@ -65,18 +75,24 @@ function(nl, nlRouter, $scope, nlServerApi, nlGetManyStore, nlDlg, nlCardsSrv, n
 	_listCtrlImpl('assign_my', nl, nlRouter, $scope, nlServerApi, nlGetManyStore, nlDlg, nlCardsSrv, nlSendAssignmentSrv, nlMetaDlg, nlCourse, nlExpressionProcessor, nlChangeOwner, nlSearchCacheSrv, $filter,nlTreeSelect);
 }];
 
+var CourseAssignAllListCtrl = ['nl', 'nlRouter', '$scope', 'nlServerApi', 'nlGetManyStore', 'nlDlg', 'nlCardsSrv', 'nlSendAssignmentSrv', 'nlMetaDlg', 'nlCourse', 'nlExpressionProcessor', 'nlChangeOwner', 'nlSearchCacheSrv', '$filter','nlTreeSelect', 'nlGroupInfo',
+function(nl, nlRouter, $scope, nlServerApi, nlGetManyStore, nlDlg, nlCardsSrv, nlSendAssignmentSrv, nlMetaDlg, nlCourse, nlExpressionProcessor, nlChangeOwner, nlSearchCacheSrv, $filter, nlTreeSelect, nlGroupInfo) {
+	_listCtrlImpl('assign_all', nl, nlRouter, $scope, nlServerApi, nlGetManyStore, nlDlg, nlCardsSrv, nlSendAssignmentSrv, nlMetaDlg, nlCourse, nlExpressionProcessor, nlChangeOwner, nlSearchCacheSrv, $filter, nlTreeSelect, nlGroupInfo);
+}];
+
 var CourseReportListCtrl = ['nl', 'nlRouter', '$scope', 'nlServerApi', 'nlGetManyStore', 'nlDlg', 'nlCardsSrv', 'nlSendAssignmentSrv', 'nlMetaDlg', 'nlCourse', 'nlExpressionProcessor', 'nlChangeOwner', 'nlSearchCacheSrv', '$filter','nlTreeSelect',
 function(nl, nlRouter, $scope, nlServerApi, nlGetManyStore, nlDlg, nlCardsSrv, nlSendAssignmentSrv, nlMetaDlg, nlCourse, nlExpressionProcessor, nlChangeOwner, nlSearchCacheSrv, $filter,nlTreeSelect) {
 	_listCtrlImpl('report', nl, nlRouter, $scope, nlServerApi, nlGetManyStore, nlDlg, nlCardsSrv, nlSendAssignmentSrv, nlMetaDlg, nlCourse, nlExpressionProcessor, nlChangeOwner, nlSearchCacheSrv, $filter,nlTreeSelect);
 }];
 
-function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, nlDlg, nlCardsSrv, nlSendAssignmentSrv, nlMetaDlg, nlCourse, nlExpressionProcessor, nlChangeOwner, nlSearchCacheSrv, $filter,nlTreeSelect) {
+function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, nlDlg, nlCardsSrv, nlSendAssignmentSrv, nlMetaDlg, nlCourse, nlExpressionProcessor, nlChangeOwner, nlSearchCacheSrv, $filter, nlTreeSelect, nlGroupInfo) {
 	/* 
 	 * URLs handled
 	 * 'View published' : /course_list?type=course&my=0
 	 * 'View published grid view' : /course_list?type=course&folder=grade|subject
 	 * 'Edit my' : /course_list?type=course&my=1
 	 * 'Assigned courses (sent by all)' : /course_assign_list
+	 * 'Assigned courses (sent by all)' : /course_assign_all_list permission "assignment_send"
 	 * 'Assigned courses (sent by me)' : /course_assign_my_list
 	 * 'Report of user' : /course_list?type=report
 	 */
@@ -91,6 +107,15 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
 	var _resultList = [];
 	var _isSaveJson = false;
 	var _autoFetchAll = false;
+	var origtype = null;
+	var _groupInfo = null;
+	var _pastUserInfosFetcher = null; 
+    var _postProcessRecords = [];
+
+	if (type == 'assign_all') {
+		origtype = 'assign_all';
+		type = 'assign';
+	}
 	
 	// All Global data needed folder view
 	var _searchCache = {
@@ -241,7 +266,16 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
 			};
 			if(_isSaveJson)	$scope.cards.savejson = { show : _isSaveJson};
 			nlCardsSrv.initCards($scope.cards);
-			_getDataFromServer(resolve);
+			if (origtype == 'assign_all') {
+				nlGroupInfo.init2().then(function() {
+					nlGroupInfo.update();
+					_pastUserInfosFetcher = nlGroupInfo.getPastUserInfosFetcher();
+					_pastUserInfosFetcher.init(nlGroupInfo.get());
+					_getDataFromServer(resolve);				
+				});	
+			} else {
+				_getDataFromServer(resolve);				
+			}
 		});
 	}
 	nlRouter.initContoller($scope, '', _onPageEnter);
@@ -298,7 +332,7 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
 			_copyCourse($scope, card);
 		} else if (linkid == 'change_owner') {
 			if(card.isAssignment)
-				nlChangeOwner.show($scope, card.reportId, 'course_assignment', _userInfo); //For assignments reportId is assignment id
+				nlChangeOwner.show($scope, card.reportId, 'course_assignment', _userInfo, false, origtype); //For assignments reportId is assignment id
 			else
 				nlChangeOwner.show($scope, card.courseId, 'course', _userInfo);
 		}
@@ -566,6 +600,7 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
 
 		for(var key in fs.items) {
 			var card = _createCard(fs.items[key]);
+			if (!card) continue;
 			cards.push(card);
 		}
 		cards.sort(function(a, b) {
@@ -586,6 +621,8 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
         if (!fetchMore) _resultList = [];
         var params = {metadata: _searchMetadata};
 		if(fetchMore) params['max'] = _max2;
+		params.fetchallassign = false;
+		if (origtype == 'assign_all') params.fetchallassign = true;
         var listingFn = _getListFnAndUpdateParams(params);
         _pageFetcher.fetchPage(listingFn, params, fetchMore, function(results, batchDone, rawResult) {
             if (!results) {
@@ -666,6 +703,7 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
 		var cards = [];
 		for (var i = 0; i < resultList.length; i++) {
 			var card = _createCard(resultList[i]);
+			if (!card) continue;
 			cards.push(card);
 		}
 		nl.pginfo.pageSubTitle = _getPageSubTitle(resultList);
@@ -674,8 +712,8 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
 	
 	function _createCard(cardInfo) {
 		if (type === 'course') return _createCourseCard(cardInfo);
-		if (type === 'assign' || type === 'assign_my') return _createReportCard(cardInfo, false);
-		return _createReportCard(cardInfo, true);
+		if (type === 'assign' || type === 'assign_my') return _createAssignOrReportCard(cardInfo, false);
+		return _createAssignOrReportCard(cardInfo, true);
 	}
 	
 	function _createCourseCard(course) {
@@ -748,7 +786,20 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
 		if(_metadataEnabled && _canManage) _addMetadataLinkToDetails(linkAvp);
 	}
 
-	function _createReportCard(report, isReport) {
+	function _checkAssignmentBelongsUser(report) {
+		var sender = nlGroupInfo.getCachedUserObjWithMeta(report.sender, report.sendername,
+			_pastUserInfosFetcher);
+		if (!sender) return null;
+		var org_unit = _userInfo.org_unit || '';
+		var senderOrg = sender.org_unit || '';
+		if (senderOrg.indexOf(org_unit) == 0) return true;
+		return false;
+	}
+
+	function _createAssignOrReportCard(report, isReport) {
+		if (origtype == 'assign_all') {
+			if (!_checkAssignmentBelongsUser(report)) return null;
+		}
 		var url = nl.fmt2('#/learning_reports?type=course_assign&objid={}', report.id);
 		var title = report.name;
 		var help = '';
@@ -807,7 +858,7 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
 	function  _getReportAvps(report, isReport) {
 		var assignedTo = report.assigned_to;
 		var avps = [];
-		if(!isReport && _canManage) {
+		if(!isReport && (_canManage || origtype == 'assign_all')) {
 			var linkAvp = nl.fmt.addLinksAvp(avps, 'Operation(s)');
 			nl.fmt.addLinkToAvp(linkAvp, 'change owner', null, 'change_owner');
 			nl.fmt.addLinkToAvp(linkAvp, 'delete', null, 'course_assign_delete');	
@@ -888,7 +939,7 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
 	}
 
 	function _deleteAssignmentInLoop(assignId, deletedCount, callBack) {
-		nlServerApi.courseAssignmentDelete(assignId, _maxDelete).then(function(status) {
+		nlServerApi.courseAssignmentDelete(assignId, origtype, _maxDelete).then(function(status) {
 			deletedCount += status.deleted_count;
 			var msg = nl.fmt2('Deleted {} reports.', !deletedCount ? 'all' : deletedCount);
 			if (status.more) msg += ' Deletion in progress ...';

@@ -152,9 +152,9 @@ function(nl, nlDlg, nlConfig, Upload) {
         return server.post('_serverapi/course_unpublish.json', {courseid: courseId});
     };
 
-    this.courseAssignmentDelete = function(assignId, max_delete) {
+    this.courseAssignmentDelete = function(assignId, type, max_delete) {
         // return: true/false
-        return server.post('_serverapi/course_assignment_delete.json', {assignid: assignId, max_delete: max_delete});
+        return server.post('_serverapi/course_assignment_delete.json', {assignid: assignId, type: type, max_delete: max_delete});
     };
     
     this.courseGetAssignmentList = function(data) {

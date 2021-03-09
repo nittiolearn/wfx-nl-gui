@@ -244,6 +244,7 @@ function(nl, nlRouter, nlDlg, nlGroupInfo, nlLrHelper, nlLrFilter, nlGetManyStor
         report.canReview = true;
         if(!course.is_published) report.canReview = false;
         var courseAssignment = nlGetManyStore.getAssignmentRecordFromReport(report) || {};
+        repcontent.ldapid = courseAssignment.meta_ldap || '';
         if (!courseAssignment.info) courseAssignment.info = {};
         if (course.content && course.content.nht) {
             report.isNHT = true;
