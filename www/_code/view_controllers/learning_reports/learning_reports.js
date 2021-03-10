@@ -694,10 +694,13 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		}
 
 		var mh = _groupInfo.props.usermetadatafields || [];
-		for(var i=0; i<mh.length; i++) {
+		var isLdapSet = false;
+		for(var i=0; i<mh.length; i++) {			
 			var keyName = 'usermd.' + mh[i].id;
+			if (mh[i].id == 'meta_ldap') isLdapSet = true;
 			columns.push(_col(keyName, mh[i].name));
 		}
+		if (isLdapSet) columns.push(_col('repcontent.ldapid', 'Sender LDAP ID'));
 		// Id's are always exported, So the below 3 fields.
 		columns.push(_col('raw_record.id', 'Report Id', 'text-right'));
 		columns.push(_col('raw_record.assignment', 'Assign Id', 'text-right'));
