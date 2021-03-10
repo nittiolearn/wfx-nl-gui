@@ -385,6 +385,8 @@ function SubFetcher(nl, nlDlg, nlServerApi, nlGroupInfo, nlGetManyStore) {
     }
 
     function _getSenderUserObj(record, senderName) {
+        var groupInfo = nlGroupInfo.get();
+        if (!groupInfo) return null;
         var user = nlGroupInfo.getCachedUserObjWithMeta(record.info.sender, record.info.sendername,
              _pastUserInfosFetcher);
         if (!user) {
