@@ -1,7 +1,7 @@
 <div class='nl-thin-scroll' style='position:absolute; width: 100%; height: 100%'>
 <div> <!-- Dummy div to solve scrolled view disappears with popup issue #701 -->
     <div ng-if='!tabData.dataLoaded'
-        class='nl-limitwidth bgdefault shape-rounded-small padding' style='color:#FFFFFF'>
+        class='nl-limitwidth bgdefault shape-rounded-small padding nl-txt-white'>
         Hi {{userName}}! Your learning records are being loaded from the server. Please wait ...
     </div>
     <div class='padding-mid'></div>
@@ -25,7 +25,7 @@
             <nl-cards cards='tabData.sectionData[4]'></nl-cards>
         </div>
     </div>
-    <div ng-if='tabData.summaryStats'> 
+    <div ng-if='tabData.dataLoaded && tabData.summaryStats'> 
         <nl-learning-stats></nl-learning-stats>
     </div>
 </div>

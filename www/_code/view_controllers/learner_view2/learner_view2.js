@@ -229,7 +229,6 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlServerA
 		$scope.charts = [{
 			show: false,
 			type: 'pie',
-			title: 'Progress',
 			data: [0, 0, 0, 0],
 			labels: ['Completed', 'Not started', 'Inprogress', 'Upcoming','Expired'],
 			colors: [_nl.colorsCodes.done, _nl.colorsCodes.pending, _nl.colorsCodes.started, _nl.colorsCodes.blue1, _nl.colorsCodes.delayed ],
@@ -247,12 +246,18 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlServerA
 				xAxes: [{
 					gridLines: {
 						color: "rgba(0, 0, 0, 0)",
-					}
+					},
+					ticks: {
+                        fontColor: "#000000",
+                    }
 				}],
 				yAxes: [{
 					gridLines: {
 						color: "rgba(0, 0, 0, 0)",
-					}   
+					},
+					ticks: {
+                        fontColor: "#000000",
+                	}
 				}]
 			}}
 		},
@@ -277,7 +282,6 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlServerA
 				}]
 			}}
 		}];
-
 	}
 
 	function _onClickOnNextFn(cards, scope) {
@@ -391,11 +395,11 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlServerA
 						{name: 'Completed Assignments', type: 'completed', card2: true, cardlist: []},
 						{name: 'Expired Assignments', type: 'expired', card2: true, cardlist: []}		
 					];
-		ret.tabs = [{id:'progress', title: 'In progress', count: 0, class: 'learner-yellow'}, 
-					{id: 'pending', title: 'Not started', count: 0, class: 'learner-light-purple'},
-					{id:'upcoming', title: 'Upcoming', count: 0, class: 'learner-blue'},
-					{id:'completed', title: 'Completed', count: 0, class: 'learner-green'},
-					{id:'expired', title: 'Expired', count: 0, class: 'learner-orange'}]
+		ret.tabs = [{id:'progress', title: 'In progress', count: 0, class: 'nl-learner-inprogress'}, 
+					{id: 'pending', title: 'Not started', count: 0, class: 'nl-learner-notstarted'},
+					{id:'upcoming', title: 'Upcoming', count: 0, class: 'nl-learner-upcoming'},
+					{id:'completed', title: 'Completed', count: 0, class: 'nl-learner-complete'},
+					{id:'expired', title: 'Expired', count: 0, class: 'nl-learner-expired'}]
 		return ret;
 	}
 	
@@ -682,7 +686,14 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlServerA
 								percCompleted: 0, percCerfied: 0, percFailed: 0, percPending: 0, avgScore: 0, 
 								timeSpent: 0};
 		$scope.tabData.learningCounts = learningCounts;
-		
+		var darkmode = false;
+		if (_userInfo.groupinfo.groupCustomClass == 'nldarkmode') darkmode = true;
+		if (darkmode) {
+			$scope.charts[1].options.scales.xAxes[0].gridLines = {display: true, color: "#A0A0C0"},
+			$scope.charts[1].options.scales.xAxes[0].ticks.fontColor = "#FFFFFF"
+			$scope.charts[1].options.scales.yAxes[0].gridLines = {display: true, color: "#A0A0C0"},
+			$scope.charts[1].options.scales.yAxes[0].ticks = {fontColor: "#FFFFFF", 'beginAtZero': true}
+		}
 		var doughnutChart = $scope.charts[0];
 		doughnutChart.data = [0, 0, 0, 0];
 		var timeChart = $scope.charts[1];
@@ -745,7 +756,6 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlServerA
 			}
 		}
 		$scope.tabData.columns = _getLearningStatusColumns();
-		
 		lineChart.labels = [];
 		lineChart.data = [];
 		timeChart.labels = [];

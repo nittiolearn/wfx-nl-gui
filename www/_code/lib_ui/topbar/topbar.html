@@ -56,12 +56,14 @@
                     class="item item-divider padding0"
                     ng-show='canShow(item)'>
                     <a ng-if='item.url' ng-href='{{item.url}}'
-                        class='nl-link-text' rel='nofollow'>
-                        <i class='w100 nl-block nl-link-text padding-mid'>{{item.name}}</i>
+                        class='nl-link-text nl-display-flex' rel='nofollow'>
+                        <i class='nl-block nl-link-text padding-mid {{item.icon}}'></i>
+                        <span class="padding-mid">{{item.name}}</span>
                     </a>
                     <span ng-if='item.onClick' ng-click='onTabOrMenuClick(item)'
-                        class='nl-link-text'>
-                        <i class='w100 nl-block nl-link-text padding-mid'>{{item.name}}</i>
+                        class='nl-link-text nl-display-flex'>
+                        <i class='nl-block nl-link-text padding-mid {{item.icon}}'></i>
+                        <span class="padding-mid">{{item.name}}</span>
                     </span>
                 </li>
             </ul>

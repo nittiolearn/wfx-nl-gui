@@ -96,6 +96,7 @@ $nlBgBright5:                       rgba(255, 192, 0, 0.8);
 $nlwhitesmoke: #f6f6f6;
 $nllightblue :#3f7ce4;
 $nlStatusBlue:#008aff;
+$nllightGreen:#44BB44;
 
 // Padding definition
 $nlpad_x:                         20px !default; 
@@ -161,6 +162,7 @@ $ionicons-font-path: "../_external_bundles/ionicfonts" !default;
   --nllightblue: #{$nllightblue};
   --nlwhitesmoke: #{$nlwhitesmoke};
   --nlStatusBlue: #{$nlStatusBlue};
+  --nllightGreen: #{$nllightGreen};
 }
 
 //-------------------------------------------------------------------------------------------
@@ -2097,7 +2099,7 @@ nl-cards {
 .nl-card-header {
   text-align: left;
   color: $nlBlack;
-  color: var(--nlBlack);
+  color: var(--nlBlackTransparent80);
   font-size: 130%;
   padding: 4px 16px;
 }
@@ -2105,7 +2107,23 @@ nl-cards {
 .nl-card-header.nl-card-fullDesc-title {
   top: 0;
 }
-
+.nl-card1-img-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  max-height: 50%;
+  display: flex;
+  justify-content: center;
+}
+.nl-card1-img {
+  width: 100%;
+  border-radius: 10px 10px 0px 0px;
+  max-height: 100%;
+  max-width: 100%;
+}
 .nl-card-img {
   position: absolute;
   top: 0%;
@@ -2742,7 +2760,17 @@ img.nl-icon {
   max-width: 100%;
   padding: 8px 0;
 }
-
+.card2-img-container {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  height: 50%;
+  left: 0;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
 .nl-hcard2 .card2 {
   position: relative;
   border-radius: 8px;
@@ -2757,7 +2785,7 @@ img.nl-icon {
     bottom: 0;
     height: auto;
     left: 0;
-    width: 150px;
+    width: 100%;
     text-align: center;
     .card2-img {
       max-height: 100%;
@@ -5102,16 +5130,6 @@ box-shadow: inset 0 0 0 var(--nlStatusRed), 0 0 5px var(--nlBoxShadowBlackTransp
   border: solid 0.5px var(--nlWhite);
   background-image: linear-gradient(to right, var(--nlBgWhiteTransparent70), var(--nlWhiteBackground));
 }
-.learner-view-searchbox {
-    width: 100%;
-    max-width: 400px;
-}
-.learner-view-searchbox2 {
-  border: 1px solid var(--nlBorderGrey2); 
-  border-radius: 4px; 
-  background-color: var(--nlWhite);
-}
-
 //-------------------------------------------------------------------------------------------
 // Card2 in darkmode
 //-------------------------------------------------------------------------------------------
@@ -5339,29 +5357,7 @@ nl-dlg {
 #dashboard {
     margin: 2em auto;
 }
-.pie_chart_label > li::before {
-    content: '';
-    position: relative;
-    height: 25px;
-    width: 25px;
-    top: -5px;
-    left: 0px;
-    vertical-align: middle;
-    right: 0;
-    display: inline-block;
-    bottom: 0;
-    margin: 10px 12px 0px 0px;
-    border-radius: 50%;
-    background-color: green;
-    color: green;
-}
-.lables {
-   font-family: Montserrat-Regular;;
-   list-style: none;
-}
-.complete_label {
-  color: var(--nlStatusGreen);
-}
+
 .notstarted_label {
   color: var(--nlStatusLightPurple);
 }
@@ -5388,6 +5384,24 @@ nl-dlg {
 }
 .expired_label:nth-child(5):before {
     background-color: var(--nlFontOrange1);
+}
+.assigned {
+  color: var(--nlStatusBlue);
+}
+.assigned > span::before {
+    content: '';
+    position: relative;
+    height: 25px;
+    width: 25px;
+    top: -5px;
+    left: 3px;
+    vertical-align: middle;
+    right: 0;
+    display: inline-block;
+    bottom: 0;
+    margin: 10px 12px 0px 0px;
+    border-radius: 50%;
+    background-color: var(--nlStatusBlue);
 }
 .points_container {
   border-radius: 12px;
@@ -5418,17 +5432,7 @@ nl-dlg {
     text-align: center;
     color: white;
 }
-.pie_chart_heading {
-  font-size: 1rem;
-  font-weight: 500;
-  font-stretch: normal;
-  font-style: normal;
-  line-height: 1.06;
-  color: white; 
-  margin:0 auto; 
-  margin-top:5px;
-  font-family: Montserrat-Regular;
-}
+
 .month_total_points {
   font-family: Montserrat;
   font-size: 16px;
@@ -5465,46 +5469,21 @@ nl-dlg {
     background-color: var(--nlFontYellow);
     color: var(--nlFontYellow);
 }
-.assigned {
-  color: var(--nlStatusBlue);
-}
-.completed {
-  color:var(--nlStatusGreen);
-  margin-right:20px;
-}
-.assigned > span::before {
-    content: '';
-    position: relative;
-    height: 25px;
-    width: 25px;
-    top: -5px;
-    left: 3px;
-    vertical-align: middle;
-    right: 0;
-    display: inline-block;
-    bottom: 0;
-    margin: 10px 12px 0px 0px;
-    border-radius: 50%;
-    background-color: var(--nlStatusBlue);
-}
-.completed >span::before {
-    content: '';
-    position: relative;
-    height: 25px;
-    width: 25px;
-    top: -5px;
-    left: 3px;
-    vertical-align: middle;
-    right: 0;
-    display: inline-block;
-    bottom: 0;
-    margin: 10px 12px 0px 0px;
-    border-radius: 50%;
-    background-color: var(--nlStatusGreen);
-  }
-  .nl-bg-blue-in-dark {
+.nl-bg-blue-in-dark {
     background-color: $nlBgTextArea;
     background-color: var(--nlBgTextArea); 
+  }
+  .nl-learner-notstarted {
+  color: var(--nlStatusLightPurple);
+  border:1px solid var(--nlStatusLightPurple)
+  }
+  .nl-learner-inprogress {
+  color: var(--nlFontYellow);
+  border:1px solid var(--nlFontYellow)
+  }
+  .nl-learner-upcoming {
+  color: var( --nlStatusBlue);
+  border:1px solid var( --nlStatusBlue)
   }
 }
 /*-----------------------------------------------------------------------------------------*
@@ -5520,6 +5499,9 @@ nl-dlg {
  *-----------------------------------------------------------------------------------------*/
 .nl-topbar-background {
   background: var(--nlwhitesmoke);
+}
+.lightbgimg {
+  background-color: var(--nlWhite);
 }
 .nl-learner-button{
   min-width: 142px;
@@ -5557,7 +5539,7 @@ nl-dlg {
 /*-----------------------------------------------------------------------------------------*
  * Learner view 2 section styles (card2)
  *-----------------------------------------------------------------------------------------*/
-.nl-limitwidth-learner-view {
+ .nl-limitwidth-learner-view {
   max-width: 1100px;
   margin-left: auto;
   margin-right: auto;
@@ -5565,18 +5547,7 @@ nl-dlg {
 .nl-limitwidth-learner-view:not(:first-child) {
   margin-top:64px;
 }
-.learner-view-stats-button {
-  background-color: white;
-  color: var(--nlprimarydark);
-  font-family: Montserrat-Regular;
-  min-width: 142px;
-  height: 32px;
-  padding: 7px 12px 6px 12px;
-  border-radius: 20px;
-  text-align: center;
-  font-size: 15px;
-  cursor: pointer;
-}
+
 .search-placeholder::placeholder {
   color: var(--nlPrimary);
 }
@@ -5589,7 +5560,155 @@ nl-dlg {
 .nl-nav-arrow-icon {
   color: var(--nllightblue);
 }
+.learner-view-searchbox {
+  width: 100%;
+  max-width: 400px;
+}
+.learner-view-searchbox2 {
+border: 1px solid var(--nlBorderGrey2); 
+border-radius: 4px; 
+background-color: var(--nlWhite);
+}
 /*-----------------------------------------------------------------------------------------*
  * END OF DARKMODE STYLE AND COLOUR SECTION
  *-----------------------------------------------------------------------------------------*/
  
+ 
+ /*-----------------------------------------------------------------------------------------*
+ * STATS IN LIGHT THEME
+ *-----------------------------------------------------------------------------------------*/
+ .pie_chart_heading {
+  font-size: 1rem;
+  font-weight: 500;
+  font-stretch: normal;
+  font-style: normal;
+  line-height: 1.06;
+  margin:0 auto; 
+  margin-top:5px;
+  color: var(--nlPrimary);
+  font-family: Montserrat-Regular;
+}
+ .pie_chart_label > li::before {
+  content: '';
+  position: relative;
+  height: 25px;
+  width: 25px;
+  top: -5px;
+  left: 0px;
+  vertical-align: middle;
+  right: 0;
+  display: inline-block;
+  bottom: 0;
+  margin: 10px 12px 0px 0px;
+  border-radius: 50%;
+}
+.assigned {
+  color: var(--nlPrimaryDark);
+}
+.completed {
+  color:var(--nlStatusGreen);
+  margin-right:20px;
+}
+.assigned > span::before {
+    content: '';
+    position: relative;
+    height: 25px;
+    width: 25px;
+    top: -5px;
+    left: 3px;
+    vertical-align: middle;
+    right: 0;
+    display: inline-block;
+    bottom: 0;
+    margin: 10px 12px 0px 0px;
+    border-radius: 50%;
+    background-color: var(--nlPrimaryDark);
+}
+.completed >span::before {
+    content: '';
+    position: relative;
+    height: 25px;
+    width: 25px;
+    top: -5px;
+    left: 3px;
+    vertical-align: middle;
+    right: 0;
+    display: inline-block;
+    bottom: 0;
+    margin: 10px 12px 0px 0px;
+    border-radius: 50%;
+    background-color: var(--nlStatusGreen);
+  }
+.lables {
+ font-family: Montserrat-Regular;;
+ list-style: none;
+}
+.complete_label {
+color: var(--nlStatusGreen);
+}
+.notstarted_label {
+color: var(--nlFontYellow);
+}
+.inprogress_label {
+color: var(--nllightGreen);
+}
+.upcoming_label {
+color: var(--nlPrimaryDark);
+}
+.expired_label {
+color: var(--nlFontOrange1);
+}
+.nl-learner-complete {
+color: var(--nlStatusGreen);
+border:1px solid var(--nlStatusGreen)
+}
+.nl-learner-notstarted {
+color: var(--nlFontYellow);
+border:1px solid var(--nlFontYellow)
+}
+.nl-learner-inprogress {
+color: var(--nllightGreen);
+border:1px solid var(--nllightGreen)
+}
+.nl-learner-upcoming {
+color: var(--nlPrimaryDark);
+border:1px solid var(--nlPrimaryDark)
+}
+.nl-learner-expired {
+color: var(--nlFontOrange1);
+border:1px solid var(--nlFontOrange1)
+}
+.complete_label:nth-child(1):before {
+  background-color: var(--nlStatusGreen);
+}
+.notstarted_label:nth-child(2):before {
+  background-color:  var(--nlFontYellow);
+}
+.inprogress_label:nth-child(3):before {
+  background-color: var(--nllightGreen);
+}
+.upcoming_label:nth-child(4):before {
+  background-color: var(--nlPrimaryDark);
+}
+.expired_label:nth-child(5):before {
+  background-color: var(--nlFontOrange1);
+}
+.points_container {
+  border-radius: 12px;
+  box-shadow: 0 3px 6px 0 var(--nlPrimary);
+  background-color: #f0f0f0;
+}
+.learner-view-stats-button {
+  border:1px solid var(--nlPrimaryDark);
+  background-color: white;
+  color: var(--nlprimarydark);
+  font-family: Montserrat-Regular;
+  min-width: 142px;
+  height: 32px;
+  padding: 7px 12px 6px 12px;
+  border-radius: 20px;
+  text-align: center;
+  font-size: 15px;
+  cursor: pointer;
+}
+

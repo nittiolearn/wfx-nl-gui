@@ -43,6 +43,16 @@ var _nl = {
         delayed: '#F98E36',       
         blue1: '#3f7ce4',        
         blue2: '#008aff' 
+    },
+    tempcolorcode : {
+        done: '#007700',          // $nlGreen1
+        failed: '#770000',        // $nlRed
+        started: '#44BB44',       // nlGreen2
+        pending: '#eab01f',       // $nlOrange3
+        waiting: '#A0A0C0',       // $nlGrey1
+        delayed: '#e84c3d',       // $nlOrange1
+        blue1: '#153673',         // $nlBlue1
+        blue2: '#2461cc'          // $nlBlue2
     }
 };
 
@@ -144,7 +154,7 @@ function onIonicReady() {
 //-------------------------------------------------------------------------------------------------
 var BindContentDirective= ['nl',
 function(nl) {
-
+    
     function _postLink($scope, iElem, iAttrs) {
         nl.rootScope.$watch($scope.nlBindContent, function(newVaue, oldValue) {
             iElem.attr('content', newVaue);
@@ -161,9 +171,9 @@ function(nl) {
 }];
 
 //-------------------------------------------------------------------------------------------------
-var AppCtrl = ['nl', '$scope', '$anchorScroll', 'nlKeyboardHandler', 'nlAnnouncementSrv', 'nlRouter',
+var AppCtrl = ['nl','nlDlg','nlServerApi', '$scope', '$anchorScroll', 'nlKeyboardHandler', 'nlAnnouncementSrv', 'nlRouter',
 'nlLogViewer', 'nlOldCodeBridge', 'nlTopbarSrv', 'nlServerSideUserSettings', 'ChartJSSrv',
-function(nl, $scope, $anchorScroll, nlKeyboardHandler, nlAnnouncementSrv, nlRouter, nlLogViewer, 
+function(nl, nlDlg, nlServerApi, $scope, $anchorScroll, nlKeyboardHandler, nlAnnouncementSrv, nlRouter, nlLogViewer, 
     nlOldCodeBridge, nlTopbarSrv, nlServerSideUserSettings, ChartJSSrv) {
     nl.log.info('UserAgent: ', navigator.userAgent);
     if (NL_SERVER_INFO.oldCode) nlOldCodeBridge.expose();
@@ -175,26 +185,19 @@ function(nl, $scope, $anchorScroll, nlKeyboardHandler, nlAnnouncementSrv, nlRout
         if (anchor) nl.location.hash(anchor);
         $anchorScroll();
     };
-
+    
     _initScreenSize(nl);
     
     var homeUrl = '/#/home';
     $scope.homeMenuTitle = nl.t('Home');
     $scope.logedIn = false;
-    $scope.homeUrl = homeUrl;
+    $scope.homeUrl = homeUrl; 
     
     // Called from child scope on page enter
     $scope.onPageEnter = function(userInfo) {
-        nl.log.debug('app:onPageEnter - enter');
-        if (userInfo.groupinfo) {
-            if (userInfo.groupinfo.groupCustomClass == 'nldarkmode') 
-            {
-               _nl.colorsCodes = _nl.darkcolorsCodes;
-                _initChartsForDarkMode();
-            }
-            else 
-                _initChartsForLightMode();
-        }
+        nl.log.debug('app:onPageEnter - enter');       
+       
+        nl.rootScope.currentPageURL=nl.location.url().split('#')[0];
         nl.rootScope.bodyClass = 'showbody';
         nlAnnouncementSrv.initAnnouncements(userInfo, $scope);
         $scope.logo = userInfo.groupicon == '' ? nl.url.resUrl('general/top-logo2.png') : userInfo.groupicon;
@@ -218,87 +221,14 @@ function(nl, $scope, $anchorScroll, nlKeyboardHandler, nlAnnouncementSrv, nlRout
         nl.resizeHandler.broadcast('ESC');
     };
     
-    function _initChartsForDarkMode() {
-        var ChartJSProvider = ChartJSSrv.getChartJSProvider();
-        ChartJSProvider.setOptions('bar',{
-            labels:[],
-            scales: {
-                xAxes: [{
-                        gridLines: {
-                                display: true ,
-                                color: "#FFFFFF"
-                        },
-                        ticks: {
-                        fontColor: "#FFFFFF",
-                        }
-                }],
-                yAxes: [{
-                    gridLines: {
-                        display: true ,
-                        color: "#FFFFFF"
-                        },
-                    ticks: {
-                        fontColor: "#FFFFFF",
-                    }
-                }],
-            }
-        }); 
-        ChartJSProvider.setOptions('line',{  
-            showLines: true,
-            spanGaps: false,
-        
-            scales: {
-                xAxes: [{
-                    type: 'category',
-                    id: 'x-axis-0',
-                    ticks: {
-                        fontColor: "#FFFFFF",
-                        beginAtZero:true,
-                    }
-                }],
-                yAxes: [{
-                    type: 'linear',
-                    id: 'y-axis-0',
-                    ticks: {
-                        fontColor: "#FFFFFF",
-                        beginAtZero:true,
-                    }
-                }]
-            }
-      })
-    }
-
-    function _initChartsForLightMode() {
-        var ChartJSProvider = ChartJSSrv.getChartJSProvider();
-        ChartJSProvider.setOptions('bar',{
-            labels:[],
-            scales: {
-                xAxes: [{
-                        gridLines: {
-                                display: true 
-                        },
-                        ticks: {
-                        beginAtZero:true
-                        }
-                }],
-                yAxes: [{
-                    gridLines: {
-                        display: true
-                        },
-                    ticks: {
-                        beginAtZero:true
-                    }
-                }],
-            }
-        });
-    }
-
+   
     function _updateTopbarMenus(userInfo) {
         var topbarMenus = [];
         if (nlRouter.isPermitted(userInfo, 'change_password')) {
             topbarMenus.push({
                 id: 'pw_change',
                 type: 'menu',
+                icon: 'icon ion-ios-locked-outline',
                 name: nl.t(' Change Password'), 
                 url: '#/pw_change'
             });
@@ -313,8 +243,41 @@ function(nl, $scope, $anchorScroll, nlKeyboardHandler, nlAnnouncementSrv, nlRout
         }
         topbarMenus.push(nlLogViewer.getLogMenuItem($scope));
         topbarMenus.push({
+            id: 'lighttheme',
+            type: 'menu',
+            icon: 'icon ion-ios-moon-outline',
+            name: nl.t('Light Theme'),
+            onClick: function() { 
+                var settings = userInfo.settings || {};
+                settings.userCustomClass = '';
+                nlDlg.showLoadingScreen();
+                    nlServerApi.authUpdateSettings(settings).then(function(result) {
+                        nlDlg.hideLoadingScreen();
+                        nl.window.location.reload();
+                    }
+                )
+            }
+        });
+        topbarMenus.push({
+            id: 'darktheme',
+            type: 'menu',
+            icon: 'icon ion-ios-moon',
+            name: nl.t('Dark Theme'),
+            onClick: function() { 
+                var settings = userInfo.settings || {};
+                settings.userCustomClass = 'nldarkmode';
+                nlDlg.showLoadingScreen();
+                    nlServerApi.authUpdateSettings(settings).then(function(result) {
+                        nlDlg.hideLoadingScreen();
+                        nl.window.location.reload();
+                    }
+                )
+            }
+        });
+        topbarMenus.push({
             id: 'logout',
             type: 'menu',
+            icon: 'icon ion-ios-locked-outline',
             name: nl.t(' Sign Out'),
             url: '#/logout_now'
         });

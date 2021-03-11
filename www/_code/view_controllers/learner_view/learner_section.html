@@ -2,11 +2,9 @@
     <div class='col padding0'></div>
     <div class='card2'>
         <div class='card2-img-holder text-center'>
-            <div class='row row-top padding0 margin0' style='height: 100%'>
-                <div class='col padding0'></div>
-                <img ng-if='icon != "icon:"' class='card2-img' ng-src='{{icon}}' nl-compute-img-info></img>
+            <div class='row row-top padding0 margin0 card2-img-container' style='height: 100%'>
+                <img ng-if='icon != "icon:"' class='card2-img' ng-src='{{icon}}' nl-compute-img-info style="max-width: 100%;max-height: 100%;"></img>
                 <div ng-if='icon == "icon:"' class='card2-img text-center'><i class='ion-ios-bookmarks-outline fblue' style='font-size: 500%'></i></div>
-                <div class='col padding0'></div>
             </div>
         </div>
         <div class='card2-desc row row-top margin0 padding0'>

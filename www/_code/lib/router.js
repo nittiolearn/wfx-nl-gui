@@ -23,8 +23,8 @@ function UrlString(location) {
     this.init();
 }
 
-var NlRouter = ['nl', 'nlDlg', 'nlServerApi', 'nlMarkup', '$state', 'nlTopbarSrv', 'nlMobileConnector', 'nlGroupInfo',
-function(nl, nlDlg, nlServerApi, nlMarkup, $state, nlTopbarSrv, nlMobileConnector, nlGroupInfo) {
+var NlRouter = ['nl', 'nlDlg', 'nlServerApi', 'nlMarkup', '$state', 'nlTopbarSrv', 'nlMobileConnector', 'nlGroupInfo', 'ChartJSSrv',
+function(nl, nlDlg, nlServerApi, nlMarkup, $state, nlTopbarSrv, nlMobileConnector, nlGroupInfo, ChartJSSrv) {
     var permission = new Permission(nl);
     var defaultFn = function() {return function(resolve, reject) {resolve(true);};};
 
@@ -134,12 +134,98 @@ function(nl, nlDlg, nlServerApi, nlMarkup, $state, nlTopbarSrv, nlMobileConnecto
                 ? userInfo.groupinfo.groupCustomCss : '';
             var pagePerm = permission.getPermObj(pageUrl);
             nl.pginfo.groupCustomCss = userInfo.groupinfo && userInfo.groupinfo.groupCustomCss
-            var groupCustomClass = userInfo.groupinfo && userInfo.groupinfo.groupCustomClass ? userInfo.groupinfo.groupCustomClass : '';
+            var groupCustomClass = (userInfo.settings || {}).userCustomClass
+                            || (userInfo.groupinfo || {}).groupCustomClass || '';
+
             if (groupCustomClass) 
                 nl.rootScope.groupCustomClass = groupCustomClass;
-            if (!groupCustomClass && pagePerm.pageMode) 
-                nl.rootScope.groupCustomClass = pagePerm.pageMode;
-
+                    
+            if (userInfo.groupinfo) {
+                userInfo.groupinfo.groupCustomClass = nl.rootScope.groupCustomClass;
+                if (userInfo.groupinfo.groupCustomClass == 'nldarkmode') 
+                {
+                    _nl.colorsCodes = Object.assign(_nl.darkcolorsCodes);
+                    _initChartsForDarkMode();
+                }
+                else {
+                    _nl.colorsCodes = Object.assign(_nl.tempcolorcode);
+                    _initChartsForLightMode();
+                }
+            }
+            function _initChartsForDarkMode() {
+                var ChartJSProvider = ChartJSSrv.getChartJSProvider();
+                ChartJSProvider.setOptions('bar',{
+                    labels:[],
+                    scales: {
+                        xAxes: [{
+                                gridLines: {
+                                        display: true ,
+                                        color: "#FFFFFF"
+                                },
+                                ticks: {
+                                fontColor: "#FFFFFF",
+                                }
+                        }],
+                        yAxes: [{
+                            gridLines: {
+                                display: true ,
+                                color: "#FFFFFF"
+                                },
+                            ticks: {
+                                fontColor: "#FFFFFF",
+                            }
+                        }],
+                    }
+                }); 
+                ChartJSProvider.setOptions('line',{  
+                    showLines: true,
+                    spanGaps: false,
+                
+                    scales: {
+                        xAxes: [{
+                            type: 'category',
+                            id: 'x-axis-0',
+                            ticks: {
+                                fontColor: "#FFFFFF",
+                                beginAtZero:true,
+                            }
+                        }],
+                        yAxes: [{
+                            type: 'linear',
+                            id: 'y-axis-0',
+                            ticks: {
+                                fontColor: "#FFFFFF",
+                                beginAtZero:true,
+                            }
+                        }]
+                    }
+                })
+            }
+            function _initChartsForLightMode() {
+                var ChartJSProvider = ChartJSSrv.getChartJSProvider();
+                ChartJSProvider.setOptions('bar',{
+                    labels:[],
+                    scales: {
+                        xAxes: [{
+                                gridLines: {
+                                        display: true 
+                                },
+                                ticks: {
+                                beginAtZero:true
+                                }
+                        }],
+                        yAxes: [{
+                            gridLines: {
+                                display: true
+                                },
+                            ticks: {
+                                beginAtZero:true
+                            }
+                        }],
+                    }
+                });
+            }
+            
             if (pagePerm == null) {
                 nlDlg.popupStatus(nl.t('Cannot access the page'));
                 return _done('/home');
@@ -335,7 +421,7 @@ function Permission(nl) {
         '/admin_group': {login: true, permission: 'admin_group', termRestriction: TR_CLOSED},
         '/recyclebin': {login: true, permission: 'lesson_approve', termRestriction: TR_CLOSED},
 		'/learner_view': {login:true, permission: 'basic_access', termRestriction: TR_RESTRICTED},
-		'/learner_view2': {login:true, permission: 'basic_access', termRestriction: TR_RESTRICTED, pageMode: 'nldarkmode'},
+		'/learner_view2': {login:true, permission: 'basic_access', termRestriction: TR_RESTRICTED},
         '/announcement': {login: true, permission: 'basic_access', termRestriction: TR_CLOSED},        
 
         // Operation permissions
