@@ -1299,7 +1299,7 @@ function FolderStats($scope, modeHandler) {
     };
    
     function _updateChartInfo(folderStat) {
-        if (_userInfo.groupinfo.groupCustomClass == 'nldarkmode') _nl.colorsCodes=_nl.tempcolorcode;
+        if (_userInfo.groupinfo.groupCustomClass == 'nldarkmode') _nl.colorsCodes=_nl.darkcolorsCodes;
         var _chartLabels = ['done', 'failed', 'started', 'delayed', 'pending', 'waiting'];
         var _chartColours = [_nl.colorsCodes.done, _nl.colorsCodes.failed, _nl.colorsCodes.started, _nl.colorsCodes.delayed, _nl.colorsCodes.pending, _nl.colorsCodes.waiting];
         var ret = {labels: _chartLabels, colours: _chartColours, options: {}};

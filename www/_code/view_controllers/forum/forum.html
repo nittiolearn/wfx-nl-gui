@@ -23,11 +23,11 @@
             </div>
             <div class='col min-200 padding-small nl-link-text nl-forum-header2'
                  ng-click='expandCollapseMsg(msg)'>
-                 <span ng-bind-html='msg.title'></span>
-                 <span>({{msg.children.length+1}})</span>
+                 <span ng-bind-html='msg.title' class="nl-txt-white"></span>
+                 <span class="nl-txt-white">({{msg.children.length+1}})</span>
             </div>
             <div ng-hide='currentTopicId == msg.id'
-                 class='col text-right fixed-200 padding-small nl-forum-ts'>{{msg.htmlUpdated}}</div>
+                 class='col text-right fixed-200 padding-small nl-forum-ts nl-txt-white'>{{msg.htmlUpdated}}</div>
         </div>
         <div ng-show='currentTopicId == msg.id'>
 		    <div class='padding-mid nl-forum-header'
@@ -42,12 +42,12 @@
     <nl-forum-input ng-show='inputDlg.newMessage' pscope='inputDlgScope'>
     </nl-forum-input>
     <div ng-if='msgTree.length == 0' class='padding-small'>
-        <h3>There is no message to display.</h3>
+        <h3 class="nl-txt-white">There is no message to display.</h3>
     </div>
-    <div ng-if='!currentTopicId' class='padding-small'>
+    <div ng-if='!currentTopicId' class='padding-small nl-txt-white'>
         {{msgCount}} message(s)
-        <span ng-show='since'>since {{since}}</span>.
-        <span ng-show='moreResults' class='nl-link-text padding-small' ng-click='loadOlderMessages()'>
+        <span ng-show='since' class="nl-txt-white">since {{since}}</span>.
+        <span ng-show='moreResults' class='nl-link-text padding-small nl-txt-white' ng-click='loadOlderMessages()'>
             Load older messages.
         </span>
     </div>

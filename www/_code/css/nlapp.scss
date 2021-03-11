@@ -2069,7 +2069,6 @@ nl-cards {
   left: 0;
   height: 92%;
   width: 100%;
-  border-radius: 10px;
   box-shadow: inset 0 0 2px $nlBorderBlackTransparent20, 1px 1px 2px $nlFontDarkGrey2;
   box-shadow: inset 0 0 2px var(--nlBorderBlackTransparent20), 1px 1px 2px var(--nlFontDarkGrey2);
   background-color: $nlWhite;
@@ -2107,23 +2106,7 @@ nl-cards {
 .nl-card-header.nl-card-fullDesc-title {
   top: 0;
 }
-.nl-card1-img-container {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  width: 100%;
-  max-height: 50%;
-  display: flex;
-  justify-content: center;
-}
-.nl-card1-img {
-  width: 100%;
-  border-radius: 10px 10px 0px 0px;
-  max-height: 100%;
-  max-width: 100%;
-}
+
 .nl-card-img {
   position: absolute;
   top: 0%;
@@ -2137,7 +2120,7 @@ nl-cards {
   }
   img {
     max-width: 100%;
-    border-radius: 10px 10px 0px 0px;
+    max-height: 165px;
   }
   .icon-tl, .icon-tr, .icon-bl, .icon-br {
     position: absolute;
@@ -2156,7 +2139,6 @@ nl-cards {
     left: 0;
     height: 100%;
     width: 100%;
-    object-fit: cover;
     object-position: top;
   }
 }
@@ -4824,7 +4806,6 @@ box-shadow: inset 0 0 0 var(--nlStatusRed), 0 0 5px var(--nlBoxShadowBlackTransp
  * darkmode style for the cards
  *-----------------------------------------------------------------------------------------*/
  .nl-card-holder {
-    border-radius: 10px;
     background-color: var(--nlWhiteBackground);
   }
   .nl-card-url {
