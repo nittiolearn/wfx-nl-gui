@@ -52,7 +52,7 @@ function(nl, nlDlg, nlConfig, Upload) {
         // open API to execute any REST API (used from debug.js)
         // return: result of REST API
         var config = {reloadUserInfo: reloadUserInfo, noPopup: noPopup, serverType: serverType};
-        return server.post(url, data, config);
+        return _serverPostToApi3OrApi(url, data, config);
     };
     
     this.getBrandingInfo = function() {
@@ -736,6 +736,8 @@ function(nl, nlDlg, nlConfig, Upload) {
         // else: use nittio api
 
         'learning_reports_get_list' : 1,
+        'resource_get_resumable_upload_url': 1,
+        'resource_save_to_db': 1,
         'learning_reports_get_completed_module_list': 1,
         'course_or_assign_get_many': 1,
 
