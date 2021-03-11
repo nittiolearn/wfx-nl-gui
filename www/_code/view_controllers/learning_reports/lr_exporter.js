@@ -30,6 +30,7 @@ function(nl, nlDlg, nlRouter, nlExporter, nlLrHelper, nlLrSummaryStats, nlGroupI
     var _canzip = true;
     var _exportFormat = 'xlsx';
     var _groupInfo = null;
+    var _ldapCol = false;
 
     function _getMetaHeaders(bOnlyMajor) {
         var headers = [];
@@ -565,7 +566,11 @@ function(nl, nlDlg, nlRouter, nlExporter, nlLrHelper, nlLrSummaryStats, nlGroupI
         }
 
         headers = headers.concat(['User state', 'Email Id', 'Org']);
-        for(var i=0; i<mh.length; i++) headers.push(mh[i].name);
+        for(var i=0; i<mh.length; i++) {
+            if (mh[i].id == 'meta_ldap') _ldapCol = true;
+            headers.push(mh[i].name);
+        }
+        if (_ldapCol) headers = headers.concat(['Sender LDAP ID']);
         headers = headers.concat(_idFields);
         if (type == 'user') headers.push('Type');
         headers.push('Language');
@@ -608,6 +613,7 @@ function(nl, nlDlg, nlRouter, nlExporter, nlLrHelper, nlLrSummaryStats, nlGroupI
         ret.push(report.user.email);
         ret.push(report.user.org_unit);
         for(var i=0; i<mh.length; i++) ret.push(report.usermd[mh[i].id] || '');
+        if (_ldapCol) ret.push(report.repcontent.ldapid || '');
         ret = ret.concat(['id=' + report.raw_record.id, 'id=' + report.raw_record.assignment, 
             'id=' + report.raw_record.lesson_id]);
         if (type == 'user') ret.push(report.raw_record.typeStr);

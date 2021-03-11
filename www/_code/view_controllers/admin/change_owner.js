@@ -51,10 +51,12 @@ var ChangeOwnerSrv = ['nl', 'nlDlg', 'nlServerApi',
 function(nl, nlDlg, nlServerApi) {
 	var _parentScope = null;
 	var _userInfo = null;
+	var _type = null;
 
-	this.show = function(parentScope, contentid, contenttype, userInfo, isBulkOpt) {
+	this.show = function(parentScope, contentid, contenttype, userInfo, isBulkOpt, type) {
         _parentScope = parentScope;
-        _userInfo = userInfo;
+		_userInfo = userInfo;
+		_type = type;
         _showChangeOwnerDlg(contentid, contenttype, isBulkOpt);
 	};
 	
@@ -117,7 +119,7 @@ function(nl, nlDlg, nlServerApi) {
 		        }
 			}
     	};
-		var data = {contentids: idArray, owner: dlgScope.data.username, contenttype: dlgScope.data.contenttype};
+		var data = {contentids: idArray, owner: dlgScope.data.username, contenttype: dlgScope.data.contenttype, type: _type};
 		_serverCallImpl(dlgScope, data);
 	}
 	

@@ -14,7 +14,7 @@ var NlGetManyStore = ['nl', 'nlDlg', 'nlServerApi', 'nlGroupInfo',
 function(nl, nlDlg, nlServerApi, nlGroupInfo) {
     var self = this;
     var _records = null;
-    var _subFetcher = new SubFetcher(nl, nlDlg, nlServerApi, this);
+    var _subFetcher = new SubFetcher(nl, nlDlg, nlServerApi, nlGroupInfo, this);
     var _updateNHTBatchStats = new UpdateBatch(nl, nlGroupInfo);
     this.init = function() {
         _records = {'assignment': {}, 'course_assignment': {}, 'course': {}};
@@ -311,9 +311,11 @@ function UpdateBatch(nl, nlGroupInfo) {
 
 }
 
-function SubFetcher(nl, nlDlg, nlServerApi, nlGetManyStore) {
+function SubFetcher(nl, nlDlg, nlServerApi, nlGroupInfo, nlGetManyStore) {
     var _pendingKeys = {};
     var _errorKeys = {};
+    var _pastUserInfosFetcher = nlGroupInfo.getPastUserInfosFetcher();
+    var _postProcessRecords = [];
 
 	this.fetchReferredRecords = function(results, showLoadingScreen, onDoneFunction) {
         for (var i=0; i<results.length; i++) {
@@ -362,7 +364,9 @@ function SubFetcher(nl, nlDlg, nlServerApi, nlGetManyStore) {
                 	continue;
                 }
                 if (resultObj.table == 'course_assignment') {
-                	resultObj.info = angular.fromJson(resultObj.info);
+                    resultObj.info = angular.fromJson(resultObj.info);
+                    var senderObj = _getSenderUserObj(resultObj)
+                    if (senderObj) resultObj.meta_ldap = (senderObj.metadataObj || {}).meta_ldap || '';
                 	if (resultObj.info.not_before) resultObj.info.not_before = nl.fmt.json2Date(resultObj.info.not_before); 
                 	if (resultObj.info.not_after) resultObj.info.not_after = nl.fmt.json2Date(resultObj.info.not_after); 
                 } else if (resultObj.table == 'assignment') {
@@ -378,6 +382,18 @@ function SubFetcher(nl, nlDlg, nlServerApi, nlGetManyStore) {
         }, function(error) {
             onDoneCallback(false);
         });
+    }
+
+    function _getSenderUserObj(record, senderName) {
+        var groupInfo = nlGroupInfo.get();
+        if (!groupInfo) return null;
+        var user = nlGroupInfo.getCachedUserObjWithMeta(record.info.sender, record.info.sendername,
+             _pastUserInfosFetcher);
+        if (!user) {
+            _postProcessRecords.push(report);
+            return null
+        }
+        return user;
     }
 }
 

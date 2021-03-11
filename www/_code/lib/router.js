@@ -391,6 +391,7 @@ function Permission(nl) {
         '/course_list': {login: true, permission: 'assignment_send', termRestriction: TR_CLOSED},
         '/folder_view': {login: true, permission: 'assignment_send', termRestriction: TR_CLOSED},
         '/course_assign_my_list': {login: true, permission: 'assignment_send', termRestriction: TR_CLOSED},
+        '/course_assign_suborg_list': {login: true, permission: 'assignment_send', termRestriction: TR_CLOSED},
         '/course_assign_list': {login: true, permission: 'assignment_manage', termRestriction: TR_CLOSED},
 		'/course_report_list': {login:true, permission: 'course_do', termRestriction: TR_RESTRICTED},
         '/course_view': {login: true, permission: 'course_do', termRestriction: TR_RESTRICTED},
