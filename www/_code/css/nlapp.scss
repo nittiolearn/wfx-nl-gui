@@ -2098,7 +2098,7 @@ nl-cards {
 .nl-card-header {
   text-align: left;
   color: $nlBlack;
-  color: var(--nlBlackTransparent80);
+  color: var(--nlBlack);
   font-size: 130%;
   padding: 4px 16px;
 }
@@ -4791,6 +4791,9 @@ box-shadow: inset 0 0 0 var(--nlStatusRed), 0 0 5px var(--nlBoxShadowBlackTransp
 .nl-txt-dark {
   color:var(--nlPrimaryDark);
 }
+.nl-txt-grey {
+  color: var(--nlFBgGrey) !important;
+}
 
   /*-----------------------------------------------------------------------------------------*
  * darkmode background for all screens
@@ -4818,7 +4821,7 @@ box-shadow: inset 0 0 0 var(--nlStatusRed), 0 0 5px var(--nlBoxShadowBlackTransp
     color: var(--nlWhite);
   }
   .nl-card-desc{
-    color: var(--nlWhite);
+    color: var(--nlFBgGrey);
   }
   .nl-card-desc .nl-link-text{
     color: var(--nlWhite);

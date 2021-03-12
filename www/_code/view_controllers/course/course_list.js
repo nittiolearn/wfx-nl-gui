@@ -830,7 +830,7 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
 		if(!isReport && report.updated) card['updated'] = nl.fmt.json2Date(report.updated);
 		var descFmt = '';
 		if(report.batchname)
-			descFmt += nl.t("<div><b>{}</b></div>", report.batchname);
+			descFmt += nl.t("<div>{}</div>", report.batchname);
 		if(report.not_before)
 			descFmt += nl.t("<div>From {}", nl.fmt.date2Str(nl.fmt.json2Date(report.not_before), 'date'));
 
