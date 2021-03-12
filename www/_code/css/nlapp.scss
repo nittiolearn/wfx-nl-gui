@@ -2139,6 +2139,7 @@ nl-cards {
     left: 0;
     height: 100%;
     width: 100%;
+    object-fit: cover;
     object-position: top;
   }
 }
@@ -2767,7 +2768,7 @@ img.nl-icon {
     bottom: 0;
     height: auto;
     left: 0;
-    width: 100%;
+    width: 150px;
     text-align: center;
     .card2-img {
       max-height: 100%;
