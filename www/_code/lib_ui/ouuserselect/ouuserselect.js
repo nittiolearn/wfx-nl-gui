@@ -193,7 +193,7 @@ function OuUserSelector(nl, nlDlg, nlGroupInfo, nlTreeSelect, nlOuUserSelect,
     };
     
     function _updateSelectionTree(treeData, selectedIds) {
-        _ouUserTree.data = angular.copy(treeData);
+        _ouUserTree.data = treeData;
         nlTreeSelect.updateSelectionTree(_ouUserTree, selectedIds);
         if (_filterTrees.getFilters().length > 0) {
             _ouUserTree.onFilterClick = _onFilterClick;
@@ -296,7 +296,6 @@ function OuUserSelector(nl, nlDlg, nlGroupInfo, nlTreeSelect, nlOuUserSelect,
     }
 
     function _onFilterApply(e, filterDlg) {
-        _updateSelectionTree(_fullTreeData, {});
         var selectedIds = {};
 
         if(filterDlg.scope.data.filterBasedOn.id == 'filter') {

@@ -228,7 +228,8 @@ function(nl, nlRouter, nlDlg, nlGroupInfo, nlLrHelper, nlLrFilter, nlGetManyStor
         }
         if (!user.mobile && user.metadataObj.meta_mobile)
             user.mobile = user.metadataObj.meta_mobile;
-        if (user.mobile && user.mobile.indexOf('m:') == 0) user.mobile = user.mobile.substring(2);
+        var mobile = user.mobile ? '' + user.mobile : ''; // convert to string
+        user.mobile = mobile.indexOf('m:') == 0 ? mobile.substring(2) : mobile;
         return user;
     }
     
