@@ -358,7 +358,8 @@ function(nl, nlServerApi, nlDlg, nlProgressFn) {
     // c. refactor polly autovoice
     var localHost = nl.window.location.protocol.toLowerCase() == 'http:';
     var oldUpload = ('old_upload' in nl.location.search());
-    var _resumableUploader = localHost || oldUpload ? nlServerApi : new ResumableUploader(nl, nlServerApi, nlDlg);
+    var isApi3 = ('api3' in nl.location.search()); //to enable resumable upload on localhost in case it is routed through nittio3 , only checks the url and not group settings
+    var _resumableUploader = localHost & !isApi3 || oldUpload ? nlServerApi : new ResumableUploader(nl, nlServerApi, nlDlg);
 
     var _restypeToAcceptString = {
         Image: 'image/*', 
@@ -760,7 +761,7 @@ function ResumableUploaderImpl(nl, nlServerApi, nlDlg, resumableUploader) {
     }
 
     function _getResumableResourceUrlImpl(data, resolve, reject) {
-        nlServerApi.executeRestApi('_serverapi/resource_get_resumable_upload_url.json',
+        nlServerApi.executeRestApi3('resource_get_resumable_upload_url',
         {
             name: data.resource.name,
             contenttype: data.resource.type,
@@ -862,7 +863,7 @@ function ResumableUploaderImpl(nl, nlServerApi, nlDlg, resumableUploader) {
     }
 
     function _retrySaveToDBImpl(resolve, reject) {
-        nlServerApi.executeRestApi('_serverapi/resource_save_to_db', _state.dbData, false, true)
+        nlServerApi.executeRestApi3('resource_save_to_db', _state.dbData, false, true)
         .then(resolve, function() {
             _retrySaveToDB(resolve, reject);
         });
