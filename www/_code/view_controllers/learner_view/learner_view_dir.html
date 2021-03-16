@@ -11,10 +11,10 @@
         <!-- Search box -->
         <div class='row row-top row-wrap margin0 padding0'>
             <div class='padding0 nl-searchbox' style='padding-bottom: 8px'>
-                <div class='row row-center margin0 padding0 nl-searchbox2'>
+                <div class='row row-center margin0 padding0 nl-searchbox2 dark-default-input'>
                     <span style='padding: 0px 6px'><i class='icon ion-ios-search-strong fsh5'></i></span>
                     <div class='col padding0'>
-                        <input class='padding-small w100'
+                        <input class='padding-small w100 dark-default-input'
                             ng-model='tabData.search'
                             ng-attr-placeholder='{{tabData.searchPlaceholder}}'
                             ng-keydown='tabData.onSearch($event)'
@@ -27,21 +27,21 @@
                     <div ng-show='screenSize != "small"' class='padding'></div>
                     <div ng-show='screenSize == "large"' class='col'></div>
                     <div class='col padding0'>
-                        <div class='padding-small fblue2 bgwhite lnblue2 {{tabData.filter == "active"? "borderbottom2": ""}}'
+                        <div class='old-learner-view-points padding-small fblue2 bgwhite lnblue2 {{tabData.filter == "active"? "borderbottom2": ""}}'
                              ng-click='tabData.onFilter($event, "active")'>
                             <div class='fsh5'>{{tabData.assignedCounts.active}}</div>
                             <div class='fsmall2'> pending</div>
                         </div>
                     </div>
                     <div class='col padding0' style='padding-left: 8px'>
-                        <div class='padding-small fgreen bgwhite lnblue2 {{tabData.filter == "started"? "borderbottom2": ""}}'
+                        <div class='old-learner-view-points padding-small fgreen bgwhite lnblue2 {{tabData.filter == "started"? "borderbottom2": ""}}'
                              ng-click='tabData.onFilter($event, "started")'>
                             <div class='fsh5'>{{tabData.assignedCounts.started}}</div>
                             <div class='fsmall2'> started</div>
                         </div>
                     </div>
                     <div class='col padding0' style='padding-left: 8px'>
-                        <div class='padding-small fdarkgrey2 bgwhite lnblue2 {{tabData.filter == "all"? "borderbottom2": ""}}'
+                        <div class='old-learner-view-points padding-small fdarkgrey2 bgwhite lnblue2 {{tabData.filter == "all"? "borderbottom2": ""}}'
                              ng-click='tabData.onFilter($event, "all")'>
                             <div class='fsh5'>{{tabData.assignedCounts.all}}</div>
                             <div class='fsmall2'> total</div>

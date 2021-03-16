@@ -384,7 +384,7 @@ function _canCoverImg(url, isCard2) {
         return info.canCover;
     }
     var ar = info.w ? info.h/info.w : 0;
-    info.canCover = (ar > 0.51 && ar < 0.77);
+    info.canCover = (ar > 0.51 && ar < 1);
     return info.canCover;
 }
 

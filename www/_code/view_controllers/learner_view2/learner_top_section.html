@@ -18,8 +18,8 @@
         </div>
         <div class='padding-small'></div>
         <div class='row row-top row-wrap margin0 padding-mid'>
-            <div class='padding0 learner-view-searchbox' style='padding: 0px 4px'>
-                <div class='row row-center margin0 padding0 learner-view-searchbox2'>
+            <div class='padding0 learner-view-searchbox nl-display-flex' style='padding: 0px 4px'>
+                <div class='row row-center margin0 padding0 learner-view-searchbox2 col-67 dark-default-input'>
                     <span style='padding: 0px 6px'><i class='icon ion-ios-search-strong fsh5'></i></span>
                     <div class='col padding0' style='padding-top: 4px'>
                         <input class='padding-small w100 search-placeholder'
@@ -28,13 +28,13 @@
                             ng-keydown='tabdata.onSearch($event)'
                             style='border: none; height: 32px; background-color:inherit'>
                     </div>
-                    <div class='bgblue3 nl-link-text fbold fwhite padding-mid'
+                </div>
+                <div class='bgblue3 nl-txt-white justify:center margin0 nl-link-text padding-0 row row-center'
                         ng-show='tabdata.canFetchMore'
                         title='Fetch more learning records from the server'
-                        ng-click='tabdata.fetchMore($event)'>
-                        <i class='icon ion-refresh'></i>
-                        <span ng-if='$root.screenSize != "small"' style='font-size:80%'>Fetch more</span>
-                    </div>
+                        ng-click='tabdata.fetchMore($event)' style="align-items: center;width:auto;">
+                        <i class='icon ion-refresh' style="font-size: 20px;margin: 6px;"></i>
+                    <span ng-if='$root.screenSize != "small"' style='font-size:15px'>Fetch more</span>
                 </div>
             </div>
         </div>

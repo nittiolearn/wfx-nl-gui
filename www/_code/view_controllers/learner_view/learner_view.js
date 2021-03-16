@@ -11,6 +11,7 @@ function module_init() {
 	.directive('nlLearnerViewDir', nlLearnerViewDirDirective)
 	.directive('nlLearnerSection', LearnerSectionDirective)
 	.directive('nlLearningStatusCounts', LearningStatusCountsDirective)
+	.directive('nlComputeImgInfo', ComputeImgInfoDirective)
 	.controller('nl.LearnerViewCtrl', LearnerViewCtrl)
 	.service('nlLearnerView', NlLearnerView);
 }
@@ -40,6 +41,34 @@ function(nl) {
 }];
 
 //-------------------------------------------------------------------------------------------------
+function _canCoverImg(url, isCard2) {
+	var info = _imgInfo[url];
+	if (!info) return false;
+    var ar = info.w ? info.h/info.w : 0;
+    info.canCover = (ar > 0.51 && ar < 1);
+    return info.canCover;
+}
+
+var _imgInfo = {};
+
+var ComputeImgInfoDirective = ['nl', 'nlDlg',
+function(nl, nlDlg) {
+    return {
+        restrict: 'A',
+        link: function($scope, iElem, iAttrs) {
+        	iElem.bind('load', function(params) {
+                $scope.$apply(iAttrs.nlComputeImgInfo);
+			    var w = iElem[0].offsetWidth;
+			    var h = iElem[0].offsetHeight;
+			    _imgInfo[iAttrs.src] = {w:w, h:h};
+        	});
+         }
+    };
+}];
+
+
+//-------------------------------------------------------------------------------------------------
+
 var LearnerSectionDirective = ['nl', 'nlDlg',
 function(nl, nlDlg) {
     return {
@@ -64,6 +93,9 @@ function(nl, nlDlg) {
                 detailsDlg.scope.record = record;
                 detailsDlg.show('view_controllers/learner_view/learner_view_details.html');
 			}
+			$scope.canCover = function(e, isCard2) {
+        		return _canCoverImg($scope.icon, isCard2);
+            };
 		}
 	}
 }];

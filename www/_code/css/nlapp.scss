@@ -1907,7 +1907,6 @@ input.nl-dlg-field-error, .nl-dlg-field-error {
   }
   img {
     max-width: 100%;
-    border-radius: 10px 10px 0px 0px;
   }
   .icon-tl, .icon-tr, .icon-bl, .icon-br {
     position: absolute;
@@ -1938,7 +1937,7 @@ input.nl-dlg-field-error, .nl-dlg-field-error {
 
 .nl-card2-header {
   text-align: left;
-  font-size: 20px;
+  font-size: 16px;
   padding: 4px 16px;
   overflow: hidden;
   white-space: normal;
@@ -2073,6 +2072,7 @@ nl-cards {
   box-shadow: inset 0 0 2px var(--nlBorderBlackTransparent20), 1px 1px 2px var(--nlFontDarkGrey2);
   background-color: $nlWhite;
   background-color: var(--nlWhite);
+  border-radius: 10px;
 }
 
 .nl-card-url {
@@ -2115,6 +2115,7 @@ nl-cards {
   width: 100%;
   padding: 0px;
   text-align: center;
+  border-radius: 10px 10px 0px 0px;
   nl-card-image {
     height: 100%;
   }
@@ -2141,6 +2142,7 @@ nl-cards {
     width: 100%;
     object-fit: cover;
     object-position: top;
+    border-radius: 10px 10px 0px 0px;
   }
 }
 
@@ -2775,6 +2777,7 @@ img.nl-icon {
       max-width: 100%;
     }
   }
+  
   .card2-desc {
     position: absolute;
     top: 5px;
@@ -2828,7 +2831,19 @@ img.nl-icon {
       max-height: 100%;
       max-width: 100%;
     }
+    .old-learnerview-cover { 
+       padding: 0px;
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        text-align: center;
+        object-fit: cover;
+    }
   }
+
   .card2-desc {
     position: absolute;
     top: 155px;
@@ -2852,7 +2867,6 @@ img.nl-icon {
 .section-header-text {
   font-size: 32px;
   font-weight: 500;
-  line-height: 0.75;
   letter-spacing: normal;
   text-align: left;
   color: var(--nlPrimary);
@@ -4793,7 +4807,7 @@ box-shadow: inset 0 0 0 var(--nlStatusRed), 0 0 5px var(--nlBoxShadowBlackTransp
   color:var(--nlPrimaryDark);
 }
 .nl-txt-grey {
-  color: var(--nlFBgGrey) !important;
+  color: var(--nlBgWhiteTransparent70) !important;
 }
 
   /*-----------------------------------------------------------------------------------------*
@@ -5122,6 +5136,10 @@ box-shadow: inset 0 0 0 var(--nlStatusRed), 0 0 5px var(--nlBoxShadowBlackTransp
   background-color: var(--nlWhiteBackground);
   box-shadow: inset 0 0 2px rgba(0,0,100,0.2), 1px 1px 2px rgba(0,0,100,0.4);
 }
+.card2 {
+  background-color: var(--nlWhiteBackground);
+  box-shadow: inset 0 0 2px rgba(0,0,100,0.2), 1px 1px 2px rgba(0,0,100,0.4);
+}
 
 //-------------------------------------------------------------------------------------------
 // border styles in the darkmode
@@ -5265,14 +5283,25 @@ nl-dlg {
     border-bottom: 1px solid var(--nlBorderBlackTransparent20);
   }  
 }
-  .default-input {
+  .dark-default-input {
     background-color: var(--nlBgWhiteTransparent70);
     border: 1px solid var(--nlWhite);
   }
 
-  .default-input::placeholder {
+  .dark-default-input::placeholder {
     color: var(--nlPrimaryDark);
   }
+
+  .old-learner-view-points {
+    background-color: var(--nlBgWhiteTransparent70);
+    border: 1px solid var(--nlWhite);
+    color:var(--nlPrimary);
+    &:hover {
+        color: var(--nlWhite);
+        background-color: $nlPrimary;
+        background-color: var(--nlPrimary);
+      }
+    }
 
   .bb1 {
     border-bottom: 1px solid var(--nlFBgGrey);
@@ -5304,28 +5333,6 @@ nl-dlg {
   }
   .error-text {
     color: var(--nlWhite);
-  }
-  .label {
-    position:absolute;
-    top:0;
-    left:0;
-    right:0;
-    bottom:0;
-    max-width: 5rem;
-    height: 1.4rem;
-    font-size: 12px;
-  }
-  .label_certified {
-    background-color: var(--nlStatusBlue);
-  }
-  .label_failed {
-    background-color: var(--nlStatusRed);
-  }
-  .label_done {
-    background-color: var(--nlStatusGreen);
-  }
-  .label_passed {
-    background-color: var(--nlStatusGreen);
   }
 
 /*-----------------------------------------------------------------------------------------*
@@ -5459,17 +5466,31 @@ nl-dlg {
     background-color: var(--nlBgTextArea); 
   }
   .nl-learner-notstarted {
-  color: var(--nlStatusLightPurple);
-  border:1px solid var(--nlStatusLightPurple)
+  color: var(--nlPrimary);
+  background-color:var(--nlStatusLightPurple);
+  border:1px solid var(--nlStatusLightPurple);
   }
   .nl-learner-inprogress {
-  color: var(--nlFontYellow);
-  border:1px solid var(--nlFontYellow)
+  color: var(--nlPrimary);
+  background-color:var(--nlFontYellow);
+  border:1px solid var(--nlFontYellow);
   }
   .nl-learner-upcoming {
-  color: var( --nlStatusBlue);
-  border:1px solid var( --nlStatusBlue)
+  color: var( --nlPrimary);
+  background-color:var( --nlStatusBlue);
+  border:1px solid var( --nlStatusBlue);
   }
+  .nl-learner-complete {
+    color: var( --nlPrimary);
+    background-color: var(--nlStatusGreen);
+    border:1px solid var(--nlStatusGreen);
+  }
+  .nl-learner-expired {
+    color: var( --nlPrimary);
+    background-color: var(--nlFontOrange1);
+    border:1px solid var(--nlFontOrange1);
+  }
+  
 }
 /*-----------------------------------------------------------------------------------------*
  * END OF DARKMODE STYLE AND COLOUR SECTION
@@ -5521,6 +5542,29 @@ nl-dlg {
   color: var(--nlFontOrange1);
   border: 2px solid var(--nlFontOrange1);
 }
+.label {
+  position:absolute;
+  top:0;
+  left:0;
+  right:0;
+  bottom:0;
+  max-width: 5rem;
+  height: 1.4rem;
+  font-size: 12px;
+  border-radius: 10px 0px 0px 0px;
+}
+.label_certified {
+  background-color: var(--nlStatusBlue);
+}
+.label_failed {
+  background-color: var(--nlStatusRed);
+}
+.label_done {
+  background-color: var(--nlStatusGreen);
+}
+.label_passed {
+  background-color: var(--nlStatusGreen);
+}
 /*-----------------------------------------------------------------------------------------*
  * Learner view 2 section styles (card2)
  *-----------------------------------------------------------------------------------------*/
@@ -5560,7 +5604,7 @@ background-color: var(--nlWhite);
  
  
  /*-----------------------------------------------------------------------------------------*
- * STATS IN LIGHT THEME
+ * LIGHT THEME
  *-----------------------------------------------------------------------------------------*/
  .pie_chart_heading {
   font-size: 1rem;

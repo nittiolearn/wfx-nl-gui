@@ -232,7 +232,7 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlServerA
 			data: [0, 0, 0, 0],
 			labels: ['Completed', 'Not started', 'Inprogress', 'Upcoming','Expired'],
 			colors: [_nl.colorsCodes.done, _nl.colorsCodes.pending, _nl.colorsCodes.started, _nl.colorsCodes.blue1, _nl.colorsCodes.delayed ],
-			options:{responsive: true, maintainAspectRatio: false},
+			options:{responsive: true, maintainAspectRatio: false,segmentShowStroke: false},
 		},
 		{
 			show: false,

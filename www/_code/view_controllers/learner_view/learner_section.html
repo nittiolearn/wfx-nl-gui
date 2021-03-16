@@ -1,21 +1,21 @@
 <div class='row row-top padding0 margin0'>
     <div class='col padding0'></div>
-    <div class='card2'>
-        <div class='card2-img-holder text-center'>
-            <div class='row row-top padding0 margin0 card2-img-container' style='height: 100%'>
-                <img ng-if='icon != "icon:"' class='card2-img' ng-src='{{icon}}' nl-compute-img-info style="max-width: 100%;max-height: 100%;"></img>
+    <div class='card2 nl-link-img'>
+        <div class='card2-img-holder text-center row-center margin0  row-justify-evenly nl-display-flex'>
+            <div class='padding0 margin0' style='max-height: 100%; max-width: 100%; overflow: hidden;'>
+                <img ng-if='icon != "icon:"' class='card2-img {{canCover() ? "old-learnerview-cover" : ""}}' ng-src='{{icon}}' nl-compute-img-info></img>
                 <div ng-if='icon == "icon:"' class='card2-img text-center'><i class='ion-ios-bookmarks-outline fblue' style='font-size: 500%'></i></div>
             </div>
         </div>
         <div class='card2-desc row row-top margin0 padding0'>
             <div class='col margin0 padding0'>
-                <span class='fblue2'>{{nltitle}}</span>
+                <span class='fblue2 nl-txt-white'>{{nltitle}}</span>
                 <div class='fsmall2 fdarkgrey2' style='padding-top: 8px'>
                     <span ng-show='record.raw_record.not_before && isreport'>
-                        <span ng-hide='record.raw_record.not_after'>From <b>{{record.raw_record.not_before | nlDateTimeFormat:'date'}}</b>.</span>
-                        <span ng-show='record.raw_record.not_after'>From <b>{{record.raw_record.not_before | nlDateTimeFormat:'date'}}</b>, till <b>{{record.raw_record.not_after | nlDateTimeFormat:'date'}}</b></span>
+                        <span ng-hide='record.raw_record.not_after' class="nl-txt-grey">From <b class="nl-txt-grey">{{record.raw_record.not_before | nlDateTimeFormat:'date'}}</b>.</span>
+                        <span ng-show='record.raw_record.not_after' class="nl-txt-grey">From <b class="nl-txt-grey">{{record.raw_record.not_before | nlDateTimeFormat:'date'}}</b>,<span class="nl-txt-grey">till</span><b class="nl-txt-grey">{{record.raw_record.not_after | nlDateTimeFormat:'date'}}</b></span>
                     </span>
-                    <span ng-show='desc'>
+                    <span ng-show='desc' class="nl-txt-white">
                         {{desc}}
                     </span>
                 </div>
@@ -24,12 +24,12 @@
         <div class='card2-buttons'>
             <div class='row row-center margin0 padding0'>
                 <i class='{{record.stats.status.icon}}' style='font-size:180%'></i>
-                <span style='padding: 0 4px'>{{record.stats.status.txt}}</span>
+                <span style='padding: 0 4px' class="nl-txt-white">{{record.stats.status.txt}}</span>
                 <span class='col padding0 margin0 text-center'></span>
                 <span ng-if='isreport'
                     class='fblue2 fsh5 lnblue2 padding-small shape-oval'
                     ng-click='onDetailsLinkClicked($event, record, "details")'>
-                    <i class='icon ion-more'></i>
+                    <i class='icon ion-more nl-txt-white'></i>
                 </span>
                 <span ng-show='url' class='padding-small'></span>
                 <span ng-show='url'>

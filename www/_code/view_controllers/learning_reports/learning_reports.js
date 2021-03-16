@@ -154,7 +154,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		$scope.utable = {
 			maxVisible: MAX_VISIBLE,
 			origColumns: [],
-			styleTable: 'nl-table nl-table-styled3 cellborder',
+			styleTable: 'nl-table nl-table-styled3 rowlines',
 			styleHeader: ' ',
 			onRowClick: 'expand',
 			detailsTemplate: 'view_controllers/learning_reports/learning_report_details.html',

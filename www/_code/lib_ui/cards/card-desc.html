@@ -7,17 +7,17 @@
                 <a ng-href='{{child.url}}' nlta='{{child.title}}' class='nl-link-text nl-txt-grey' nl-wait-on-click>{{child.title}}</a>
             </div>
             <div ng-if='!child.url && child.internalUrl'>
-                <span class='nl-link-text'
+                <span class='nl-link-text nl-txt-grey'
                       ng-click='onCardInternalUrlClicked($event, card, child.internalUrl)'
                       nlta='{{child.title}}'>
                     {{child.title}}
                 </span>
             </div>
-            <div ng-if='!child.url && !child.internalUrl'>
+            <div ng-if='!child.url && !child.internalUrl' class="nl-txt-grey">
                 {{child.title}}
             </div>
         </li>
     </ul>
-    <div ng-show='card.children.length==0' ng-bind-html='card.help'></div>
+    <div ng-show='card.children.length==0' ng-bind-html='card.help' class="nl-txt-grey"></div>
 	</div>
 </div>
