@@ -47,6 +47,14 @@ function(nl, nlDlg, nlGroupInfo, nlExporter) {
         },
         id: function(user) {
             return 'id=' + user.id;
+        },
+        last_login_time: function(user) {
+            var details = angular.fromJson(user.details || "{}");
+            if (details && details.last_login_time) {
+                var lastLogin = details.last_login_time || '';
+                return nl.fmt.date2Str(nl.fmt.json2Date(lastLogin), 'minute');
+            }
+            return '';
         }
     };
     

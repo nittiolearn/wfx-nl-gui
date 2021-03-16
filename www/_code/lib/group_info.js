@@ -191,6 +191,7 @@ function(nl, nlDlg, nlImporter, nlGroupCache, nlGroupCache4) {
             metadata: uInfo[this.METADATA] || '',
             mobile: uInfo[this.MOBILE] || '',
             seclogin: uInfo[this.SECLOGIN] || '',
+            details: uInfo[this.DETAILS]
         };
         ret.seclogin = ret.seclogin ? 'id:' + ret.seclogin : '';
         ret.mobile = ret.mobile ? 'm:' + ret.mobile : '';
@@ -333,6 +334,7 @@ function(nl, nlDlg, nlImporter, nlGroupCache, nlGroupCache4) {
         self.MOBILE = 15;
         self.SECLOGIN = 16;
         self.DELETED = 17; // only available in group_cache4
+        self.DETAILS = 18;
 
         // Generic user types    
         self.UT_NITTIOADMIN=10;
@@ -719,6 +721,7 @@ var _userTableAttrs = [
     {id: 'created', name: "Created UTC Time", optional: true},
     {id: 'updated', name: "Updated UTC Time", optional: true},
     {id: 'id', name: "Internal Id", optional: true},
+    {id: 'last_login_time', name: 'Last login', optional: true}
 ];
 
 //-------------------------------------------------------------------------------------------------
