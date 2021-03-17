@@ -144,56 +144,18 @@
             ******************************************************************* -->
             <div ng-if='tabData.selectedTab.id == "overview" && !tabData.processingOnging'
                 class='anim-enter1 flyfrom-l'>
-                <div class='row row-center row-wrap row-justify-evenly text-center padding0 margin0' >
-                    <div ng-class='$root.respCol331' style='width: 100%'>
-                        <nl-summary-box number='overviewArray[0].perc' 
-                            title='overviewArray[0].title' 
+                <div class='row row-center row-wrap row-justify-evenly text-center padding0 margin0'>
+                    <div ng-class='{{moduleidEnable ? "$root.respCol221" : "$root.respCol331"}}' style='width: 100%'
+                        ng-repeat='item in overviewArray'>
+                        <nl-summary-box number='item.perc' 
+                            title='item.title' 
                             class='col padding0 small-summary-box'
-                            desc='overviewArray[0].desc'
-                            showperc='overviewArray[0].showperc'>
-                        </nl-summary-box>
-                    </div>
-                    <div ng-class='$root.respCol331' style='width: 100%'>
-                        <nl-summary-box number='overviewArray[1].perc' 
-                            title='overviewArray[1].title' 
-                            class='col padding0 small-summary-box'
-                            desc='overviewArray[1].desc'
-                            showperc='overviewArray[1].showperc'>
-                        </nl-summary-box>
-                    </div>
-                    <div ng-class='$root.respCol331' style='width: 100%'>
-                        <nl-summary-box number='overviewArray[2].perc' 
-                            title='overviewArray[2].title' 
-                            class='col padding0 small-summary-box'
-                            desc='overviewArray[2].desc'
-                            showperc='overviewArray[2].showperc'>
-                        </nl-summary-box>
-                    </div>
-                    <div ng-class='$root.respCol331' style='width: 100%'>
-                        <nl-summary-box number='overviewArray[3].perc' 
-                            title='overviewArray[3].title' 
-                            class='col padding0 small-summary-box'
-                            desc='overviewArray[3].desc'
-                            showperc='overviewArray[3].showperc'>
-                        </nl-summary-box>
-                    </div>
-                    <div ng-class='$root.respCol331' style='width: 100%'>
-                        <nl-summary-box number='overviewArray[4].perc' 
-                            title='overviewArray[4].title' 
-                            class='col padding0 small-summary-box'
-                            desc='overviewArray[4].desc'
-                            showperc='overviewArray[4].showperc'>
-                        </nl-summary-box>
-                    </div>
-                    <div ng-class='$root.respCol331' style='width: 100%'>
-                        <nl-summary-box number='overviewArray[5].perc' 
-                            title='overviewArray[5].title' 
-                            class='col padding0 small-summary-box'
-                            desc='overviewArray[5].desc'
-                            showperc='overviewArray[5].showperc'>
+                            desc='item.desc'
+                            showperc='item.showperc'>
                         </nl-summary-box>
                     </div>
                 </div>
+
                 <div class='row row-top row-wrap margin0 padding0'>
                     <div ng-class='$root.respCol221' class='text-center padding-mid'>
                         <div class='padding-small'></div>

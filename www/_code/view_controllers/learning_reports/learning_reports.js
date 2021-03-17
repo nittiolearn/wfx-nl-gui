@@ -499,6 +499,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		$scope.iltBatchInfo = {};
 		$scope.certificateInfo = {};
 		$scope.pageLevelInfo = {};
+		$scope.moduleidEnable = null;
 		var tabs = $scope.tabData.tabs;
 		for (var i=0; i<tabs.length; i++) {
 			tabs[i].updated = false;
@@ -960,6 +961,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			$scope.iltBatchInfo = {};
 			$scope.certificateInfo = {};
 			$scope.pageLevelInfo = {};
+			$scope.moduleidEnable = null;
 	}
 	
 	function _updateOverviewTab(summaryRecord) {
@@ -1024,6 +1026,14 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			{title: nl.fmt2('{} completed', 'Learners'), desc:'', perc: uDone, showperc:0},
 			{title: nl.fmt2('{} Active-Ongoing', 'Learners'), desc:'', perc: uStarted, showperc:0},
 			{title: nl.fmt2('{} yet to start', 'Learners'), desc:'', perc: uPending, showperc:0}];
+		$scope.moduleidEnable = nlLrFilter.getModuleId();
+		if ($scope.moduleidEnable) {
+			$scope.overviewArray = [
+				{title: nl.fmt2('{} completed', typeStr), desc:'', perc: completedPerc, showperc:1},
+				{title: nl.fmt2('{} Active-Ongoing', typeStr), desc:'', perc: startedPerc, showperc:1},
+				{title: nl.fmt2('{} completed', 'Learners'), desc:'', perc: uDone, showperc:0},
+				{title: nl.fmt2('{} Active-Ongoing', 'Learners'), desc:'', perc: uStarted, showperc:0}];			
+			}
 	}
 
 	function _updateOverviewTimeChart() {
