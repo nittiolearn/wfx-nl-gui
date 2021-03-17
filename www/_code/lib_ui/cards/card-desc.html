@@ -1,13 +1,13 @@
 <div class='nl-card-desc'>
-	<div style='max-height: 100%; overflow: hidden;'>
+	<div style='max-height: 100%; overflow: hidden;' class="nl-txt-in-create-card">
     <ul ng-show='card.children.length>0' style='width: 100%'>
         <li ng-repeat='child in card.children'
             ng-if='$index < 4'>
             <div ng-if='child.url'>
-                <a ng-href='{{child.url}}' nlta='{{child.title}}' class='nl-link-text nl-txt-grey' nl-wait-on-click>{{child.title}}</a>
+                <a ng-href='{{child.url}}' nlta='{{child.title}}' class='nl-link-text nl-txt-grey nl-txt-in-create-card' nl-wait-on-click>{{child.title}}</a>
             </div>
             <div ng-if='!child.url && child.internalUrl'>
-                <span class='nl-link-text nl-txt-grey'
+                <span class='nl-link-text nl-txt-grey nl-txt-in-create-card'
                       ng-click='onCardInternalUrlClicked($event, card, child.internalUrl)'
                       nlta='{{child.title}}'>
                     {{child.title}}
