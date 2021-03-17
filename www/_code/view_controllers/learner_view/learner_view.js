@@ -57,10 +57,11 @@ function(nl, nlDlg) {
         restrict: 'A',
         link: function($scope, iElem, iAttrs) {
         	iElem.bind('load', function(params) {
-                $scope.$apply(iAttrs.nlComputeImgInfo);
-			    var w = iElem[0].offsetWidth;
-			    var h = iElem[0].offsetHeight;
-			    _imgInfo[iAttrs.src] = {w:w, h:h};
+				$scope.$apply(function() {
+					var w = iElem[0].offsetWidth;
+					var h = iElem[0].offsetHeight;
+					_imgInfo[iAttrs.src] = {w:w, h:h};
+				})
         	});
          }
     };

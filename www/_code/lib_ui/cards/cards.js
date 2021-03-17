@@ -384,7 +384,7 @@ function _canCoverImg(url, isCard2) {
         return info.canCover;
     }
     var ar = info.w ? info.h/info.w : 0;
-    info.canCover = (ar > 0.51 && ar < 1);
+    info.canCover = (ar < 1);
     return info.canCover;
 }
 
@@ -396,14 +396,17 @@ function(nl, nlDlg) {
     return {
         restrict: 'A',
         link: function($scope, iElem, iAttrs) {
-        	iElem.bind('load', function(params) {
-			    var w = iElem[0].offsetWidth;
-			    var h = iElem[0].offsetHeight;
-			    _imgInfo[iAttrs.src] = {w:w, h:h};
-        	});
-         }
-    };
-}];
+                iElem.bind('load', function(params) {
+                    $scope.$apply(function() {
+                        var w = iElem[0].offsetWidth;
+                        var h = iElem[0].offsetHeight;
+                    _imgInfo[iAttrs.src] = {w:w, h:h};
+                    });
+                });
+            }
+        };
+    }   
+];
 
 //-------------------------------------------------------------------------------------------------
 var CardDirective = ['nl', 'nlDlg',

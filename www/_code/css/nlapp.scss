@@ -235,7 +235,7 @@ $ionicons-font-path: "../_external_bundles/ionicfonts" !default;
 }
 /* Montserrat-Bold */
 @font-face {
-  font-family: 'Montserrat';
+  font-family: 'Montserrat-Bold';
   font-style: Bold;
   font-weight: 400;
   src: url('../_external/_fonts/Montserrat-Bold'); /* IE9 Compat Modes */
@@ -244,7 +244,7 @@ $ionicons-font-path: "../_external_bundles/ionicfonts" !default;
 }
 /* Montserrat-Medium */
 @font-face {
-  font-family: 'Montserrat';
+  font-family: 'Montserrat-Medium';
   font-style: Medium;
   font-weight: 400;
   src: url('../_external/_fonts/Montserrat-Medium'); /* IE9 Compat Modes */
@@ -1907,6 +1907,7 @@ input.nl-dlg-field-error, .nl-dlg-field-error {
   }
   img {
     max-width: 100%;
+    max-height: 265px;
   }
   .icon-tl, .icon-tr, .icon-bl, .icon-br {
     position: absolute;
@@ -1920,8 +1921,15 @@ input.nl-dlg-field-error, .nl-dlg-field-error {
 .nl-card2-img.cover {
   padding: 0;
   img {
-    width: inherit;
-    object-position: top;
+    padding: 0px;
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    text-align: center;
+    object-fit: cover;
     border-radius: 10px 10px 0px 0px;  
   }
 }
@@ -2773,7 +2781,7 @@ img.nl-icon {
     width: 150px;
     text-align: center;
     .card2-img {
-      max-height: 100%;
+      max-height: 75px;
       max-width: 100%;
     }
   }
@@ -2828,7 +2836,7 @@ img.nl-icon {
     width: 100%;
     text-align: center;
     .card2-img {
-      max-height: 100%;
+      max-height: 145px;
       max-width: 100%;
     }
     .old-learnerview-cover { 
@@ -3508,6 +3516,12 @@ background-color: var(--nlFontYellow);}
     background-color: var(--nlWhite);
     background-color: var(--nlWhiteBackground);
   }
+  .light-bg-in-small {
+    border-radius: 12px;
+    background-color: var(--nlWhite);
+    box-shadow: 0 3px 6px 0 var(--nlPrimary);
+    background-color: #f0f0f0;
+  }
   .mt-in-small {
     margin-top: 45px;
   }
@@ -3527,9 +3541,6 @@ background-color: var(--nlFontYellow);}
   }
   .font-20-in-small {
     font-size:20px;
-  }
-  .tabs-in-small {
-    min-width: 135px;
   }
   .mt-0-in-small {
     margin-top:0px !important;
@@ -4846,6 +4857,12 @@ box-shadow: inset 0 0 0 var(--nlStatusRed), 0 0 5px var(--nlBoxShadowBlackTransp
   }
   .nl-create-card{
     background-color: var(--nlFBgGrey);    
+     .nl-txt-in-create-card {
+        color: var(--nlPrimary) !important;
+     }
+     .nl-title-in-create-card {
+       font-weight: 600;
+     }
   }
   .nl-card-links {
     .nl-card-more-links {
@@ -5490,7 +5507,6 @@ nl-dlg {
     background-color: var(--nlFontOrange1);
     border:1px solid var(--nlFontOrange1);
   }
-  
 }
 /*-----------------------------------------------------------------------------------------*
  * END OF DARKMODE STYLE AND COLOUR SECTION
@@ -5510,13 +5526,11 @@ nl-dlg {
   background-color: var(--nlWhite);
 }
 .nl-learner-button{
-  min-width: 142px;
-  height: 32px;
-  padding: 6px 12px 6px 12px;
-  border-radius: 20px;
+  min-width: 146px;
+  height: 35px;
+  border-radius: 8px;
   text-align: center;
-  font-family: Montserrat-Regular;
-  font-size: 15px;
+  font-family: Montserrat-Medium;
 }
 .learner-yellow{
   color: var(--nlFontYellow);
@@ -5731,12 +5745,13 @@ border:1px solid var(--nlFontOrange1)
   border:1px solid var(--nlPrimaryDark);
   background-color: white;
   color: var(--nlprimarydark);
-  font-family: Montserrat-Regular;
-  min-width: 142px;
-  height: 32px;
-  padding: 7px 12px 6px 12px;
-  border-radius: 20px;
-  text-align: center;
+  font-family: Montserrat-Medium;
+  min-width: 146px;
+  height: 35px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 8px;
   font-size: 15px;
   cursor: pointer;
 }

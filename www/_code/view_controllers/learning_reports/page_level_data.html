@@ -26,7 +26,7 @@
 </div>
 <div ng-if='pageleveldata.visibleRows.length > 0' 
     class='padding-mid'>
-    <table class='nl-table nl-table-styled3 cellborder padding-mid' style='min-width:900px'>
+    <table class='nl-table nl-table-styled3 rowlines padding-mid' style='min-width:900px'>
         <tr class='header'>
             <td  ng-repeat='col in pageleveldata.columns track by $index'
                 class='{{col.id == "question"? "nl-plHeader":""}}'>

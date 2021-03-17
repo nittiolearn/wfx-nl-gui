@@ -2,9 +2,12 @@
     <div class='nl-limitwidth-learner-view padding-mid'>
         <div class='row row-center row-wrap margin0 padding0-mid'>
             <div class='padding-mid' ng-repeat='button in tabdata.tabs'>
-                <div class='tabs-in-small center-in-small nl-learner-button {{button.count > 0 ? "nl-link-text" : ""}} {{button.class}}' 
+                <div class='center-in-small nl-learner-button {{button.count > 0 ? "nl-link-text" : ""}} {{button.class}}' 
                     ng-click='toScroll(button)'>
-                    {{button.title}}: {{button.count}}
+                    <div style="align-items: center;justify-content: center;grid-gap: 5px;height: 100%;" class="nl-display-flex">
+                        <span style="font-size: 16px;">{{button.title}}:</span> 
+                        <span style="font-size:24px;">{{button.count}}</span>
+                    </div>
                 </div>
             </div>
             <div class='padding-mid'>
@@ -33,7 +36,7 @@
                         ng-show='tabdata.canFetchMore'
                         title='Fetch more learning records from the server'
                         ng-click='tabdata.fetchMore($event)' style="align-items: center;width:auto;">
-                        <i class='icon ion-refresh' style="font-size: 20px;margin: 6px;"></i>
+                        <i class='icon ion-refresh' style="font-size: 20px;margin: 5px;"></i>
                     <span ng-if='$root.screenSize != "small"' style='font-size:15px'>Fetch more</span>
                 </div>
             </div>
