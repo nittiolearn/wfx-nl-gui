@@ -243,44 +243,46 @@ function(nl, nlDlg, nlServerApi, $scope, $anchorScroll, nlKeyboardHandler, nlAnn
         }
         
         topbarMenus.push(nlLogViewer.getLogMenuItem($scope));
-        if(false) {
-            topbarMenus.push({
-                id: 'lighttheme',
-                type: 'menu',
-                icon: 'icon ion-ios-moon-outline',
-                name: nl.t('Light Theme'),
-                onClick: function() { 
-                    var settings = userInfo.settings || {};
-                    settings.userCustomClass = '';
-                    nlDlg.showLoadingScreen();
-                        nlServerApi.authUpdateSettings(settings).then(function(result) {
-                            nlDlg.hideLoadingScreen();
-                            nl.window.location.reload();
-                        }
-                    )
-                }
-            });
-            topbarMenus.push({
-                id: 'darktheme',
-                type: 'menu',
-                icon: 'icon ion-ios-moon',
-                name: nl.t('Dark Theme'),
-                onClick: function() { 
-                    var settings = userInfo.settings || {};
-                    settings.userCustomClass = 'nldarkmode';
-                    nlDlg.showLoadingScreen();
-                        nlServerApi.authUpdateSettings(settings).then(function(result) {
-                            nlDlg.hideLoadingScreen();
-                            nl.window.location.reload();
-                        }
-                    )
-                }
-            });
-        }
+        topbarMenus.push({
+            id: 'lighttheme',
+            type: 'menu',
+            icon: 'icon ion-ios-sunny-outline',
+            name: nl.t('Light Theme'),
+            theme: '',
+            themeChange: userInfo.settings,
+            onClick: function() { 
+                var settings = userInfo.settings || {};
+                settings.userCustomClass = '';
+                nlDlg.showLoadingScreen();
+                    nlServerApi.authUpdateSettings(settings).then(function(result) {
+                        nlDlg.hideLoadingScreen();
+                        nl.window.location.reload();
+                    }
+                )
+            }
+        });
+        topbarMenus.push({
+            id: 'darktheme',
+            type: 'menu',
+            icon: 'icon ion-ios-moon-outline',
+            name: nl.t('Dark Theme'),
+            themeChange: userInfo.settings,
+            theme: 'nldarkmode',
+            onClick: function() { 
+                var settings = userInfo.settings || {};
+                settings.userCustomClass = 'nldarkmode';
+                nlDlg.showLoadingScreen();
+                    nlServerApi.authUpdateSettings(settings).then(function(result) {
+                        nlDlg.hideLoadingScreen();
+                        nl.window.location.reload();
+                    }
+                )
+            }
+        });
         topbarMenus.push({
             id: 'logout',
             type: 'menu',
-            icon: 'icon ion-ios-locked-outline',
+            icon: 'icon ion-log-out',
             name: nl.t(' Sign Out'),
             url: '#/logout_now'
         });

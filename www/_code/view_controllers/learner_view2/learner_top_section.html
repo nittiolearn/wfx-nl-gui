@@ -14,7 +14,7 @@
                 <div class='learner-view-stats-button tabs-in-small center-in-small' 
                     ng-click='viewStatistics()'>
                     <span>Statistics
-                        <img ng-src="{{rightArrow}}" style="width: 14px; height: 9px;" alt="right_arrow">
+                        <img ng-src="{{rightArrow}}" style="width: 14px; height: 14px;" alt="right_arrow">
                     </span> 
                 </div>
             </div>
@@ -35,9 +35,9 @@
                 <div class='bgblue3 nl-txt-white justify:center margin0 nl-link-text padding-0 row row-center'
                         ng-show='tabdata.canFetchMore'
                         title='Fetch more learning records from the server'
-                        ng-click='tabdata.fetchMore($event)' style="align-items: center;width:auto;">
-                        <i class='icon ion-refresh' style="font-size: 20px;margin: 5px;"></i>
-                    <span ng-if='$root.screenSize != "small"' style='font-size:15px'>Fetch more</span>
+                        ng-click='tabdata.fetchMore($event)' style="align-items: center;width:auto; border-radius: 4px;">
+                        <i class='icon ion-refresh' style="font-size: 20px;margin: 2px;"></i>
+                    <span ng-if='$root.screenSize != "small"' style='font-size:15px;margin: 2px;'>Fetch more</span>
                 </div>
             </div>
         </div>
@@ -46,7 +46,7 @@
 <div ng-if="tabdata.summaryStats">
     <div ng-click='goback()' class='learner-view-stats-button tabs-in-small center-in-small nl-learner-button margin-auto-in-small' 
         style="width: 100px;">
-        <img ng-src="{{leftArrow}}" style="width: 14px; height: 9px;" alt="left_arrow">
-        Learn
+        <img ng-src="{{leftArrow}}" style="width: 14px; height: 14px;margin: 2px;" alt="left_arrow">
+        <span style="margin: 2px;">Learn</span>
     </div>
 </div>

@@ -61,8 +61,8 @@
                         <span class="padding-mid">{{item.name}}</span>
                     </a>
                     <span ng-if='item.onClick' ng-click='onTabOrMenuClick(item)'
-                        class='nl-link-text nl-display-flex'>
-                        <i class='nl-block nl-link-text padding-mid {{item.icon}}'></i>
+                        class='nl-link-text nl-display-flex {{ item.themeChange.userCustomClass == item.theme ? "theme-select-bg" : ""}}'>
+                        <i class='nl-block nl-link-text padding-mid {{item.themeChange.userCustomClass == item.theme ? "theme-select-bg" : ""}} {{ item.icon }}'></i>
                         <span class="padding-mid">{{item.name}}</span>
                     </span>
                 </li>

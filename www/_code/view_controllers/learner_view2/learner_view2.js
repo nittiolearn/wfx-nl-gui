@@ -245,18 +245,18 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlServerA
 			options: {scales: {
 				xAxes: [{
 					gridLines: {
-						color: "rgba(0, 0, 0, 0)",
+						fontColor: '#000000',
 					},
 					ticks: {
-                        fontColor: "#000000",
+						beginAtZero:true,
                     }
 				}],
 				yAxes: [{
 					gridLines: {
-						color: "rgba(0, 0, 0, 0)",
+						fontColor: '#000000',
 					},
 					ticks: {
-                        fontColor: "#000000",
+						beginAtZero:true,
                 	}
 				}]
 			}}

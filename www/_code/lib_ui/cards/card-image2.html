@@ -1,6 +1,6 @@
 <div class='col padding0 margin0' style='overflow: hidden; max-height: 100%; max-width: 100%;border-radius: 10px 10px 0px 0px;'>
 	<img ng-show='card.icon' ng-src='{{card.icon}}' nl-compute-img-info></img>
-	<img ng-if='!card.icon' class="cover" src='https://www.nittiolearn.com/resource/resview/1615869402-placeholder-large.svg' 
+	<img ng-if='!card.icon' class="default_placeholder" src='https://www.nittiolearn.com/resource/resview/1615869402-placeholder-large.svg' 
 		 alt='default_placeholder'></img>
 	<div class="label" ng-class="{label_certified: card.label == 'certified',label_failed: card.label == 'failed',label_done: card.label == 'done',label_passed: card.label == 'passed'}">
 		 {{card.label}}

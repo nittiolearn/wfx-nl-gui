@@ -207,12 +207,14 @@ function(nl, nlDlg, nlServerApi, nlMarkup, $state, nlTopbarSrv, nlMobileConnecto
                     labels:[],
                     scales: {
                         xAxes: [{
-                                gridLines: {
-                                        display: true 
-                                },
-                                ticks: {
-                                beginAtZero:true
-                                }
+                            gridLines: {
+                                display: true,
+                                fontColor: '#000000',
+                            },
+                            ticks: {
+                                beginAtZero:true,
+                                fontColor: '#000000',
+                            }
                         }],
                         yAxes: [{
                             gridLines: {
