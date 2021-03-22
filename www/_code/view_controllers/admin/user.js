@@ -200,13 +200,21 @@ nlAdminUserExport, nlAdminUserImport, nlTreeSelect, nlOuUserSelect, nlServerApi)
 	}
 	
 	function _createCardDelayed(user) {
-	    var stateIcon = user.isActive() ? 'fgreen' : 'fgrey';
+        var stateIcon = user.isActive() ? 'fgreen' : 'fgrey';
+        var lastLogin = null;
+        if (user.details) {
+            var _details = angular.fromJson(user.details);
+            var lsLg = _details.last_login_time || '';
+            if (lsLg) lastLogin = nl.fmt.date2Str(nl.fmt.json2Date(lsLg), 'minute');
+        }
 	    stateIcon = nl.fmt2('<i class="ion-record {}"></i>', stateIcon);
 	    var desc = '<div>{}<b class="padding-mid">{}</b></div>';
 	    desc += '<div>{}</div>';
 	    desc += '<div>{}</div>';
-	    desc += '<div><b>ou:</b>{}</div>';
-	    desc = nl.fmt2(desc, stateIcon, user.getUtStr(), user.username, user.email, user.org_unit);
+        desc += '<div><b>ou:</b>{}</div>';
+        if (lastLogin)
+            desc += '<div>Last login: {}</div>'
+	    desc = nl.fmt2(desc, stateIcon, user.getUtStr(), user.username, user.email, user.org_unit, lastLogin);
 	    
 	    var card = {id: user.id,
 	        username: user.username,
@@ -246,7 +254,13 @@ nlAdminUserExport, nlAdminUserImport, nlTreeSelect, nlOuUserSelect, nlServerApi)
             nl.fmt.addAvp(avps, metadata[i].name, metadata[i].value);
         }
 		nl.fmt.addAvp(avps, 'Created on', user.created, 'date');
-		nl.fmt.addAvp(avps, 'Updated on', user.updated, 'date');
+        nl.fmt.addAvp(avps, 'Updated on', user.updated, 'date');
+        var lastLogin = null;
+        if (user.details) {
+            var _details = angular.fromJson(user.details);
+            lastLogin = _details.last_login_time || '';
+        }
+        nl.fmt.addAvp(avps, 'Last login time', lastLogin, 'date');
         nl.fmt.addAvp(avps, 'Internal identifier', user.id);
 		return avps;
     }
