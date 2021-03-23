@@ -221,7 +221,16 @@ function(nl, nlDlg, nlServerApi, $scope, $anchorScroll, nlKeyboardHandler, nlAnn
         nl.resizeHandler.broadcast('ESC');
     };
     
-   
+    function updateThemeChange(userInfo, thememode) {
+        var settings = userInfo.settings || {};
+        settings.userCustomClass = thememode;
+        nlDlg.popupStatus("updating the theme...", false);
+        nlDlg.showLoadingScreen();
+            nlServerApi.authUpdateSettings(settings).then(function(result) {
+                nl.window.location.reload();
+            }
+        )
+    }
     function _updateTopbarMenus(userInfo) {
         var topbarMenus = [];
         if (nlRouter.isPermitted(userInfo, 'change_password')) {
@@ -251,14 +260,7 @@ function(nl, nlDlg, nlServerApi, $scope, $anchorScroll, nlKeyboardHandler, nlAnn
             theme: '',
             themeChange: userInfo.settings,
             onClick: function() { 
-                var settings = userInfo.settings || {};
-                settings.userCustomClass = '';
-                nlDlg.showLoadingScreen();
-                    nlServerApi.authUpdateSettings(settings).then(function(result) {
-                        nlDlg.hideLoadingScreen();
-                        nl.window.location.reload();
-                    }
-                )
+                updateThemeChange(userInfo, '');
             }
         });
         topbarMenus.push({
@@ -269,14 +271,7 @@ function(nl, nlDlg, nlServerApi, $scope, $anchorScroll, nlKeyboardHandler, nlAnn
             themeChange: userInfo.settings,
             theme: 'nldarkmode',
             onClick: function() { 
-                var settings = userInfo.settings || {};
-                settings.userCustomClass = 'nldarkmode';
-                nlDlg.showLoadingScreen();
-                    nlServerApi.authUpdateSettings(settings).then(function(result) {
-                        nlDlg.hideLoadingScreen();
-                        nl.window.location.reload();
-                    }
-                )
+                updateThemeChange(userInfo, 'nldarkmode');
             }
         });
         topbarMenus.push({
