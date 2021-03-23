@@ -191,7 +191,7 @@ function(nl, nlDlg, nlImporter, nlGroupCache, nlGroupCache4) {
             metadata: uInfo[this.METADATA] || '',
             mobile: uInfo[this.MOBILE] || '',
             seclogin: uInfo[this.SECLOGIN] || '',
-            details: uInfo[this.DETAILS]
+            details: uInfo.length > this.DETAILS ? uInfo[this.DETAILS] : '{}'
         };
         ret.seclogin = ret.seclogin ? 'id:' + ret.seclogin : '';
         ret.mobile = ret.mobile ? 'm:' + ret.mobile : '';
