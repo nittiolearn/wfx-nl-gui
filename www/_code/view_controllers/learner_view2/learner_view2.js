@@ -59,7 +59,11 @@ function(nl, nlDlg) {
 				$scope.tabdata.summaryStats= true;
 			};
 			$scope.goback = function() {
+				nlDlg.showLoadingScreen();
 				$scope.tabdata.summaryStats= false;
+				nl.timeout(function() {
+					nlDlg.hideLoadingScreen();
+				},2000)
 			};
 			$scope.getImageResUrl = function(image) {
 				return nl.url.lessonIconUrl(image);

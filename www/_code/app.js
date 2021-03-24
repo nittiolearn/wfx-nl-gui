@@ -231,7 +231,7 @@ function(nl, nlDlg, nlServerApi, $scope, $anchorScroll, nlKeyboardHandler, nlAnn
             }
         )
     }
-
+    
     function _updateTopbarMenus(userInfo) {
         var topbarMenus = [];
         if (nlRouter.isPermitted(userInfo, 'change_password')) {
@@ -258,10 +258,10 @@ function(nl, nlDlg, nlServerApi, $scope, $anchorScroll, nlKeyboardHandler, nlAnn
             type: 'menu',
             icon: 'icon ion-ios-sunny-outline',
             name: nl.t('Light Theme'),
-            theme: '',
+            theme: 'nllightmode',
             themeChange: userInfo.settings,
             onClick: function() {
-                onThemeChange(userInfo, '');
+                onThemeChange(userInfo, 'nllightmode');
             }
         });
         topbarMenus.push({
