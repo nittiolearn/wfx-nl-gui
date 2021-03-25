@@ -140,11 +140,11 @@ function(nl, $scope, nlLearnerView2) {
 //-------------------------------------------------------------------------------------------------
 
 var NlLearnerView2 = ['nl', 'nlDlg', 'nlRouter', 'nlServerApi', 'nlReportHelper',
-'nlLearnerViewRecords2', 'nlTopbarSrv', 'nlCardsSrv', 'nlCourse', 'nlGetManyStore', 'nlAnnouncementSrv',
-function(nl, nlDlg, nlRouter, nlServerApi, nlReportHelper, nlLearnerViewRecords2, nlTopbarSrv, nlCardsSrv, nlCourse, nlGetManyStore, nlAnnouncementSrv) {
+'nlLearnerViewRecords2', 'nlLearnerRecordsCache', 'nlTopbarSrv', 'nlCardsSrv', 'nlCourse', 'nlGetManyStore', 'nlAnnouncementSrv',
+function(nl, nlDlg, nlRouter, nlServerApi, nlReportHelper, nlLearnerViewRecords2, nlLearnerRecordsCache, nlTopbarSrv, nlCardsSrv, nlCourse, nlGetManyStore, nlAnnouncementSrv) {
 	this.create = function($scope) {
 		return new NlLearnerViewImpl($scope, nl, nlDlg, this, nlRouter, nlServerApi, nlReportHelper,
-			nlLearnerViewRecords2, nlTopbarSrv, nlCardsSrv, nlCourse, nlGetManyStore, nlAnnouncementSrv);
+			nlLearnerViewRecords2, nlLearnerRecordsCache, nlTopbarSrv, nlCardsSrv, nlCourse, nlGetManyStore, nlAnnouncementSrv);
 	};
 
 	this.initPageBgImg = function(data) {
@@ -159,7 +159,7 @@ function(nl, nlDlg, nlRouter, nlServerApi, nlReportHelper, nlLearnerViewRecords2
 }];
 
 function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlServerApi, nlReportHelper, 
-	nlLearnerViewRecords2, nlTopbarSrv, nlCardsSrv, nlCourse, nlGetManyStore, nlAnnouncementSrv) {
+	nlLearnerViewRecords2, nlLearnerRecordsCache, nlTopbarSrv, nlCardsSrv, nlCourse, nlGetManyStore, nlAnnouncementSrv) {
 	var self = this;
 	var _fetchChunk = 100;
 	var _userInfo = null;
@@ -461,7 +461,7 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlServerA
 			resolve(true);
 		}
 
-        _pageFetcher.fetchPage(nlServerApi.learningReportsGetList, params, fetchMore, function(results) {
+        _pageFetcher.fetchPage(nlLearnerRecordsCache.getLearningRecordsFromDbOrServer, params, fetchMore, function(results) {
 			if (!results) {
 				_onFetchComplete(false);
 				return;
