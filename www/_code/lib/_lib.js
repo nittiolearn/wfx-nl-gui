@@ -6,7 +6,7 @@
 //-------------------------------------------------------------------------------------------------
 function module_init() {
     angular.module('nl.lib', ['nl.nl', 'nl.log', 'nl.router', 'nl.group_info', 'nl.group_cache', 'nl.group_cache4', 'nl.config',
-        'nl.exporter', 'nl.importer', 'nl.oldcodebridge', 'nl.user_settings', 'nl.expression_processor', 'nl.learner_records_cache',
+        'nl.exporter', 'nl.importer', 'nl.oldcodebridge', 'nl.user_settings', 'nl.expression_processor',
         'nl.report_helper', 'nl.getmany_store', 'nl.mobileconnector']);
 }
 

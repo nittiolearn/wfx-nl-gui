@@ -14,20 +14,103 @@ function($stateProvider, $urlRouterProvider) {
 }];
 
 //-------------------------------------------------------------------------------------------------
-var NlLearnerViewRecords2 = ['nl', 'nlGetManyStore', 'nlReportHelper',
-function(nl, nlGetManyStore, nlReportHelper) {
-    var self = this;
-    
+var NlLearnerViewRecords2 = ['nl', 'nlGetManyStore', 'nlReportHelper', 'nlServerApi', 'nlConfig',
+function(nl, nlGetManyStore, nlReportHelper, nlServerApi, nlConfig) {
     var _records = {};
+    var _referredRecordTimestamps = {}; // TODO-NOW: To be computed
+    var _tsForFetchMore = null;
     var _dates = {};
     var _userInfo = null;
     this.init = function(userinfo) {
+		nlGetManyStore.init();
         _userInfo = userinfo;
         _records = {};
         _dates = {minUpdated: null, maxUpdated: null};
     };
+
+    this.getRecords = function() {
+        return _records;
+    };
+
+    this.initFromCache = function(onInitDone) {
+        // TODO-NOW: Read the data from local DB and populate in _records, _referredRecordTimestamps
+    };
+
+    this.updateLatestRecords = function(onUpdateDone) {
+        _initPagefetcher();
+        var rawRecords = {};
+        for(var rid in _records) {
+            rawRecords[rid] = _records[rid].raw_record;
+        }
+
+        var updatedfrom = null; // TODO-NOW: computed based on maxUpdated
+        _getLearningRecordsFromServer(false, updatedfrom, null, rawRecords, function(canFetchMore) {
+            _processFetchedRecords(rawRecords, canFetchMore, onUpdateDone);
+            _initPagefetcher(); // Get past data in next iteration
+        });
+    };
+
+    this.fetchMore = function(onFetchedMore) {
+        var rawRecords = {};
+        _getLearningRecordsFromServer(true, null, _tsForFetchMore, rawRecords, function(canFetchMore) {
+            _processFetchedRecords(rawRecords, canFetchMore, onUpdateDone);
+        });
+    };
+
+    function _processFetchedRecords(rawRecords, canFetchMore, onDone) {
+        var rawRecordsArray = [];
+        for (var rid in rawRecords) {
+            rawRecordsArray.push(rawRecords[rid]);
+        }
+        nlGetManyStore.fetchReferredRecords(rawRecordsArray, false, function() {
+            var dataChanged = false;
+            for(var i=0; i<rawRecordsArray.length; i++) {
+                var raw_record = rawRecordsArray[i];
+                var record = _records[raw_record.id] || null;
+                if (record && record.raw_record.updated >= raw_record.updated && !_isReferedUpdated(raw_record))
+                    continue;
+                dataChanged = true;
+                _addRecord(raw_record);
+            }
+            // TODO-NOW _tsForFetchMore = minUpdated as of now
+            // TODO-NOW: store in cache
+            onDone(dataChanged, canFetchMore);
+        });
+    }
+
+	var _fetchChunk = 100;
+    var _pageFetcher = null;
     
-    this.addRecord = function(raw_record) {
+    function _initPagefetcher() {
+        _pageFetcher = nlServerApi.getPageFetcher({defMax: _fetchChunk, itemType: 'learning record'});
+    }
+	
+    function _getLearningRecordsFromServer(fetchMore, updatedfrom, updatedtill, rawRecords, onDone) {
+		var dontHideLoading = true;
+        var fetchLimit = fetchMore ? undefined : null;
+		nlDlg.popupStatus('Fetching learning records from server ...', false);
+		var params = {containerid: 0, type: 'all', assignor: 'all', learner: 'me'};
+        if (updatedfrom) params.updatedfrom = updatedfrom;
+        if (updatedtill) params.updatedtill = updatedtill;
+        _pageFetcher.fetchBatchOfPages(nlServerApi.learningReportsGetList, params, fetchMore, function(results, batchDone) {
+			if (results) {
+				for (var i=0; i<results.length; i++) rawRecords[results[i].id] = results[i];
+			}
+            if (!batchDone) return;
+
+            var canFetchMore = fetchMore ? _pageFetcher.canFetchMore() : true;
+            var msg = 'Fetched.';
+            if (canFetchMore) msg += ' Press on the fetch more icon to fetch more from server.';
+            nlDlg.popupStatus(msg);
+			onDone(canFetchMore);
+		}, fetchLimit, dontHideLoading);
+	}
+
+    function _isReferedUpdated(raw_record) {
+        // TODO-NOW
+    }
+
+    function _addRecord(raw_record) {
         var report = null;
         if (raw_record.ctype == _nl.ctypes.CTYPE_COURSE)
             report = _processCourseReport(raw_record);
@@ -43,96 +126,9 @@ function(nl, nlGetManyStore, nlReportHelper) {
         return report;
     };
     
-    this.updateReportRecords = function() {
-        var records = _records;
-        this.reset();
-        for(var cid in records) {
-            var report = records[cid].raw_record;
-            self.addRecord(report);
-        }
-    };
-
-    this.removeRecord = function(repid) {
-        if (!(repid in _records)) return;
-        delete _records[repid];
-    };
-
-    this.reset = function() {
-        _records = {};
-    };
-    
-    this.getRecords = function() {
-        return _records;
-    };
-
-    this.getAnyRecord = function() {
-        for (var recid in _records) return _records[recid];
-        return null;
-    };
-
-    this.asList = function() {
-        var ret = nl.utils.dictToList(_records);
-        ret.sort(function(a, b) {
-            return (b.stats.status.id - a.stats.status.id);
-        });
-        return ret;
-    };
-    
-    function _getRangeStart(rangeEnd, rangeType, rangeSize) {
-        if (rangeType == 'months') {
-            var month = rangeEnd.getMonth();
-            if (rangeEnd.getDate() == 1) month = month -1;
-            var year = rangeEnd.getFullYear();
-            if (month < 0) {
-                year = year -1;
-                month = 11;
-            }
-            return new Date(year, month, 1, 0, 0, 0, 0); 
-        } else if (rangeType == 'weeks') {
-            var diff = (rangeEnd.getDay() + 5) % 7 + 1; // Sunday = 0=>6, Monday = 1=>7, Tue = 2=>1, ... Sat = 6=>5
-            return new Date(rangeEnd.getTime() - diff*24*3600*1000);
-        } else if (rangeType == 'days') {
-            return new Date(rangeEnd.getTime() - 24*3600*1000);
-        }
-        return new Date(rangeEnd.getTime() - rangeSize);
-    }
-
-    function _getRangeLabel(range, rangeType) {
-        if (rangeType == 'months') return nl.fmt.fmtDateDelta(range.start, null, 'month-mini');
-        var s = nl.fmt.fmtDateDelta(range.start, null, 'date-mini');
-        if (range.end.getTime() - range.start.getTime() <= 24*3600*1000) return s;
-        var e = nl.fmt.fmtDateDelta(new Date(range.end.getTime() - 24*3600*1000), null, 'date-mini');
-        return nl.fmt2('{} - {}', s, e);
-    }
-
-    this.getTimeRanges = function(rangeType, maxBuckets) {
-        if (!_dates.minUpdated || !_dates.maxUpdated) return [];
-        if (!maxBuckets) maxBuckets = (rangeType == 'days') ? 31 : (rangeType == 'weeks') ? 15 : (rangeType == 'months') ? 15 : 8;
-
-        var day = 24*60*60*1000; // 1 day in ms
-        var now = new Date();
-        var offset = now.getTimezoneOffset()*60*1000; // in ms
-        var start = Math.floor((_dates.minUpdated.getTime()-offset)/day)*day + offset; // Today 00:00 Hrs in local time
-        var end = Math.ceil((_dates.maxUpdated.getTime()-offset)/day)*day + offset; // Tomorrow 00:00 Hrs in local time
-        var rangeSize = Math.ceil((end - start)/day/maxBuckets);
-        rangeSize *= day;
-        var ranges = [];
-        var rangeEnd = new Date(end);
-        for (var i=0; i<maxBuckets; i++) {
-            if (rangeEnd.getTime() < start) break;
-            var rangeStart = _getRangeStart(rangeEnd, rangeType, rangeSize);
-            var range = {start: rangeStart, end: rangeEnd, count: 0, completed: 0};
-            range.label = _getRangeLabel(range, rangeType);
-            ranges.unshift(range);
-            rangeEnd = rangeStart;
-        }
-        return ranges;
-    };
-    
     function _processCourseReport(report) {
         var repcontent = _updateCommonParams(report, 'course');
         if(!repcontent.content) repcontent.content = {};
-        var user = _userInfo;
 
         var course = nlGetManyStore.getRecord(nlGetManyStore.getContentKeyFromReport(report));
         if (!course) {
@@ -195,7 +191,7 @@ function(nl, nlGetManyStore, nlReportHelper) {
         } 
         if (recState.type == 'completed') stats.progressPerc = 100;
 
-        var ret = {raw_record: report, repcontent: repcontent, user: user, stats: stats,
+        var ret = {raw_record: report, repcontent: repcontent, stats: stats,
             recStateObj: recState,
             detailsavps : _getRecordAvps(repcontent, report, 'course'), type: 'course'
             };
@@ -206,7 +202,6 @@ function(nl, nlGetManyStore, nlReportHelper) {
         var repcontent = _updateCommonParams(raw_record, 'module');
         repcontent.icon = nl.url.lessonIconUrl(repcontent.image);
         repcontent.id = raw_record.id;
-        var user = _userInfo;
 
         var stats = {nLessons: 0, nLessonsPassed: 0, nLessonsFailed: 0, nQuiz: 0,
             timeSpentSeconds: 0, nAttempts: 0, nLessonsAttempted: 0, nScore: 0, nMaxScore: 0,
@@ -289,7 +284,7 @@ function(nl, nlGetManyStore, nlReportHelper) {
         } 
 
         if (recState.type == 'completed') stats.progressPerc = 100;
-        var ret = {raw_record: raw_record, repcontent: repcontent, user: user, stats: stats,
+        var ret = {raw_record: raw_record, repcontent: repcontent, stats: stats,
             recStateObj: recState,
             detailsavps : _getRecordAvps(repcontent, raw_record, 'module'), type: 'module'};
         
@@ -385,8 +380,7 @@ function(nl, nlGetManyStore, nlReportHelper) {
 
     function _updateCommonParams(raw_record, ctypestr) {
         var repcontent = angular.fromJson(raw_record.content);
-        raw_record.gradeLabel = _userInfo.groupinfo.gradelabel;
-        raw_record.subjectLabel = _userInfo.groupinfo.subjectlabel;
+        delete raw_record.content; // To save space
         raw_record._batchName = repcontent.batchname || '';
         raw_record.assign_remarks = (raw_record.ctype == _nl.ctypes.CTYPE_COURSE ? repcontent.remarks : repcontent.assign_remarks) || '';
         raw_record.not_before = repcontent.not_before || '';
@@ -441,6 +435,58 @@ function(nl, nlGetManyStore, nlReportHelper) {
         if (report.completed) return nlReportHelper.STATUS_DONE;
         return nlReportHelper.STATUS_PASSED;
     }
+
+    this.getTimeRanges = function(rangeType, maxBuckets) {
+        if (!_dates.minUpdated || !_dates.maxUpdated) return [];
+        if (!maxBuckets) maxBuckets = (rangeType == 'days') ? 31 : (rangeType == 'weeks') ? 15 : (rangeType == 'months') ? 15 : 8;
+
+        var day = 24*60*60*1000; // 1 day in ms
+        var now = new Date();
+        var offset = now.getTimezoneOffset()*60*1000; // in ms
+        var start = Math.floor((_dates.minUpdated.getTime()-offset)/day)*day + offset; // Today 00:00 Hrs in local time
+        var end = Math.ceil((_dates.maxUpdated.getTime()-offset)/day)*day + offset; // Tomorrow 00:00 Hrs in local time
+        var rangeSize = Math.ceil((end - start)/day/maxBuckets);
+        rangeSize *= day;
+        var ranges = [];
+        var rangeEnd = new Date(end);
+        for (var i=0; i<maxBuckets; i++) {
+            if (rangeEnd.getTime() < start) break;
+            var rangeStart = _getRangeStart(rangeEnd, rangeType, rangeSize);
+            var range = {start: rangeStart, end: rangeEnd, count: 0, completed: 0};
+            range.label = _getRangeLabel(range, rangeType);
+            ranges.unshift(range);
+            rangeEnd = rangeStart;
+        }
+        return ranges;
+    };
+    
+    function _getRangeStart(rangeEnd, rangeType, rangeSize) {
+        if (rangeType == 'months') {
+            var month = rangeEnd.getMonth();
+            if (rangeEnd.getDate() == 1) month = month -1;
+            var year = rangeEnd.getFullYear();
+            if (month < 0) {
+                year = year -1;
+                month = 11;
+            }
+            return new Date(year, month, 1, 0, 0, 0, 0); 
+        } else if (rangeType == 'weeks') {
+            var diff = (rangeEnd.getDay() + 5) % 7 + 1; // Sunday = 0=>6, Monday = 1=>7, Tue = 2=>1, ... Sat = 6=>5
+            return new Date(rangeEnd.getTime() - diff*24*3600*1000);
+        } else if (rangeType == 'days') {
+            return new Date(rangeEnd.getTime() - 24*3600*1000);
+        }
+        return new Date(rangeEnd.getTime() - rangeSize);
+    }
+
+    function _getRangeLabel(range, rangeType) {
+        if (rangeType == 'months') return nl.fmt.fmtDateDelta(range.start, null, 'month-mini');
+        var s = nl.fmt.fmtDateDelta(range.start, null, 'date-mini');
+        if (range.end.getTime() - range.start.getTime() <= 24*3600*1000) return s;
+        var e = nl.fmt.fmtDateDelta(new Date(range.end.getTime() - 24*3600*1000), null, 'date-mini');
+        return nl.fmt2('{} - {}', s, e);
+    }
+
 }];
 
 //-------------------------------------------------------------------------------------------------
