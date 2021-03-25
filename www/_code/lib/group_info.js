@@ -12,7 +12,7 @@ function module_init() {
 var NlGroupInfo = ['nl', 'nlDlg', 'nlImporter', 'nlGroupCache', 'nlGroupCache4',
 function(nl, nlDlg, nlImporter, nlGroupCache, nlGroupCache4) {
     var self = this;
-    
+    var _userTableAttrsCopy = [];
     this.get = function(grpid) {
         return _groupInfos[grpid||''] || null;
     };
@@ -22,12 +22,17 @@ function(nl, nlDlg, nlImporter, nlGroupCache, nlGroupCache4) {
     this.onPageEnter = function(userInfo) {
         _isGc4Enabled = nlGroupCache4.isEnabled(userInfo);
         _myNlGroupCache =  _isGc4Enabled ? nlGroupCache4 : nlGroupCache;
+        _userTableAttrsCopy = [];
     };
 
     this.isGc4Enabled = function() {
         return _isGc4Enabled;
     };
     
+    this.getUserTableAttrs = function() {
+        return _userTableAttrsCopy;
+    };
+
     var _groupInfos = {};
     this.init1 = function() {
         // Init only group data: least time consuming
@@ -42,6 +47,8 @@ function(nl, nlDlg, nlImporter, nlGroupCache, nlGroupCache4) {
     this.init3 = function(grpid, max) {
         // Init group data and user with forced reload of group data: for admin usecase. 
         // Slightly more time consuming than init2
+        _userTableAttrsCopy = angular.copy(_userTableAttrs);
+        if (_isGc4Enabled) _userTableAttrsCopy.push({id: 'last_login_time', name: 'Last login', optional: true});
         return _initImpl(false, true, grpid, max);
     };
 
@@ -280,9 +287,7 @@ function(nl, nlDlg, nlImporter, nlGroupCache, nlGroupCache4) {
     };
 
     this.getUserTableHeaders = function(grpid) {
-        var headersCols = _userTableAttrs;
-        if (_isGc4Enabled) headersCols.push({id: 'last_login_time', name: 'Last login', optional: true});
-        var headers = angular.copy(headersCols);
+        var headers = angular.copy(_userTableAttrsCopy);
         var metadata = this.getUserMetadata(null, grpid);
         for(var i=0; i<metadata.length; i++)
             headers.splice(_insertMetadataAt+i, 0, {id: metadata[i].id, 
@@ -638,9 +643,8 @@ function PastUserInfosFetcher(nl, nlDlg, nlImporter, nlGroupCache4, nlGroupInfo)
     
     function _xlsArrayToDict(xlsArray, isArchivedList) {
         if (xlsArray.length < 1) return;
-        var headersCols = _userTableAttrs;
-        if (nlGroupInfo.isGc4Enabled()) headersCols.push({id: 'last_login_time', name: 'Last login', optional: true});
-	    var userHeaders = _arrayToDictNameToId(headersCols);
+        var userTableAttrsUpdated = nlGroupInfo.getUserTableAttrs();
+	    var userHeaders = _arrayToDictNameToId(userTableAttrsUpdated);
 	    var metaHeaders = _arrayToDictNameToId((_groupInfo.props || {}).usermetadatafields || []);
     	var headerRow = xlsArray[0];
     	var headerInfo = [];

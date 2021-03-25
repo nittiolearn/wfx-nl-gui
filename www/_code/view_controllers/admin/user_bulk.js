@@ -52,7 +52,7 @@ function(nl, nlDlg, nlGroupInfo, nlExporter) {
             var details = angular.fromJson(user.details || "{}");
             if (details && details.last_login_time) {
                 var lastLogin = details.last_login_time || '';
-                return nl.fmt.date2Str(nl.fmt.json2Date(lastLogin), 'minute');
+                return nl.fmt.date2Str(nl.fmt.json2Date(lastLogin), 'date');
             }
             return '';
         }
