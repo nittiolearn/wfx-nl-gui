@@ -12,7 +12,7 @@ function module_init() {
 var NlGroupInfo = ['nl', 'nlDlg', 'nlImporter', 'nlGroupCache', 'nlGroupCache4',
 function(nl, nlDlg, nlImporter, nlGroupCache, nlGroupCache4) {
     var self = this;
-    
+    var _userTableAttrsCopy = [];
     this.get = function(grpid) {
         return _groupInfos[grpid||''] || null;
     };
@@ -22,12 +22,17 @@ function(nl, nlDlg, nlImporter, nlGroupCache, nlGroupCache4) {
     this.onPageEnter = function(userInfo) {
         _isGc4Enabled = nlGroupCache4.isEnabled(userInfo);
         _myNlGroupCache =  _isGc4Enabled ? nlGroupCache4 : nlGroupCache;
+        _userTableAttrsCopy = [];
     };
 
     this.isGc4Enabled = function() {
         return _isGc4Enabled;
     };
     
+    this.getUserTableAttrs = function() {
+        return _userTableAttrsCopy;
+    };
+
     var _groupInfos = {};
     this.init1 = function() {
         // Init only group data: least time consuming
@@ -42,6 +47,8 @@ function(nl, nlDlg, nlImporter, nlGroupCache, nlGroupCache4) {
     this.init3 = function(grpid, max) {
         // Init group data and user with forced reload of group data: for admin usecase. 
         // Slightly more time consuming than init2
+        _userTableAttrsCopy = angular.copy(_userTableAttrs);
+        if (_isGc4Enabled) _userTableAttrsCopy.push({id: 'last_login_time', name: 'Last login', optional: true});
         return _initImpl(false, true, grpid, max);
     };
 
@@ -191,7 +198,7 @@ function(nl, nlDlg, nlImporter, nlGroupCache, nlGroupCache4) {
             metadata: uInfo[this.METADATA] || '',
             mobile: uInfo[this.MOBILE] || '',
             seclogin: uInfo[this.SECLOGIN] || '',
-            details: uInfo[this.DETAILS]
+            details: uInfo.length > this.DETAILS ? uInfo[this.DETAILS] : '{}'
         };
         ret.seclogin = ret.seclogin ? 'id:' + ret.seclogin : '';
         ret.mobile = ret.mobile ? 'm:' + ret.mobile : '';
@@ -280,7 +287,7 @@ function(nl, nlDlg, nlImporter, nlGroupCache, nlGroupCache4) {
     };
 
     this.getUserTableHeaders = function(grpid) {
-        var headers = angular.copy(_userTableAttrs);
+        var headers = angular.copy(_userTableAttrsCopy);
         var metadata = this.getUserMetadata(null, grpid);
         for(var i=0; i<metadata.length; i++)
             headers.splice(_insertMetadataAt+i, 0, {id: metadata[i].id, 
@@ -635,8 +642,9 @@ function PastUserInfosFetcher(nl, nlDlg, nlImporter, nlGroupCache4, nlGroupInfo)
 
     
     function _xlsArrayToDict(xlsArray, isArchivedList) {
-    	if (xlsArray.length < 1) return;
-	    var userHeaders = _arrayToDictNameToId(_userTableAttrs);
+        if (xlsArray.length < 1) return;
+        var userTableAttrsUpdated = nlGroupInfo.getUserTableAttrs();
+	    var userHeaders = _arrayToDictNameToId(userTableAttrsUpdated);
 	    var metaHeaders = _arrayToDictNameToId((_groupInfo.props || {}).usermetadatafields || []);
     	var headerRow = xlsArray[0];
     	var headerInfo = [];
@@ -720,8 +728,7 @@ var _userTableAttrs = [
     {id: 'sec_ou_list', name: "Sec OUs", oldnames: ["Secondary user groups"], optional: true},
     {id: 'created', name: "Created UTC Time", optional: true},
     {id: 'updated', name: "Updated UTC Time", optional: true},
-    {id: 'id', name: "Internal Id", optional: true},
-    {id: 'last_login_time', name: 'Last login', optional: true}
+    {id: 'id', name: "Internal Id", optional: true}
 ];
 
 //-------------------------------------------------------------------------------------------------

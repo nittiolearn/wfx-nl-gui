@@ -202,10 +202,10 @@ nlAdminUserExport, nlAdminUserImport, nlTreeSelect, nlOuUserSelect, nlServerApi)
 	function _createCardDelayed(user) {
         var stateIcon = user.isActive() ? 'fgreen' : 'fgrey';
         var lastLogin = null;
-        if (user.details) {
+        if (user.details && nlGroupInfo.isGc4Enabled()) {
             var _details = angular.fromJson(user.details);
             var lsLg = _details.last_login_time || '';
-            if (lsLg) lastLogin = nl.fmt.date2Str(nl.fmt.json2Date(lsLg), 'minute');
+            if (lsLg) lastLogin = nl.fmt.date2Str(nl.fmt.json2Date(lsLg), 'date');
         }
 	    stateIcon = nl.fmt2('<i class="ion-record {}"></i>', stateIcon);
 	    var desc = '<div>{}<b class="padding-mid">{}</b></div>';
@@ -256,11 +256,11 @@ nlAdminUserExport, nlAdminUserImport, nlTreeSelect, nlOuUserSelect, nlServerApi)
 		nl.fmt.addAvp(avps, 'Created on', user.created, 'date');
         nl.fmt.addAvp(avps, 'Updated on', user.updated, 'date');
         var lastLogin = null;
-        if (user.details) {
+        if (user.details && nlGroupInfo.isGc4Enabled()) {
             var _details = angular.fromJson(user.details);
             lastLogin = _details.last_login_time || '';
+            nl.fmt.addAvp(avps, 'Last login time', lastLogin, 'date');
         }
-        nl.fmt.addAvp(avps, 'Last login time', lastLogin, 'date');
         nl.fmt.addAvp(avps, 'Internal identifier', user.id);
 		return avps;
     }

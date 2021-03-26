@@ -127,19 +127,21 @@ function(nl, nlDlg, nlServerApi, nlMarkup, $state, nlTopbarSrv, nlMobileConnecto
         _getUserInfo(pageUrl, function(userInfo) {
             _sendGoogleAnalytics(userInfo);
             nl.rootScope.pgBgimg = null;
-            nl.rootScope.groupCustomClass = '';
+            nl.rootScope.groupCustomClass = userInfo.groupinfo ? userInfo.groupinfo.groupCustomClass : '';
             nl.pginfo.username = (userInfo.username == '') ? '' : userInfo.displayname;
             nlMarkup.setGid((userInfo.username == '') ? 0 : userInfo.groupinfo.id);
             nl.pginfo.groupCustomCss = userInfo.groupinfo && userInfo.groupinfo.groupCustomCss
                 ? userInfo.groupinfo.groupCustomCss : '';
             var pagePerm = permission.getPermObj(pageUrl);
             nl.pginfo.groupCustomCss = userInfo.groupinfo && userInfo.groupinfo.groupCustomCss
-            var groupCustomClass = (userInfo.settings || {}).userCustomClass
-                            || (userInfo.groupinfo || {}).groupCustomClass || '';
 
-            if (groupCustomClass) 
-                nl.rootScope.groupCustomClass = groupCustomClass;
-                    
+            var groupCustomClass = (userInfo.settings || {}).userCustomClass
+                            || (userInfo.groupinfo || {}).groupCustomClass || 'nllighttheme';
+            if (userInfo.settings) {
+                var settings= userInfo.settings;
+                settings.userCustomClass=groupCustomClass;
+            }
+            if (groupCustomClass) nl.rootScope.groupCustomClass = groupCustomClass;
             if (userInfo.groupinfo) {
                 userInfo.groupinfo.groupCustomClass = nl.rootScope.groupCustomClass;
                 if (userInfo.groupinfo.groupCustomClass == 'nldarkmode') 

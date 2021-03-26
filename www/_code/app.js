@@ -221,16 +221,17 @@ function(nl, nlDlg, nlServerApi, $scope, $anchorScroll, nlKeyboardHandler, nlAnn
         nl.resizeHandler.broadcast('ESC');
     };
     
-    function updateThemeChange(userInfo, thememode) {
+    function onThemeChange(userInfo, userCustomClass) {
         var settings = userInfo.settings || {};
-        settings.userCustomClass = thememode;
-        nlDlg.popupStatus("updating the theme...", false);
+        settings.userCustomClass = userCustomClass;
+        nlDlg.popupStatus('Updating the theme ...', false);
         nlDlg.showLoadingScreen();
             nlServerApi.authUpdateSettings(settings).then(function(result) {
                 nl.window.location.reload();
             }
         )
     }
+    
     function _updateTopbarMenus(userInfo) {
         var topbarMenus = [];
         if (nlRouter.isPermitted(userInfo, 'change_password')) {
@@ -257,10 +258,10 @@ function(nl, nlDlg, nlServerApi, $scope, $anchorScroll, nlKeyboardHandler, nlAnn
             type: 'menu',
             icon: 'icon ion-ios-sunny-outline',
             name: nl.t('Light Theme'),
-            theme: '',
+            theme: 'nllightmode',
             themeChange: userInfo.settings,
-            onClick: function() { 
-                updateThemeChange(userInfo, '');
+            onClick: function() {
+                onThemeChange(userInfo, 'nllightmode');
             }
         });
         topbarMenus.push({
@@ -271,7 +272,7 @@ function(nl, nlDlg, nlServerApi, $scope, $anchorScroll, nlKeyboardHandler, nlAnn
             themeChange: userInfo.settings,
             theme: 'nldarkmode',
             onClick: function() { 
-                updateThemeChange(userInfo, 'nldarkmode');
+                onThemeChange(userInfo, 'nldarkmode');
             }
         });
         topbarMenus.push({
