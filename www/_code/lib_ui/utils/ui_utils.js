@@ -19,8 +19,8 @@
         .directive('nlInlineHelp', InlineHelpDirective)
         .directive('nlProgressBar', ProgressBarDirective)
         .directive('nlSummaryBox', SummaryBoxDirective)
-        .directive('nlSummaryBox2', SummaryBox2Directive)
-        .directive('nlSummaryBox3', SummaryBox3Directive)
+        .directive('nlSummaryBoxLg', SummaryBoxLgDirective)
+        .directive('nlSummaryBoxSm', SummaryBoxSmDirective)
         .directive('nlSummaryBoxLarge', SummaryBoxLargeDirective)
         .directive('nlSummaryBoxLarge1', SummaryBoxLarge1Directive)
         .directive('nlIntelliTextarea', IntelliTextareaDirective)
@@ -210,7 +210,7 @@
     }];
     
     //-------------------------------------------------------------------------------------------------
-    var SummaryBox2Directive =  [
+    var SummaryBoxLgDirective =  [
     function () {
         return {
             restrict: 'E',
@@ -218,12 +218,12 @@
             scope: {
                 data: '='
             },
-            templateUrl: 'lib_ui/utils/summary_box2.html'
+            templateUrl: 'lib_ui/utils/summary_box_lg.html'
         };
     }];
 
     //-------------------------------------------------------------------------------------------------
-    var SummaryBox3Directive =  [
+    var SummaryBoxSmDirective =  [
     function () {
         return {
             restrict: 'E',
@@ -231,7 +231,7 @@
             scope: {
                 data: '='
             },
-            templateUrl: 'lib_ui/utils/summary_box3.html'
+            templateUrl: 'lib_ui/utils/summary_box_sm.html'
         };
     }];
 

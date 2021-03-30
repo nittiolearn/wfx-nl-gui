@@ -5,10 +5,11 @@
 				style='height: 65px;border-bottom: 1px solid #aaaaaa;'>
 				<div class='col'></div>
 				<div class='col infographic-text'>
-					<div class='row row-center padding0 margin0'>
-						<div class='col' style='min-width:175px'>
+					<div class='row row-center padding0 margin0'
+						title='{{data[0].hover}}'>
+						<div class='col infographic1' style='min-width:175px'>
 							<div class='{{data[0].class}}'>{{data[0].val}}</div>
-							<div class='desc-text'>({{data[0].perc || '-'}}%)</div>
+							<div class='perc'>({{data[0].perc || '-'}}%)</div>
 						</div>
 						<div class='col'>
 							<div class='title'>{{data[0].title}}</div>
@@ -21,7 +22,8 @@
 				style='height: 82px;'>
 				<div class='col infographic-text'
 					style='border-right: 1px solid #aaaaaa;'>
-					<div class='row row-center padding-mid margin0'>
+					<div class='row row-center padding-mid margin0'
+						title='{{data[1].hover}}'>
 						<div class='infographic1'>
 							<div class='{{data[1].class}}'>{{data[1].val}}</div>
 							<div class='perc'>({{data[1].perc || '-'}}%)</div>
@@ -33,7 +35,8 @@
 					</div>
 				</div>
 				<div class='col infographic-text'>
-					<div class='row row-center padding-mid margin0'>
+					<div class='row row-center padding-mid margin0'
+						title='{{data[2].hover}}'>
 						<div class='infographic1'>
 							<div class='{{data[2].class}}'>{{data[2].val}}</div>
 							<div class='perc'>({{data[2].perc || '-'}}%)</div>

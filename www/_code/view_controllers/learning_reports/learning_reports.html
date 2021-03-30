@@ -145,16 +145,16 @@
             <div ng-if='tabData.selectedTab.id == "overview" && !tabData.processingOnging'
                 class='anim-enter1 flyfrom-l'>
                 <div ng-if='screenSize != "small"' >
-                    <div class='row row-center padding-mid margin0 text-center'><div class='col fsh4'>Learner</div></div>
+                    <div class='row row-center padding-mid margin0 text-center'><div class='col fsh4 nl-dkonlg-lgondk-text'>Learner</div></div>
                     <div class='row row-center row-wrap row-justify-evenly text-center padding0 margin0'>
                         <div class='col padding nl-min-600' >
                             <div class='row row-center row-wrap row-justify-evenly text-center padding0 margin0'>
-                                <nl-summary-box2 class='col padding0'data='overviewDict.learner[0]'>
-                                </nl-summary-box2>
-                                <nl-summary-box2 class='col padding0' data='overviewDict.learner[1]'>
-                                </nl-summary-box2>
-                                <nl-summary-box2 class='col padding0' data='overviewDict.learner[2]'>
-                                </nl-summary-box2>
+                                <nl-summary-box-lg class='col padding0'data='overviewDict.learner[0]'>
+                                </nl-summary-box-lg>
+                                <nl-summary-box-lg class='col padding0' data='overviewDict.learner[1]'>
+                                </nl-summary-box-lg>
+                                <nl-summary-box-lg class='col padding0' data='overviewDict.learner[2]'>
+                                </nl-summary-box-lg>
                             </div>
                         </div>
                         <div class='col padding'>
@@ -162,16 +162,16 @@
                             </nl-summary-box-large>
                         </div>
                     </div>    
-                    <div class='row row-center padding-mid margin0 text-center'><div class='col fsh4'>Course reports</div></div>
+                    <div class='row row-center padding-mid margin0 text-center'><div class='col fsh4 nl-dkonlg-lgondk-text'>Course reports</div></div>
                     <div class='row row-center row-wrap row-justify-evenly text-center padding0 margin0'>
                         <div class='col padding nl-min-600'>
                             <div class='row row-center row-wrap row-justify-evenly text-center padding0 margin0'>
-                                <nl-summary-box2 class='col padding0' data='overviewDict.reports[0]'>
-                                </nl-summary-box2>
-                                <nl-summary-box2 class='col padding0' data='overviewDict.reports[1]'>
-                                </nl-summary-box2>
-                                <nl-summary-box2 class='col padding0' data='overviewDict.reports[2]'>
-                                </nl-summary-box2>
+                                <nl-summary-box-lg class='col padding0' data='overviewDict.reports[0]'>
+                                </nl-summary-box-lg>
+                                <nl-summary-box-lg class='col padding0' data='overviewDict.reports[1]'>
+                                </nl-summary-box-lg>
+                                <nl-summary-box-lg class='col padding0' data='overviewDict.reports[2]'>
+                                </nl-summary-box-lg>
                             </div>
                         </div>
                         <div class='col padding'>
@@ -181,38 +181,38 @@
                     </div>    
                 </div>
                 <div ng-if='screenSize == "small"'>
-                    <div class='row row-center padding-mid margin0 text-center'><div class='col fsh4'>Learner</div></div>
+                    <div class='row row-center padding-mid margin0 text-center'><div class='col fsh4 nl-dkonlg-lgondk-text'>Learner</div></div>
                     <div class='row row-center row-wrap row-justify-evenly text-center padding0 margin0'>
                         <div ng-class='$root.respCol111'>
-                            <nl-summary-box3 class='col padding0'data='overviewDict.learner[0]'>
-                            </nl-summary-box3>
+                            <nl-summary-box-sm class='col padding0'data='overviewDict.learner[0]'>
+                            </nl-summary-box-sm>
                         </div>
                         <div ng-class='$root.respCol111'>
-                            <nl-summary-box3 class='col padding0' data='overviewDict.learner[1]'>
-                            </nl-summary-box3>
+                            <nl-summary-box-sm class='col padding0' data='overviewDict.learner[1]'>
+                            </nl-summary-box-sm>
                         </div>
                         <div ng-class='$root.respCol111'>
-                            <nl-summary-box3 class='col padding0' data='overviewDict.learner[2]'>
-                            </nl-summary-box3>
+                            <nl-summary-box-sm class='col padding0' data='overviewDict.learner[2]'>
+                            </nl-summary-box-sm>
                         </div>
                         <div ng-class='$root.respCol111'>
                             <nl-summary-box-large1 class='col padding0' data='overviewDict.learner[3]'>
                             </nl-summary-box-large1>
                         </div>
                     </div>    
-                    <div class='row row-center padding-mid margin0 text-center'><div class='col fsh4'>Reports</div></div>
+                    <div class='row row-center padding-mid margin0 text-center'><div class='col fsh4 nl-dkonlg-lgondk-text'>Reports</div></div>
                     <div class='row row-center row-wrap row-justify-evenly text-center padding0 margin0'>
                         <div ng-class='$root.respCol111'>
-                            <nl-summary-box3 class='col padding0'data='overviewDict.reports[0]'>
-                            </nl-summary-box3>
+                            <nl-summary-box-sm class='col padding0'data='overviewDict.reports[0]'>
+                            </nl-summary-box-sm>
                         </div>
                         <div ng-class='$root.respCol111'>
-                            <nl-summary-box3 class='col padding0' data='overviewDict.reports[1]'>
-                            </nl-summary-box3>
+                            <nl-summary-box-sm class='col padding0' data='overviewDict.reports[1]'>
+                            </nl-summary-box-sm>
                         </div>
                         <div ng-class='$root.respCol111'>
-                            <nl-summary-box3 class='col padding0' data='overviewDict.reports[2]'>
-                            </nl-summary-box3>
+                            <nl-summary-box-sm class='col padding0' data='overviewDict.reports[2]'>
+                            </nl-summary-box-sm>
                         </div>
                         <div ng-class='$root.respCol111'>
                             <nl-summary-box-large1 class='col padding0' data='overviewDict.reports[3]'>

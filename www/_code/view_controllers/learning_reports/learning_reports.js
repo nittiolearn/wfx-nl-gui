@@ -973,9 +973,9 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 	function _updateOverviewDoughnut(summaryRecord) {
 		var c = $scope.charts[0];
 		var type = nlLrFilter.getType();
-		var typeStr = type == 'module' || type == 'module_assign' || type == 'module_self_assign' ? 'Module' : 'Course';
+		var typeStr = type == 'module' || type == 'module_assign' || type == 'module_self_assign' ? 'Module' : type == 'user' ? 'Learning' : 'Course';
 		c.data = [summaryRecord.done.txt, summaryRecord.failed.txt, summaryRecord.started.txt, summaryRecord.pending.txt];
-		c.title = nl.t('{} progress: {} of {} done', typeStr, (summaryRecord.done.txt + summaryRecord.failed.txt), summaryRecord.assigned.txt);
+		c.title = nl.t('{} Reports Status Distribution', typeStr);
 	}
 	
 	function _updateOverviewInfoGraphicsCards(summaryRecord) {
@@ -1023,19 +1023,31 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		var uPendingPerc = (uPending/utotal)*100 || 0;
 		var uCertifiedPerc = (uCertified/utotal)*100 || 0;
 		var uFailedPerc = (uFailed/utotal)*100 || 0;
-		var ulearnerArray = [{title: 'Assigned', hover: 'Number of unique users to whom courses are assigned', val: utotal, perc: 100, class: 'nl-blue-text'},
-							 {title: 'Yet to start', hover: 'Yet to start any of the courses assigned to them', val: uPending, perc: uPendingPerc, class: 'nl-yellow-text'},
-							 {title: 'Started atleast one', hover: 'Started or completed at least one course assigned to them', val: uStarted, perc: uStartedPerc, class: 'nl-light-green-text'},
-							 [{title: 'Completed All', hover: nl.t('Completed all the courses assigned to them'), val: uCompletedAll, perc: uCompletedAllPerc, class: 'nl-blue-text'},
-							 {title: 'Certified All', hover: nl.t('Certified or passed all the courses assigned to them'), val: uCertified, perc: uCertifiedPerc, class: 'nl-dark-green-text'},
-							 {title: 'Failed Some', hover: '', val: uFailed, perc: uFailedPerc, class: 'nl-failed-text'}]]
-		//Reports overiew computaion
 		var type = nlLrFilter.getType();
-		var typeStr = type == 'module' || type == 'module_assign' || type == 'module_self_assign' ? 'Modules' : 'Courses';
+		var typeStr = type == 'course' || type == 'course_assign' ? 'course' : 'module';
+		var certStr = 'Passed';
+		var repStr = 'Modules';
+		var sRepStr = 'Module';
+		if (typeStr == 'course') {
+			certStr = 'Certified';
+			repStr = 'Courses';
+			sRepStr = 'Course';
+		}
+		if (type == 'user') {
+			repStr = 'Learning reports';
+			sRepStr = 'Learning report';
+		}
+		var ulearnerArray = [{title: 'Assigned', hover: nl.t('Number of unique users to whom {} are assigned', repStr.toLowerCase()), val: utotal, perc: 100, class: 'nl-blue-text'},
+							 {title: 'Yet to start', hover: nl.t('Yet to start any of the {} assigned to them', repStr.toLowerCase()), val: uPending, perc: uPendingPerc, class: 'nl-yellow-text'},
+							 {title: 'Started atleast one', hover: nl.t('Started or completed at least one {} assigned to them', sRepStr.toLowerCase()), val: uStarted, perc: uStartedPerc, class: 'nl-light-green-text'},
+							 [{title: 'Completed All', hover: nl.t('Completed all the {} assigned to them', repStr.toLowerCase()), val: uCompletedAll, perc: uCompletedAllPerc, class: 'nl-blue-text'},
+							 {title: typeStr == 'course' ? 'Certified All' : 'Passed All', hover: nl.t('{} all the {} assigned to them', certStr, repStr), val: uCertified, perc: uCertifiedPerc, class: 'nl-dark-green-text'},
+							 {title: 'Failed Some', hover: nl.t('Completed all {} but failed at least in one {} assigned to them', repStr.toLowerCase(), sRepStr.toLowerCase()), val: uFailed, perc: uFailedPerc, class: 'nl-failed-text'}]]
+		//Reports overiew computaion
 		var rdone = summaryRecord.done.txt;
 		var rfailed = summaryRecord.failed.txt;
 		var rstarted = summaryRecord.started.txt;
-		var rpending = summaryRecord.started.txt;
+		var rpending = summaryRecord.pending.txt;
 		var rcompleted = rdone + rfailed;
 		var rassigned = summaryRecord.assigned.txt;
 
@@ -1044,29 +1056,18 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		var rfailedPerc = (rfailed/rassigned)*100 || 0;
 		var rstartedPerc = (rstarted/rassigned)*100 || 0;
 		var rpendingPerc = (rpending/rassigned)*100 || 0;
-		var reportsArray = [{title: 'Assigned', hover: '', val: rassigned, perc: 100, class: 'nl-blue-text'},
-							 {title: 'Yet to start', hover: '', val: rpending, perc: rpendingPerc, class: 'nl-yellow-text'},
-							 {title: 'Started', hover: '', val: rstarted, perc: rstartedPerc, class: 'nl-light-green-text'},
-							 [{title: 'Completed', hover: '', val: rcompleted, perc: rcompletedPerc, class: 'nl-blue-text'},
-							 {title: 'Certified', hover: '', val: rdone, perc: rdonePerc, class: 'nl-dark-green-text'},
-							 {title: 'Failed', hover: '', val: rfailed, perc: rfailedPerc, class: 'nl-failed-text'}]]
-		$scope.overviewDict = {learner: ulearnerArray, reports: reportsArray}
+		if (type == 'user') {
+			repStr = 'Learning';
+			sRepStr = 'Learning';
+		}
 
-		// $scope.overviewArray = [
-		// 	{title: nl.fmt2('{} completed', typeStr), desc:'', perc: completedPerc, showperc:1},
-		// 	{title: nl.fmt2('{} Active-Ongoing', typeStr), desc:'', perc: startedPerc, showperc:1},
-		// 	{title: nl.fmt2('{} yet to start', typeStr), desc:'', perc: pendingPerc, showperc:1},
-		// 	{title: nl.fmt2('{} completed', 'Learners'), desc:'', perc: uCertified, showperc:0},
-		// 	{title: nl.fmt2('{} Active-Ongoing', 'Learners'), desc:'', perc: uStarted, showperc:0},
-		// 	{title: nl.fmt2('{} yet to start', 'Learners'), desc:'', perc: uPending, showperc:0}];
-		// $scope.moduleidEnable = nlLrFilter.getModuleId();
-		// if ($scope.moduleidEnable) {
-		// 	$scope.overviewArray = [
-		// 		{title: nl.fmt2('{} completed', typeStr), desc:'', perc: completedPerc, showperc:1},
-		// 		{title: nl.fmt2('{} Active-Ongoing', typeStr), desc:'', perc: startedPerc, showperc:1},
-		// 		{title: nl.fmt2('{} completed', 'Learners'), desc:'', perc: uCertified, showperc:0},
-		// 		{title: nl.fmt2('{} Active-Ongoing', 'Learners'), desc:'', perc: uStarted, showperc:0}];			
-		// 	}
+		var reportsArray = [{title: 'Assigned', hover: nl.t('Total number of {} reports assigned  to learners', sRepStr.toLowerCase()), val: rassigned, perc: 100, class: 'nl-blue-text'},
+							 {title: 'Yet to start', hover: nl.t('Total number of {} reports which are not yet started by learners', sRepStr.toLowerCase()), val: rpending, perc: rpendingPerc, class: 'nl-yellow-text'},
+							 {title: 'Started', hover: nl.t('Total number of {} reports started by learners', sRepStr.toLowerCase()), val: rstarted, perc: rstartedPerc, class: 'nl-light-green-text'},
+							 [{title: 'Completed', hover: nl.t('Total number of {} reports completed by learners', sRepStr.toLowerCase()), val: rcompleted, perc: rcompletedPerc, class: 'nl-blue-text'},
+							 {title: typeStr == 'course' ? 'Certified' : 'Passed', hover: nl.t('Total number of {} reports certified/passed', sRepStr.toLowerCase()), val: rdone, perc: rdonePerc, class: 'nl-dark-green-text'},
+							 {title: 'Failed', hover: nl.t('Total number of {} reports failed', sRepStr.toLowerCase()), val: rfailed, perc: rfailedPerc, class: 'nl-failed-text'}]]
+		$scope.overviewDict = {learner: ulearnerArray, reports: reportsArray}
 	}
 
 	function _updateOverviewTimeChart() {
