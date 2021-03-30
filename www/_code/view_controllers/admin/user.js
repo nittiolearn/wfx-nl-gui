@@ -259,7 +259,7 @@ nlAdminUserExport, nlAdminUserImport, nlTreeSelect, nlOuUserSelect, nlServerApi)
         if (user.details && nlGroupInfo.isGc4Enabled()) {
             var _details = angular.fromJson(user.details);
             lastLogin = _details.last_login_time || '';
-            nl.fmt.addAvp(avps, 'Last login time', lastLogin, 'date');
+            nl.fmt.addAvp(avps, 'Last login', lastLogin, 'date');
         }
         nl.fmt.addAvp(avps, 'Internal identifier', user.id);
 		return avps;

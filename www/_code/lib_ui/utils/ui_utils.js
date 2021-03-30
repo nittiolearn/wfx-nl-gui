@@ -19,6 +19,10 @@
         .directive('nlInlineHelp', InlineHelpDirective)
         .directive('nlProgressBar', ProgressBarDirective)
         .directive('nlSummaryBox', SummaryBoxDirective)
+        .directive('nlSummaryBox2', SummaryBox2Directive)
+        .directive('nlSummaryBox3', SummaryBox3Directive)
+        .directive('nlSummaryBoxLarge', SummaryBoxLargeDirective)
+        .directive('nlSummaryBoxLarge1', SummaryBoxLarge1Directive)
         .directive('nlIntelliTextarea', IntelliTextareaDirective)
         .filter('nlTrustUrl', TrustUrlFilter)
         .service('nlProgressLog', ProgressLogSrv);
@@ -205,6 +209,57 @@
        };
     }];
     
+    //-------------------------------------------------------------------------------------------------
+    var SummaryBox2Directive =  [
+    function () {
+        return {
+            restrict: 'E',
+            transclude: true,
+            scope: {
+                data: '='
+            },
+            templateUrl: 'lib_ui/utils/summary_box2.html'
+        };
+    }];
+
+    //-------------------------------------------------------------------------------------------------
+    var SummaryBox3Directive =  [
+    function () {
+        return {
+            restrict: 'E',
+            transclude: true,
+            scope: {
+                data: '='
+            },
+            templateUrl: 'lib_ui/utils/summary_box3.html'
+        };
+    }];
+
+    //-------------------------------------------------------------------------------------------------
+    var SummaryBoxLargeDirective =  [
+    function () {
+        return {
+            restrict: 'E',
+            transclude: true,
+            scope: {
+                data: '=',
+            },
+            templateUrl: 'lib_ui/utils/summary_box_large.html'
+        };
+    }];
+
+    //-------------------------------------------------------------------------------------------------
+    var SummaryBoxLarge1Directive =  [
+    function () {
+        return {
+            restrict: 'E',
+            transclude: true,
+            scope: {
+                data: '=',
+            },
+            templateUrl: 'lib_ui/utils/summary_box_large1.html'
+        };
+    }];
     //-------------------------------------------------------------------------------------------------
     var TrustUrlFilter = ['$sce',
     function($sce) {

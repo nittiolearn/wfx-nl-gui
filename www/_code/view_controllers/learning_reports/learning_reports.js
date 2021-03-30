@@ -898,7 +898,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 	}
 
 	function _initChartData() {
-		$scope.overviewArray = [];
+		$scope.overviewDict = [];
 		var labels =  ['done', 'failed', 'active-ongoing', 'pending'];
 		var colors = [_nl.colorsCodes.done, _nl.colorsCodes.failed, _nl.colorsCodes.started, _nl.colorsCodes.pending];
 
@@ -987,53 +987,86 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			var uid = (rec.user || {}).user_id;
 			if (!uid) continue;
 			var status = rec.stats.status;
-			status = nlReportHelper.isDone(status) ? 'done' : status.id == nlReportHelper.STATUS_STARTED ? 'started' : 'pending';
-			if (!(uid in userStatusDict)) {
-				userStatusDict[uid] = status;
-				continue;
-			}
-			var oldStatus =  userStatusDict[uid];
-			if (status == 'pending' && oldStatus == 'pending') {
-				status = 'pending';
-			} else if (status == 'done' &&  oldStatus == 'done') {
-				status = 'done';
-			} else {
-				status = 'started';	
-			}
-			userStatusDict[uid] = status;
+			if (status.id == nlReportHelper.STATUS_PENDING) status = 'pending';
+			else if (status.id == nlReportHelper.STATUS_STARTED) status = 'started';
+			else if (status.id == nlReportHelper.STATUS_DONE) status = 'done';
+			else if (status.id == nlReportHelper.STATUS_PASSED) status = 'passed';
+			else if (status.id == nlReportHelper.STATUS_FAILED) status = 'failed';
+			else if (status.id == nlReportHelper.STATUS_CERTIFIED) status = 'certified';		
+			// if (!(uid in userStatusDict)) {
+			// 	userStatusDict[uid] = status;
+			// 	continue;
+			// }
+			if (!(uid in userStatusDict)) userStatusDict[uid] = {total: 0, done: 0, pending: 0, started: 0, passed: 0, certified: 0, failed: 0};
+			userStatusDict[uid].total += 1;
+			userStatusDict[uid][status] += 1;
 		}
-		var uDone = 0;
+		//Users overview computation
+		var utotal = 0;
+		var uCertified = 0;
+		var uFailed = 0;
 		var uStarted = 0;
 		var uPending = 0;
+		var uCompletedAll = 0;
 		for(var uid in userStatusDict) {
-			var status = userStatusDict[uid];
-			if (status == 'done') uDone++;
-			else if (status == 'started') uStarted++;
+			var statusDict = userStatusDict[uid];
+			utotal += 1;		
+			if (statusDict.started == 0 && statusDict.pending == 0) uCompletedAll++;
+			if ((statusDict.certified + statusDict.done + statusDict.passed) == statusDict.total) uCertified++;
+			else if (statusDict.started > 0) uStarted++;
+			else if (statusDict.failed > 0) uFailed++;
+			else if (statusDict.pending > 0) uPending++;
 			else uPending++;
 		}
+		var uCompletedAllPerc = (uCompletedAll/utotal)*100 || 0;
+		var uStartedPerc = (uStarted/utotal)*100 || 0;
+		var uPendingPerc = (uPending/utotal)*100 || 0;
+		var uCertifiedPerc = (uCertified/utotal)*100 || 0;
+		var uFailedPerc = (uFailed/utotal)*100 || 0;
+		var ulearnerArray = [{title: 'Assigned', hover: 'Number of unique users to whom courses are assigned', val: utotal, perc: 100, class: 'nl-blue-text'},
+							 {title: 'Yet to start', hover: 'Yet to start any of the courses assigned to them', val: uPending, perc: uPendingPerc, class: 'nl-yellow-text'},
+							 {title: 'Started atleast one', hover: 'Started or completed at least one course assigned to them', val: uStarted, perc: uStartedPerc, class: 'nl-light-green-text'},
+							 [{title: 'Completed All', hover: nl.t('Completed all the courses assigned to them'), val: uCompletedAll, perc: uCompletedAllPerc, class: 'nl-blue-text'},
+							 {title: 'Certified All', hover: nl.t('Certified or passed all the courses assigned to them'), val: uCertified, perc: uCertifiedPerc, class: 'nl-dark-green-text'},
+							 {title: 'Failed Some', hover: '', val: uFailed, perc: uFailedPerc, class: 'nl-failed-text'}]]
+		//Reports overiew computaion
 		var type = nlLrFilter.getType();
-			var typeStr = type == 'module' || type == 'module_assign' || type == 'module_self_assign' ? 'Modules' : 'Courses';
-		var completedPerc = ((summaryRecord.done.txt+summaryRecord.failed.txt)/summaryRecord.assigned.txt)*100 || 0;
-		var startedPerc = (summaryRecord.started.txt/summaryRecord.assigned.txt)*100 || 0;
-		var pendingPerc = (summaryRecord.pending.txt/summaryRecord.assigned.txt)*100 || 0;
-		completedPerc = Math.round(completedPerc);
-		startedPerc = Math.round(startedPerc);
-		pendingPerc = Math.round(pendingPerc)
-		$scope.overviewArray = [
-			{title: nl.fmt2('{} completed', typeStr), desc:'', perc: completedPerc, showperc:1},
-			{title: nl.fmt2('{} Active-Ongoing', typeStr), desc:'', perc: startedPerc, showperc:1},
-			{title: nl.fmt2('{} yet to start', typeStr), desc:'', perc: pendingPerc, showperc:1},
-			{title: nl.fmt2('{} completed', 'Learners'), desc:'', perc: uDone, showperc:0},
-			{title: nl.fmt2('{} Active-Ongoing', 'Learners'), desc:'', perc: uStarted, showperc:0},
-			{title: nl.fmt2('{} yet to start', 'Learners'), desc:'', perc: uPending, showperc:0}];
-		$scope.moduleidEnable = nlLrFilter.getModuleId();
-		if ($scope.moduleidEnable) {
-			$scope.overviewArray = [
-				{title: nl.fmt2('{} completed', typeStr), desc:'', perc: completedPerc, showperc:1},
-				{title: nl.fmt2('{} Active-Ongoing', typeStr), desc:'', perc: startedPerc, showperc:1},
-				{title: nl.fmt2('{} completed', 'Learners'), desc:'', perc: uDone, showperc:0},
-				{title: nl.fmt2('{} Active-Ongoing', 'Learners'), desc:'', perc: uStarted, showperc:0}];			
-			}
+		var typeStr = type == 'module' || type == 'module_assign' || type == 'module_self_assign' ? 'Modules' : 'Courses';
+		var rdone = summaryRecord.done.txt;
+		var rfailed = summaryRecord.failed.txt;
+		var rstarted = summaryRecord.started.txt;
+		var rpending = summaryRecord.started.txt;
+		var rcompleted = rdone + rfailed;
+		var rassigned = summaryRecord.assigned.txt;
+
+		var rcompletedPerc = ((rdone+rfailed)/rassigned)*100 || 0;
+		var rdonePerc = (rdone/rassigned)*100 || 0;
+		var rfailedPerc = (rfailed/rassigned)*100 || 0;
+		var rstartedPerc = (rstarted/rassigned)*100 || 0;
+		var rpendingPerc = (rpending/rassigned)*100 || 0;
+		var reportsArray = [{title: 'Assigned', hover: '', val: rassigned, perc: 100, class: 'nl-blue-text'},
+							 {title: 'Yet to start', hover: '', val: rpending, perc: rpendingPerc, class: 'nl-yellow-text'},
+							 {title: 'Started', hover: '', val: rstarted, perc: rstartedPerc, class: 'nl-light-green-text'},
+							 [{title: 'Completed', hover: '', val: rcompleted, perc: rcompletedPerc, class: 'nl-blue-text'},
+							 {title: 'Certified', hover: '', val: rdone, perc: rdonePerc, class: 'nl-dark-green-text'},
+							 {title: 'Failed', hover: '', val: rfailed, perc: rfailedPerc, class: 'nl-failed-text'}]]
+		$scope.overviewDict = {learner: ulearnerArray, reports: reportsArray}
+
+		// $scope.overviewArray = [
+		// 	{title: nl.fmt2('{} completed', typeStr), desc:'', perc: completedPerc, showperc:1},
+		// 	{title: nl.fmt2('{} Active-Ongoing', typeStr), desc:'', perc: startedPerc, showperc:1},
+		// 	{title: nl.fmt2('{} yet to start', typeStr), desc:'', perc: pendingPerc, showperc:1},
+		// 	{title: nl.fmt2('{} completed', 'Learners'), desc:'', perc: uCertified, showperc:0},
+		// 	{title: nl.fmt2('{} Active-Ongoing', 'Learners'), desc:'', perc: uStarted, showperc:0},
+		// 	{title: nl.fmt2('{} yet to start', 'Learners'), desc:'', perc: uPending, showperc:0}];
+		// $scope.moduleidEnable = nlLrFilter.getModuleId();
+		// if ($scope.moduleidEnable) {
+		// 	$scope.overviewArray = [
+		// 		{title: nl.fmt2('{} completed', typeStr), desc:'', perc: completedPerc, showperc:1},
+		// 		{title: nl.fmt2('{} Active-Ongoing', typeStr), desc:'', perc: startedPerc, showperc:1},
+		// 		{title: nl.fmt2('{} completed', 'Learners'), desc:'', perc: uCertified, showperc:0},
+		// 		{title: nl.fmt2('{} Active-Ongoing', 'Learners'), desc:'', perc: uStarted, showperc:0}];			
+		// 	}
 	}
 
 	function _updateOverviewTimeChart() {

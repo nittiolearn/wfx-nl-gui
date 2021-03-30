@@ -144,9 +144,120 @@
             ******************************************************************* -->
             <div ng-if='tabData.selectedTab.id == "overview" && !tabData.processingOnging'
                 class='anim-enter1 flyfrom-l'>
+                <div ng-if='screenSize != "small"' >
+                    <div class='row row-center padding-mid margin0 text-center'><div class='col fsh4'>Learner</div></div>
+                    <div class='row row-center row-wrap row-justify-evenly text-center padding0 margin0'>
+                        <div class='col padding nl-min-600' >
+                            <div class='row row-center row-wrap row-justify-evenly text-center padding0 margin0'>
+                                <nl-summary-box2 class='col padding0'data='overviewDict.learner[0]'>
+                                </nl-summary-box2>
+                                <nl-summary-box2 class='col padding0' data='overviewDict.learner[1]'>
+                                </nl-summary-box2>
+                                <nl-summary-box2 class='col padding0' data='overviewDict.learner[2]'>
+                                </nl-summary-box2>
+                            </div>
+                        </div>
+                        <div class='col padding'>
+                            <nl-summary-box-large class='col padding' data='overviewDict.learner[3]'>
+                            </nl-summary-box-large>
+                        </div>
+                    </div>    
+                    <div class='row row-center padding-mid margin0 text-center'><div class='col fsh4'>Course reports</div></div>
+                    <div class='row row-center row-wrap row-justify-evenly text-center padding0 margin0'>
+                        <div class='col padding nl-min-600'>
+                            <div class='row row-center row-wrap row-justify-evenly text-center padding0 margin0'>
+                                <nl-summary-box2 class='col padding0' data='overviewDict.reports[0]'>
+                                </nl-summary-box2>
+                                <nl-summary-box2 class='col padding0' data='overviewDict.reports[1]'>
+                                </nl-summary-box2>
+                                <nl-summary-box2 class='col padding0' data='overviewDict.reports[2]'>
+                                </nl-summary-box2>
+                            </div>
+                        </div>
+                        <div class='col padding'>
+                            <nl-summary-box-large class='col padding' data='overviewDict.reports[3]'>
+                            </nl-summary-box-large>
+                        </div>
+                    </div>    
+                </div>
+                <div ng-if='screenSize == "small"'>
+                    <div class='row row-center padding-mid margin0 text-center'><div class='col fsh4'>Learner</div></div>
+                    <div class='row row-center row-wrap row-justify-evenly text-center padding0 margin0'>
+                        <div ng-class='$root.respCol111'>
+                            <nl-summary-box3 class='col padding0'data='overviewDict.learner[0]'>
+                            </nl-summary-box3>
+                        </div>
+                        <div ng-class='$root.respCol111'>
+                            <nl-summary-box3 class='col padding0' data='overviewDict.learner[1]'>
+                            </nl-summary-box3>
+                        </div>
+                        <div ng-class='$root.respCol111'>
+                            <nl-summary-box3 class='col padding0' data='overviewDict.learner[2]'>
+                            </nl-summary-box3>
+                        </div>
+                        <div ng-class='$root.respCol111'>
+                            <nl-summary-box-large1 class='col padding0' data='overviewDict.learner[3]'>
+                            </nl-summary-box-large1>
+                        </div>
+                    </div>    
+                    <div class='row row-center padding-mid margin0 text-center'><div class='col fsh4'>Reports</div></div>
+                    <div class='row row-center row-wrap row-justify-evenly text-center padding0 margin0'>
+                        <div ng-class='$root.respCol111'>
+                            <nl-summary-box3 class='col padding0'data='overviewDict.reports[0]'>
+                            </nl-summary-box3>
+                        </div>
+                        <div ng-class='$root.respCol111'>
+                            <nl-summary-box3 class='col padding0' data='overviewDict.reports[1]'>
+                            </nl-summary-box3>
+                        </div>
+                        <div ng-class='$root.respCol111'>
+                            <nl-summary-box3 class='col padding0' data='overviewDict.reports[2]'>
+                            </nl-summary-box3>
+                        </div>
+                        <div ng-class='$root.respCol111'>
+                            <nl-summary-box-large1 class='col padding0' data='overviewDict.reports[3]'>
+                            </nl-summary-box-large1>
+                        </div>
+                    </div>    
+                </div>
+                <div class='row row-top row-wrap margin0 padding0'>
+                    <div ng-class='$root.respCol211' class='text-center padding-mid'>
+                        <div class='padding-small'></div>
+                        <div class='fsh5 padding-mid nl-dkonlg-lgondk-text'>{{charts[0].title}}</div>
+                        <div class='padding-small'></div>
+                        <div style='margin: auto; display:block; max-height:300px; max-width:300px'>
+                            <canvas class='chart chart-pie'
+                                    height='250'
+                                    width='250'
+                                    chart-data='charts[0].data'
+                                    chart-labels='charts[0].labels'
+                                    chart-colors='charts[0].colors'
+                                    chart-series='charts[0].series'
+                                    chart-options='charts[0].options'>
+                            </canvas>
+                        </div>
+                    </div>
+                    <div ng-class='$root.respCol211' class='text-center padding-mid'>
+                        <div class='padding-small'></div>
+                        <div class='fsh5 padding-mid nl-dkonlg-lgondk-text'>{{charts[1].title}}</div>
+                        <div class='padding-mid'></div>
+                        <div style='margin: auto; display:block; height:300px; width:450px'>
+                            <canvas class='chart chart-bar'
+                                chart-data='charts[1].data'
+                                chart-labels='charts[1].labels'
+                                chart-colors='charts[1].colors'
+                                chart-series='charts[1].series'
+                                chart-options='charts[1].options'>
+                            </canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div ng-if='tabData.selectedTab.id == "overview1" && !tabData.processingOnging'
+                class='anim-enter1 flyfrom-l'>
                 <div class='row row-center row-wrap row-justify-evenly text-center padding0 margin0'>
                     <div ng-class='{{moduleidEnable ? "$root.respCol221" : "$root.respCol331"}}' style='width: 100%'
-                        ng-repeat='item in overviewArray'>
+                        ng-repeat='item in overviewArray1'>
                         <nl-summary-box number='item.perc' 
                             title='item.title' 
                             class='col padding0 small-summary-box'
