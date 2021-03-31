@@ -1028,6 +1028,11 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		var certStr = 'Passed';
 		var repStr = 'Modules';
 		var sRepStr = 'Module';
+		var sType = 'Course';
+		if (type == 'course') sType = 'Courses';
+		if (type == 'module') sType = 'Modules';
+		if (type == 'module_assign' || type == 'module_self_assign') sType = 'Module';
+		if (type == 'user') sType = 'Learning reports';
 		if (typeStr == 'course') {
 			certStr = 'Certified';
 			repStr = 'Courses';
@@ -1037,12 +1042,12 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			repStr = 'Learning reports';
 			sRepStr = 'Learning report';
 		}
-		var ulearnerArray = [{title: 'Assigned', hover: nl.t('Number of unique users to whom {} are assigned', repStr.toLowerCase()), val: utotal, perc: 100, class: 'nl-blue-text'},
-							 {title: 'Yet to start', hover: nl.t('Yet to start any of the {} assigned to them', repStr.toLowerCase()), val: uPending, perc: uPendingPerc, class: 'nl-yellow-text'},
-							 {title: 'Started atleast one', hover: nl.t('Started or completed at least one {} assigned to them', sRepStr.toLowerCase()), val: uStarted, perc: uStartedPerc, class: 'nl-light-green-text'},
-							 [{title: 'Completed All', hover: nl.t('Completed all the {} assigned to them', repStr.toLowerCase()), val: uCompletedAll, perc: uCompletedAllPerc, class: 'nl-blue-text'},
-							 {title: typeStr == 'course' ? 'Certified All' : 'Passed All', hover: nl.t('{} all the {} assigned to them', certStr, repStr), val: uCertified, perc: uCertifiedPerc, class: 'nl-dark-green-text'},
-							 {title: 'Failed Some', hover: nl.t('Completed all {} but failed at least in one {} assigned to them', repStr.toLowerCase(), sRepStr.toLowerCase()), val: uFailed, perc: uFailedPerc, class: 'nl-failed-text'}]]
+		var ulearnerArray = [{title: 'Assigned', hover: nl.t('{} assigned to {} unique {}.', sType, utotal, _getLearnerStr(utotal)), val: utotal, perc: 100, class: 'nl-blue-text'},
+							 {title: 'Yet to start', hover: nl.t('{} assigned to {} unique {}, {} {} ({}%) not yet started any {} assigned to them.', sType, utotal, _getLearnerStr(utotal), uPending, _getLearnerStr(uPending), uPendingPerc, sType.toLowerCase()), val: uPending, perc: uPendingPerc, class: 'nl-yellow-text'},
+							 {title: 'Started atleast one', hover: nl.t('{} assigned to {} unique {}, {} {} ({}%) started atlest one of the {} assigned to them.', sType, utotal, _getLearnerStr(utotal), uStarted, _getLearnerStr(uStarted), uStartedPerc, sType.toLowerCase()), val: uStarted, perc: uStartedPerc, class: 'nl-light-green-text'},
+							 [{title: 'Completed All', hover: nl.t('{} assigned to {} unique {}, {} {} ({}%) completed all {} assigned to them.', sType, utotal, _getLearnerStr(utotal), uCompletedAll, _getLearnerStr(uCompletedAll), uCompletedAllPerc, sType.toLowerCase()), val: uCompletedAll, perc: uCompletedAllPerc, class: 'nl-blue-text'},
+							 {title: typeStr == 'course' ? 'Certified All' : 'Passed All', hover: nl.t('{} assigned to {} unique {}, {} {} ({}%) {} all the {} assigned to them.', sType, utotal, _getLearnerStr(utotal), uCertified, _getLearnerStr(uCertified), uCertifiedPerc, certStr, sType.toLowerCase()), val: uCertified, perc: uCertifiedPerc, class: 'nl-dark-green-text'},
+							 {title: 'Failed Some', hover: nl.t('{} assigned to {} unique {}, {} {} ({}%) completed all. But failed at least in one {} assigned to them.', sType, utotal, _getLearnerStr(utotal), uFailed, _getLearnerStr(uFailed), uFailedPerc, sType.toLowerCase()), val: uFailed, perc: uFailedPerc, class: 'nl-failed-text'}]]
 		//Reports overiew computaion
 		var rdone = summaryRecord.done.txt;
 		var rfailed = summaryRecord.failed.txt;
@@ -1061,13 +1066,21 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			sRepStr = 'Learning';
 		}
 
-		var reportsArray = [{title: 'Assigned', hover: nl.t('Total number of {} reports assigned  to learners', sRepStr.toLowerCase()), val: rassigned, perc: 100, class: 'nl-blue-text'},
-							 {title: 'Yet to start', hover: nl.t('Total number of {} reports which are not yet started by learners', sRepStr.toLowerCase()), val: rpending, perc: rpendingPerc, class: 'nl-yellow-text'},
-							 {title: 'Started', hover: nl.t('Total number of {} reports started by learners', sRepStr.toLowerCase()), val: rstarted, perc: rstartedPerc, class: 'nl-light-green-text'},
-							 [{title: 'Completed', hover: nl.t('Total number of {} reports completed by learners', sRepStr.toLowerCase()), val: rcompleted, perc: rcompletedPerc, class: 'nl-blue-text'},
-							 {title: typeStr == 'course' ? 'Certified' : 'Passed', hover: nl.t('Total number of {} reports certified/passed', sRepStr.toLowerCase()), val: rdone, perc: rdonePerc, class: 'nl-dark-green-text'},
-							 {title: 'Failed', hover: nl.t('Total number of {} reports failed', sRepStr.toLowerCase()), val: rfailed, perc: rfailedPerc, class: 'nl-failed-text'}]]
-		$scope.overviewDict = {learner: ulearnerArray, reports: reportsArray}
+		var reportsArray = [{title: 'Assigned', hover: nl.t('{} {} reports assigned  to learners', rassigned, sRepStr.toLowerCase()), val: rassigned, perc: 100, class: 'nl-blue-text'},
+							 {title: 'Yet to start', hover: nl.t('{}({}%) {} reports which are not yet started by learners', rpending, rpendingPerc, sRepStr.toLowerCase()), val: rpending, perc: rpendingPerc, class: 'nl-yellow-text'},
+							 {title: 'Started', hover: nl.t('{}({}%) {} reports started by learners', rstarted, rstartedPerc, sRepStr.toLowerCase()), val: rstarted, perc: rstartedPerc, class: 'nl-light-green-text'},
+							 [{title: 'Completed', hover: nl.t('{}({}%) {} reports completed by learners', rcompleted, rcompletedPerc, sRepStr.toLowerCase()), val: rcompleted, perc: rcompletedPerc, class: 'nl-blue-text'},
+							 {title: typeStr == 'course' ? 'Certified' : 'Passed', hover: nl.t('{}({}%) {} reports certified/passed', rdone, rdonePerc, sRepStr.toLowerCase()), val: rdone, perc: rdonePerc, class: 'nl-dark-green-text'},
+							 {title: 'Failed', hover: nl.t('{}({}%) {} reports failed', rfailed, rfailedPerc, sRepStr.toLowerCase()), val: rfailed, perc: rfailedPerc, class: 'nl-failed-text'}]]
+		var title = 'Course Reports';
+		if (type == 'module' || type == 'module_assign' || type == 'module_self_assign') title = 'Module Reports';
+		if (type == 'user') title = 'Learning reports';
+		$scope.overviewDict = {learner: ulearnerArray, reports: reportsArray, title1: title};
+	}
+
+	function _getLearnerStr(val) {
+		if (val > 1) return 'learners';
+		return 'learner';
 	}
 
 	function _updateOverviewTimeChart() {
