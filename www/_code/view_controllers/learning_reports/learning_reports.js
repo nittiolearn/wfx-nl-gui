@@ -1010,19 +1010,19 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		var uCompletedAll = 0;
 		for(var uid in userStatusDict) {
 			var statusDict = userStatusDict[uid];
-			utotal += 1;		
+			utotal += 1;
 			if (statusDict.started == 0 && statusDict.pending == 0) uCompletedAll++;
 			if ((statusDict.certified + statusDict.done + statusDict.passed) == statusDict.total) uCertified++;
 			else if (statusDict.started > 0) uStarted++;
-			else if (statusDict.failed > 0) uFailed++;
 			else if (statusDict.pending > 0) uPending++;
+			else if (statusDict.failed > 0) uFailed++;
 			else uPending++;
 		}
-		var uCompletedAllPerc = (uCompletedAll/utotal)*100 || 0;
-		var uStartedPerc = (uStarted/utotal)*100 || 0;
-		var uPendingPerc = (uPending/utotal)*100 || 0;
-		var uCertifiedPerc = (uCertified/utotal)*100 || 0;
-		var uFailedPerc = (uFailed/utotal)*100 || 0;
+		var uCompletedAllPerc = Math.round((uCompletedAll/utotal)*100 || 0);
+		var uStartedPerc = Math.round((uStarted/utotal)*100 || 0);
+		var uPendingPerc = Math.round((uPending/utotal)*100 || 0);
+		var uCertifiedPerc = Math.round((uCertified/utotal)*100 || 0);
+		var uFailedPerc = Math.round((uFailed/utotal)*100 || 0);
 		var type = nlLrFilter.getType();
 		var typeStr = type == 'course' || type == 'course_assign' ? 'course' : 'module';
 		var certStr = 'Passed';
@@ -1051,11 +1051,11 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		var rcompleted = rdone + rfailed;
 		var rassigned = summaryRecord.assigned.txt;
 
-		var rcompletedPerc = ((rdone+rfailed)/rassigned)*100 || 0;
-		var rdonePerc = (rdone/rassigned)*100 || 0;
-		var rfailedPerc = (rfailed/rassigned)*100 || 0;
-		var rstartedPerc = (rstarted/rassigned)*100 || 0;
-		var rpendingPerc = (rpending/rassigned)*100 || 0;
+		var rcompletedPerc = Math.round(((rdone+rfailed)/rassigned)*100 || 0);
+		var rdonePerc = Math.round((rdone/rassigned)*100 || 0);
+		var rfailedPerc = Math.round((rfailed/rassigned)*100 || 0);
+		var rstartedPerc = Math.round((rstarted/rassigned)*100 || 0);
+		var rpendingPerc = Math.round((rpending/rassigned)*100 || 0);
 		if (type == 'user') {
 			repStr = 'Learning';
 			sRepStr = 'Learning';
