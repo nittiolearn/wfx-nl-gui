@@ -555,6 +555,92 @@ $animation-duration: 200ms !default;
   color: $nlBlack;
   color: var(var(--nlBlack));
 }
+.pie_chart_label1 > li::before {
+  content: '';
+  position: relative;
+  height: 20px;
+  width: 20px;
+  top: -5px;
+  left: 0px;
+  vertical-align: middle;
+  right: 0;
+  display: inline-block;
+  bottom: 0;
+  margin: 10px 12px 0px 0px;
+  border-radius: 50%;
+}
+
+.assigned-bar {
+  color: var(--nlPrimaryDark);
+}
+.completed-bar {
+  color:var(--nlStatusGreen);
+  margin-right:20px;
+}
+.assigned-bar > span::before {
+    content: '';
+    position: relative;
+    height: 20px;
+    width: 20px;
+    top: -5px;
+    left: 3px;
+    vertical-align: middle;
+    right: 0;
+    display: inline-block;
+    bottom: 0;
+    margin: 10px 12px 0px 0px;
+    border-radius: 50%;
+    background-color: var(--nlPrimaryDark);
+}
+.completed-bar >span::before {
+    content: '';
+    position: relative;
+    height: 20px;
+    width: 20px;
+    top: -5px;
+    left: 3px;
+    vertical-align: middle;
+    right: 0;
+    display: inline-block;
+    bottom: 0;
+    margin: 10px 12px 0px 0px;
+    border-radius: 50%;
+    background-color: var(--nlStatusGreen);
+  }
+.lables {
+ font-family: Montserrat-Regular;;
+ list-style: none;
+}
+
+.certified_label {
+  color: var(--nlStatusGreen);
+}
+.failed_label {
+  color: var(--nlStatusRed);
+}
+.started_label {
+  color: var(--nllightGreen);
+}
+.upcoming_label {
+  color: var(--nlPrimaryDark);
+}
+.pending_label {
+  color: var(--nlFontYellow);
+}
+  
+.certified_label:nth-child(1):before {
+  background-color: var(--nlStatusGreen);
+}
+.failed_label:nth-child(2):before {
+  background-color:  var(--nlStatusRed);
+}
+.started_label:nth-child(3):before {
+  background-color: var(--nllightGreen);
+}
+.pending_label:nth-child(4):before {
+  background-color: var(--nlFontYellow);
+}
+
 //-----------------------------------------------------------------------------------------
 // nl specific styling - lib_ui modules
 //-----------------------------------------------------------------------------------------

@@ -145,7 +145,7 @@
             <div ng-if='tabData.selectedTab.id == "overview" && !tabData.processingOnging'
                 class='anim-enter1 flyfrom-l'>
                 <div ng-if='screenSize != "small"' >
-                    <div class='row row-center padding-mid margin0 text-center'><div class='col fsh4 nl-dkonlg-lgondk-text'>Learner</div></div>
+                    <div class='row row-center padding-mid margin0 text-center'><div class='col fsh4 nl-dkonlg-lgondk-text'>Learners</div></div>
                     <div class='row row-center row-wrap row-justify-evenly text-center padding0 margin0'>
                         <div class='col padding nl-min-580' >
                             <div class='row row-center row-wrap row-justify-evenly text-center padding0 margin0'>
@@ -162,7 +162,7 @@
                             </nl-summary-box-large>
                         </div>
                     </div>    
-                    <div class='row row-center padding-mid margin0 text-center'><div class='col fsh4 nl-dkonlg-lgondk-text'>Course reports</div></div>
+                    <div class='row row-center padding-mid margin0 text-center'><div class='col fsh4 nl-dkonlg-lgondk-text'>{{overviewDict.title1}}</div></div>
                     <div class='row row-center row-wrap row-justify-evenly text-center padding0 margin0'>
                         <div class='col padding nl-min-580'>
                             <div class='row row-center row-wrap row-justify-evenly text-center padding0 margin0'>
@@ -181,7 +181,7 @@
                     </div>    
                 </div>
                 <div ng-if='screenSize == "small"'>
-                    <div class='row row-center padding-mid margin0 text-center'><div class='col fsh4 nl-dkonlg-lgondk-text'>Learner</div></div>
+                    <div class='row row-center padding-mid margin0 text-center'><div class='col fsh4 nl-dkonlg-lgondk-text'>Learners</div></div>
                     <div class='row row-center row-wrap row-justify-evenly text-center padding0 margin0'>
                         <div ng-class='$root.respCol111'>
                             <nl-summary-box-sm class='col padding0'data='overviewDict.learner[0]'>
@@ -200,7 +200,7 @@
                             </nl-summary-box-large1>
                         </div>
                     </div>    
-                    <div class='row row-center padding-mid margin0 text-center'><div class='col fsh4 nl-dkonlg-lgondk-text'>Reports</div></div>
+                    <div class='row row-center padding-mid margin0 text-center'><div class='col fsh4 nl-dkonlg-lgondk-text'>{{overviewDict.title1}}</div></div>
                     <div class='row row-center row-wrap row-justify-evenly text-center padding0 margin0'>
                         <div ng-class='$root.respCol111'>
                             <nl-summary-box-sm class='col padding0'data='overviewDict.reports[0]'>
@@ -222,23 +222,34 @@
                 </div>
                 <div class='row row-top row-wrap margin0 padding0'>
                     <div ng-class='$root.respCol211' class='text-center padding-mid'>
-                        <div class='padding-small'></div>
                         <div class='fsh5 padding-mid nl-dkonlg-lgondk-text'>{{charts[0].title}}</div>
-                        <div class='padding-small'></div>
-                        <div style='margin: auto; display:block; max-height:300px; max-width:300px'>
-                            <canvas class='chart chart-pie'
-                                    height='250'
-                                    width='250'
-                                    chart-data='charts[0].data'
-                                    chart-labels='charts[0].labels'
-                                    chart-colors='charts[0].colors'
-                                    chart-series='charts[0].series'
-                                    chart-options='charts[0].options'>
-                            </canvas>
+                        <div class='row row-center row-wrap pading0 margin0'>
+                            <div ng-class='$root.respCol221'>
+                                <div class='padding-small'></div>
+                                <div class='padding-small'></div>
+                                <div style='margin: auto; display:block; max-height:300px; max-width:300px'>
+                                    <canvas class='chart chart-pie'
+                                            height='250'
+                                            width='250'
+                                            chart-data='charts[0].data'
+                                            chart-labels='charts[0].labels'
+                                            chart-colors='charts[0].colors'
+                                            chart-series='charts[0].series'
+                                            chart-options='charts[0].options'>
+                                    </canvas>
+                                </div>        
+                             </div>
+                             <div ng-class='$root.respCol221'>
+                                <ul class="pie_chart_label1">
+                                    <li class="certified_label lables">Cerified/Passed</li>
+                                    <li class="failed_label lables">Failed</li>
+                                    <li class="started_label lables">Started (Active ongoing)</li>
+                                    <li class="pending_label lables">Pending</li>
+                                </ul>
+                             </div>
                         </div>
                     </div>
                     <div ng-class='$root.respCol211' class='text-center padding-mid'>
-                        <div class='padding-small'></div>
                         <div class='fsh5 padding-mid nl-dkonlg-lgondk-text'>{{charts[1].title}}</div>
                         <div class='padding-mid'></div>
                         <div style='margin: auto; display:block; height:300px; width:450px'>
@@ -250,6 +261,10 @@
                                 chart-options='charts[1].options'>
                             </canvas>
                         </div>
+                        <div class="chart-heading-position nl-display-flex">
+                            <div class="assigned-bar"><span>Assigned</span></div><br>
+                            <div class="completed-bar"><span>Completed</span></div>
+                        </div>    
                     </div>
                 </div>
             </div>
