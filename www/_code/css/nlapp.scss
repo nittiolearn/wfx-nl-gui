@@ -822,10 +822,16 @@ tr.summary {
   min-width: 300px;
 }
 
+.nl-min-580{
+  min-width: 580px;
+}
 .nl-min-750 {
   min-width: 750px;
 }
 
+.nl-min-h90{
+  min-height: 90px;
+}
 .nl-max-1100 {
   max-width: 1100px;
 }
@@ -2342,6 +2348,287 @@ nl-summary-box.small-summary-box {
   }
   .nl-summary-box {
     height: 70px;
+  }
+}
+
+nl-summary-box-lg {
+  text-align: -webkit-center;
+  .sb-padding {
+    padding: 10px;
+  }
+}
+
+.nl-summary-box2 {
+  .sb-padding {
+    padding: 10px;
+  }
+  padding: 10px;
+  background-color: $nlWhite;
+  background-color: var(--nlWhite);
+  min-width: 150px;
+  max-width: 150px;
+  min-height: 175px;
+  max-height: 180px;
+  box-shadow: 0 3px 6px 0 $nllightblue;
+  box-shadow: 0 3px 6px 0 var(--nllightblue);
+  .infographic {
+    .nl-blue-text{
+      color: $nlPrimary;
+      color: var(--nlPrimary);
+      font-size: 200%;
+    }
+    .nl-yellow-text{
+      color: #ffc900;
+      font-size: 200%;            
+    }
+    .nl-light-green-text{
+      color: #35fb63;
+      font-size: 200%;
+    }
+    .nl-dark-green-text{
+      color: #078455;
+      font-size: 200%;
+    }
+    .nl-failed-text{
+      color: #d44638;
+      font-size: 200%;
+    }
+    .number {
+      display: inline-block;
+      font-weight: 800;
+      font-size: 200%; 
+    }
+    .perc {
+      display: inline-block;
+      min-width: 20px;
+      font-size: 90%;
+      color: #707070;
+    }
+  }
+  .title {
+    color: $nlFontDarkGrey2;
+    color: var(--nlFontDarkGrey2);
+    font-size: 100%;
+    font-weight: bold;
+  }
+  .desc {
+    color: $nlFontDarkGrey2;
+    color: var(--nlFontDarkGrey2);
+  }
+}
+
+nl-summary-box-sm {
+  text-align: -webkit-center;
+  .sb-padding {
+    padding: 20px;
+  }
+}
+
+.nl-summary-box3 {
+  .sb-padding {
+    padding: 10px;
+  }
+  padding: 10px;
+  background-color: $nlWhite;
+  background-color: var(--nlWhite);
+  min-width: 200px;
+  max-width: 300px;
+  height: 90px;
+  box-shadow: 0 3px 6px 0 $nllightblue;
+  box-shadow: 0 3px 6px 0 var(--nllightblue);
+  .infographic {
+    .nl-blue-text{
+      color: $nlPrimary;
+      color: var(--nlPrimary);
+      font-size: 200%;
+    }
+    .nl-yellow-text{
+      color: #ffc900;
+      font-size: 200%;            
+    }
+    .nl-light-green-text{
+      color: #35fb63;
+      font-size: 200%;
+    }
+    .nl-dark-green-text{
+      color: #078455;
+      font-size: 200%;
+    }
+    .nl-failed-text{
+      color: #d44638;
+      font-size: 200%;
+    }
+    .number {
+      display: inline-block;
+      font-weight: 800;
+      font-size: 200%; 
+    }
+    .perc {
+      display: inline-block;
+      min-width: 20px;
+      font-size: 90%;
+      color: #707070;
+    }
+  }
+  .title {
+    color: $nlFontDarkGrey2;
+    color: var(--nlFontDarkGrey2);
+    font-size: 100%;
+    font-weight: bold;
+  }
+  .desc {
+    color: $nlFontDarkGrey2;
+    color: var(--nlFontDarkGrey2);
+  }
+}
+
+nl-summary-box-large {
+  text-align: -webkit-center;
+  .sb-padding {
+    padding: 0px 40px;
+  }
+}
+
+.nl-summary-box-large {
+  .sb-padding {
+    padding: 10px;
+  }
+  padding: 10px;
+  background-color: $nlWhite;
+  background-color: var(--nlWhite);
+  width: 100%;
+  min-height: 175px;
+  max-height: 180px;
+  box-shadow: 0 3px 6px 0 $nllightblue;
+  box-shadow: 0 3px 6px 0 var(--nllightblue);
+  .infographic-text{
+    white-space: nowrap;
+    .nl-blue-text{
+      color: $nlPrimary;
+      color: var(--nlPrimary);
+      font-size: 200%;
+    }
+    .nl-yellow-text{
+      color: #ffc900;
+      font-size: 200%;            
+    }
+    .nl-light-green-text{
+      color: #35fb63;
+      font-size: 200%;
+    }
+    .nl-dark-green-text{
+      color: #078455;
+      font-size: 200%;
+    }
+    .nl-failed-text{
+      color: #d44638;
+      font-size: 200%;
+    }
+    .desc-text{
+      font-size: 90%;
+    }
+    .title {
+      color: $nlFontDarkGrey2;
+      color: var(--nlFontDarkGrey2);
+      font-size: 100%;
+      font-weight: bold;
+    }  
+  }
+  .infographic1 {
+    min-width: 100px;
+    white-space: nowrap;
+    .nl-blue-text{
+      color: $nlPrimary;
+      color: var(--nlPrimary);
+      font-size: 200%;
+    }
+    .nl-yellow-text{
+      color: #ffc900;
+      font-size: 200%;            
+    }
+    .nl-light-green-text{
+      color: #35fb63;
+      font-size: 200%;
+    }
+    .nl-dark-green-text{
+      color: #078455;
+      font-size: 200%;
+    }
+    .nl-failed-text{
+      color: #d44638;
+      font-size: 200%;
+    }
+    .perc{
+      display: inline-block;
+      min-width: 20px;
+      font-size:90%;
+      color: #707070;
+    }
+  }
+}
+
+nl-summary-box-large1 {
+  text-align: -webkit-center;
+  .sb-padding {
+    padding: 20px;
+  }
+}
+
+.nl-summary-box-large1 {
+  .sb-padding {
+    padding: 10px;
+  }
+  padding: 10px;
+  background-color: $nlWhite;
+  background-color: var(--nlWhite);
+  min-width: 200px;
+  max-width: 300px;
+  height: 300px;
+  box-shadow: 0 3px 6px 0 $nllightblue;
+  box-shadow: 0 3px 6px 0 var(--nllightblue);
+  .infographic1 {
+    .nl-blue-text{
+      color: $nlPrimary;
+      color: var(--nlPrimary);
+      font-size: 200%;
+    }
+    .nl-yellow-text{
+      color: #ffc900;
+      font-size: 200%;            
+    }
+    .nl-light-green-text{
+      color: #35fb63;
+      font-size: 200%;
+    }
+    .nl-dark-green-text{
+      color: #078455;
+      font-size: 200%;
+    }
+    .nl-failed-text{
+      color: #d44638;
+      font-size: 200%;
+    }
+    .number {
+      display: inline-block;
+      font-weight: 800;
+      font-size: 200%; 
+    }
+    .perc {
+      display: inline-block;
+      min-width: 20px;
+      font-size: 90%;
+      color: #707070;
+    }
+  }
+  .title {
+    color: $nlFontDarkGrey2;
+    color: var(--nlFontDarkGrey2);
+    font-size: 100%;
+    font-weight: bold;
+  }
+  .desc {
+    color: $nlFontDarkGrey2;
+    color: var(--nlFontDarkGrey2);
   }
 }
 
