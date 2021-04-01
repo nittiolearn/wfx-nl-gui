@@ -745,6 +745,7 @@ function(nl, nlDlg, nlConfig, Upload) {
 
     var _api3InUrl = undefined;
     function _getServerType(url, userInfo) {
+        if (!userInfo.api3 || !userInfo.api3.url) return 'nittio';
         if (!(url in _api3BatchNumbers)) return 'nittio';
         if (_api3InUrl === undefined) {
             _api3InUrl = nl.location.search().api3 || 'guess';
