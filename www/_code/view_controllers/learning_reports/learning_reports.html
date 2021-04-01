@@ -148,17 +148,13 @@
                     <div class='row row-center padding-mid margin0 text-center'><div class='col fsh4 nl-dkonlg-lgondk-text'>Learners</div></div>
                     <div class='row row-center row-wrap row-justify-evenly text-center padding0 margin0'>
                         <div class='col padding nl-min-580' >
-                            <div class='row row-center row-wrap row-justify-evenly text-center padding0 margin0'>
-                                <nl-summary-box-lg class='col padding0'data='overviewDict.learner[0]'>
-                                </nl-summary-box-lg>
-                                <nl-summary-box-lg class='col padding0' data='overviewDict.learner[1]'>
-                                </nl-summary-box-lg>
-                                <nl-summary-box-lg class='col padding0' data='overviewDict.learner[2]'>
+                            <div class='row row-center row-wrap row-justify-evenly text-center padding0 margin0'> 
+                                <nl-summary-box-lg ng-repeat='item in overviewDict.learner[0]' class='col padding0' data='item'>
                                 </nl-summary-box-lg>
                             </div>
                         </div>
                         <div class='col padding'>
-                            <nl-summary-box-large class='col' data='overviewDict.learner[3]'>
+                            <nl-summary-box-large class='col' data='overviewDict.learner[1]'>
                             </nl-summary-box-large>
                         </div>
                     </div>    
@@ -166,16 +162,12 @@
                     <div class='row row-center row-wrap row-justify-evenly text-center padding0 margin0'>
                         <div class='col padding nl-min-580'>
                             <div class='row row-center row-wrap row-justify-evenly text-center padding0 margin0'>
-                                <nl-summary-box-lg class='col padding0' data='overviewDict.reports[0]'>
-                                </nl-summary-box-lg>
-                                <nl-summary-box-lg class='col padding0' data='overviewDict.reports[1]'>
-                                </nl-summary-box-lg>
-                                <nl-summary-box-lg class='col padding0' data='overviewDict.reports[2]'>
+                                <nl-summary-box-lg ng-repeat='item in overviewDict.reports[0]' class='col padding0' data='item'>
                                 </nl-summary-box-lg>
                             </div>
                         </div>
                         <div class='col padding'>
-                            <nl-summary-box-large class='col' data='overviewDict.reports[3]'>
+                            <nl-summary-box-large class='col' data='overviewDict.reports[1]'>
                             </nl-summary-box-large>
                         </div>
                     </div>    
@@ -183,39 +175,29 @@
                 <div ng-if='screenSize == "small"'>
                     <div class='row row-center padding-mid margin0 text-center'><div class='col fsh4 nl-dkonlg-lgondk-text'>Learners</div></div>
                     <div class='row row-center row-wrap row-justify-evenly text-center padding0 margin0'>
-                        <div ng-class='$root.respCol111'>
-                            <nl-summary-box-sm class='col padding0'data='overviewDict.learner[0]'>
+                        <div ng-class='$root.respCol111'
+                            ng-repeat='item in overviewDict.learner[0]'>
+                            <nl-summary-box-sm class='col padding0'data='item'>
                             </nl-summary-box-sm>
                         </div>
+                    </div>
+                    <div class='row row-center row-wrap row-justify-evenly text-center padding0 margin0'>
                         <div ng-class='$root.respCol111'>
-                            <nl-summary-box-sm class='col padding0' data='overviewDict.learner[1]'>
-                            </nl-summary-box-sm>
-                        </div>
-                        <div ng-class='$root.respCol111'>
-                            <nl-summary-box-sm class='col padding0' data='overviewDict.learner[2]'>
-                            </nl-summary-box-sm>
-                        </div>
-                        <div ng-class='$root.respCol111'>
-                            <nl-summary-box-large1 class='col padding0' data='overviewDict.learner[3]'>
+                            <nl-summary-box-large1 class='col padding0' data='overviewDict.learner[1]'>
                             </nl-summary-box-large1>
                         </div>
                     </div>    
                     <div class='row row-center padding-mid margin0 text-center'><div class='col fsh4 nl-dkonlg-lgondk-text'>{{overviewDict.title1}}</div></div>
                     <div class='row row-center row-wrap row-justify-evenly text-center padding0 margin0'>
-                        <div ng-class='$root.respCol111'>
-                            <nl-summary-box-sm class='col padding0'data='overviewDict.reports[0]'>
+                        <div ng-class='$root.respCol111'
+                            ng-repeat='item in overviewDict.reports[0]'>                    
+                            <nl-summary-box-sm class='col padding0'data='item'>
                             </nl-summary-box-sm>
                         </div>
+                    </div>
+                    <div class='row row-center row-wrap row-justify-evenly text-center padding0 margin0'>
                         <div ng-class='$root.respCol111'>
-                            <nl-summary-box-sm class='col padding0' data='overviewDict.reports[1]'>
-                            </nl-summary-box-sm>
-                        </div>
-                        <div ng-class='$root.respCol111'>
-                            <nl-summary-box-sm class='col padding0' data='overviewDict.reports[2]'>
-                            </nl-summary-box-sm>
-                        </div>
-                        <div ng-class='$root.respCol111'>
-                            <nl-summary-box-large1 class='col padding0' data='overviewDict.reports[3]'>
+                            <nl-summary-box-large1 class='col padding0' data='overviewDict.reports[1]'>
                             </nl-summary-box-large1>
                         </div>
                     </div>    
@@ -252,6 +234,10 @@
                     <div ng-class='$root.respCol211' class='text-center padding-mid'>
                         <div class='fsh5 padding-mid nl-dkonlg-lgondk-text'>{{charts[1].title}}</div>
                         <div class='padding-mid'></div>
+                        <div class="chart-heading-position-lr nl-display-flex">
+                            <div class="assigned-bar"><span>Assigned</span></div><br>
+                            <div class="completed-bar"><span>Completed</span></div>
+                        </div>
                         <div style='margin: auto; display:block; height:300px; width:450px'>
                             <canvas class='chart chart-bar'
                                 chart-data='charts[1].data'
@@ -261,10 +247,6 @@
                                 chart-options='charts[1].options'>
                             </canvas>
                         </div>
-                        <div class="chart-heading-position nl-display-flex">
-                            <div class="assigned-bar"><span>Assigned</span></div><br>
-                            <div class="completed-bar"><span>Completed</span></div>
-                        </div>    
                     </div>
                 </div>
             </div>
