@@ -16,9 +16,23 @@ function($stateProvider, $urlRouterProvider) {
 //-------------------------------------------------------------------------------------------------
 var NlLearnerViewRecords2 = ['nl', 'nlGetManyStore', 'nlReportHelper', 'nlServerApi', 'nlConfig', 'nlDlg',
 function(nl, nlGetManyStore, nlReportHelper, nlServerApi, nlConfig, nlDlg) {
+    // TODO-NOW: usage code
+    // OnPageEnter
+    // if initFromCache() returned data:
+    //      update scope
+    //      resolve - i.e. hideLoadingScreen
+    //      if updateCachedRecords says "changed":
+    //          update scope
+    // else:
+    //      fetchLatestChunkFromServer
+    //      update scope
+    //      resolve - i.e. hideLoadingScreen
+    //  
+    // OnFetchMoreClick
+    // fetchNextChunkFromServer
     var _records = {};
     var _referredRecordTimestamps = {}; // TODO-DONE-NOW: To be computed
-    var _tsForFetchMore = null;
+    var _tsForFetchMore = null; // TODO-NOW: at end of updateLatestRecords, find min updated of rectods and store
     var _dates = {};
     var _cacheData = {records: _records, referredRecordTimestamps: _referredRecordTimestamps, minTime: null, maxTime: null};
     var _userInfo = null;
@@ -53,7 +67,7 @@ function(nl, nlGetManyStore, nlReportHelper, nlServerApi, nlConfig, nlDlg) {
         });
     };
 
-    this.updateLatestRecords = function(onUpdateDone) {
+    this.updateCachedRecords = function(onUpdateDone) {
         _initPagefetcher();
         var rawRecords = {};
         for(var rid in _records) {
@@ -68,7 +82,14 @@ function(nl, nlGetManyStore, nlReportHelper, nlServerApi, nlConfig, nlDlg) {
         });
     };
 
-    this.fetchMore = function(onFetchedMore) {
+    this.fetchLatestChunkFromServer = function(onFetchedMore) {
+        var rawRecords = {};
+        _getLearningRecordsFromServer(false, null, null, rawRecords, function(canFetchMore) {
+            _processFetchedRecords(rawRecords, canFetchMore, onFetchedMore); //TODO-NOW Check with Aravind if this is the right way
+        });
+    };
+
+    this.fetchNextChunkFromServer = function(onFetchedMore) {
         var rawRecords = {};
         _getLearningRecordsFromServer(true, null, _tsForFetchMore, rawRecords, function(canFetchMore) {
             _processFetchedRecords(rawRecords, canFetchMore, onFetchedMore); //TODO-NOW Check with Aravind if this is the right way
