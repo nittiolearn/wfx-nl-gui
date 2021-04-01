@@ -385,7 +385,7 @@ function _PageRenderer_renderImpl(self, statusBar) {
 		var canvas = jQuery('<canvas class="njs_pdf_canvas"/>');
         
         canvas.attr('height', viewport.height);
-        canvas.attr('width', viewport.width);
+        canvas.attr('width', viewport.width+40);
 		njs_helper.switchoffContenxtMenu(canvas);
 		statusBar.done();
 
