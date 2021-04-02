@@ -1013,9 +1013,9 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			utotal += 1;
 			if (statusDict.started == 0 && statusDict.pending == 0) uCompletedAll++;
 			if ((statusDict.certified + statusDict.done + statusDict.passed) == statusDict.total) uCertified++;
-			else if (statusDict.started > 0) uStarted++;
+			else if (statusDict.failed > 0 && (statusDict.certified + statusDict.done + statusDict.passed + statusDict.failed) == statusDict.total) uFailed++;
+			else if (statusDict.started > 0 || statusDict.failed > 0) uStarted++;
 			else if (statusDict.pending > 0) uPending++;
-			else if (statusDict.failed > 0) uFailed++;
 			else uPending++;
 		}
 		var uCompletedAllPerc = Math.round((uCompletedAll/utotal)*100 || 0);
@@ -1045,7 +1045,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		var moduleId = nlLrFilter.getModuleId();
 		var uLearnerArr = [{title: 'Assigned', hover: nl.t('{} assigned to {} unique {}.', sType, utotal, _getLearnerStr(utotal)), val: utotal, perc: 100, class: 'nl-blue-text'},
 							{title: 'Yet to start', hover: nl.t('{} assigned to {} unique {}, {} {} ({}%) not yet started any {} assigned to them.', sType, utotal, _getLearnerStr(utotal), uPending, _getLearnerStr(uPending), uPendingPerc, sType.toLowerCase()), val: uPending, perc: uPendingPerc, class: 'nl-yellow-text'},
-							{title: 'Started atleast one', hover: nl.t('{} assigned to {} unique {}, {} {} ({}%) started atlest one of the {} assigned to them.', sType, utotal, _getLearnerStr(utotal), uStarted, _getLearnerStr(uStarted), uStartedPerc, sType.toLowerCase()), val: uStarted, perc: uStartedPerc, class: 'nl-light-green-text'}];
+							{title: 'Started atleast one', hover: nl.t('{} assigned to {} unique {}, {} {} ({}%) started atleast one of the {} assigned to them.', sType, utotal, _getLearnerStr(utotal), uStarted, _getLearnerStr(uStarted), uStartedPerc, sType.toLowerCase()), val: uStarted, perc: uStartedPerc, class: 'nl-light-green-text'}];
 		if (moduleId) uLearnerArr.splice(1, 1);
 		var ulearnerArray = [uLearnerArr,
 							 [{title: 'Completed All', hover: nl.t('{} assigned to {} unique {}, {} {} ({}%) completed all {} assigned to them.', sType, utotal, _getLearnerStr(utotal), uCompletedAll, _getLearnerStr(uCompletedAll), uCompletedAllPerc, sType.toLowerCase()), val: uCompletedAll, perc: uCompletedAllPerc, class: 'nl-blue-text'},
