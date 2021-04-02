@@ -1014,14 +1014,19 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			if (statusDict.started == 0 && statusDict.pending == 0) uCompletedAll++;
 			if ((statusDict.certified + statusDict.done + statusDict.passed) == statusDict.total) uCertified++;
 			else if (statusDict.failed > 0 && (statusDict.certified + statusDict.done + statusDict.passed + statusDict.failed) == statusDict.total) uFailed++;
-			else if (statusDict.started > 0 || statusDict.failed > 0) uStarted++;
-			else if (statusDict.pending > 0) uPending++;
-			else uPending++;
+			else if (statusDict.pending == statusDict.total) uPending++;
+			else uStarted++;
 		}
 		var uCompletedAllPerc = Math.round((uCompletedAll/utotal)*100 || 0);
 		var uStartedPerc = Math.round((uStarted/utotal)*100 || 0);
 		var uPendingPerc = Math.round((uPending/utotal)*100 || 0);
 		var uCertifiedPerc = Math.round((uCertified/utotal)*100 || 0);
+		if ((uCompletedAllPerc+uStartedPerc+uPendingPerc) > 100) {
+			if (uPendingPerc > uStartedPerc) 
+				uPendingPerc -= 1;
+			else if (uStartedPerc > uPendingPerc)
+				uStartedPerc -= 1;
+		}
 		var uFailedPerc = Math.round((uFailed/utotal)*100 || 0);
 		var type = nlLrFilter.getType();
 		var typeStr = type == 'course' || type == 'course_assign' ? 'course' : 'module';
@@ -1064,6 +1069,13 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		var rfailedPerc = Math.round((rfailed/rassigned)*100 || 0);
 		var rstartedPerc = Math.round((rstarted/rassigned)*100 || 0);
 		var rpendingPerc = Math.round((rpending/rassigned)*100 || 0);
+		if ((rcompletedPerc+rstartedPerc+rpendingPerc) > 100) {
+			if (rpendingPerc > rstartedPerc) 
+				rpendingPerc -= 1;
+			else if (rstartedPerc > rpendingPerc)
+				rstartedPerc -= 1;
+		}
+
 		if (type == 'user') {
 			repStr = 'Learning';
 			sRepStr = 'Learning';
