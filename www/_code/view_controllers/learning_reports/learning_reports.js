@@ -647,7 +647,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		columns.push(_col('repcontent.not_after_str', 'Till'));
 		columns.push(_col('stats.status.txt', 'Status', 'text-left', false, 'stats.status.icon'));
 		columns.push(_col('stats.totalQuizAttempts', 'Quiz Attempts', 'text-right'));
-		columns.push(_col('stats.percScoreStr', 'Achieved %', 'text-right'));
+		columns.push(_col('stats.percScore', 'Achieved %', 'text-right'));
 		columns.push(_col('stats.nMaxScore', 'Maximum Score', 'text-right'));
 		columns.push(_col('stats.nScore', 'Achieved Score', 'text-right'));
 		columns.push(_col('stats.progressDesc', 'Progress', 'text-left'));		
@@ -727,6 +727,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		var column = { id: id, name: name, allScreens: true,
 			hideInMode: hideInMode, styleTd: style, iconType: 'ionicon'};
 		if(icon) column.icon = icon;
+		if (id == 'stats.percScore') column.addPercSym = true;
 		return column;
 	}
 

@@ -27,7 +27,7 @@
         <td ng-repeat='col in info.origColumns track by $index'
             class='{{col.styleTd}} nl-txt-white'>
              <i ng-show='rec._avps["_id." + col.icon]' class='icon fsh4 {{rec._avps["_id." + col.icon]}}'></i>
-             <span>{{rec._avps['_id.' + col.id] || ''}}</span>
+             <span>{{rec._avps['_id.' + col.id] || ''}} {{(rec._avps['_id.' + col.id] && col.addPercSym) ? '%' : ''}}</span>
         </td>
     </tr>
     <tr ng-repeat-end ng-if='rec.canShowDetails'>

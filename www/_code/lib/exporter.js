@@ -57,6 +57,7 @@ function(nl, nlDlg) {
             var attrValue = item[attr];
             if(attr.indexOf('.') != -1) attrValue = _getAttrValue(attr.split('.'), item);
             var val = _fmtValue(attrValue, headers[i].fmt) || '';
+            if (val > 0 && headers[i].addPercSym) val += ' %';
             row.push(val);
         }
         return row;
