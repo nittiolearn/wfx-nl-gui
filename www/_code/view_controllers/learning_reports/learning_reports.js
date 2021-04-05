@@ -1020,14 +1020,14 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		var uCompletedAllPerc = Math.round((uCompletedAll/utotal)*100 || 0);
 		var uStartedPerc = Math.round((uStarted/utotal)*100 || 0);
 		var uPendingPerc = Math.round((uPending/utotal)*100 || 0);
-		var uCertifiedPerc = Math.round((uCertified/utotal)*100 || 0);
 		if ((uCompletedAllPerc+uStartedPerc+uPendingPerc) > 100) {
 			if (uPendingPerc > uStartedPerc) 
 				uPendingPerc -= 1;
 			else if (uStartedPerc > uPendingPerc)
 				uStartedPerc -= 1;
 		}
-		var uFailedPerc = Math.round((uFailed/utotal)*100 || 0);
+		var uCertifiedPerc = Math.round((uCertified/uCompletedAll)*100 || 0);
+		var uFailedPerc = Math.round((uFailed/uCompletedAll)*100 || 0);
 		var type = nlLrFilter.getType();
 		var typeStr = type == 'course' || type == 'course_assign' ? 'course' : 'module';
 		var certStr = 'Passed';
@@ -1063,10 +1063,9 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		var rpending = summaryRecord.pending.txt;
 		var rcompleted = rdone + rfailed;
 		var rassigned = summaryRecord.assigned.txt;
-
-		var rcompletedPerc = Math.round(((rdone+rfailed)/rassigned)*100 || 0);
-		var rdonePerc = Math.round((rdone/rassigned)*100 || 0);
-		var rfailedPerc = Math.round((rfailed/rassigned)*100 || 0);
+		var rcompletedPerc = Math.round((rcompleted/rassigned)*100 || 0);
+		var rdonePerc = Math.round((rdone/rcompleted)*100 || 0);
+		var rfailedPerc = Math.round((rfailed/rcompleted)*100 || 0);
 		var rstartedPerc = Math.round((rstarted/rassigned)*100 || 0);
 		var rpendingPerc = Math.round((rpending/rassigned)*100 || 0);
 		if ((rcompletedPerc+rstartedPerc+rpendingPerc) > 100) {
