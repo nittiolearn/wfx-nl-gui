@@ -301,6 +301,7 @@ function(nl, nlDlg, nlServerApi, nlMarkup, $state, nlTopbarSrv, nlMobileConnecto
             : nlServerApi.getUserInfoFromCacheOrServer();
         promise.then(function(userInfo) {
             nlMobileConnector.initAppVersion(userInfo);
+            resolve(userInfo);
             //_informAppUpdateIfNeeded(userInfo, pageUrl, resolve);
         }, reject);
     }
