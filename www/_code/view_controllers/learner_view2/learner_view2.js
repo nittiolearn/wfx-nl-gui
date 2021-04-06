@@ -139,11 +139,11 @@ function(nl, $scope, nlLearnerView2) {
 
 //-------------------------------------------------------------------------------------------------
 
-var NlLearnerView2 = ['nl', 'nlDlg', 'nlRouter', 'nlServerApi', 'nlReportHelper',
+var NlLearnerView2 = ['nl', 'nlDlg', 'nlRouter', 'nlReportHelper',
 'nlLearnerViewRecords2', 'nlTopbarSrv', 'nlCardsSrv', 'nlCourse', 'nlGetManyStore', 'nlAnnouncementSrv',
-function(nl, nlDlg, nlRouter, nlServerApi, nlReportHelper, nlLearnerViewRecords2, nlTopbarSrv, nlCardsSrv, nlCourse, nlGetManyStore, nlAnnouncementSrv) {
+function(nl, nlDlg, nlRouter, nlReportHelper, nlLearnerViewRecords2, nlTopbarSrv, nlCardsSrv, nlCourse, nlGetManyStore, nlAnnouncementSrv) {
 	this.create = function($scope) {
-		return new NlLearnerViewImpl($scope, nl, nlDlg, this, nlRouter, nlServerApi, nlReportHelper,
+		return new NlLearnerViewImpl($scope, nl, nlDlg, this, nlRouter, nlReportHelper,
 			nlLearnerViewRecords2, nlTopbarSrv, nlCardsSrv, nlCourse, nlGetManyStore, nlAnnouncementSrv);
 	};
 
@@ -158,10 +158,9 @@ function(nl, nlDlg, nlRouter, nlServerApi, nlReportHelper, nlLearnerViewRecords2
 	
 }];
 
-function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlServerApi, nlReportHelper, 
+function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlReportHelper, 
 	nlLearnerViewRecords2, nlTopbarSrv, nlCardsSrv, nlCourse, nlGetManyStore, nlAnnouncementSrv) {
 	var self = this;
-	var _fetchChunk = 100;
 	var _userInfo = null;
 	var _parent = false;
 	var _isHome = false;
@@ -172,7 +171,7 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlServerA
 	};
 
 	this.afterPageEnter = function(userInfo, parent) {
-		_userInfo = userInfo;
+		// Not used as of now. May be used later from home.js
 		_parent = parent;
 		_isHome = true;
 		return nl.q(function(resolve, reject) {
@@ -192,15 +191,13 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlServerA
 		if (!_isHome) nlLearnerView.initPageBgImg(_userInfo);
 		return nl.q(function(resolve, reject) {
 			_init(userInfo);
-			nlLearnerViewRecords2.reset();
-			_fetchDataIfNeededAndUpdateScope(false, resolve);
-			if(_enableAnnouncements) _loadAndShowAnnouncements(resolve);
+			_getLearningRecordsFromCacheAndServer(resolve);
+			if(_enableAnnouncements) _loadAndShowAnnouncements();
 		});
 	}
 
-	function _loadAndShowAnnouncements(resolve) {
+	function _loadAndShowAnnouncements() {
 		nlAnnouncementSrv.onPageEnter(_userInfo, $scope, 'pane').then(function() {
-			resolve(true);
 		});
 	}
     
@@ -221,7 +218,6 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlServerA
 			nlCardsSrv.initCards(cards);
 		}
 		$scope.userName = userInfo.displayname;
-		nlGetManyStore.init();
 		_initChartData();
 	}
 
@@ -420,58 +416,35 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlServerA
 
 	function _fetchMore(event) {
 		if (!$scope.tabData.canFetchMore) return;
-		_fetchDataIfNeededAndUpdateScope(true, null);
+		nlLearnerViewRecords2.fetchNextChunkFromServer(function(canFetchMore) {
+			_updateTabDataWithRecords(canFetchMore);
+		});
 	}
 
-	function _fetchDataIfNeededAndUpdateScope(fetchMore, resolve) {
-		if (!_lrFetchInitiated || fetchMore) {
-			_getLearningRecordsFromServer(fetchMore, function(result) {
-				if (result) _updateCurrentTab();
-				if (resolve) resolve(true);
-			});
-		} else {
-			_updateCurrentTab();
-			if (resolve) resolve(true);
-		}
-	}
-
-	var _lrFetchInitiated = false;
-    var _pageFetcher = nlServerApi.getPageFetcher({defMax: _fetchChunk, itemType: 'learning record'});
-	function _getLearningRecordsFromServer(fetchMore, resolve) {
-		_lrFetchInitiated = true;
-		var params = {containerid: 0, type: 'all', assignor: 'all', learner: 'me'};
-
-		var dontHideLoading = true;
-		nlDlg.popupStatus('Fetching learning records from server ...', false);
-		nlDlg.showLoadingScreen();
-		function _onFetchComplete(results) {
-			nlDlg.hideLoadingScreen();
-			if (results) {
-				for (var i=0; i<results.length; i++) nlLearnerViewRecords2.addRecord(results[i]);
-			}
-			$scope.tabData.dataLoaded = true;
-			$scope.tabData.records = nlLearnerViewRecords2.getRecords();
-			$scope.tabData.recordsLen = Object.keys($scope.tabData.records).length;
-			$scope.tabData.canFetchMore = _pageFetcher.canFetchMore();
-			var msg = 'Learning records fetched.';
-			if ($scope.tabData.canFetchMore) {
-				msg += ' Press on the fetch more icon to fetch more from server.';
-			}
-			nlDlg.popupStatus(msg);
-			resolve(true);
-		}
-
-        _pageFetcher.fetchPage(nlServerApi.learningReportsGetList, params, fetchMore, function(results) {
-			if (!results) {
-				_onFetchComplete(false);
+	function _getLearningRecordsFromCacheAndServer(resolve) {
+		var bResolved = false;
+		nlLearnerViewRecords2.initFromCache(function(dataFound) {
+			if (!dataFound) {
+				nlLearnerViewRecords2.fetchLatestChunkFromServer(function(canFetchMore) {
+					_updateTabDataWithRecords(canFetchMore);
+					resolve(true);
+				});
 				return;
 			}
-			var msg = nl.t('Fetching assignment and course information from server ...', results.length);
-			nlDlg.popupStatus(msg, false);
-			nlGetManyStore.fetchReferredRecords(results, false, function() {
-				_onFetchComplete(results);
+			_updateTabDataWithRecords(true);
+			resolve(true);
+			nlLearnerViewRecords2.updateCachedRecords(function(dataChanged, canFetchMore) {
+				if (dataChanged) _updateTabDataWithRecords(canFetchMore);
 			});
-		}, dontHideLoading);
+		});
+	}
+
+	function _updateTabDataWithRecords(canFetchMore) {
+		$scope.tabData.dataLoaded = true;
+		$scope.tabData.records = nlLearnerViewRecords2.getRecords();
+		$scope.tabData.recordsLen = Object.keys($scope.tabData.records).length;
+		$scope.tabData.canFetchMore = canFetchMore;
+		_updateCurrentTab();
 	}
 
 	function _updateCurrentTab() {
@@ -644,7 +617,7 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlServerA
 		if (searchInfo.length == 0) return true;
 		var repcontent = record.repcontent || {};
 		var raw_record = record.raw_record || {};
-		var user = record.user || {};
+		var user = _userInfo || {};
 		var usermeta = record.usermd || {};
 		var mdKeys = [];
 		for (var md in usermeta) mdKeys.push(md);
