@@ -16,25 +16,10 @@ function($stateProvider, $urlRouterProvider) {
 //-------------------------------------------------------------------------------------------------
 var NlLearnerViewRecords2 = ['nl', 'nlGetManyStore', 'nlReportHelper', 'nlServerApi', 'nlConfig', 'nlDlg',
 function(nl, nlGetManyStore, nlReportHelper, nlServerApi, nlConfig, nlDlg) {
-    // TODO-NOW: usage code
-    // OnPageEnter
-    // if initFromCache() returned data:
-    //      update scope
-    //      resolve - i.e. hideLoadingScreen
-    //      if updateCachedRecords says "changed":
-    //          update scope
-    // else:
-    //      fetchLatestChunkFromServer
-    //      update scope
-    //      resolve - i.e. hideLoadingScreen
-    //  
-    // OnFetchMoreClick
-    // fetchNextChunkFromServer
     var _records = {};
-    var _referredRecordTimestamps = {}; // TODO-DONE-NOW: To be computed
-    var _tsForFetchMore = null; // TODO-NOW: at end of updateLatestRecords, find min updated of rectods and store
+    var _referredRecordTimestamps = {};
+    var _tsForFetchMore = null;
     var _dates = {};
-    var _cacheData = {records: _records, referredRecordTimestamps: _referredRecordTimestamps, minTime: null, maxTime: null};
     var _userInfo = null;
     this.init = function(userinfo) {
 		nlGetManyStore.init();
@@ -44,22 +29,23 @@ function(nl, nlGetManyStore, nlReportHelper, nlServerApi, nlConfig, nlDlg) {
     };
 
     this.getRecords = function() {
-        return _records; //TODO-NOW Should it send data from cache ot from records?
+        return _records;
     };
 
     function _updateReferredRecordsTimestamps(records){
         Object.keys(records).forEach(function(value){
             var record = records[value];
-            _referredRecordTimestamps[value] = {'type': record.type, 'updated': record.raw_record.updated};
+            _referredRecordTimestamps[value] = {'id': record.id, 'type': record.ctype == _nl.ctypes.CTYPE_COURSE ? "course" : record.ctype == _nl.ctypes.CTYPE_MODULE ? "module" : null, 'updated': record.updated};
         });
     };
 
     this.initFromCache = function(onInitDone) {
-        // TODO-DONE-NOW: Read the data from local DB and populate in _records, _referredRecordTimestamps
         nlConfig.loadFromDb('learner_records_cache',function(data) {
             if (data){
                 _records = data.records ? data.records : {};
                 _updateReferredRecordsTimestamps(data.records ? data.records : {});
+                _dates.minUpdated = data.minUpdated;
+                _dates.maxUpdated = data.maxUpdated;
                 onInitDone(true);
             }else{
                 onInitDone(false);
@@ -70,14 +56,14 @@ function(nl, nlGetManyStore, nlReportHelper, nlServerApi, nlConfig, nlDlg) {
     this.updateCachedRecords = function(onUpdateDone) {
         _initPagefetcher();
         var rawRecords = {};
-        for(var rid in _records) {
-            rawRecords[rid] = _records[rid].raw_record;
-            if (!_dates.minUpdated || _dates.minUpdated > rawRecords[rid].updated) _dates.minUpdated = rawRecords[rid].updated;
-            if (!_dates.maxUpdated || _dates.maxUpdated < rawRecords[rid].updated) _dates.maxUpdated = rawRecords[rid].updated;
-        }
-        var updatedfrom = _dates.maxUpdated; // TODO-DONE-NOW: computed based on maxUpdated
+        
+        var updatedfrom = new Date(_dates.maxUpdated).toISOString();
         _getLearningRecordsFromServer(false, updatedfrom, null, rawRecords, function(canFetchMore) {
-            _processFetchedRecords(rawRecords, canFetchMore, onUpdateDone);
+            _updateTimestamps(rawRecords, 1, false);
+            _processFetchedRecords(rawRecords, false, canFetchMore, onUpdateDone);
+            if (rawRecords){
+                onUpdateDone();
+            };
             _initPagefetcher(); // Get past data in next iteration
         });
     };
@@ -85,18 +71,67 @@ function(nl, nlGetManyStore, nlReportHelper, nlServerApi, nlConfig, nlDlg) {
     this.fetchLatestChunkFromServer = function(onFetchedMore) {
         var rawRecords = {};
         _getLearningRecordsFromServer(false, null, null, rawRecords, function(canFetchMore) {
-            _processFetchedRecords(rawRecords, canFetchMore, onFetchedMore); //TODO-NOW Check with Aravind if this is the right way
+            _updateTimestamps(rawRecords, 0, false);
+            _processFetchedRecords(rawRecords, true, canFetchMore, onFetchedMore);
         });
     };
 
     this.fetchNextChunkFromServer = function(onFetchedMore) {
         var rawRecords = {};
+        _tsForFetchMore = new Date(_dates.minUpdated).toISOString();
         _getLearningRecordsFromServer(true, null, _tsForFetchMore, rawRecords, function(canFetchMore) {
-            _processFetchedRecords(rawRecords, canFetchMore, onFetchedMore); //TODO-NOW Check with Aravind if this is the right way
+            _updateTimestamps(rawRecords, 2, false);
+            _processFetchedRecords(rawRecords, false, canFetchMore, onFetchedMore);
         });
     };
 
-    function _processFetchedRecords(rawRecords, canFetchMore, onDone) {
+    function _updateTimestamps(rawRecords, updateMaxOrMinOrBoth, postProcessForCache){
+        if (postProcessForCache) delete _dates.maxUpdated;
+        if (postProcessForCache) delete _dates.minUpdated;
+        for(var rid in rawRecords) {
+            var record = postProcessForCache ? rawRecords[rid].raw_record : rawRecords[rid];
+            if ((updateMaxOrMinOrBoth === 1 || updateMaxOrMinOrBoth === 0) && (!_dates.maxUpdated || record.updated > _dates.maxUpdated)) _dates.maxUpdated = record.updated;
+            if ((updateMaxOrMinOrBoth === 2 || updateMaxOrMinOrBoth === 0) && (!_dates.minUpdated || record.updated < _dates.minUpdated)) _dates.minUpdated = record.updated;
+        };
+    };
+
+    function _sortAndSliceObjOfObjByKey(obj, key, limit){
+        var recordsArray = Object.values(obj)
+        recordsArray.sort(function(a,b){ 
+            return a[key] - b[key];
+        });
+        recordsArray = recordsArray.slice(-limit);
+        var ret = {}
+        recordsArray.forEach(function(value){
+            ret[value.id] = value;
+        });
+        return ret;
+    };
+
+    function _saveToDb(firstTime){
+        nlConfig.loadFromDb('learner_records_cache', function(data){
+            data = data ? data : {};
+            data.records = data.records ? data.records : {};
+            data.referredRecordTimestamps = data.referredRecordTimestamps ? data.referredRecordTimestamps : {};
+            data.records = Object.assign(data.records, _records);
+            data.referredRecordTimestamps = Object.assign(data.referredRecordTimestamps, _referredRecordTimestamps);
+            var _cacheLimit = nl.location.search().cacheLimit || 1500;
+            if (Object.keys(data.records).length >= _cacheLimit){
+                data.records = _sortAndSliceObjOfObjByKey(data.records, "updated", _cacheLimit);
+                data.referredRecordTimestamps = _sortAndSliceObjOfObjByKey(data.referredRecordTimestamps, "updated", _cacheLimit);
+                _updateTimestamps(data.records, 0, true);
+            };
+            data.maxUpdated = firstTime ? _dates.maxUpdated : data.maxUpdated ? data.maxUpdated : null;
+            data.minUpdated = firstTime ? _dates.minUpdated : data.minUpdated ? data.minUpdated : null;
+            nlConfig.saveToDb('learner_records_cache', data);
+            if (!firstTime){
+                _dates.maxUpdated = data.maxUpdated ? data.maxUpdated : null;
+                _dates.minUpdated = data.minUpdated ? data.minUpdated : null;
+            };
+        });
+    };
+
+    function _processFetchedRecords(rawRecords, firstTime, canFetchMore, onDone) {
         var rawRecordsArray = [];
         for (var rid in rawRecords) {
             rawRecordsArray.push(rawRecords[rid]);
@@ -107,23 +142,12 @@ function(nl, nlGetManyStore, nlReportHelper, nlServerApi, nlConfig, nlDlg) {
                 var raw_record = rawRecordsArray[i];
                 var record = _records[raw_record.id] || null;
                 if (record && record.raw_record.updated >= raw_record.updated && !_isReferredUpdated(raw_record))
-                    continue;
+                continue;
                 dataChanged = true;
                 _addRecord(raw_record);
-            }
-            _tsForFetchMore = _dates.minUpdated;
-            // TODO-DONE-NOW _tsForFetchMore = minUpdated as of now
-            // TODO-DONE-NOW: store in cache
-            nlConfig.loadFromDb('learner_records_cache', function(data){
-                data = data ? data : {};
-                data.records = data.records ? data.records : {};
-                data.referredRecordTimestamps = data.referredRecordTimestamps ? data.referredRecordTimestamps : {};
-                data.records = Object.assign(data.records, _records);
-                data.referredRecordTimestamps = Object.assign(data.referredRecordTimestamps, _referredRecordTimestamps);
-                data.maxTime = _dates.maxUpdated;
-                data.minTime = _dates.minUpdated;
-                nlConfig.saveToDb('learner_records_cache', data);
-            })
+            };
+            _updateReferredRecordsTimestamps(rawRecords ? rawRecords : {});
+            _saveToDb(firstTime);
             onDone(dataChanged, canFetchMore);
         });
     }
@@ -136,7 +160,7 @@ function(nl, nlGetManyStore, nlReportHelper, nlServerApi, nlConfig, nlDlg) {
     }
 	
     function _getLearningRecordsFromServer(fetchMore, updatedfrom, updatedtill, rawRecords, onDone) {
-		var dontHideLoading = false; //TODO-NOW Check with Aravind, turning it into false is working.
+        _initPagefetcher()
         var fetchLimit = fetchMore ? undefined : null;
 		nlDlg.popupStatus('Fetching learning records from server ...', false);
 		var params = {containerid: 0, type: 'all', assignor: 'all', learner: 'me'};
@@ -148,17 +172,17 @@ function(nl, nlGetManyStore, nlReportHelper, nlServerApi, nlConfig, nlDlg) {
 			}
             if (!batchDone) return;
 
-            var canFetchMore = fetchMore ? _pageFetcher.canFetchMore() : true; //TODO-NOW This is wrong!
+            var canFetchMore = fetchMore ? _pageFetcher.canFetchMore() : true;
             var msg = 'Fetched.';
             if (canFetchMore) msg += ' Press on the fetch more icon to fetch more from server.';
             nlDlg.popupStatus(msg);
 			onDone(canFetchMore);
-		}, fetchLimit, dontHideLoading);
-	}
+		}, fetchLimit);
+	};
 
     function _isReferredUpdated(raw_record) {
-        return _referredRecordTimestamps[raw_record.id] != undefined ? true : false;
-    }
+        return _referredRecordTimestamps[raw_record.id] != undefined;
+    };
 
     function _addRecord(raw_record) {
         var report = null;
@@ -170,8 +194,8 @@ function(nl, nlGetManyStore, nlReportHelper, nlServerApi, nlConfig, nlDlg) {
             return null;
         if (!report) return null;
         var rid = report.raw_record.id;
+        report.id = report.raw_record.id;
         _records[rid] = report;
-        //TODO-NOW Moving _dates from here because we need them before adding the record
         return report;
     };
     
@@ -492,8 +516,8 @@ function(nl, nlGetManyStore, nlReportHelper, nlServerApi, nlConfig, nlDlg) {
         var day = 24*60*60*1000; // 1 day in ms
         var now = new Date();
         var offset = now.getTimezoneOffset()*60*1000; // in ms
-        var start = Math.floor((_dates.minUpdated.getTime()-offset)/day)*day + offset; // Today 00:00 Hrs in local time
-        var end = Math.ceil((_dates.maxUpdated.getTime()-offset)/day)*day + offset; // Tomorrow 00:00 Hrs in local time
+        var start = Math.floor((new Date(_dates.minUpdated).getTime()-offset)/day)*day + offset; // Today 00:00 Hrs in local time
+        var end = Math.ceil((new Date(_dates.maxUpdated).getTime()-offset)/day)*day + offset; // Tomorrow 00:00 Hrs in local time
         var rangeSize = Math.ceil((end - start)/day/maxBuckets);
         rangeSize *= day;
         var ranges = [];
