@@ -58,7 +58,7 @@ function(nl, nlGetManyStore, nlReportHelper, nlServerApi, nlConfig, nlDlg) {
         var rawRecords = {};
         
         var updatedfrom = new Date(_dates.maxUpdated).toISOString();
-        _getLearningRecordsFromServer(false, updatedfrom, null, rawRecords, function(canFetchMore) {
+        _getLearningRecordsFromServer(true, false, updatedfrom, null, rawRecords, function(canFetchMore) {
             _updateTimestamps(rawRecords, 1, false);
             _processFetchedRecords(rawRecords, false, canFetchMore, onUpdateDone);
             if (rawRecords){
@@ -70,7 +70,7 @@ function(nl, nlGetManyStore, nlReportHelper, nlServerApi, nlConfig, nlDlg) {
 
     this.fetchLatestChunkFromServer = function(onFetchedMore) {
         var rawRecords = {};
-        _getLearningRecordsFromServer(false, null, null, rawRecords, function(canFetchMore) {
+        _getLearningRecordsFromServer(true, false, null, null, rawRecords, function(canFetchMore) {
             _updateTimestamps(rawRecords, 0, false);
             _processFetchedRecords(rawRecords, true, canFetchMore, onFetchedMore);
         });
@@ -79,7 +79,7 @@ function(nl, nlGetManyStore, nlReportHelper, nlServerApi, nlConfig, nlDlg) {
     this.fetchNextChunkFromServer = function(onFetchedMore) {
         var rawRecords = {};
         _tsForFetchMore = new Date(_dates.minUpdated).toISOString();
-        _getLearningRecordsFromServer(true, null, _tsForFetchMore, rawRecords, function(canFetchMore) {
+        _getLearningRecordsFromServer(false, true, null, _tsForFetchMore, rawRecords, function(canFetchMore) {
             _updateTimestamps(rawRecords, 2, false);
             _processFetchedRecords(rawRecords, false, canFetchMore, onFetchedMore);
         });
@@ -97,8 +97,8 @@ function(nl, nlGetManyStore, nlReportHelper, nlServerApi, nlConfig, nlDlg) {
 
     function _sortAndSliceObjOfObjByKey(obj, key, limit){
         var recordsArray = Object.values(obj)
-        recordsArray.sort(function(a,b){ 
-            return a[key] - b[key];
+        recordsArray = recordsArray.sort(function(a,b){
+            return a[key]<b[key] ? -1 : 1;
         });
         recordsArray = recordsArray.slice(-limit);
         var ret = {}
@@ -108,26 +108,23 @@ function(nl, nlGetManyStore, nlReportHelper, nlServerApi, nlConfig, nlDlg) {
         return ret;
     };
 
-    function _saveToDb(firstTime){
+    function _saveToDb(){
         nlConfig.loadFromDb('learner_records_cache', function(data){
             data = data ? data : {};
             data.records = data.records ? data.records : {};
             data.referredRecordTimestamps = data.referredRecordTimestamps ? data.referredRecordTimestamps : {};
             data.records = Object.assign(data.records, _records);
             data.referredRecordTimestamps = Object.assign(data.referredRecordTimestamps, _referredRecordTimestamps);
-            var _cacheLimit = nl.location.search().cacheLimit || 1500;
+            var _cacheLimit = 1500;
             if (Object.keys(data.records).length >= _cacheLimit){
                 data.records = _sortAndSliceObjOfObjByKey(data.records, "updated", _cacheLimit);
                 data.referredRecordTimestamps = _sortAndSliceObjOfObjByKey(data.referredRecordTimestamps, "updated", _cacheLimit);
                 _updateTimestamps(data.records, 0, true);
             };
-            data.maxUpdated = firstTime ? _dates.maxUpdated : data.maxUpdated ? data.maxUpdated : null;
-            data.minUpdated = firstTime ? _dates.minUpdated : data.minUpdated ? data.minUpdated : null;
+            _updateTimestamps(data.records, 0, true);
+            data.maxUpdated = _dates.maxUpdated;
+            data.minUpdated = _dates.minUpdated;
             nlConfig.saveToDb('learner_records_cache', data);
-            if (!firstTime){
-                _dates.maxUpdated = data.maxUpdated ? data.maxUpdated : null;
-                _dates.minUpdated = data.minUpdated ? data.minUpdated : null;
-            };
         });
     };
 
@@ -147,7 +144,7 @@ function(nl, nlGetManyStore, nlReportHelper, nlServerApi, nlConfig, nlDlg) {
                 _addRecord(raw_record);
             };
             _updateReferredRecordsTimestamps(rawRecords ? rawRecords : {});
-            _saveToDb(firstTime);
+            _saveToDb();
             onDone(dataChanged, canFetchMore);
         });
     }
@@ -159,7 +156,7 @@ function(nl, nlGetManyStore, nlReportHelper, nlServerApi, nlConfig, nlDlg) {
         _pageFetcher = nlServerApi.getPageFetcher({defMax: _fetchChunk, itemType: 'learning record'});
     }
 	
-    function _getLearningRecordsFromServer(fetchMore, updatedfrom, updatedtill, rawRecords, onDone) {
+    function _getLearningRecordsFromServer(hideLoadingScreen, fetchMore, updatedfrom, updatedtill, rawRecords, onDone) {
         _initPagefetcher()
         var fetchLimit = fetchMore ? undefined : null;
 		nlDlg.popupStatus('Fetching learning records from server ...', false);
@@ -177,7 +174,7 @@ function(nl, nlGetManyStore, nlReportHelper, nlServerApi, nlConfig, nlDlg) {
             if (canFetchMore) msg += ' Press on the fetch more icon to fetch more from server.';
             nlDlg.popupStatus(msg);
 			onDone(canFetchMore);
-		}, fetchLimit);
+		}, fetchLimit, hideLoadingScreen);
 	};
 
     function _isReferredUpdated(raw_record) {
@@ -194,7 +191,8 @@ function(nl, nlGetManyStore, nlReportHelper, nlServerApi, nlConfig, nlDlg) {
             return null;
         if (!report) return null;
         var rid = report.raw_record.id;
-        report.id = report.raw_record.id;
+        report.id = rid;
+        report.updated = report.raw_record.updated;
         _records[rid] = report;
         return report;
     };
