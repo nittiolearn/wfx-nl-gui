@@ -5542,6 +5542,11 @@ nl-dlg {
     color: var(--nlWhite);
     background-color: var(--nlStatusGreen);
   }
+  .nl-card-dlg2-img {
+    max-width: 720px;
+    margin: -10px;
+    background-image: radial-gradient(var(--nlPrimaryLight), var(--nlPrimary), var(--nlPrimaryDark));
+  }
 }
 /*-----------------------------------------------------------------------------------------*
  * END OF DARKMODE STYLE AND COLOUR SECTION
@@ -5812,7 +5817,12 @@ border:1px solid var(--nlFontOrange1)
   height: 40px;
   width: 40px;
 }
-scardIcon {
+.scardIcon {
   height: 40px;
   width: 40px;
+}
+.nl-dlg2-details-dim {
+  height: 275px;
+  width: 100%;
+  border-radius: 8px;
 }

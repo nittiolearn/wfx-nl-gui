@@ -31,8 +31,8 @@ function($stateProvider, $urlRouterProvider) {
 
 //-------------------------------------------------------------------------------------------------
 
-var LearnerViewTopSectionDirective = ['nl', 'nlDlg', 'nlDlg2',
-function(nl, nlDlg, nlDlg2) {
+var LearnerViewTopSectionDirective = ['nl', 'nlDlg',
+function(nl, nlDlg) {
     return {
         restrict: 'E',
         transclude: true,
@@ -169,11 +169,11 @@ function(nl, nlDlg) {
 //-------------------------------------------------------------------------------------------------
 
 var NlLearnerView2 = ['nl', 'nlDlg', 'nlRouter', 'nlServerApi', 'nlReportHelper',
-'nlLearnerViewRecords2', 'nlTopbarSrv', 'nlCardsSrv', 'nlCourse', 'nlGetManyStore', 'nlAnnouncementSrv', 'nlDlg2',
-function(nl, nlDlg, nlRouter, nlServerApi, nlReportHelper, nlLearnerViewRecords2, nlTopbarSrv, nlCardsSrv, nlCourse, nlGetManyStore, nlAnnouncementSrv, nlDlg2) {
+'nlLearnerViewRecords2', 'nlTopbarSrv', 'nlCardsSrv', 'nlCourse', 'nlGetManyStore', 'nlAnnouncementSrv',
+function(nl, nlDlg, nlRouter, nlServerApi, nlReportHelper, nlLearnerViewRecords2, nlTopbarSrv, nlCardsSrv, nlCourse, nlGetManyStore, nlAnnouncementSrv) {
 	this.create = function($scope) {
 		return new NlLearnerViewImpl($scope, nl, nlDlg, this, nlRouter, nlServerApi, nlReportHelper,
-			nlLearnerViewRecords2, nlTopbarSrv, nlCardsSrv, nlCourse, nlGetManyStore, nlAnnouncementSrv, nlDlg2);
+			nlLearnerViewRecords2, nlTopbarSrv, nlCardsSrv, nlCourse, nlGetManyStore, nlAnnouncementSrv);
 	};
 
 	this.initPageBgImg = function(data) {
@@ -188,7 +188,7 @@ function(nl, nlDlg, nlRouter, nlServerApi, nlReportHelper, nlLearnerViewRecords2
 }];
 
 function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlServerApi, nlReportHelper, 
-	nlLearnerViewRecords2, nlTopbarSrv, nlCardsSrv, nlCourse, nlGetManyStore, nlAnnouncementSrv, nlDlg2) {
+	nlLearnerViewRecords2, nlTopbarSrv, nlCardsSrv, nlCourse, nlGetManyStore, nlAnnouncementSrv) {
 	var self = this;
 	var _fetchChunk = 100;
 	var _userInfo = null;
