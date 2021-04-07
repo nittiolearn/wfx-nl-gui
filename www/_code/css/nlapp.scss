@@ -1326,6 +1326,23 @@ a.black {
     height: auto;
   }
 }
+.nl-dlg2 { 
+  .popup {
+    border: 1px solid var(--nlWhite);
+    border-radius: 8px;
+  }
+  .popup-body{ 
+    border-radius: 8px;
+  }
+  .popup-head {
+    height:0px;
+    display:none;
+  }
+  .popup-buttons{
+    height: 0px;
+    display: none;
+  }
+}
 
 .popup-buttons{
   min-height: 37px;
@@ -1889,7 +1906,7 @@ input.nl-dlg-field-error, .nl-dlg-field-error {
   width: 100%;
   color: $nlWhite;
   color: var(--nlWhite);
-  border-radius: 10px;
+  border-radius: 8px;
   box-shadow: 0 3px 6px 0 #3f7ce4;
   background-color: var(--nllightblue);
 }
@@ -1907,7 +1924,7 @@ input.nl-dlg-field-error, .nl-dlg-field-error {
   }
   img {
     max-width: 100%;
-    max-height: 265px;
+    max-height: 189px;
   }
   .icon-tl, .icon-tr, .icon-bl, .icon-br {
     position: absolute;
@@ -2873,7 +2890,7 @@ img.nl-icon {
 }
 
 .section-header-text {
-  font-size: 32px;
+  font-size: 28px;
   font-weight: 500;
   letter-spacing: normal;
   text-align: left;
@@ -5302,7 +5319,6 @@ nl-dlg {
 }
   .dark-default-input {
     background-color: var(--nlBgWhiteTransparent70);
-    border: 1px solid var(--nlWhite);
   }
 
   .dark-default-input::placeholder {
@@ -5510,6 +5526,22 @@ nl-dlg {
   .learner-view-stats-button {
     border: none !important;
   }
+  .label_certified {
+    color: var(--nlWhite);
+    background-color: var(--nlStatusBlue);
+  }
+  .label_failed {
+    color: var(--nlWhite);
+    background-color: var(--nlStatusRed);
+  }
+  .label_done {
+    color: var(--nlWhite);
+    background-color: var(--nlStatusGreen);
+  }
+  .label_passed {
+    color: var(--nlWhite);
+    background-color: var(--nlStatusGreen);
+  }
 }
 /*-----------------------------------------------------------------------------------------*
  * END OF DARKMODE STYLE AND COLOUR SECTION
@@ -5561,32 +5593,35 @@ nl-dlg {
 }
 .label {
   position:absolute;
-  top:0;
+  top:100%;
   left:0;
   right:0;
   bottom:0;
-  max-width: 5rem;
+  width: 100%;
   height: 1.4rem;
   font-size: 12px;
-  border-radius: 10px 0px 0px 0px;
 }
 .label_certified {
-  background-color: var(--nlStatusBlue);
+  background-color: var(--nlWhite);
+  color: var(--nlStatusBlue);
 }
 .label_failed {
-  background-color: var(--nlStatusRed);
+  background-color: var(--nlWhite);
+  color: var(--nlStatusRed);
 }
 .label_done {
-  background-color: var(--nlStatusGreen);
+  background-color: var(--nlWhite);
+  color: var(--nlStatusGreen);
 }
 .label_passed {
-  background-color: var(--nlStatusGreen);
+  background-color: var(--nlWhite);
+  color: var(--nlStatusGreen);
 }
 /*-----------------------------------------------------------------------------------------*
  * Learner view 2 section styles (card2)
  *-----------------------------------------------------------------------------------------*/
  .nl-limitwidth-learner-view {
-  max-width: 1100px;
+  max-width: 1192px;
   margin-left: auto;
   margin-right: auto;
 }
@@ -5608,7 +5643,7 @@ nl-dlg {
 }
 .learner-view-searchbox {
   width: 100%;
-  max-width: 400px;
+  max-width: 470px;
 }
 .learner-view-searchbox2 {
 border: 1px solid var(--nlBorderGrey2); 
@@ -5773,4 +5808,11 @@ border:1px solid var(--nlFontOrange1)
   background-color: var(--nlPrimary);
   color: var(--nlWhite);
 }
-
+.lcardIcon {
+  height: 40px;
+  width: 40px;
+}
+scardIcon {
+  height: 40px;
+  width: 40px;
+}

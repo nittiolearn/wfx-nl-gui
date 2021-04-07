@@ -325,8 +325,8 @@ var _HZ_SCREEN = 36;
 var _defCardWidth = 280;
 var _defCardAr = 1.4;
 var _minMarginX = 32; // px
-var _cardsSize = {"L": {cardWidth: 470, cardHeight: 480, ar: 1},
-                  "M": {cardWidth: 370, cardHeight: 400, ar: 1},
+var _cardsSize = {"L": {cardWidth: 378, cardHeight: 336, ar: 1},
+                  "M": {cardWidth: 378, cardHeight: 336, ar: 1},
                   "S": {cardWidth: 225, cardHeight: 270, ar: 1.3}}
 
 function _updateCardDimensions(nl, $scope, cardsContainer) {
@@ -339,7 +339,7 @@ function _updateCardDimensions(nl, $scope, cardsContainer) {
         $scope.h = ar*w;
         $scope.fs = 100;
         
-        $scope.ml = 16;
+        $scope.mr = 16;
     } else {
         var w = _getCardWidth(cardsContainer);
         $scope.w = w;
@@ -437,7 +437,7 @@ function _cardDirectiveImpl(nl, nlDlg, templateUrl) {
             
             $scope.getComputedHeightStyle = function(card) {
                 if (!card) return;
-                if (card.size == 'L') return 60;
+                if (card.size == 'L') return 55;
                 if (card.size == 'M') return 55;
                 if (card.size == 'S') return 50;
             };
@@ -445,8 +445,8 @@ function _cardDirectiveImpl(nl, nlDlg, templateUrl) {
             $scope.getTextAreaHeight = function(card) {
                 if (!card) return;
                 if (card.size == 'L') return 65;
-                if (card.size == 'M') return 60;
-                if (card.size == 'S') return 55;
+                if (card.size == 'M') return 65;
+                if (card.size == 'S') return 60;
             };
             
             $scope.getProgressBarTop = function() {

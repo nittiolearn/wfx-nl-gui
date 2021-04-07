@@ -6,7 +6,7 @@
                     ng-click='toScroll(button)'>
                     <div style="align-items: center;justify-content: center;grid-gap: 5px;height: 100%;" class="nl-display-flex">
                         <span style="font-size: 16px;">{{button.title}}:</span> 
-                        <span style="font-size:24px;">{{button.count}}</span>
+                        <span style="font-size:16px;">{{button.count}}</span>
                     </div>
                 </div>
             </div>
@@ -21,10 +21,10 @@
         </div>
         <div class='padding-small'></div>
         <div class='row row-top row-wrap margin0 padding-mid'>
-            <div class='padding0 learner-view-searchbox nl-display-flex' style='padding: 0px 4px'>
+            <div class='padding0 learner-view-searchbox nl-display-flex' style='padding: 0px 4px;grid-gap: 20px;'>
                 <div class='row row-center margin0 padding0 learner-view-searchbox2 col-67 dark-default-input'>
                     <span style='padding: 0px 6px'><i class='icon ion-ios-search-strong fsh5'></i></span>
-                    <div class='col padding0' style='padding-top: 4px'>
+                    <div class='col padding0'>
                         <input class='padding-small w100 search-placeholder'
                             ng-model='tabdata.search'
                             ng-attr-placeholder='{{tabdata.searchPlaceholder}}'
@@ -33,7 +33,7 @@
                     </div>
                 </div>
                 <div class='bgblue3 nl-txt-white justify:center margin0 nl-link-text padding-0 row row-center'
-                        ng-show='tabdata.canFetchMore'
+                        ng-show='!tabdata.canFetchMore'
                         title='Fetch more learning records from the server'
                         ng-click='tabdata.fetchMore($event)' style="align-items: center;width:auto; border-radius: 4px;">
                         <i class='icon ion-refresh' style="font-size: 20px;margin: 2px;"></i>

@@ -32,8 +32,8 @@ class='nl-card2-img row row-center margin0 padding0 {{canCover($event, true) ? "
 			<div class='nl-card2-desc' nl-compile='card.help'></div>
 		</div>
 		<div ng-click='onCardInternalUrlClicked($event, card, card.url)'>
-			<span ng-if="!(card.type == 'upcoming') " class="nl-card-more-icon nl-link-img {{getLaunchIconClass(card)}}">
-				<img ng-src='{{card.buttonUrl}}' style="width: 37px; height:37px;"></img>
+			<span ng-if="!(card.type == 'upcoming')" class="nl-card-more-icon nl-link-img {{getLaunchIconClass(card)}}">
+				<img ng-src='{{card.buttonUrl}}' ng-class="{lcardIcon: card.size== 'L', scardIcon: card.size=='s'}"></img>
 			</span>
 		</div>
 	</div>

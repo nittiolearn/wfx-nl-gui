@@ -12,6 +12,7 @@ function module_init() {
 	.directive('nlLearnerSection2', LearnerSectionDirective2)
 	.directive('nlLearningStatusCounts2', LearningStatusCountsDirective2)
 	.directive('nlLearningStats', LearningStats)
+	.directive('nlComputeImgInfo', ComputeImgInfoDirective)
 	.controller('nl.LearnerViewCtrl2', LearnerViewCtrl2)
 	.service('nlLearnerView2', NlLearnerView2);
 }
@@ -30,8 +31,8 @@ function($stateProvider, $urlRouterProvider) {
 
 //-------------------------------------------------------------------------------------------------
 
-var LearnerViewTopSectionDirective = ['nl', 'nlDlg',
-function(nl, nlDlg) {
+var LearnerViewTopSectionDirective = ['nl', 'nlDlg', 'nlDlg2',
+function(nl, nlDlg, nlDlg2) {
     return {
         restrict: 'E',
         transclude: true,
@@ -44,9 +45,9 @@ function(nl, nlDlg) {
 			$scope.leftArrow = nl.url.lessonIconUrl('left-arrow.svg')
 			$scope.onDetailsLinkClicked = function($event, record, clickAttr) {
                 var detailsDlg = nlDlg.create($scope);
-				detailsDlg.setCssClass('');
+				detailsDlg.setCssClass('nl-dlg2');
                 detailsDlg.scope.record = record;
-                detailsDlg.show('view_controllers/learner_view/learner_view_details.html');
+                detailsDlg.show('view_controllers/learner_view2/learner_view_details.html');
 			};
 			$scope.toScroll = function(button) {
 				if (button.count == 0) return;
@@ -89,9 +90,9 @@ function(nl, nlDlg) {
         link: function($scope, iElem, iAttrs) {
 			$scope.onDetailsLinkClicked = function($event, record, clickAttr) {
                 var detailsDlg = nlDlg.create($scope);
-				detailsDlg.setCssClass('');
+				detailsDlg.setCssClass('nl-dlg2');
                 detailsDlg.scope.record = record;
-                detailsDlg.show('view_controllers/learner_view/learner_view_details.html');
+                detailsDlg.show('view_controllers/learner_view2/learner_view_details.html');
 			}
 		}
 	}
@@ -138,13 +139,41 @@ function(nl, $scope, nlLearnerView2) {
 }];
 
 //-------------------------------------------------------------------------------------------------
+function _canCoverImg(url, isCard2) {
+	var info = _imgInfo[url];
+	if (!info) return false;
+	var ar = info.w ? info.h/info.w : 0;
+	info.canCover = (ar > 0.51 && ar < 1);
+	return info.canCover;
+}
+
+var _imgInfo = {};
+
+var ComputeImgInfoDirective = ['nl', 'nlDlg',
+function(nl, nlDlg) {
+	return {
+		restrict: 'A',
+		link: function($scope, iElem, iAttrs) {
+			iElem.bind('load', function(params) {
+				$scope.$apply(function() {
+					var w = iElem[0].offsetWidth;
+					var h = iElem[0].offsetHeight;
+					_imgInfo[iAttrs.src] = {w:w, h:h};
+				})
+			});
+		 }
+	};
+}];
+
+
+//-------------------------------------------------------------------------------------------------
 
 var NlLearnerView2 = ['nl', 'nlDlg', 'nlRouter', 'nlServerApi', 'nlReportHelper',
-'nlLearnerViewRecords2', 'nlTopbarSrv', 'nlCardsSrv', 'nlCourse', 'nlGetManyStore', 'nlAnnouncementSrv',
-function(nl, nlDlg, nlRouter, nlServerApi, nlReportHelper, nlLearnerViewRecords2, nlTopbarSrv, nlCardsSrv, nlCourse, nlGetManyStore, nlAnnouncementSrv) {
+'nlLearnerViewRecords2', 'nlTopbarSrv', 'nlCardsSrv', 'nlCourse', 'nlGetManyStore', 'nlAnnouncementSrv', 'nlDlg2',
+function(nl, nlDlg, nlRouter, nlServerApi, nlReportHelper, nlLearnerViewRecords2, nlTopbarSrv, nlCardsSrv, nlCourse, nlGetManyStore, nlAnnouncementSrv, nlDlg2) {
 	this.create = function($scope) {
 		return new NlLearnerViewImpl($scope, nl, nlDlg, this, nlRouter, nlServerApi, nlReportHelper,
-			nlLearnerViewRecords2, nlTopbarSrv, nlCardsSrv, nlCourse, nlGetManyStore, nlAnnouncementSrv);
+			nlLearnerViewRecords2, nlTopbarSrv, nlCardsSrv, nlCourse, nlGetManyStore, nlAnnouncementSrv, nlDlg2);
 	};
 
 	this.initPageBgImg = function(data) {
@@ -159,7 +188,7 @@ function(nl, nlDlg, nlRouter, nlServerApi, nlReportHelper, nlLearnerViewRecords2
 }];
 
 function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlServerApi, nlReportHelper, 
-	nlLearnerViewRecords2, nlTopbarSrv, nlCardsSrv, nlCourse, nlGetManyStore, nlAnnouncementSrv) {
+	nlLearnerViewRecords2, nlTopbarSrv, nlCardsSrv, nlCourse, nlGetManyStore, nlAnnouncementSrv, nlDlg2) {
 	var self = this;
 	var _fetchChunk = 100;
 	var _userInfo = null;
@@ -293,7 +322,7 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlServerA
 		var num = Math.floor(element[0].clientWidth/cardWidth);
 		var widthToScroll = num*cardWidth + num*16;
 		var len = widthToScroll/5;
-		var timeout = (cards.type == 'completed' || cards.type == 'expired') ? 120 : 50
+		var timeout = (cards.type == 'completed' || cards.type == 'expired') ? 75 : 50
 		_callInLoop(0, len, element, 'add', timeout)
 	}
 
@@ -306,7 +335,7 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlServerA
 		var num = Math.floor(element[0].clientWidth/cardWidth);
 		var widthToScroll = num*cardWidth + num*16;
 		var len = widthToScroll/5;
-		var timeout = (cards.type == 'completed' || cards.type == 'expired') ? 150 : 70
+		var timeout = (cards.type == 'completed' || cards.type == 'expired') ? 85 : 70
 		_callInLoop(0, len, element, 'sub', timeout)
 	}
 
@@ -365,14 +394,18 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlServerA
 
 	function _showDetailsDlg(card) {
 		var detailsDlg = nlDlg.create($scope);
-		detailsDlg.setCssClass('');
+		detailsDlg.setCssClass('nl-dlg2');
 		var name = card.repcontent.name;
 		if (name.length > 20)
 			name = name.substring(0, 20) + '...';
 		detailsDlg.scope.pageTitle = name;
 		detailsDlg.scope.record = card;
-		detailsDlg.show('view_controllers/learner_view/learner_view_details.html');
+		detailsDlg.show('view_controllers/learner_view2/learner_view_details.html');
 	}
+
+	$scope.canCover = function(e, isCard2) {
+		return _canCoverImg($scope.icon, isCard2);
+	};
 	function _initData() {
 		var ret = {};
 		ret.dataLoaded = false;
@@ -489,7 +522,7 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlServerA
 	}
 
 	var SEC_POS = {'progress': 0, 'pending': 1, 'upcoming': 2, 'completed': 3, 'expired': 4};
-	var CARD_SIZE = {0: 'L', 1: 'M', 2: 'M', 3: 'S', 4: 'S'};
+	var CARD_SIZE = {0: 'L', 1: 'L', 2: 'M', 3: 'S', 4: 'S'};
 	var LAUNCH_BUTTON = {'progress': 'start.svg', 'pending': 'start.svg', 'upcoming': '', 'completed': 'preview.svg', 'expired': 'info.svg'};
     
 	function _getFilteredRecords() {
