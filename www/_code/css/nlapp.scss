@@ -5826,3 +5826,40 @@ border:1px solid var(--nlFontOrange1)
   width: 100%;
   border-radius: 8px;
 }
+.dlg2-title-box {
+    &:after {
+      content: "";
+      position: absolute;
+      bottom: 0px;
+      left: 0px;
+      opacity: 0.5;
+      height: 80px;
+      width:100%;
+      background-color: var(--nlBlack);
+  }
+}
+.dlg2-title {
+  position: absolute;
+  bottom: 17%;
+  font-family: 'Montserrat-Medium';
+  font-size: 20px;
+  color: white;
+  z-index: 1;
+}
+ /*-----------------------------------------------------------------------------------------*
+Font-size
+---------------------------------------------------------------------------------------------*/
+.nl-font-12 {
+  font-size: 12px;
+}
+.nl-font-14 {
+  font-size: 14px;
+}
+
+.dlg2-key {
+  font-family: Montserrat-regular;
+}
+.dlg2-value {
+  font-family: Montserrat-medium;
+}
+

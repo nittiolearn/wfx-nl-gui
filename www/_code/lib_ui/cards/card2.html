@@ -11,8 +11,8 @@
 </style>
 <nl-card-image2 card='card'
 class='nl-card2-img row row-center margin0 padding0 {{canCover($event, true) ? "cover" : ""}}' style='height: {{getComputedHeightStyle(card)}}%'></nl-card-image2>
-<div class='padding-mid nl-card-progress-area' style='top: {{getComputedHeightStyle(card)}}%'>
-	<div ng-if='card.type=="expired" || card.type=="progress"' class='row row-center margin0 padding0'>
+<div class='padding-mid nl-card-progress-area' style='top: {{getComputedHeightStyle(card)}}%' ng-if='card.type=="expired" || card.type=="progress"'>
+	<div class='row row-center margin0 padding0'>
 		<div class='nl-card2-progress-bar col padding0 margin0'>
 			<div class='{{card.prgClass}}'
 					style='width: {{card.progressPerc}}%;'>
