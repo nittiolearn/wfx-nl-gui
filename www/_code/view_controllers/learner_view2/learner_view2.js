@@ -317,8 +317,8 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlReportH
 		var element = document.getElementsByClassName(className);
 		var num = Math.floor(element[0].clientWidth/cardWidth);
 		var widthToScroll = num*cardWidth + num*16;
-		var len = widthToScroll/5;
-		var timeout = (cards.type == 'completed' || cards.type == 'expired') ? 75 : 50
+		var len = widthToScroll/6;
+		var timeout = 100;
 		_callInLoop(0, len, element, 'add', timeout)
 	}
 
@@ -331,7 +331,7 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlReportH
 		var num = Math.floor(element[0].clientWidth/cardWidth);
 		var widthToScroll = num*cardWidth + num*16;
 		var len = widthToScroll/5;
-		var timeout = (cards.type == 'completed' || cards.type == 'expired') ? 85 : 70
+		var timeout = 100;
 		_callInLoop(0, len, element, 'sub', timeout)
 	}
 
