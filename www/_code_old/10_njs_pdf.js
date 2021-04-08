@@ -379,7 +379,7 @@ function _PageRenderer_renderImpl(self, statusBar) {
 	self._pdfObject.getDocument().getPage(self._pageNum).then(function(page) {
 		var w = (self._neededWidth > scrollSize) ? self._neededWidth - scrollSize: self._neededWidth;
 		var viewport1 = page.getViewport(1.0);
-		var scaleAutoWidth = w / viewport1.width * self._scale * 0.94;
+		var scaleAutoWidth = w / viewport1.width * self._scale * 0.98;
 		
         var viewport = page.getViewport(scaleAutoWidth);
 		var canvas = jQuery('<canvas class="njs_pdf_canvas"/>');

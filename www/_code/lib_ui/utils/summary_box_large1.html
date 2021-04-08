@@ -1,0 +1,42 @@
+<div class='sb-padding'>
+	<div class='nl-summary-box-large1 row row-center text-center padding-mid margin0 {{boxclass}}'
+		title='{{data.title}}'>
+		<div class='col'>
+			<div class='row row-center padding-mid margin0 nl-min-h90 infographic-text'
+				style='border-bottom: 1px solid #aaaaaa;'
+				data-title="{{data[0].hover}}">
+				<div class='infographic1'>
+					<div class='{{data[0].class}}'>{{data[0].val}}</div>
+					<div class='perc'>({{data[0].perc || '-'}}%)</div>
+				</div>
+				<div class='col text-center padding-mid margin0'
+					style='min-width:110px'>
+					<div class='title'>{{data[0].title}}</div>
+				</div>	
+			</div>
+			<div class='row row-center padding-mid margin0 nl-min-h90 infographic-text'
+				style='border-bottom: 1px solid #aaaaaa;'
+				data-title="{{data[1].hover}}">
+				<div class='infographic1'>
+					<div class='{{data[1].class}}'>{{data[1].val}}</div>
+					<div class='perc'>({{data[1].perc || '-'}}%)</div>
+				</div>
+				<div class='col text-center padding-mid margin0'
+					style='min-width:110px'>
+					<div class='title'>{{data[1].title}}</div>
+				</div>	
+			</div>
+			<div class='row row-center padding-mid margin0 nl-min-h90 infographic-text'
+				data-title="{{data[2].hover}}">
+				<div class='infographic1'>
+					<div class='{{data[2].class}}'>{{data[2].val}}</div>
+					<div class='perc'>({{data[2].perc || '-'}}%)</div>
+				</div>
+				<div class='col text-center padding-mid margin0'
+					style='min-width:110px'>
+					<div class='title'>{{data[2].title}}</div>
+				</div>	
+			</div>
+		</div>
+	</div>
+</div>

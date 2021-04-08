@@ -61,7 +61,7 @@ function PendingTimer() {
 			njs_helper.BlankScreen.show();
 			lesson.submitAssignReport();
 		} else if (pending < 60) {
-			jQuery('#countdown_timer').html('Little time left, please submit: ' + nittio.secondsToHmsString(pending));
+			jQuery('#countdown_timer').html('Time left: ' + nittio.secondsToHmsString(pending));
 			jQuery('#countdown_timer').addClass('countdown_timer_warning');
 		} else {
 			jQuery('#countdown_timer').html('Time left: ' + nittio.secondsToHmsString(pending));

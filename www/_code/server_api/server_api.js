@@ -54,6 +54,13 @@ function(nl, nlDlg, nlConfig, Upload) {
         var config = {reloadUserInfo: reloadUserInfo, noPopup: noPopup, serverType: serverType};
         return server.post(url, data, config);
     };
+
+    this.executeRestApi3 = function(url, data, reloadUserInfo, noPopup, serverType) {
+        // open API to execute any REST API3
+        // return: result of REST API
+        var config = {reloadUserInfo: reloadUserInfo, noPopup: noPopup, serverType: serverType};
+        return _serverPostToApi3OrApi(url, data, config);
+    };
     
     this.getBrandingInfo = function() {
     	return _brandingInfoHandler.getInfo();
@@ -738,6 +745,9 @@ function(nl, nlDlg, nlConfig, Upload) {
         'learning_reports_get_list' : 1,
         'learning_reports_get_completed_module_list': 1,
         'course_or_assign_get_many': 1,
+        
+        'resource_get_resumable_upload_url': 2,
+        'resource_save_to_db': 2,
 
         // Only available in api3
         'json_cache_get': 0
@@ -745,6 +755,7 @@ function(nl, nlDlg, nlConfig, Upload) {
 
     var _api3InUrl = undefined;
     function _getServerType(url, userInfo) {
+        if (!userInfo.api3 || !userInfo.api3.url) return 'nittio';
         if (!(url in _api3BatchNumbers)) return 'nittio';
         if (_api3InUrl === undefined) {
             _api3InUrl = nl.location.search().api3 || 'guess';
@@ -910,7 +921,13 @@ function NlServerInterface(nl, nlDlg, nlConfig, Upload, brandingInfoHandler) {
             data._u = reloadUserInfo ? 'NOT_DEFINED' : userInfo.username;
             data._v = NL_SERVER_INFO.versions.script;
             if ('updated' in userInfo) data._ts = nl.fmt.json2Date(userInfo.updated);
-            if (serverType == 'api3' && userInfo.api3) data._token = userInfo.api3.token;
+            if (serverType == 'api3' && userInfo.api3) {
+                data._token = userInfo.api3.token;
+                data._nittioOrigin = nl.window.location.origin;
+                data._resVersion = NL_SERVER_INFO.versions.res;
+                data._iconVersion = NL_SERVER_INFO.versions.icon;
+                data._templateVersion = NL_SERVER_INFO.versions.template;
+            }
             if (!upload) url = _getBaseUrl(serverType, userInfo) + url;
             _postImpl(url, data, upload, serverType).then(
             function success(data) {
