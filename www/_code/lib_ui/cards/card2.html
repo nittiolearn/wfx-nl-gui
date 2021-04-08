@@ -3,7 +3,7 @@
   position: absolute;
   left: 0;
   width: 100%;
-  height: 5%;
+  height: 1.8rem;
   text-align: left;
   color: black;
   overflow: hidden;
@@ -11,9 +11,9 @@
 </style>
 <nl-card-image2 card='card'
 class='nl-card2-img row row-center margin0 padding0 {{canCover($event, true) ? "cover" : ""}}' style='height: {{getComputedHeightStyle(card)}}%'></nl-card-image2>
-<div class='padding-mid nl-card-progress-area' style='top: {{getComputedHeightStyle(card)}}%' ng-if='card.type=="expired" || card.type=="progress"'>
-	<div class='row row-center margin0 padding0'>
-		<div class='nl-card2-progress-bar col padding0 margin0'>
+<div class='padding-mid nl-card-progress-area' style='top: {{getComputedHeightStyle(card)}}%;' ng-if='card.type=="expired" || card.type=="progress"'>
+	<div class='row row-center margin0 padding0' style="grid-gap:8px">
+		<div class='nl-card2-progress-bar col padding0 margin0 col-80' style="margin-top: 7px;">
 			<div class='{{card.prgClass}}'
 					style='width: {{card.progressPerc}}%;'>
 			</div>
@@ -21,6 +21,7 @@ class='nl-card2-img row row-center margin0 padding0 {{canCover($event, true) ? "
 					style='width: 100%'>
 			</div>
 		</div>
+		<div class="col col-25" style="color: white;font-size: 12px;margin-top: -16px;height: 5px;">{{card.progressPerc}}%</div>
 	</div>  
 </div>
 <div class='nl-card2-text-section' style='top: {{getTextAreaHeight(card)}}%; height: {{90-getTextAreaHeight(card)}}%'>
@@ -33,7 +34,7 @@ class='nl-card2-img row row-center margin0 padding0 {{canCover($event, true) ? "
 		</div>
 		<div ng-click='onCardInternalUrlClicked($event, card, card.url)'>
 			<span ng-if="!(card.type == 'upcoming')" class="nl-card-more-icon nl-link-img {{getLaunchIconClass(card)}}">
-				<img ng-src='{{card.buttonUrl}}' ng-class="{lcardIcon: card.size== 'L', scardIcon: card.size=='s'}"></img>
+				<img ng-src='{{card.buttonUrl}}' class="scardIcon"></img>
 			</span>
 		</div>
 	</div>

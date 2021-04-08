@@ -572,6 +572,8 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlServerA
 		if (LAUNCH_BUTTON[card.type]) {
 			card.buttonUrl = nl.url.lessonIconUrl(LAUNCH_BUTTON[card.type]);
 		}
+		record.repcontent.buttonUrlSrc=card.buttonUrl;
+		record.repcontent.buttonUrl=card.url;
 		card.title = record.repcontent.name;
 		var icon = record.repcontent.icon || '';
 		if (icon.indexOf('icon:') == 0) card.icon2 = 'ion-ios-bookmarks fblue';

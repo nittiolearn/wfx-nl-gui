@@ -1342,6 +1342,14 @@ a.black {
     height: 0px;
     display: none;
   }
+  .nl-dlg-title-buttons {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    height: 32px;
+    padding: 4px;
+    z-index: 1;
+  }
 }
 
 .popup-buttons{
@@ -1909,8 +1917,11 @@ input.nl-dlg-field-error, .nl-dlg-field-error {
   border-radius: 8px;
   box-shadow: 0 3px 6px 0 #3f7ce4;
   background-color: var(--nllightblue);
+  transition: card2box 0.2s;
+   &:hover {
+    transition: scale(0.2);
+   }
 }
-
 .nl-card2-img {
   position: absolute;
   top: 0%;
@@ -1963,7 +1974,7 @@ input.nl-dlg-field-error, .nl-dlg-field-error {
 .nl-card2-header {
   text-align: left;
   font-size: 16px;
-  padding: 4px 16px;
+  padding: 4px 12px;
   overflow: hidden;
   white-space: normal;
   text-overflow: ellipsis;
@@ -2890,7 +2901,7 @@ img.nl-icon {
 }
 
 .section-header-text {
-  font-size: 28px;
+  font-size: 22px;
   font-weight: 500;
   letter-spacing: normal;
   text-align: left;
@@ -5566,7 +5577,7 @@ nl-dlg {
   background-color: var(--nlWhite);
 }
 .nl-learner-button{
-  min-width: 146px;
+  min-width: 130px;
   height: 35px;
   border-radius: 8px;
   text-align: center;
@@ -5789,13 +5800,13 @@ border:1px solid var(--nlFontOrange1)
   background-color: white;
   color: var(--nlprimarydark);
   font-family: Montserrat-Medium;
-  min-width: 146px;
+  min-width: 130px;
   height: 35px;
   display: flex;
   justify-content: center;
   align-items: center;
   border-radius: 8px;
-  font-size: 16px;
+  font-size: 14px;
   cursor: pointer;
 }
 .default_placeholder {
@@ -5813,13 +5824,10 @@ border:1px solid var(--nlFontOrange1)
   background-color: var(--nlPrimary);
   color: var(--nlWhite);
 }
-.lcardIcon {
-  height: 40px;
-  width: 40px;
-}
+
 .scardIcon {
-  height: 40px;
-  width: 40px;
+  height: 25px;
+  width: 25px;
 }
 .nl-dlg2-details-dim {
   height: 275px;

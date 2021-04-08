@@ -216,7 +216,15 @@ function Dialog(nl, $ionicPopup, parentScope, nlDlg) {
             if (!destroyAfterShow) return;
             self.destroy();
         });
-        
+       
+        var htmlEl = angular.element(document.querySelector('html'));
+        htmlEl.on('click', function (event) {
+        if (event.target.nodeName === 'HTML') {
+            if (mypopup) {
+                    mypopup.close();
+                }
+            }
+        });
         return mypopup;
     };
     

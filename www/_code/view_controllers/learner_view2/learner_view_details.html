@@ -1,13 +1,20 @@
-<nl-dlg show-help='0' show-close='0'>
+<nl-dlg show-help='0' show-close='1'>
     <nl-dlg-content>
         <div class="nl-card-dlg2-img">
             <div class='row-center margin0 padding0 nl-dlg2-details-dim'>
                 <div class="padding0 {{canCover() ? 'cover' : ''}}"  style="position: relative; height: 100%; width: 100%;overflow: hidden;">
-                    <img ng-if='record.repcontent.icon != "icon:"' ng-src='{{record.repcontent.icon}}' nl-compute-img-info style="width: 100%;overflow: hidden;"></img>
-                    <img ng-if='record.repcontent.icon == "icon:"' style="width: 100%;overflow: hidden;" ng-src='https://www.nittiolearn.com/resource/resview/1615869402-placeholder-large.svg' 
+                    <img ng-if='record.repcontent.icon != "icon:"' ng-src='{{record.repcontent.icon}}' nl-compute-img-info style="width: 100%;height: 100%;object-fit: cover;"></img>
+                    <img ng-if='record.repcontent.icon == "icon:"' style="width: 100%;height: 100%;object-fit: cover;" ng-src='https://www.nittiolearn.com/resource/resview/1615869402-placeholder-large.svg' 
                         alt='default_placeholder'>
                     <div class='col padding-mid fblue2 dlg2-title-box'>
                         <span class="dlg2-title">{{record.repcontent.name}}</span>
+                        <span style="position: absolute;
+                        bottom: 10%;
+                        right: 2%;
+                        font-family: 'Montserrat-Medium';
+                        font-size: 20px;
+                        color: white;
+                        z-index: 1;" ng-click="_onCardInternalUrlClickedFn(record.repcontent.buttonUrl)"><img src='https://www.nittiolearn.com/resource/resview/1617881434-launch-icon.svg' alt='launch icon'>{{record.repcontent.buttonUrl}}</span>
                     </div>
                 </div>
             </div>
@@ -25,7 +32,7 @@
             </div>
             <div  class='row margin0 padding0' style="border: solid 1px var(--white);
             background-color: rgba(255, 255, 255, 0.3);">
-                <div class="col">
+                <div class="col" style="padding-top: 0px;">
                     <div  ng-repeat='avp in record.detailsavps track by $index' ng-if="$index < 6 && avp.attr != 'REMARKS' " class="row">
                         <a ng-if='avp.url' ng-href='{{avp.url}}'
                             class='col col-50 padding-mid nl-link-text nl-txt-white nl-font-12 dlg2-key'>{{avp.attr}}:</a>
@@ -43,10 +50,10 @@
                         </span>
                     </div>
                 </div>
-                <div class="col nl-display-flex" style="max-width:3%;margin: 10px 0px 10px 0px;align-items:center;justify-content: center;">
+                <div class="col nl-display-flex" style="max-width:3%;margin: 10px 0px 10px 0px;align-items:center;justify-content: center;padding-top: 0px;">
                     <span style="background-color: white;width: 1px;height: 100%;"></span>
                 </div>
-                <div class="col">
+                <div class="col" style="padding-top: 0px;">
                     <div ng-repeat='avp in record.detailsavps track by $index' ng-if="$index > 5 && (avp.attr != 'REMARKS' &&  avp.attr != 'STARTED ON' && avp.attr != 'ENDED ON')" class="row">
                         <a ng-if='avp.url' ng-href='{{avp.url}}'
                         class='col col-50 padding-mid nl-link-text nl-txt-white nl-font-12 dlg2-key'>{{avp.attr}}:</a>

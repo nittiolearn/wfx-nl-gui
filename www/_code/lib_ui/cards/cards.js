@@ -325,8 +325,8 @@ var _HZ_SCREEN = 36;
 var _defCardWidth = 280;
 var _defCardAr = 1.4;
 var _minMarginX = 32; // px
-var _cardsSize = {"L": {cardWidth: 378, cardHeight: 336, ar: 1},
-                  "M": {cardWidth: 378, cardHeight: 336, ar: 1},
+var _cardsSize = {"L": {cardWidth: 225, cardHeight: 270, ar: 1.3},
+                  "M": {cardWidth: 225, cardHeight: 270, ar: 1.3},
                   "S": {cardWidth: 225, cardHeight: 270, ar: 1.3}}
 
 function _updateCardDimensions(nl, $scope, cardsContainer) {
@@ -339,7 +339,7 @@ function _updateCardDimensions(nl, $scope, cardsContainer) {
         $scope.h = ar*w;
         $scope.fs = 100;
         
-        $scope.mr = 16;
+        $scope.mr = 10;
     } else {
         var w = _getCardWidth(cardsContainer);
         $scope.w = w;
