@@ -94,7 +94,7 @@
 		<nl-select fieldmodel='showAnswers'></nl-select>
 	</nl-dlg-row>
 
-	<nl-dlg-row ng-show='assignInfo.assigntype != "training" && !assignInfo.isModify' attr='forum' data='data' help='help'>
+	<nl-dlg-row ng-if='data.canShowDiscussionForum' attr='forum' data='data' help='help'>
         <nl-checkbox fieldmodel='forum' 
                      fieldname='allow users to discuss in the forum'
                      fieldcls= 'padding-mid'

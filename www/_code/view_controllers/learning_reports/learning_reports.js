@@ -63,22 +63,22 @@ function($scope, nlLearningReports) {
 	
 var NlLearningReports = ['nl', 'nlDlg', 'nlRouter', 'nlServerApi', 'nlGroupInfo', 'nlTable', 'nlTableViewSelectorSrv', 'nlSendAssignmentSrv',
 'nlLrHelper', 'nlReportHelper', 'nlLrFilter', 'nlLrFetcher', 'nlLrExporter', 'nlLrReportRecords', 'nlLrSummaryStats', 'nlGetManyStore', 
-'nlTreeListSrv', 'nlMarkup', 'nlLrDrilldown', 'nlCourse', 'nlLrNht', 'nlLrUpdateBatchDlg', 'nlTreeSelect',
+'nlTreeListSrv', 'nlMarkup', 'nlLrDrilldown', 'nlCourse', 'nlLrNht', 'nlLrUpdateBatchDlg', 'nlTreeSelect', 'nlIframeDlg',
 function(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlTable, nlTableViewSelectorSrv, nlSendAssignmentSrv,
 	nlLrHelper, nlReportHelper, nlLrFilter, nlLrFetcher, nlLrExporter, nlLrReportRecords, nlLrSummaryStats,
-	nlGetManyStore, nlTreeListSrv, nlMarkup, nlLrDrilldown, nlCourse, nlLrNht, nlLrUpdateBatchDlg, nlTreeSelect) {
+	nlGetManyStore, nlTreeListSrv, nlMarkup, nlLrDrilldown, nlCourse, nlLrNht, nlLrUpdateBatchDlg, nlTreeSelect, nlIframeDlg) {
 	this.create = function($scope, settings) {
 		if (!settings) settings = {};
 		return new NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlTable, nlTableViewSelectorSrv, nlSendAssignmentSrv,
 			nlLrHelper, nlReportHelper, nlLrFilter, nlLrFetcher, nlLrExporter, nlLrReportRecords, nlLrSummaryStats,
-			$scope, settings, nlGetManyStore, nlTreeListSrv, nlMarkup, nlLrDrilldown, nlCourse, nlLrNht, nlLrUpdateBatchDlg, nlTreeSelect);
+			$scope, settings, nlGetManyStore, nlTreeListSrv, nlMarkup, nlLrDrilldown, nlCourse, nlLrNht, nlLrUpdateBatchDlg, nlTreeSelect, nlIframeDlg);
 	};
 }];
 	
 //-------------------------------------------------------------------------------------------------
 function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlTable, nlTableViewSelectorSrv, nlSendAssignmentSrv,
 			nlLrHelper, nlReportHelper, nlLrFilter, nlLrFetcher, nlLrExporter, nlLrReportRecords, nlLrSummaryStats,
-			$scope, settings, nlGetManyStore, nlTreeListSrv, nlMarkup, nlLrDrilldown, nlCourse, nlLrNht, nlLrUpdateBatchDlg, nlTreeSelect) {
+			$scope, settings, nlGetManyStore, nlTreeListSrv, nlMarkup, nlLrDrilldown, nlCourse, nlLrNht, nlLrUpdateBatchDlg, nlTreeSelect, nlIframeDlg) {
 	var _userInfo = null;
 	var _groupInfo = null;
 	var _recordsFilter = null;
@@ -303,6 +303,11 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			id: 'bulkdelete',
 			onClick : _onBulkDelete
 		}, {
+			title : 'Discussion forum',
+			icon : 'ion-ios-people',
+			id: 'discussionForum',
+			onClick : _onDiscussionForum
+		}, {
 			title : 'Import user data',
 			icon : 'ion-android-contacts',
 			id: 'importuserdata',
@@ -356,7 +361,12 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			}
 			return false;
 		}
-
+		if (tbid == 'discussionForum') {
+			if (!(_groupInfo.props && _groupInfo.props.features && _groupInfo.props.features.dicussion)) return;
+			var courseAssignment = _getCourseAssignmnt() || {};
+			if (courseAssignment.info && courseAssignment.info.forum) return true;
+ 			return false;
+		}
 		if (tbid == 'exportCustomReport') return (type == 'course') && ($scope.debug || _customReportTemplate);
 		if (tbid == 'selectUser') return (nlLrFilter.getType() == 'user');
 		var canManage = nlRouter.isPermitted(_userInfo, 'assignment_manage');
@@ -2379,6 +2389,20 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		}, function() {
 			onDoneFn(false);
 		});
+	}
+
+	var forumDlg = null;
+	function _onDiscussionForum() {
+		var courseAssign = _getCourseAssignmnt();
+		if (!forumDlg) {
+			// FireFox and IE do not show the iFrame if the URL is same as launching URL
+			// So as a workaround we need some different string in server part of URL
+			var randqs = (new Date()).getTime();
+			var url = nl.fmt2('/?randqs={}#/forum?forumtype=3&refid={}&hidemenu', 
+								randqs, courseAssign.id);
+			forumDlg = nlIframeDlg.create($scope, url, nl.t('Discussion forum'));
+		}
+		forumDlg.show();	
 	}
 
 	function _onImportUserData() {

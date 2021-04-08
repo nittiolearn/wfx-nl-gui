@@ -5,7 +5,7 @@
     </div>
 
     <span title='Discussion forum'
-         ng-show='!iframeUrl && forumInfo.refid'
+         ng-show='!iframeUrl && forumInfo.refid && forumEnabled && noAssesmentStarted'
          class='nl-toolbar-icon'
          ng-click='launchForum()'>
         <i class="icon ion-ios-people"></i>
