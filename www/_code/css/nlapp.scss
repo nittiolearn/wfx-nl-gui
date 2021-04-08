@@ -6116,7 +6116,6 @@ nl-dlg {
   .learner-view-stats-button {
     border: none !important;
   }
-<<<<<<< HEAD
   .label_certified {
     color: var(--nlWhite);
     background-color: var(--nlStatusBlue);
@@ -6137,7 +6136,7 @@ nl-dlg {
     max-width: 720px;
     margin: -10px;
     background-image: radial-gradient(var(--nlPrimaryLight), var(--nlPrimary), var(--nlPrimaryDark));
-=======
+  }
   .certified_label {
     color: var(--nlStatusGreen);
   }
@@ -6198,7 +6197,6 @@ nl-dlg {
     margin: 10px 12px 0px 0px;
     border-radius: 50%;
     background-color: var(--nlStatusGreen);
->>>>>>> 9743a714c80b9bc075ad9deed2c8a292aa63fc66
   }
 }
 /*-----------------------------------------------------------------------------------------*
@@ -6512,4 +6510,3 @@ Font-size
 .dlg2-value {
   font-family: Montserrat-medium;
 }
-
