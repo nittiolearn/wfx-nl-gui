@@ -60,19 +60,18 @@ function(nl, nlGetManyStore, nlReportHelper, nlServerApi, nlConfig, nlDlg) {
         var updatedfrom = new Date(_dates.maxUpdated).toISOString();
         _getLearningRecordsFromServer(true, false, updatedfrom, null, rawRecords, function(canFetchMore) {
             _updateTimestamps(rawRecords, 1, false);
-            _processFetchedRecords(rawRecords, false, canFetchMore, onUpdateDone);
-            if (rawRecords){
-                onUpdateDone();
-            };
+            _processFetchedRecords(rawRecords, canFetchMore, onUpdateDone);
             _initPagefetcher(); // Get past data in next iteration
         });
     };
 
     this.fetchLatestChunkFromServer = function(onFetchedMore) {
         var rawRecords = {};
-        _getLearningRecordsFromServer(true, false, null, null, rawRecords, function(canFetchMore) {
+        var updatedtill = new Date().toISOString();
+        var updatedfrom = new Date("1998-03-27").toISOString();
+        _getLearningRecordsFromServer(true, false, updatedfrom, updatedtill, rawRecords, function(canFetchMore) {
             _updateTimestamps(rawRecords, 0, false);
-            _processFetchedRecords(rawRecords, true, canFetchMore, onFetchedMore);
+            _processFetchedRecords(rawRecords, true, onFetchedMore);
         });
     };
 
@@ -81,7 +80,7 @@ function(nl, nlGetManyStore, nlReportHelper, nlServerApi, nlConfig, nlDlg) {
         _tsForFetchMore = new Date(_dates.minUpdated).toISOString();
         _getLearningRecordsFromServer(false, true, null, _tsForFetchMore, rawRecords, function(canFetchMore) {
             _updateTimestamps(rawRecords, 2, false);
-            _processFetchedRecords(rawRecords, false, canFetchMore, onFetchedMore);
+            _processFetchedRecords(rawRecords, canFetchMore, onFetchedMore);
         });
     };
 
@@ -128,7 +127,7 @@ function(nl, nlGetManyStore, nlReportHelper, nlServerApi, nlConfig, nlDlg) {
         });
     };
 
-    function _processFetchedRecords(rawRecords, firstTime, canFetchMore, onDone) {
+    function _processFetchedRecords(rawRecords, canFetchMore, onDone) {
         var rawRecordsArray = [];
         for (var rid in rawRecords) {
             rawRecordsArray.push(rawRecords[rid]);
@@ -158,7 +157,7 @@ function(nl, nlGetManyStore, nlReportHelper, nlServerApi, nlConfig, nlDlg) {
 	
     function _getLearningRecordsFromServer(hideLoadingScreen, fetchMore, updatedfrom, updatedtill, rawRecords, onDone) {
         _initPagefetcher()
-        var fetchLimit = fetchMore ? undefined : null;
+        var fetchLimit = fetchMore ? null : undefined;
 		nlDlg.popupStatus('Fetching learning records from server ...', false);
 		var params = {containerid: 0, type: 'all', assignor: 'all', learner: 'me'};
         if (updatedfrom) params.updatedfrom = updatedfrom;
@@ -169,7 +168,7 @@ function(nl, nlGetManyStore, nlReportHelper, nlServerApi, nlConfig, nlDlg) {
 			}
             if (!batchDone) return;
 
-            var canFetchMore = fetchMore ? _pageFetcher.canFetchMore() : true;
+            var canFetchMore = fetchMore ? _pageFetcher.canFetchMore() : false;
             var msg = 'Fetched.';
             if (canFetchMore) msg += ' Press on the fetch more icon to fetch more from server.';
             nlDlg.popupStatus(msg);

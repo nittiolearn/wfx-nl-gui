@@ -416,7 +416,7 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlReportH
 
 	function _fetchMore(event) {
 		if (!$scope.tabData.canFetchMore) return;
-		nlLearnerViewRecords2.fetchNextChunkFromServer(function(canFetchMore) {
+		nlLearnerViewRecords2.fetchNextChunkFromServer(function(_, canFetchMore) {
 			_updateTabDataWithRecords(canFetchMore);
 		});
 	}
@@ -425,7 +425,7 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlReportH
 		var bResolved = false;
 		nlLearnerViewRecords2.initFromCache(function(dataFound) {
 			if (!dataFound) {
-				nlLearnerViewRecords2.fetchLatestChunkFromServer(function(canFetchMore) {
+				nlLearnerViewRecords2.fetchLatestChunkFromServer(function(_, canFetchMore) {
 					_updateTabDataWithRecords(canFetchMore);
 					resolve(true);
 				});
@@ -433,8 +433,8 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlReportH
 			}
 			_updateTabDataWithRecords(true);
 			resolve(true);
-			nlLearnerViewRecords2.updateCachedRecords(function(dataChanged, canFetchMore) {
-				if (dataChanged) _updateTabDataWithRecords(canFetchMore);
+			nlLearnerViewRecords2.updateCachedRecords(function(datachanged, canFetchMore) {
+				if (datachanged) _updateTabDataWithRecords(canFetchMore);
 			});
 		});
 	}
