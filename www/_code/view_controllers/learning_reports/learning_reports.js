@@ -362,7 +362,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			return false;
 		}
 		if (tbid == 'discussionForum') {
-			if (!(_groupInfo.props && _groupInfo.props.features && _groupInfo.props.features.dicussion)) return;
+			if (!(_groupInfo.props && _groupInfo.props.features && _groupInfo.props.features.discussion)) return;
 			var courseAssignment = _getCourseAssignmnt() || {};
 			if (courseAssignment.info && courseAssignment.info.forum) return true;
  			return false;

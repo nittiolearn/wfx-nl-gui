@@ -314,7 +314,7 @@ function ModeHandler(nl, nlCourse, nlServerApi, nlDlg, nlGroupInfo, $scope, nlRe
 
     function _redirectToLessonReport(reportInfo, newTab, cm, bUpdate, scope) {
         if (!reportInfo) return false;
-        if (self.mode == MODES.DO && scope.noAssesmentStarted && cm.isQuiz) scope.noAssesmentStarted = false;
+        if (scope.forumEnabled && self.mode == MODES.DO && scope.noAssesmentStarted && cm.isQuiz) scope.noAssesmentStarted = false;
         return nl.q(function(resolve, reject) {
 	        var urlFmt = reportInfo.completed ?  '/lesson/view_report_assign/{}' : '/lesson/do_report_assign/{}'+nl.t('?moduleid={}&forum={}', cm.id, scope.noAssesmentStarted ? 'YES' : 'NO');
         	if (!bUpdate || (reportInfo.not_after == self.course.not_after) && (reportInfo.not_before == self.course.not_before)) {
@@ -1032,7 +1032,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlCourseEditor, nlC
 
     function _updateAllItemData() {
         folderStats.clear();
-        $scope.noAssesmentStarted = true;
+        $scope.noAssesmentStarted = $scope.forumEnabled ? true : false;
         var reopener = new Reopener(modeHandler, nlTreeListSrv, _userInfo, nl, nlDlg, 
             nlServerApi, _updatedStatusinfoAtServer);
         reopener.reopenIfNeeded().then(function() {
@@ -1135,7 +1135,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlCourseEditor, nlC
     }
 
     function _updateLessonData(cm, itemInfo) {
-        if (modeHandler.mode == MODES.DO && cm.isQuiz && itemInfo.status == 'started') $scope.noAssesmentStarted = false; 
+        if ($scope.forumEnabled && modeHandler.mode == MODES.DO && cm.isQuiz && itemInfo.status == 'started') $scope.noAssesmentStarted = false; 
         cm.time = itemInfo.timeSpentSeconds || null;
         cm.passScore = itemInfo.passScore || null;
         cm.attempt = itemInfo.nAttempts || null;
