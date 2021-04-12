@@ -19,6 +19,7 @@ function(nl, nlGetManyStore, nlReportHelper, nlServerApi, nlConfig, nlDlg) {
     var _records = {};
     var _referredRecordTimestamps = {};
     var _maxTsForPastFetchs = null;
+    var _isAllFetchedFromPast = false;
     var _dates = {};
     var _userInfo = null;
     this.init = function(userinfo) {
@@ -44,26 +45,31 @@ function(nl, nlGetManyStore, nlReportHelper, nlServerApi, nlConfig, nlDlg) {
         _getLearningRecordsFromServer(true, onDone);
     };
 
-    this.fetchNextChunkFromServer = function(pnoDone) {
+    this.fetchNextChunkFromServer = function(onDone) {
         _getLearningRecordsFromServer(true, onDone);
     };
 
     function _updateTimestamps(rawRecords) {
         for(var rid in rawRecords) {
             var record = rawRecords[rid];
-            if (!_dates.maxUpdated || record.updated > _dates.maxUpdated) _dates.maxUpdated = record.updated;
-            if (!_dates.minUpdated || record.updated < _dates.minUpdated) _dates.minUpdated = record.updated;
+            var updated = nl.fmt.json2Date(record.updated)
+            if (!_dates.maxUpdated || updated > _dates.maxUpdated) _dates.maxUpdated = updated;
+            if (!_dates.minUpdated || updated < _dates.minUpdated) _dates.minUpdated = updated;
         }
     }
 
     var DB_CONTENT_VERSION = 1;
     function _loadFromDb(onLoadDone) {
         nlConfig.loadFromDb('learner_records_cache',function(data) {
-            if (!data || data.content_version != DB_CONTENT_VERSION) onLoadDone(false);
+            if (!data || data.content_version != DB_CONTENT_VERSION) {
+                onLoadDone(false);
+                return;
+            };
             _records = data.records ? data.records : {};
-            _referredRecordTimestamps = data.referredRecordTimestamps; // TODO-NOW: check if json2date is needed
+            _referredRecordTimestamps = data.referredRecordTimestamps;
             _dates.minUpdated = data.minUpdated;
             _dates.maxUpdated = data.maxUpdated;
+            _isAllFetchedFromPast = data.isAllFetchedFromPast
             onLoadDone(true);
         });
     }
@@ -85,7 +91,8 @@ function(nl, nlGetManyStore, nlReportHelper, nlServerApi, nlConfig, nlDlg) {
             data.referredRecordTimestamps = _referredRecordTimestamps;
             data.maxUpdated = _dates.maxUpdated;
             data.minUpdated = _dates.minUpdated;
-            return;
+            data.isAllFetchedFromPast = _isAllFetchedFromPast;
+            return data;
         }
         recordsArray.sort(function(a,b) {
             return (b.updated || 0) - (a.updated || 0);
@@ -93,6 +100,7 @@ function(nl, nlGetManyStore, nlReportHelper, nlServerApi, nlConfig, nlDlg) {
         recordsArray = recordsArray.slice(0, _cacheLimit);
         data.maxUpdated = recordsArray[0].updated;
         data.minUpdated = recordsArray[_cacheLimit-1].updated;
+        data.isAllFetchedFromPast = _isAllFetchedFromPast;
         recordsArray.forEach(function(record) {
             data.records[record.id] = record;
             var assignKey = nlGetManyStore.getAssignmentKeyFromReport(record.raw_record);
@@ -100,7 +108,7 @@ function(nl, nlGetManyStore, nlReportHelper, nlServerApi, nlConfig, nlDlg) {
             var contentKey = nlGetManyStore.getContentKeyFromReport(record.raw_record);
             _addRefferedRecordToData(contentKey, data);
         });
-        return ret;
+        return data;
     }
 
     function _addRefferedRecordToData(key, data) {
@@ -122,8 +130,9 @@ function(nl, nlGetManyStore, nlReportHelper, nlServerApi, nlConfig, nlDlg) {
             for(var i=0; i<rawRecordsArray.length; i++) {
                 var raw_record = rawRecordsArray[i];
                 var record = _records[raw_record.id] || null;
-                if (record && record.raw_record.updated >= raw_record.updated && !_isReferredUpdated(raw_record))
+                if (record && record.raw_record.updated >= nl.fmt.json2Date(raw_record.updated) && !_isReferredUpdated(raw_record)){
                     continue;
+                };
                 dataChanged = true;
                 _addRecord(raw_record);
             };
@@ -144,32 +153,31 @@ function(nl, nlGetManyStore, nlReportHelper, nlServerApi, nlConfig, nlDlg) {
 		var params = {containerid: 0, type: 'all', assignor: 'all', learner: 'me'};
         params.updatedfrom = isPastFetch ? nl.fmt.getPastDate() : new Date(_dates.maxUpdated);
         if (isPastFetch && _maxTsForPastFetchs) params.updatedtill = _maxTsForPastFetchs;
-        fetcher.fetchBatchOfPages(nlServerApi.learningReportsGetList, params, fetchMore, function(results, batchDone) {
+        fetcher.fetchBatchOfPages(nlServerApi.learningReportsGetList, params, true, function(results, batchDone) {
 			if (results) {
 				for (var i=0; i<results.length; i++) rawRecords[results[i].id] = results[i];
 			}
             if (!batchDone) return;
-
-            var canFetchMore = isPastFetch ? fetcher.canFetchMore() : true;
+            if (isPastFetch) _isAllFetchedFromPast = !fetcher.canFetchMore();
+            var canFetchMore = isPastFetch ? fetcher.canFetchMore() : _isAllFetchedFromPast ? false : true;
             var msg = 'Fetched.';
             if (canFetchMore) msg += ' Press on the fetch more icon to fetch more from server.';
             nlDlg.popupStatus(msg);
             _updateTimestamps(rawRecords);
             if (!isPastFetch) _maxTsForPastFetchs = new Date(_dates.minUpdated);
-            _processFetchedRecords(rawRecords, canFetchMore, onUpdateDone);
-			onDone(canFetchMore);
+            _processFetchedRecords(rawRecords, canFetchMore, onDone);
         }, fetchLimit);
 	};
 
     function _isReferredUpdated(raw_record) {
         var ret = false;
         var assignKey = nlGetManyStore.getAssignmentKeyFromReport(raw_record);
-        if (_isReferredKeyUpdated(assignKey)) ret= true;
+        if (_isReferredKeyUpdated(assignKey)) ret = true;
 
         var contentKey = nlGetManyStore.getContentKeyFromReport(raw_record);
-        if (_isReferredKeyUpdated(contentKey)) ret= true;
+        if (_isReferredKeyUpdated(contentKey)) ret = true;
         return ret;
-    };
+    }
 
     function _isReferredKeyUpdated(key) {
         var refferedObj = nlGetManyStore.getRecord(key) || {};

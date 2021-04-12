@@ -434,7 +434,7 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlReportH
 			_updateTabDataWithRecords(true);
 			resolve(true);
 			nlLearnerViewRecords2.updateCachedRecords(function(datachanged, canFetchMore) {
-				if (datachanged) _updateTabDataWithRecords(canFetchMore);
+				if (datachanged || $scope.tabData.canFetchMore != canFetchMore) _updateTabDataWithRecords(canFetchMore);
 			});
 		});
 	}
