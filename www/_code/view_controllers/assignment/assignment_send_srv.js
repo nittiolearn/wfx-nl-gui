@@ -180,8 +180,9 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect, nlCourse) {
             dlgScope.data.useSameUrlForAll = true;
         }
         if (props.features && props.features.discussion) {
-            if (_assignInfo.assigntype != "training" && !_assignInfo.isModify)
+            if (_assignInfo.assigntype != "training" && !_assignInfo.isModify){
                 dlgScope.data.canShowDiscussionForum = true;
+            }
         }
 
         if (_assignInfo.assigntype == 'course') _sessionDetails.init();

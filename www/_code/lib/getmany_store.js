@@ -25,6 +25,11 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo) {
         return {table: table, id: ''+id};
     };
 
+    this.keyStr = function(key) {
+        if (!key) return null;
+        return nl.fmt2('{}:{}', key.table, key.id);
+    };
+
     this.getAssignmentKeyFromReport = function(reportRecord) {
         if (!reportRecord.assignment) return null;
         var atype = reportRecord.assigntype || _nl.atypes.ATYPE_MODULE;
