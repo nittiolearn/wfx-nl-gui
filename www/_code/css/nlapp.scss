@@ -1429,6 +1429,20 @@ a.black {
   }
   .popup-body{ 
     border-radius: 8px;
+    margin-right: 1px;
+  }
+  .popup-body::-webkit-scrollbar {
+    width: 3px;
+    margin:5px 0px;
+  }
+  .popup-body::-webkit-scrollbar-track {
+    background: var(--nlFBgGrey);
+    border-left: 1px solid white;
+    border-right: 1px solid white;
+  }
+  ::-webkit-scrollbar-thumb {
+      border-radius: 8px;
+      -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.5);      
   }
   .popup-head {
     height:0px;
@@ -1445,6 +1459,9 @@ a.black {
     height: 32px;
     padding: 4px;
     z-index: 1;
+  }
+  .nl-primarydark {
+    color:var(--nlPrimaryDark);
   }
 }
 
@@ -1990,34 +2007,60 @@ input.nl-dlg-field-error, .nl-dlg-field-error {
 /*-----------------------------------------------------------------------------------------*
  * nl-card2
  *-----------------------------------------------------------------------------------------*/
+ .con {
+   &:hover {
+      .nl-card2 {
+       transform: translateX(-3%);
+      }
+      .nl-card2 {
+        &:hover {
+          transform: scale(1.09);
+          position: relative;
+          overflow: hidden;
+          z-index:1000;
+          .con {
+            overflow: visible;
+          }
+          .nl-card2-links {
+            display: block;
+          }
+        }
+      }
+   }
+ }
  .nl-card2 {
   display: inline-block;
   text-align: center;
   position: relative;
   font-family: Roboto, Verdana, Helvetica, Arial, sans-serif;
-  
-  /* Stuff changed in javascript*/
-  height: 240px;
-  width: 360px;
   font-size: 100%;
   line-height: 170%;
-}
+  transition: transform 300ms ease 100ms;  
+		&:hover {
+      ~ {
+        .nl-card2 {
+          transform: translateX(3%);
+        }
+      }
+		}
+    &:first-child {
+      margin-left: 10px;
+    }   
+	}
+
 .nl-card-holder2 {
   position: absolute;
   top: 4%;
   left: 0;
-  height: 92%;
+  height: 90%;
   width: 100%;
   color: $nlWhite;
   color: var(--nlWhite);
   border-radius: 8px;
   box-shadow: 0 3px 6px 0 #3f7ce4;
   background-color: var(--nllightblue);
-  transition: card2box 0.2s;
-   &:hover {
-    transition: scale(0.2);
-   }
 }
+
 .nl-card2-img {
   position: absolute;
   top: 0%;
@@ -2041,7 +2084,13 @@ input.nl-dlg-field-error, .nl-dlg-field-error {
   .icon-bl {bottom: 5%; left: 3%;}
   .icon-br {bottom: 5%; right: 3%;}
 }
-
+.nl-card-progress-area {
+  width: 100%;
+  height: 1.8rem;
+  text-align: left;
+  color: black;
+  overflow: hidden;
+}
 .nl-card2-img.cover {
   padding: 0;
   img {
@@ -2054,7 +2103,7 @@ input.nl-dlg-field-error, .nl-dlg-field-error {
     height: 100%;
     text-align: center;
     object-fit: cover;
-    border-radius: 10px 10px 0px 0px;  
+    border-radius: 8px 8px 0px 0px;  
   }
 }
 
@@ -2096,6 +2145,7 @@ input.nl-dlg-field-error, .nl-dlg-field-error {
   font-size: 100%;
   opacity: 0.8;
   color: $nlWhite;
+  display: none;
   
   .nl-card2-desc{
     font-size: 90%;
@@ -3374,6 +3424,7 @@ img.nl-icon {
   text-overflow: ellipsis;
   white-space: nowrap;
   font-family: Montserrat-Regular;
+  margin-left: 10px;
 }
 
 /*-----------------------------------------------------------------------------------------*
@@ -3710,8 +3761,8 @@ color: var(--nlStatusGreen);}
 color: var(--nlFontDarkGrey1);}
 .fdarkgrey2 {color: $nlFontDarkGrey2;
 color: var(--nlFontDarkGrey2);}
-.fgrey {color: $nlFBgGrey;
-color: var(--nlFBgGrey);}
+.fgrey {color: $nlFBgGrey !important;
+color: var(--nlFBgGrey) !important;}
 
 .bgwhite {background-color: $nlWhite;
 background-color: var(--nlWhite);}
@@ -4066,6 +4117,9 @@ background-color: var(--nlFontYellow);}
   .img-in-small {
     width: 2rem;
     height: 2rem;
+  }
+  .nl-card2-links {
+    display: block;
   }
 }
 
@@ -6198,6 +6252,9 @@ nl-dlg {
     border-radius: 50%;
     background-color: var(--nlStatusGreen);
   }
+  .dlg2-divider {
+    background-color: var(--nlWhite);
+  }
 }
 /*-----------------------------------------------------------------------------------------*
  * END OF DARKMODE STYLE AND COLOUR SECTION
@@ -6222,6 +6279,13 @@ nl-dlg {
   border-radius: 8px;
   text-align: center;
   font-family: Montserrat-Medium;
+  transition: transform 500ms all;
+    &:hover {
+      transform: scale(1.05);
+    }
+    &:first-child {
+      margin-left: 10px;
+    }
 }
 .learner-yellow{
   color: var(--nlFontYellow);
@@ -6260,18 +6324,22 @@ nl-dlg {
 .label_certified {
   background-color: var(--nlWhite);
   color: var(--nlStatusBlue);
+  font-weight: 700;
 }
 .label_failed {
   background-color: var(--nlWhite);
   color: var(--nlStatusRed);
+  font-weight: 700;
 }
 .label_done {
   background-color: var(--nlWhite);
   color: var(--nlStatusGreen);
+  font-weight: 700;
 }
 .label_passed {
   background-color: var(--nlWhite);
   color: var(--nlStatusGreen);
+  font-weight: 700;
 }
 /*-----------------------------------------------------------------------------------------*
  * Learner view 2 section styles (card2)
@@ -6448,7 +6516,13 @@ border:1px solid var(--nlFontOrange1)
   border-radius: 8px;
   font-size: 14px;
   cursor: pointer;
+  margin-left: 10px;
+  transition: transform 500ms all;
+  &:hover {
+    transform: scale(1.05);
+  }
 }
+
 .default_placeholder {
     position: absolute;
     top: 0;
@@ -6458,7 +6532,7 @@ border:1px solid var(--nlFontOrange1)
     height: 100%;
     text-align: center;
     object-fit: cover;
-    border-radius: 10px 10px 0px 0px;
+    border-radius: 8px 8px 0px 0px;
 }
 .theme-select-bg {
   background-color: var(--nlPrimary);
@@ -6491,8 +6565,13 @@ border:1px solid var(--nlFontOrange1)
   bottom: 17%;
   font-family: 'Montserrat-Medium';
   font-size: 20px;
-  color: white;
+  color: var(--nlWhite);
   z-index: 1;
+}
+.dlg2-divider {
+  background-color: var(--nlBgDark1);
+  width: 1px;
+  height: 100%;
 }
  /*-----------------------------------------------------------------------------------------*
 Font-size
@@ -6503,10 +6582,15 @@ Font-size
 .nl-font-14 {
   font-size: 14px;
 }
-
+.nl-font-25 {
+  font-size: 25px;
+}
 .dlg2-key {
   font-family: Montserrat-regular;
 }
 .dlg2-value {
   font-family: Montserrat-medium;
+}
+.nl-card-dlg2-img {
+  background-color: var(--nllightblue);
 }

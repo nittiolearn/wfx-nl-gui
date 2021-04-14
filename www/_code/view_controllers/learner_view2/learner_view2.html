@@ -23,6 +23,7 @@
         <div ng-if='tabData.sectionData[4].cardlist.length > 0' id="anchor-expired">
             <nl-cards cards='tabData.sectionData[4]'></nl-cards>
         </div>
+        <div ng-repeat='tabdata in tabData track by $index' ng-if='!(tabData.sectionData[$index].cardlist.length) && tabData.sectionData[$index].type == "expired" ' class="padding nl-txt-white nl-font-25">There is no course/module found.</div>
     </div>
     <div ng-if='tabData.dataLoaded && tabData.summaryStats'> 
         <nl-learning-stats></nl-learning-stats>

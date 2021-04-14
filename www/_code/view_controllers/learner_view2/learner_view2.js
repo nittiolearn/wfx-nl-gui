@@ -41,7 +41,7 @@ function(nl, nlDlg) {
 			tabdata: '='
 		},
         link: function($scope, iElem, iAttrs) {
-			$scope.rightArrow = nl.url.lessonIconUrl('right-arrow.svg');
+			$scope.summary = nl.url.lessonIconUrl('summary.svg');
 			$scope.leftArrow = nl.url.lessonIconUrl('left-arrow.svg')
 			$scope.onDetailsLinkClicked = function($event, record, clickAttr) {
                 var detailsDlg = nlDlg.create($scope);
@@ -373,7 +373,7 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlReportH
 		if (!element[0]) return;
 		if (element[0].scrollLeft > 0) return true;
 		return false;
-
+	
 	}
 
 	function _onCardLinkClickedFn(card, linkid) {
@@ -399,9 +399,7 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlReportH
 		detailsDlg.show('view_controllers/learner_view2/learner_view_details.html');
 	}
 
-	$scope.canCover = function(e, isCard2) {
-		return _canCoverImg($scope.icon, isCard2);
-	};
+
 	function _initData() {
 		var ret = {};
 		ret.dataLoaded = false;
@@ -415,6 +413,7 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlReportH
 		ret.summaryStats = false;
 		ret.summaryStatSummaryRow = null;
 		ret.onSearch = _onSearch;
+		ret.onKeyupSearch=_onKeyupSearch;
 		ret.onFilter = _onFilter;
 		ret.fetchMore = _fetchMore;
 		ret.sectionData = [
@@ -437,7 +436,11 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlReportH
 		var tabData = $scope.tabData;
 		if (tabData.lastSeached == tabData.search) return;
 		tabData.lastSeached = tabData.search;
-		_updateLearningRecords();
+		_updateLearningRecords();		
+	}
+
+	function _onKeyupSearch(event) {
+		if(event.target.value=='') _updateLearningRecords();
 	}
 
 	function _onFilter(event, filter) {
@@ -496,7 +499,7 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlReportH
 
 	var SEC_POS = {'progress': 0, 'pending': 1, 'upcoming': 2, 'completed': 3, 'expired': 4};
 	var CARD_SIZE = {0: 'L', 1: 'L', 2: 'M', 3: 'S', 4: 'S'};
-	var LAUNCH_BUTTON = {'progress': 'start.svg', 'pending': 'start.svg', 'upcoming': '', 'completed': 'preview.svg', 'expired': 'info.svg'};
+	var LAUNCH_BUTTON = {'progress': 'start.svg', 'pending': 'start.svg', 'upcoming': '', 'completed': 'review.svg', 'expired': 'info.svg'};
     
 	function _getFilteredRecords() {
 		var records = $scope.tabData.records;
@@ -561,6 +564,7 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlReportH
 		var date = new Date();
 		if (card.type == 'expired') {
 			card.progressPerc = record.stats.progressPerc;
+			if(!card.progressPerc) card.progressPerc = 0;
 			card.prgClass = 'nl-card2-progress-bar-barRed';	
 			var date = nl.fmt.date2StrDDMMYYCard(card.not_after);
 			if (date)
@@ -598,6 +602,7 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlReportH
 		if (card.type == 'progress') {
 			card.prgClass = 'nl-card2-progress-bar-barGreen';	
 			card.progressPerc = record.stats.progressPerc;	
+			if(!card.progressPerc) card.progressPerc = 0;
 			var not_after = card.not_after;	
 			if (date < not_after) {
 				var date = nl.fmt.date2StrDDMMYYCard(not_after);

@@ -327,7 +327,7 @@ var _defCardAr = 1.4;
 var _minMarginX = 32; // px
 var _cardsSize = {"L": {cardWidth: 225, cardHeight: 270, ar: 1.3},
                   "M": {cardWidth: 225, cardHeight: 270, ar: 1.3},
-                  "S": {cardWidth: 225, cardHeight: 270, ar: 1.3}}
+                  "S": {cardWidth: 225, cardHeight: 225, ar: 1.25}}
 
 function _updateCardDimensions(nl, $scope, cardsContainer) {
     if ($scope.cards && $scope.cards.card2) {
@@ -338,7 +338,6 @@ function _updateCardDimensions(nl, $scope, cardsContainer) {
         $scope.w = w;
         $scope.h = ar*w;
         $scope.fs = 100;
-        
         $scope.mr = 10;
     } else {
         var w = _getCardWidth(cardsContainer);
@@ -380,7 +379,7 @@ function _canCoverImg(url, isCard2) {
     if ('canCover' in info) return info.canCover;
     if (isCard2) {
         var ar = info.w ? info.h/info.w : 0;
-        info.canCover = (ar > 0.40 && ar < 0.85);
+        info.canCover = (ar < 1);
         return info.canCover;
     }
     var ar = info.w ? info.h/info.w : 0;

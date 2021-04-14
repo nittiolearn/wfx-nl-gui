@@ -2,7 +2,4 @@
 	<img ng-show='card.icon' ng-src='{{card.icon}}' nl-compute-img-info></img>
 	<img ng-if='!card.icon' class="default_placeholder" src='https://www.nittiolearn.com/resource/resview/1615869402-placeholder-large.svg' 
 		 alt='default_placeholder'></img>
-	<div class="label" ng-class="{label_certified: card.label == 'certified',label_failed: card.label == 'failed',label_done: card.label == 'done' || card.label == 'passed'}">
-		 {{card.label}}
-	</div>
 </div>

@@ -13,15 +13,16 @@
             <div class='padding-mid'>
                 <div class='learner-view-stats-button tabs-in-small center-in-small' 
                     ng-click='viewStatistics()'>
-                    <span>Statistics
-                        <img ng-src="{{rightArrow}}" style="width: 14px; height: 14px;" alt="right_arrow">
+                    <span class="nl-display-flex" style="grid-gap:5px">
+                        <img ng-src="https://www.nittiolearn.com/resource/resview/1618331112-summary.svg" style="width: 20px; height: 30px; filter: invert(90%);" alt="summary">
+                        <span class="nl-display-flex" style="justify-content: center; align-items: center;">Statistics</span> 
                     </span> 
                 </div>
             </div>
         </div>
         <div class='padding-small'></div>
         <div class='row row-top row-wrap margin0 padding-mid'>
-            <div class='padding0 learner-view-searchbox nl-display-flex' style='padding: 0px 4px;grid-gap: 20px;'>
+            <div class='padding0 learner-view-searchbox nl-display-flex' style='padding: 0px 4px;grid-gap: 20px;margin-left:10px'>
                 <div class='row row-center margin0 padding0 learner-view-searchbox2 col-67 dark-default-input'>
                     <span style='padding: 0px 6px'><i class='icon ion-ios-search-strong fsh5'></i></span>
                     <div class='col padding0'>
@@ -29,6 +30,7 @@
                             ng-model='tabdata.search'
                             ng-attr-placeholder='{{tabdata.searchPlaceholder}}'
                             ng-keydown='tabdata.onSearch($event)'
+                            ng-keyup='tabdata.onKeyupSearch($event)'
                             style='border: none; height: 32px; background-color:inherit'>
                     </div>
                 </div>
