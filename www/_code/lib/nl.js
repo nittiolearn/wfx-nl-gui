@@ -348,16 +348,6 @@ function Formatter() {
         return (attr && Array.isArray(attr)) ? attr.join(',') : attr;
     };
 
-    this.sanitizeOu = function(ou) {
-        var parts = ou.split('.')
-        var parts2 = []
-        for (var i=0; i<parts.length; i++) {
-            var part = parts[i].trim().toUpperCase();
-            parts2.push(part);
-        }
-        return parts2.join('.');
-    };
-
     function _fmt2Impl(strFmt, args) {
         var i = 0;
         return strFmt.replace(/{}/g, function() {

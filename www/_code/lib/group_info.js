@@ -213,7 +213,6 @@ function(nl, nlDlg, nlImporter, nlGroupCache, nlGroupCache4) {
         ret.getStateStr = function() { return ret.state ? nl.t('Active') : nl.t('Inactive');};
         ret.getUtStr = function() { return _getUtStr(ret.usertype, grpid);};
         ret.stateStr = ret.state ? 'active' : 'inactive';
-        ret.org_unit_stz = nl.fmt.sanitizeOu(ret.org_unit);
         return ret;
     };
 
