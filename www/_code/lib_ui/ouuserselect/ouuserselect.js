@@ -324,8 +324,8 @@ function OuUserSelector(nl, nlDlg, nlGroupInfo, nlTreeSelect, nlOuUserSelect,
             var user = users[username];
             if (!userListFilter && !user.isActive()) continue;
             if (userListFilter && !(user.id in userListFilter)) continue;
-            if (!(user.org_unit in ouToUsers)) ouToUsers[user.org_unit] = [];
-            ouToUsers[user.org_unit].push(user);
+            if (!(user.org_unit_stz in ouToUsers)) ouToUsers[user.org_unit_stz] = [];
+            ouToUsers[user.org_unit_stz].push(user);
         }
         return ouToUsers;
     }

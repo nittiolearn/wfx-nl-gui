@@ -87,6 +87,15 @@ function(nlLog, $http, $q, $timeout, $location, $window, $rootScope, $anchorScro
     
     this.perflog = new PerfLog(this);
     
+    this.sanitizeUsers = function(ou) {
+        var parts = ou.split('.')
+        var parts2 = []
+        for (var i=0; i<parts.length; i++) {
+            var part = parts[i].trim().toUpperCase();
+            parts2.push(part);
+        }
+        return parts2.join('.');
+    };
     var iFrameLoadedHandlers = {};
     this.registerIFrameLoaded = function(key, fn) {
     	iFrameLoadedHandlers[key] = fn;
