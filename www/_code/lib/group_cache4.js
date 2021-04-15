@@ -194,15 +194,13 @@ function(nl, nlServerApi, nlConfig, nlDlg) {
 		return ret;
 	}
 
-	function _unpruneOuTree(previousId, outree) {
+	function _unpruneOuTree(parentId, outree) {
 		outree.forEach(function(item){
-			var ancestorId = null
 			if (!("id" in item)) {
-				item.id = previousId ? previousId + "." + item.text : item.text;
+				item.id = parentId ? parentId + "." + item.text : item.text;
 			};
-			ancestorId = item.id;
 			if ("children" in item) {
-				_unpruneOuTree(ancestorId, item.children);
+				_unpruneOuTree(item.id, item.children);
 			};
 		});
 	}
