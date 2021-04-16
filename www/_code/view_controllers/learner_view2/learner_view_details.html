@@ -55,7 +55,7 @@
                         <span ng-if='!avp.url && !(avp.attr ==  "UPDATED ON")'
                         class='col col-50 padding-mid nl-txt-white nl-font-12 dlg2-key'>{{avp.attr}}:</span>
                         <span ng-if='avp.type != "links" && !(avp.attr ==  "UPDATED ON")'
-                        class='padding-mid nl-txt-white nl-font-14 dlg2-value' ng-bind-html='avp.val'></span>
+                        class='col-50 padding-mid nl-txt-white nl-font-14 dlg2-value' ng-bind-html='avp.val'></span>
                         <span ng-if='avp.type == "links"'
                         class='padding-mid nl-txt-white'>
                         <span ng-repeat='op in avp.val track by $index'>
