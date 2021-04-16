@@ -189,7 +189,20 @@ function(nl, nlServerApi, nlConfig, nlDlg) {
 	
 	function _getGroupInfo(grpCache) {
 		if (!grpCache.gc4) return {};
-		return (grpCache.gc4.delta_info || {}).grpinfo || {};
+		var ret = (grpCache.gc4.delta_info || {}).grpinfo || {};
+		_unpruneOuTree(null, ret.outree || []);
+		return ret;
+	}
+
+	function _unpruneOuTree(parentId, outree) {
+		outree.forEach(function(item){
+			if (!("id" in item)) {
+				item.id = parentId ? parentId + "." + item.text : item.text;
+			};
+			if ("children" in item) {
+				_unpruneOuTree(item.id, item.children);
+			};
+		});
 	}
 
 	function _getConsolidatedData(grpCache) {

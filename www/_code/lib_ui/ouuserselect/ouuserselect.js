@@ -174,9 +174,10 @@ function OuUserSelector(nl, nlDlg, nlGroupInfo, nlTreeSelect, nlOuUserSelect,
     var _filterTrees = null;
     
     function _init() {
-        var ouToUsers = _getOuToUserDict();
+        var ouTreeRoot = {};
+        var ouToUsers = _getOuToUserDict(ouTreeRoot);
         _filterTrees = nlOuUserSelect.getMetadataFilterTrees({}, true, userListFilter);
-        _formOuUserTree(groupInfo.outree, ouToUsers, _fullTreeData, dontShowUsers);
+        _formOuUserTree(ouTreeRoot.children || [], ouToUsers, _fullTreeData, dontShowUsers);
         _updateSelectionTree(_fullTreeData, selectedUsers);
     }
     
@@ -317,17 +318,55 @@ function OuUserSelector(nl, nlDlg, nlGroupInfo, nlTreeSelect, nlOuUserSelect,
         _updateSelectionTree(_fullTreeData, {});
     }
     
-    function _getOuToUserDict() {
+    function _getOuToUserDict(ouTreeRoot) {
+        var ouStzToOu = {};
         var ouToUsers = {};
         var users = nlGroupInfo.getKeyToUsers(groupInfo);
         for(var username in users) {
             var user = users[username];
             if (!userListFilter && !user.isActive()) continue;
             if (userListFilter && !(user.id in userListFilter)) continue;
-            if (!(user.org_unit in ouToUsers)) ouToUsers[user.org_unit] = [];
-            ouToUsers[user.org_unit].push(user);
+            var ouInTree = _updateOuParents(user.org_unit, ouStzToOu);
+            if (!(ouInTree in ouToUsers)) {
+                ouToUsers[ouInTree] = [];
+            }
+            ouToUsers[ouInTree].push(user);
+        }
+        var ouIdList = [];
+        for (var ouStz in ouStzToOu) {
+            ouIdList.push(ouStzToOu[ouStz]);
+        }
+        ouIdList.sort();
+        var ouIdToItems = {'': ouTreeRoot};
+
+        for (var i=0; i<ouIdList.length; i++) {
+            var ouId = ouIdList[i];
+            var parts = ouId.split('.');
+            var text = parts[parts.length -1];
+            var parent = '';
+            if (parts.length > 1) {
+                parts.splice(parts.length - 1, 1);
+                parent = parts.join('.');
+            }
+            var item = {id: ouId, text: text};
+            var parentItem = ouIdToItems[parent];
+            if (!parentItem.children) parentItem.children = [];
+            parentItem.children.push(item);
+            ouIdToItems[ouId] = item;
         }
         return ouToUsers;
+    }
+
+    function _updateOuParents(ou, ouStzToOu) {
+        var parts = ou.split('.');
+        var partIdStz = '';
+        parts.forEach(function(part) {
+            part = part.trim();
+            var partId = partIdStz ? ouStzToOu[partIdStz] + '.' + part : part;
+            partIdStz = partId.toUpperCase();
+            if (!(partIdStz in ouStzToOu)) ouStzToOu[partIdStz] = partId;
+        });
+        return ouStzToOu[partIdStz];
     }
 
     var ouIcon = 'ion-person-stalker fsh4 fyellow';
