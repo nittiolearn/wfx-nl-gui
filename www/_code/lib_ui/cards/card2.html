@@ -2,35 +2,38 @@
 	<div style='height:50%; width: 100%;'>
 		<nl-card-image2 card='card'
 		class='nl-card2-img row row-center margin0 padding0 {{canCover($event, true) ? "cover" : ""}}' style='height:50%; width: 100%;'></nl-card-image2>
-		</div>
-		<div class='padding-mid nl-card-progress-area' ng-if='card.type=="expired" || card.type=="progress"'>
-			<div class='row row-center margin0 padding0' style="grid-gap:8px">
-				<div class='nl-card2-progress-bar col padding0 margin0 col-80' style="margin-top: 7px;">
-					<div class='{{card.prgClass}}'
-							style='width: {{card.progressPerc}}%;'>
-					</div>
-					<div ng-if='!card.progressPerc'
-							style='width: 100%'>
-					</div>
+	</div>
+	<div class='padding-mid nl-card-progress-area' ng-if='card.type=="expired" || card.type=="progress"'>
+		<div class='row row-center margin0 padding0' style="grid-gap:8px">
+			<div class='nl-card2-progress-bar col padding0 margin0 col-80' style="margin-top: 7px;">
+				<div class='{{card.prgClass}}'
+						style='width: {{card.progressPerc}}%;'>
 				</div>
-				<div class="col col-25" style="color: white;font-size: 12px;margin-top: -16px;height: 5px;">{{card.progressPerc}}%</div>
-			</div>  
-		</div>
-		<div class="" ng-class="{label_certified: card.label == 'certified',label_failed: card.label == 'failed',label_done: card.label == 'done' || card.label == 'passed'}">
-			{{card.label}}
-	    </div>
-		<div class='nl-card2-text-section nl-display-flex' style='height: 50%; width: 100%;'>
-			<div class='nl-card2-header font-16-in-small'>{{card.title}}</div>
-	   </div>
-	   <div class='nl-card2-links'>
+				<div ng-if='!card.progressPerc'
+						style='width: 100%'>
+				</div>
+			</div>
+			<div class="col col-25 fblue nl-txt-white" style="font-size: 12px;margin-top: -16px;height: 5px;">{{card.progressPerc}}%</div>
+		</div>  
+	</div>
+	<div class="fblue nl-txt-white'" ng-class="{label_certified: card.label == 'certified',label_failed: card.label == 'failed',label_done: card.label == 'done' || card.label == 'passed'}">
+		{{card.label}}
+	</div>
+	<div class='nl-card2-text-section nl-display-flex' style='height: 50%; width: 100%;'>
+		<div class='nl-card2-header font-16-in-small nl-txt-white'>{{card.title}}</div>
+	</div>
+	<div class='nl-card2-links'>
 		<div class='row row-bottom margin0 padding0'>
 			<div class='col' style='text-align: left'>
-				<div class='nl-card2-desc' nl-compile='card.help'></div>
+				<div class='nl-card2-desc nl-txt-white' nl-compile='card.help'></div>
 			</div>
-			<div ng-click='onCardInternalUrlClicked($event, card, card.url)'>
-				<span ng-if="!(card.type == 'upcoming')" class="nl-card-more-icon nl-link-img {{getLaunchIconClass(card)}}">
+			<div ng-click='onCardInternalUrlClicked($event, card, card.url)' style='margin-right: 2px;'>
+				<span ng-if="!(card.type == 'upcoming' || card.type == 'expired')" class="nl-card-more-icon {{getLaunchIconClass(card)}}" style='padding:0px;'>
 					<img ng-src='{{card.buttonUrl}}' class="scardIcon"></img>
 				</span>
+			</div>
+			<div class="arrow-container">
+				<img src='{{card.openDlgBtn}}' class="arrow-down"/>
 			</div>
 		</div>
 	</div> 

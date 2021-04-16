@@ -10,12 +10,19 @@
                     </div>
                 </div>
             </div>
-            <div class='padding-mid'>
+            <div class='padding-mid nl-display-flex'>
                 <div class='learner-view-stats-button tabs-in-small center-in-small' 
                     ng-click='viewStatistics()'>
                     <span class="nl-display-flex" style="grid-gap:5px">
-                        <img ng-src="https://www.nittiolearn.com/resource/resview/1618331112-summary.svg" style="width: 20px; height: 30px; filter: invert(90%);" alt="summary">
+                        <img ng-src="{{summary}}" style="width: 20px; height: 30px; filter: invert(90%);" alt="summary">
                         <span class="nl-display-flex" style="justify-content: center; align-items: center;">Statistics</span> 
+                    </span> 
+                </div>
+                <div class='learner-view-explore-button tabs-in-small center-in-small' 
+                    ng-click='Explore()'>
+                    <span class="nl-display-flex" style="grid-gap:5px">
+                        <img ng-src="{{explore}}" style="width: 20px; height: 30px; filter: invert(90%);" alt="summary">
+                        <span class="nl-display-flex" style="justify-content: center; align-items: center;">Explore</span> 
                     </span> 
                 </div>
             </div>
@@ -34,8 +41,8 @@
                             style='border: none; height: 32px; background-color:inherit'>
                     </div>
                 </div>
-                <div class='bgblue3 nl-txt-white justify:center margin0 nl-link-text padding-0 row row-center'
-                        ng-show='!tabdata.canFetchMore'
+                <div class='fetch-more bgblue3 nl-txt-white justify:center margin0 nl-link-text padding-0 row row-center'
+                        ng-show='tabdata.canFetchMore'
                         title='Fetch more learning records from the server'
                         ng-click='tabdata.fetchMore($event)' style="align-items: center;width:auto; border-radius: 4px;">
                         <i class='icon ion-refresh' style="font-size: 20px;margin: 2px;"></i>
@@ -48,7 +55,7 @@
 <div ng-if="tabdata.summaryStats">
     <div ng-click='goback()' class='learner-view-stats-button tabs-in-small center-in-small nl-learner-button margin-auto-in-small' 
         style="width: 100px;">
-        <img ng-src="{{leftArrow}}" style="width: 14px; height: 14px;margin: 2px;" alt="left_arrow">
+        <img ng-src="{{learn}}" style="width: 14px; height: 14px;margin: 2px;" alt="left_arrow">
         <span style="margin: 2px;">Learn</span>
     </div>
 </div>

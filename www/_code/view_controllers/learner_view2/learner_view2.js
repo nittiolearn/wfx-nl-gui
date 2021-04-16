@@ -42,7 +42,8 @@ function(nl, nlDlg) {
 		},
         link: function($scope, iElem, iAttrs) {
 			$scope.summary = nl.url.lessonIconUrl('summary.svg');
-			$scope.leftArrow = nl.url.lessonIconUrl('left-arrow.svg')
+			$scope.learn = nl.url.lessonIconUrl('learn.svg');
+			$scope.explore=nl.url.lessonIconUrl('explore.svg');
 			$scope.onDetailsLinkClicked = function($event, record, clickAttr) {
                 var detailsDlg = nlDlg.create($scope);
 				detailsDlg.setCssClass('nl-dlg2');
@@ -133,22 +134,21 @@ function(nl) {
 var LearnerViewCtrl2 = ['nl', '$scope', 'nlLearnerView2',
 function(nl, $scope, nlLearnerView2) {
 	nl.rootScope.showAnnouncement = !nl.rootScope.hideAnnouncement;
+	$scope.nodata = nl.url.lessonIconUrl('nodata.svg');
+	$scope.canCoverdlg = function(url) {
+		var info = _imgInfo[url];
+		if (!info) return false;
+		var ar = info.w ? info.h/info.w : 0;
+		info.canCover = (ar < 1);
+		return info.canCover;
+	};
 	$scope.pane = true;
 	var learnerView = nlLearnerView2.create($scope);
 	learnerView.show(true);
 }];
 
 //-------------------------------------------------------------------------------------------------
-function _canCoverImg(url, isCard2) {
-	var info = _imgInfo[url];
-	if (!info) return false;
-	var ar = info.w ? info.h/info.w : 0;
-	info.canCover = (ar > 0.51 && ar < 1);
-	return info.canCover;
-}
-
 var _imgInfo = {};
-
 var ComputeImgInfoDirective = ['nl', 'nlDlg',
 function(nl, nlDlg) {
 	return {
@@ -156,8 +156,8 @@ function(nl, nlDlg) {
 		link: function($scope, iElem, iAttrs) {
 			iElem.bind('load', function(params) {
 				$scope.$apply(function() {
-					var w = iElem[0].offsetWidth;
-					var h = iElem[0].offsetHeight;
+					var w = iElem[0].naturalWidth;
+					var h = iElem[0].naturalHeight;
 					_imgInfo[iAttrs.src] = {w:w, h:h};
 				})
 			});
@@ -377,7 +377,6 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlReportH
 	}
 
 	function _onCardLinkClickedFn(card, linkid) {
-		if (!card.url) return;
 		_showDetailsDlg(card);
 	}
 
@@ -392,6 +391,7 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlReportH
 		var detailsDlg = nlDlg.create($scope);
 		detailsDlg.setCssClass('nl-dlg2');
 		var name = card.repcontent.name;
+		var launchurl=card.url;
 		if (name.length > 20)
 			name = name.substring(0, 20) + '...';
 		detailsDlg.scope.pageTitle = name;
@@ -500,6 +500,7 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlReportH
 	var SEC_POS = {'progress': 0, 'pending': 1, 'upcoming': 2, 'completed': 3, 'expired': 4};
 	var CARD_SIZE = {0: 'L', 1: 'L', 2: 'M', 3: 'S', 4: 'S'};
 	var LAUNCH_BUTTON = {'progress': 'start.svg', 'pending': 'start.svg', 'upcoming': '', 'completed': 'review.svg', 'expired': 'info.svg'};
+	var LAUNCH_BUTTON_LIGHT = {'progress': 'start-dark.svg', 'pending': 'start-dark.svg', 'upcoming': '', 'completed': 'review-dark.svg', 'expired': 'info.svg'};
     
 	function _getFilteredRecords() {
 		var records = $scope.tabData.records;
@@ -545,11 +546,18 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlReportH
 		var card = {};
 		card.repcontent = record.repcontent;
 		card.type = recordStateObj.type;
+		var currentTheme = _userInfo.settings.userCustomClass;
 		if (LAUNCH_BUTTON[card.type]) {
-			card.buttonUrl = nl.url.lessonIconUrl(LAUNCH_BUTTON[card.type]);
+			if(currentTheme == 'nllightmode') {
+				card.buttonUrl = nl.url.lessonIconUrl(LAUNCH_BUTTON_LIGHT[card.type]);
+				card.openDlgBtn = nl.url.lessonIconUrl('down-arrow-dark.svg');
+			} 
+			if(currentTheme == 'nldarkmode') {
+				card.buttonUrl = nl.url.lessonIconUrl(LAUNCH_BUTTON[card.type]);
+				card.openDlgBtn = nl.url.lessonIconUrl('down-arrow.svg');
+			} 
 		}
-		record.repcontent.buttonUrlSrc=card.buttonUrl;
-		record.repcontent.buttonUrl=card.url;
+		card.placeHolder = nl.url.lessonIconUrl('placeholder.svg');
 		card.title = record.repcontent.name;
 		var icon = record.repcontent.icon || '';
 		if (icon.indexOf('icon:') == 0) card.icon2 = 'ion-ios-bookmarks fblue';
