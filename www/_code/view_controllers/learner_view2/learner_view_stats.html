@@ -11,7 +11,7 @@
             <div style="margin-bottom:25px;">
                 <nl-learner-view-top-section tabData='tabData'></nl-learner-view-top-section>
             </div>
-            <div class="row row-wrap responsive-md responsive-sm responsive-lg points_container stats-graph-container-in-mobile">
+            <div ng-show='tabData.recordsLen > 0' class="row row-wrap responsive-md responsive-sm responsive-lg points_container stats-graph-container-in-mobile">
                 <div ng-if="0" ng-class="$root.respCol221" class="col-50 nl-display-flex"
                     style="grid-gap: 13px;justify-content: space-evenly;">
                     <div ng-class="" class="stats_block_background points_container stats-in-small">

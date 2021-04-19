@@ -8,7 +8,7 @@
                         alt='default_placeholder'>
                 </div>
                 <div class='col padding-mid fblue2 dlg2-title-box'>
-                    <span class="dlg2-title">{{record.repcontent.name}}</span>
+                    <span class="dlg2-title font-16-in-small">{{record.repcontent.name}}</span>
                     <span class="launch-button" ng-show='!(record.type=="expired")'><img src='{{record.buttonUrl}}' alt='launch icon' style="height: 30px;
                         width: 30px;"></span>
                 </div>
@@ -28,7 +28,7 @@
             <div  class='row margin0 padding0 show-in-small' style="border: solid 1px var(--white);
             background-color: rgba(255, 255, 255, 0.3);">
                 <div class="col" style="padding-top: 0px;">
-                    <div  ng-repeat='avp in record.detailsavps track by $index' ng-if="$index < 5 && avp.attr != 'REMARKS' " class="row">
+                    <div  ng-repeat='avp in record.detailsavps track by $index' ng-if="$index > 3 && avp.attr != 'REMARKS' " class="row">
                         <a ng-if='avp.url' ng-href='{{avp.url}}'
                             class='col col-50 padding-mid nl-link-text nl-txt-white nl-font-12 dlg2-key'>{{avp.attr}}:</a>
                         <span ng-if='!avp.url && !(avp.attr ==  "ASSIGNED TO")'
@@ -45,11 +45,11 @@
                         </span>
                     </div>
                 </div>
-                <div class="col nl-display-flex" style="max-width:3%;margin: 10px 0px 10px 0px;align-items:center;justify-content: center;padding-top: 0px;">
+                <div class="col nl-display-flex hide-in-small" style="max-width:3%;margin: 10px 0px 10px 0px;align-items:center;justify-content: center;padding-top: 0px;">
                     <span class="dlg2-divider"></span>
                 </div>
                 <div class="col" style="padding-top: 0px;">
-                    <div ng-repeat='avp in record.detailsavps track by $index' ng-if="$index > 4 && (avp.attr != 'REMARKS' &&  avp.attr != 'STARTED ON' && avp.attr != 'ENDED ON')" class="row">
+                    <div ng-repeat='avp in record.detailsavps track by $index' ng-if="$index < 4 && (avp.attr != 'REMARKS' &&  avp.attr != 'STARTED ON' && avp.attr != 'ENDED ON')" class="row">
                         <a ng-if='avp.url && !(avp.attr ==  "UPDATED ON")' ng-href='{{avp.url}}'
                         class='col col-50 padding-mid nl-link-text nl-txt-white nl-font-12 dlg2-key'>{{avp.attr}}:</a>
                         <span ng-if='!avp.url && !(avp.attr ==  "UPDATED ON")'

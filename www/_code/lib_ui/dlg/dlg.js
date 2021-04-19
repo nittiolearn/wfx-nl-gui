@@ -216,7 +216,8 @@ function Dialog(nl, $ionicPopup, parentScope, nlDlg) {
             if (!destroyAfterShow) return;
             self.destroy();
         });
-       
+        
+        //click outside
         var htmlEl = angular.element(document.querySelector('html'));
         htmlEl.on('click', function (event) {
         if (event.target.nodeName === 'HTML') {

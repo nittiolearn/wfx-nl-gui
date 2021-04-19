@@ -483,30 +483,14 @@ function(nl, nlGetManyStore, nlReportHelper, nlServerApi, nlConfig, nlDlg) {
         var contentmetadata = repcontent.content && repcontent.content.contentmetadata ? repcontent.content.contentmetadata : {};
         nl.fmt.addAvp(avps, 'FROM', raw_record.not_before || '', 'date');
         nl.fmt.addAvp(avps, 'TILL', raw_record.not_after || '', 'date');
-        nl.fmt.addAvp(avps, 'ASSIGNED ON', raw_record.created, 'date');
+        
         nl.fmt.addAvp(avps, 'SUBMISSION AFTER ENDTIME', raw_record.submissionAfterEndtime, 'boolean');
         nl.fmt.addAvp(avps, 'INTERNAL IDENTIFIER', repcontent.id);
 
         nl.fmt.addAvp(avps, 'BATCH NAME', repcontent.batchname);
         if (repcontent.batchtype) nl.fmt.addAvp(avps, 'BATCH TYPE', repcontent.batchtype);
         nl.fmt.addAvp(avps, 'ASSIGNED BY', type == 'module' ? repcontent.assigned_by : repcontent.sendername);
-        nl.fmt.addAvp(avps, 'AUTHOR', raw_record.authorname);
-        nl.fmt.addAvp(avps, 'ASSIGNED TO', assignedTo);
-        if(type == 'course') {
-            nl.fmt.addAvp(avps, _userInfo.groupinfo.gradelabel.toUpperCase() , contentmetadata.grade || '-');
-            nl.fmt.addAvp(avps, _userInfo.groupinfo.subjectlabel.toUpperCase() , contentmetadata.subject || '-');
-        } else {
-            nl.fmt.addAvp(avps, _userInfo.groupinfo.gradelabel.toUpperCase() , repcontent.grade || '-');
-            nl.fmt.addAvp(avps, _userInfo.groupinfo.subjectlabel.toUpperCase() , repcontent.subject || '-');
-        }
-        
-        nl.fmt.addAvp(avps, 'UPDATED ON', raw_record.updated, 'date');    
-        if(type == 'module') {
-            nl.fmt.addAvp(avps, 'STARTED ON', raw_record.started, 'date');
-            nl.fmt.addAvp(avps, 'ENDED ON', raw_record.ended, 'date');    
-        }
-
-        
+        nl.fmt.addAvp(avps, 'AUTHOR', raw_record.authorname);       
        
         nl.fmt.addAvp(avps, 'REMARKS', raw_record.assign_remarks);
         

@@ -4,9 +4,9 @@
       <circle cx="256" cy="256" r="256" stroke="none"/>
       <circle cx="256" cy="256" r="236" fill="none"/>
     </g>
-    <g id="Group_757" data-name="Group 757" transform="translate(-0.5 27.5)">
-      <line id="Line_23" data-name="Line 23" x2="173" y2="182" transform="translate(625.5 849.5)" fill="none" stroke="#0d324d" stroke-linecap="round" stroke-width="40"/>
-      <line id="Line_24" data-name="Line 24" x1="173" y2="182" transform="translate(798.5 849.5)" fill="none" stroke="#0d324d" stroke-linecap="round" stroke-width="40"/>
+    <g id="Group_757" data-name="Group 757" transform="translate(43.5 5.5)">
+      <line id="Line_23" data-name="Line 23" x2="129" y2="136" transform="translate(625.5 849.5)" fill="none" stroke="#0d324d" stroke-linecap="round" stroke-width="40"/>
+      <line id="Line_24" data-name="Line 24" x1="130" y2="136" transform="translate(754.5 849.5)" fill="none" stroke="#0d324d" stroke-linecap="round" stroke-width="40"/>
     </g>
   </g>
 </svg>

@@ -1466,6 +1466,12 @@ a.black {
   .nl-primary {
     color:var(--nlPrimary);
   }
+  .ion-ios-close-outline {
+    color: var(--nlStatusBlue);
+    &:hover {
+      color:#3590ae;
+    }
+  }
 }
 
 .popup-buttons{
@@ -4132,6 +4138,11 @@ background-color: var(--nlFontYellow);}
   .nl-card-dlg2-img {
     min-width: 300px;
   }
+  .nl-card2 {
+    &:hover {
+      transform: scale(0);
+    }
+  }
 }
 
 /*-----------------------------------------------------------------------------------------*
@@ -6265,6 +6276,11 @@ nl-dlg {
   .dlg2-divider {
     background-color: var(--nlWhite);
   }
+  .dlg2-title-box {
+    &:after {
+      opacity: 0.5;
+    }
+   }
 }
 /*-----------------------------------------------------------------------------------------*
  * END OF DARKMODE STYLE AND COLOUR SECTION
@@ -6289,13 +6305,15 @@ nl-dlg {
   border-radius: 8px;
   text-align: center;
   font-family: Montserrat-Medium;
-  transition: all 0.3s ease 0s;
-    &:hover {
-      transform: translateY(-7px);
-    }
     &:first-child {
       margin-left: 10px;
     }
+}
+.nl-learner-button-hover {
+  transition: all 0.3s ease 0s;
+  &:hover {
+    transform: scale(1.08);
+  }
 }
 .learner-yellow{
   color: var(--nlFontYellow);
@@ -6529,7 +6547,7 @@ border:1px solid var(--nlFontOrange1)
   transition: all 0.3s ease 0s;
   box-shadow: 0px 8px 15px rgba(0, 0, 0, 0.1);
   &:hover {
-    transform: translateY(-7px);
+    transform: scale(1.08);
   }
 }
 .learner-view-explore-button {
@@ -6560,6 +6578,12 @@ border:1px solid var(--nlFontOrange1)
   .nl-white {
     color:var(--nlWhite);
   }
+  .ion-ios-close-outline {
+    color: #72bcd4;
+    &:hover {
+     color: #3590ae;
+    }
+  }
 }
 .nl-dlg2-details-dim {
   height: 335px;
@@ -6580,7 +6604,7 @@ border:1px solid var(--nlFontOrange1)
       top: 0;
       bottom: 0px;
       left: 0px;
-      opacity: 0.5;
+      opacity: 0.2;
       height: 80px;
       width:100%;
       background-color: var(--nlBlack);
@@ -6625,7 +6649,7 @@ Font-size
 }
 .nl-card-dlg2-img {
   min-width: 600px;
-  background-color: var(--nllightblue);
+  background-color: var(--nlBgTextArea);
 }
 .launch-button {
   position: absolute;
@@ -6637,33 +6661,12 @@ Font-size
   color: white;
   z-index: 1;
 }
-.arrow-container {
-  width: 30px;
-  animation: bounce 1600ms infinite cubic-bezier(0.445, 0.05, 0.55, 0.95);
-  cursor: pointer;
-  height: 25px;
-  padding: 1px;
-}
+
 .arrow-down {
-  transform-origin: 0% 0%;
   height: 25px;
   width: 25px;
 }
-.arrow-down:after {
-  content: '';
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  bottom: 0;
-  left: 100%;
-  border-radius: 5px;
-  transform-origin: 0% 100%;
-}
-@keyframes bounce {
-  50% {
-    transform: translateY(-10px);
-  }
-}
+
 .fetch-more {
   box-shadow: 0px 8px 15px rgba(0, 0, 0, 0.1);
 }
