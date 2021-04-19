@@ -27,7 +27,7 @@ var NlRouter = ['nl', 'nlDlg', 'nlServerApi', 'nlMarkup', '$state', 'nlTopbarSrv
 function(nl, nlDlg, nlServerApi, nlMarkup, $state, nlTopbarSrv, nlMobileConnector, nlGroupInfo, ChartJSSrv) {
     var permission = new Permission(nl);
     var defaultFn = function() {return function(resolve, reject) {resolve(true);};};
-
+    var self = this;
     // Backward compatibility to old URLs with nittioapp!    
     if (nl.window.location.pathname.indexOf('/nittioapp') == 0) {
         nl.window.location.href = '/#' + nl.location.url();
@@ -124,7 +124,7 @@ function(nl, nlDlg, nlServerApi, nlMarkup, $state, nlTopbarSrv, nlMobileConnecto
             nlDlg.hideLoadingScreen();
             return; // Empty page
         }
-        _getUserInfo(pageUrl, function(userInfo) {
+        self.getUserInfo(pageUrl, function(userInfo) {
             _sendGoogleAnalytics(userInfo);
             nl.rootScope.pgBgimg = null;
             nl.rootScope.groupCustomClass = userInfo.groupinfo ? userInfo.groupinfo.groupCustomClass : '';
@@ -296,7 +296,7 @@ function(nl, nlDlg, nlServerApi, nlMarkup, $state, nlTopbarSrv, nlMobileConnecto
         nlDlg.closeAll();
     }
     
-    function _getUserInfo(pageUrl, resolve, reject) {
+    this.getUserInfo = function (pageUrl, resolve, reject) {
         var promise = permission.isOpenPage(pageUrl) ? nlServerApi.getUserInfoFromCache()
             : nlServerApi.getUserInfoFromCacheOrServer();
         promise.then(function(userInfo) {
