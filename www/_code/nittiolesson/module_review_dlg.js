@@ -10,8 +10,8 @@ function module_init() {
 }
 
 //-------------------------------------------------------------------------------------------------
-var NittioLessonModuleReviewSrv = ['nl', 'nlDlg', 'nlTreeSelect', 'nlGroupInfo', 'nlOuUserSelect', 'nlServerApi',
-function(nl, nlDlg, nlTreeSelect, nlGroupInfo, nlOuUserSelect, nlServerApi) {
+var NittioLessonModuleReviewSrv = ['nl', 'nlDlg', 'nlGroupInfo', 'nlOuUserSelect', 'nlServerApi', 'nlRouter',
+function(nl, nlDlg, nlGroupInfo, nlOuUserSelect, nlServerApi, nlRouter) {
 	var _uiParams = null;
 	var _oLesson = null;
 	var _reviewerSelector = {};
@@ -25,8 +25,11 @@ function(nl, nlDlg, nlTreeSelect, nlGroupInfo, nlOuUserSelect, nlServerApi) {
 
 	this.sendForReview = function(lessonId) {
 		return nl.q(function(resolve, reject) {
-			nlGroupInfo.init2().then(function() {
-				_sendForReview(lessonId, resolve);
+			nlRouter.getUserInfo('', function(userInfo) {
+				nlGroupInfo.onPageEnter(userInfo);
+				nlGroupInfo.init2().then(function() {
+					_sendForReview(lessonId, resolve);
+				});
 			});
 		});	
 	};

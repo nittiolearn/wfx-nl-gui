@@ -639,7 +639,7 @@ function(nl, nlDlg, nlConfig, Upload) {
     // autovoice entities
     //---------------------------------------------------------------------------------------------
 	this.getAudioUrl = function(data) {
-		return server.post('_serverapi/auto_voice.json', data);
+		return _serverPostToApi3OrApi('auto_voice', data);
 	};
     //---------------------------------------------------------------------------------------------
     // resource entities
@@ -746,6 +746,7 @@ function(nl, nlDlg, nlConfig, Upload) {
         'learning_reports_get_completed_module_list': 1,
         'course_or_assign_get_many': 1,
         
+        'auto_voice': 2,
         'resource_get_resumable_upload_url': 2,
         'resource_save_to_db': 2,
 
