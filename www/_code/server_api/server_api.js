@@ -775,6 +775,18 @@ function(nl, nlDlg, nlConfig, Upload) {
         return 'nittio';
     }
 
+    this.isApi3PossibleWithUrl= function(url) {
+        return nl.q(function(resolve) {
+            _getUserInfoFromCacheOrServer().then(function(userInfo) {
+                var config = {};
+                config.userInfo = userInfo;
+                var serverType = _getServerType(url, userInfo);
+                resolve(serverType == 'nittio3');
+            });
+        });
+    };
+           
+
     function _serverPostToApi3OrApi(url, data, config) {
         return nl.q(function(resolve, reject) {
             _getUserInfoFromCacheOrServer().then(function(userInfo) {

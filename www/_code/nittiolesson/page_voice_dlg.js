@@ -19,10 +19,26 @@ function(nl, nlDlg, nlResourceAddModifySrv, nlTreeSelect, nlServerApi) {
 	var _isPollyEnabled = false;
 	var _defaultPollyVoice = 'en-IN_Aditi';
 	var _defaultFragment = 	null;
-	var _amazonPollyVoices = [
+	var _isApi3Possible = false;
+
+	var _pollyVoices = [
 		{id:'hi-IN_Aditi', name:'Hindi Female voice with bilingual Indian English: Aditi'},
 		{id:'en-IN_Aditi', name:'English (Indian accent) Female voice with bilingual with Hindi: Aditi'},
 		{id:'en-IN_Raveena', name:'English (Indian accent) Female voice: Raveena'},
+		{id:'goog:hi-IN_hi-IN-Wavenet-B', name:'Hindi Male voice with bilingual Indian English: Arjun'},
+		{id:'goog:en-IN_en-IN-Wavenet-C', name:'English (Indian accent) Male voice: Rajeev'},
+		{id:'goog:ta-IN_ta-IN-Wavenet-A', name:'Tamil Female voice: Nandini'},
+		{id:'goog:ta-IN_ta-IN-Wavenet-A', name:'Tamil Male voice: Manoj'},
+		{id:'goog:te-IN_te-IN-Standard-A', name:'Telangana Female voice: Shrinkhla'},
+		{id:'goog:te-IN_te-IN-Standard-A', name:'Telangana Female voice: Sriansh'},
+		{id:'goog:ml-IN_ml-IN-Wavenet-A', name:'Malyalam Female voice: Yamini'},
+		{id:'goog:ml-IN_ml-IN-Wavenet-B', name:'Malyalam Male voice: Bipul'},
+		{id:'goog:gu-IN_gu-IN-Wavenet-A', name:'Gujarati Female voice: Tejshri'},
+		{id:'goog:gu-IN_gu-IN-Wavenet-B', name:'Gujarati Male voice: Aabhas'},
+		{id:'goog:bn-IN_bn-IN-Wavenet-A', name:'Bengali Female voice: Amita'},
+		{id:'goog:bn-IN_bn-IN-Wavenet-B', name:'Bengali Female voice: Prateek'},
+		{id:'goog:kn-IN_kn-IN-Wavenet-A', name:'Kannada Female voice: Naina'},
+		{id:'goog:kn-IN_kn-IN-Wavenet-B', name:'Kannada Female voice: Ojas'},
 		{id:'en-US_Ivy', name:'English (US accent) Female voice: Ivy'},
 		{id:'en-US_Joanna', name:'English (US accent) Female voice: Joanna'},
 		{id:'en-US_Kendra', name:'English (US accent) Female voice: Kendra'},
@@ -82,7 +98,10 @@ function(nl, nlDlg, nlResourceAddModifySrv, nlTreeSelect, nlServerApi) {
 
 	this.init = function(oLesson, moduleConfig) {
         _isPollyEnabled = (oLesson.autoVoiceProvider == 'polly');
-	}
+		nlServerApi.isApi3PossibleWithUrl("auto_voice").then(function(isPossible){ 
+			_isApi3Possible = isPossible;
+		});
+	};
 
 	this.showAddVoiceDlg = function(oPage, restypes, resourceDict, templateDefaults, lessonId) {
 		_restypes = restypes;
@@ -292,10 +311,11 @@ function(nl, nlDlg, nlResourceAddModifySrv, nlTreeSelect, nlServerApi) {
 
 	function _getPollyVoiceTree() {
         var treeArray = [];
-        for(var i=0; i<_amazonPollyVoices.length; i++) {
-            var itemObj = _amazonPollyVoices[i];
+		for (var i=0; i<_pollyVoices.length; i++) {
+			var itemObj = _pollyVoices[i];
+			if (!_isApi3Possible && itemObj.id.startsWith("goog")) {continue;}
 			treeArray.push({id: itemObj.id, name: itemObj.name, origId: itemObj.id});
-		}
+		};
         return treeArray;
     }
 
