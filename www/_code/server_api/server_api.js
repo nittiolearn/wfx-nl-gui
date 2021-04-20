@@ -723,6 +723,7 @@ function(nl, nlDlg, nlConfig, Upload) {
     this.jsonFieldStream = function(data) {
         var url = nl.fmt2('_serverapi/jsonfield_stream.json?grpid={}&table={}&recid={}&field={}', 
             data.grpid, data.table, data.recid, data.field);
+        url = NL_SERVER_INFO.url + url;
         return nl.http.get(url);
     };    
     
