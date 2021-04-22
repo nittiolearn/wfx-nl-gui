@@ -316,9 +316,9 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlReportH
 		var className = nl.t('nl-card-section-scroll-{}', cards.type);
 		var element = document.getElementsByClassName(className);
 		var num = Math.floor(element[0].clientWidth/cardWidth);
-		var widthToScroll = num*cardWidth + num*16;
-		var len = widthToScroll/6;
-		var timeout = 100;
+		var widthToScroll = num*cardWidth+10;
+		var len = widthToScroll/5;
+		var timeout = 150;
 		_callInLoop(0, len, element, 'add', timeout)
 	}
 
@@ -329,9 +329,9 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlReportH
 		var className = nl.t('nl-card-section-scroll-{}', cards.type);
 		var element = document.getElementsByClassName(className);
 		var num = Math.floor(element[0].clientWidth/cardWidth);
-		var widthToScroll = num*cardWidth + num*16;
+		var widthToScroll = num*cardWidth+10;
 		var len = widthToScroll/5;
-		var timeout = 100;
+		var timeout = 150;
 		_callInLoop(0, len, element, 'sub', timeout)
 	}
 
@@ -467,10 +467,10 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlReportH
 				});
 				return;
 			}
-			_updateTabDataWithRecords(true);
+			_updateTabDataWithRecords(false);
 			resolve(true);
 			nlLearnerViewRecords2.updateCachedRecords(function(datachanged, canFetchMore) {
-				if (datachanged || $scope.tabData.canFetchMore != canFetchMore) _updateTabDataWithRecords(canFetchMore);
+				if (datachanged || canFetchMore) _updateTabDataWithRecords(canFetchMore);
 			});
 		});
 	}

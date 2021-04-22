@@ -1428,6 +1428,7 @@ a.black {
   .popup {
     border: 1px solid var(--nlWhite);
     border-radius: 8px;
+    box-shadow: 0 3px 6px 0 #3f7ce4;
   }
   .popup-body{ 
     border-radius: 8px;
@@ -1466,8 +1467,8 @@ a.black {
   .nl-primary {
     color:var(--nlPrimary);
   }
-  .ion-ios-close-outline {
-    color: var(--nlStatusBlue);
+  .ion-ios-close {
+    color: var(--nlPrimaryDark);
     &:hover {
       color:#3590ae;
     }
@@ -2018,7 +2019,7 @@ input.nl-dlg-field-error, .nl-dlg-field-error {
  *-----------------------------------------------------------------------------------------*/
  .con {
    &:hover {
-      .nl-card2 {
+      .nl-card2{
        transform: translateX(-3%);
       }
       .nl-card2 {
@@ -2027,13 +2028,13 @@ input.nl-dlg-field-error, .nl-dlg-field-error {
           position: relative;
           overflow: hidden;
           z-index:1000;
-          .con {
-            overflow: visible;
-          }
           .nl-card2-links {
             display: block;
           }
         }
+      }
+      .nl-card2:nth-of-type(5n+n) {
+        transform: scale(1.0);
       }
    }
  }
@@ -2044,7 +2045,11 @@ input.nl-dlg-field-error, .nl-dlg-field-error {
   font-family: Roboto, Verdana, Helvetica, Arial, sans-serif;
   font-size: 100%;
   line-height: 170%;
-  transition: transform 300ms ease 100ms;  
+  padding: 0px 8px;
+  -webkit-transition: -webkit-transform 200ms ease-in-out;
+  -moz-transition: -moz-transform 200ms ease-in-out;
+  -o-transition: -o-transform 200ms ease-in-out;
+  transition: transform 200ms ease-in-out; 
 		&:hover {
       ~ {
         .nl-card2 {
@@ -2055,12 +2060,13 @@ input.nl-dlg-field-error, .nl-dlg-field-error {
           -webkit-line-clamp: 2;
           -webkit-box-orient: vertical;
           text-overflow: ellipsis;
+          overflow: hidden;
           white-space: normal;
         }
       }
 		}
     &:first-child {
-      margin-left: 10px;
+      margin-left: 5px;
     }   
 	}
 
@@ -6373,7 +6379,7 @@ nl-dlg {
  * Learner view 2 section styles (card2)
  *-----------------------------------------------------------------------------------------*/
  .nl-limitwidth-learner-view {
-  max-width: 1192px;
+  max-width: 1160px;
   margin-left: auto;
   margin-right: auto;
 }
@@ -6574,22 +6580,18 @@ border:1px solid var(--nlFontOrange1)
   width: 25px;
   cursor:pointer;
 }
-.nldlg2 {
+.nl-dlg2 {
+  .popup {
+    box-shadow: inset 0 0 2px rgba(0,0,100,0.2), 1px 1px 2px rgba(0,0,100,0.4);  
+  }
   .nl-white {
     color:var(--nlWhite);
-  }
-  .ion-ios-close-outline {
-    color: #72bcd4;
-    &:hover {
-     color: #3590ae;
-    }
   }
 }
 .nl-dlg2-details-dim {
   height: 335px;
   width: 100%;
-  border-radius: 8px;
-  cursor: pointer;
+  border-radius: 8px 8px 0px 0px;
 }
 .dlg2-title-box {
   position: relative;
@@ -6612,17 +6614,18 @@ border:1px solid var(--nlFontOrange1)
 }
 .dlg2-title {
   position: absolute;
-  top:15%;
+  top:10%;
   bottom: 0%;
   font-family: 'Montserrat-Medium';
   font-size: 20px;
   color: var(--nlWhite);
   z-index: 1;
   display: -webkit-box!important;
-  -webkit-line-clamp: 3;
+  -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   text-overflow: ellipsis;
   white-space: normal;
+  overflow: hidden;
 }
 .dlg2-divider {
   background-color: var(--nlBgDark1);
@@ -6653,7 +6656,7 @@ Font-size
 }
 .launch-button {
   position: absolute;
-  top:15%;
+  top:27%;
   bottom: 0%;
   right: 2%;
   font-family: 'Montserrat-Medium';
@@ -6670,19 +6673,24 @@ Font-size
 .fetch-more {
   box-shadow: 0px 8px 15px rgba(0, 0, 0, 0.1);
 }
+.nodata-container {
+  justify-content: center;
+  flex-direction: column;
+  align-items: center;
+}
 .nodata {
-  max-height: 425px;
+  height: 250px;
+  width: 250px;
 }
 .nldlg2-img-container {
   position: relative; 
   height: 100%; 
   width: 100%;
   overflow: hidden;
-  &:first-child {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-  }
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: rgba(255, 255, 255, 0.3);
   img {
     max-width: 100%;
     max-height: 340px;
@@ -6696,4 +6704,7 @@ Font-size
     height: 100%;
     object-fit: cover;
   }
+}
+.nl-cursor {
+  cursor: pointer;
 }

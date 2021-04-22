@@ -136,7 +136,7 @@ function(nl, nlDlg, nlServerApi, nlMarkup, $state, nlTopbarSrv, nlMobileConnecto
             nl.pginfo.groupCustomCss = userInfo.groupinfo && userInfo.groupinfo.groupCustomCss
 
             var groupCustomClass = (userInfo.settings || {}).userCustomClass
-                            || (userInfo.groupinfo || {}).groupCustomClass || 'nllighttheme';
+                            || (userInfo.groupinfo || {}).groupCustomClass || 'nllightmode';
             if (userInfo.settings) {
                 var settings= userInfo.settings;
                 settings.userCustomClass=groupCustomClass;

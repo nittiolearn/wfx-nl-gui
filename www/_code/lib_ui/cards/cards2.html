@@ -9,14 +9,16 @@
             </div>
         </div>
         <div class='row row-center padding0 margin0' style="margin-top:-15px">
-            <div class='col padding-mid nl-card-section-scroll-{{cards.type}} nl-cards-section-hide anim-enter {{cards.animClass}} con nl-display-flex' style='overflow-x: auto;'>
-                <div class='padding0 nl-card2 nl-link-text-container {{cards.largeData ? "" : "anim fade" '
+            <div class='col padding-mid nl-card-section-scroll-{{cards.type}} nl-cards-section-hide anim-enter {{cards.animClass}} con nl-display-flex' style='overflow-x: auto;overflow-y: hidden'>
+                <div class='nl-card2 nl-link-text-container {{cards.largeData ? "" : "anim fade" '
                     ng-repeat="card in cards.cardlist track by $index" nlta='{{card.title}}'
-                    ng-style="{'min-height': h + 'px', 'min-width': w + 'px', 'font-size': fs + '%', 'margin-right': mr + 'px'} ">
+                    ng-style="{'min-height': h + 'px', 'min-width': w + 'px', 'font-size': fs + '%', 'margin-left': mr + 'px'} ">
+                    <div style="padding: 10px;width: 100%;height: 100%;position: relative;">
                     <nl-card2 card='card'
                         class='nl-card-holder2  {{card.style}}'
                         ng-click='onCardLinkClicked(card, "details")'>
                     </nl-card2>
+                    </div>  
                 </div>
             </div>
         </div>

@@ -338,7 +338,7 @@ function _updateCardDimensions(nl, $scope, cardsContainer) {
         $scope.w = w;
         $scope.h = ar*w;
         $scope.fs = 100;
-        $scope.mr = 10;
+        $scope.mr = 2;
     } else {
         var w = _getCardWidth(cardsContainer);
         $scope.w = w;
