@@ -26,7 +26,7 @@
         <div ng-repeat='tabdata in tabData track by $index' ng-if='!(tabData.sectionData[$index].cardlist.length) && tabData.sectionData[$index].type == "expired" '
              class="padding nl-txt-white nl-font-25 nodata-container nl-display-flex">
             <img ng-src='{{nodata}}' alt='no-data' class='nodata'>
-            <span class="nl-font-25 nl-txt-white fblue">Oops! Nothing found.</span>
+            <span class="nl-font-25 nl-txt-white fblue">Oops! Looks like no courses match your search.</span>
         </div>
     </div>
     <div ng-if='tabData.dataLoaded && tabData.summaryStats'> 

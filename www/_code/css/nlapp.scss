@@ -359,6 +359,7 @@ html, body {
   width: 100%;
   height: 100%;
   overflow: hidden;
+  content-visibility: auto;
   @include user-select(text); 
 }
 
@@ -2045,7 +2046,10 @@ input.nl-dlg-field-error, .nl-dlg-field-error {
   font-family: Roboto, Verdana, Helvetica, Arial, sans-serif;
   font-size: 100%;
   line-height: 170%;
-  padding: 0px 8px;
+  min-height: 292.5px;
+  min-width: 225px;
+  margin-right: 2px;
+  padding: 0px 9px;
   -webkit-transition: -webkit-transform 200ms ease-in-out;
   -moz-transition: -moz-transform 200ms ease-in-out;
   -o-transition: -o-transform 200ms ease-in-out;
@@ -2055,19 +2059,17 @@ input.nl-dlg-field-error, .nl-dlg-field-error {
         .nl-card2 {
           transform: translateX(3%);
         }
-        .nl-card2-header {
-          display: -webkit-box!important;
-          -webkit-line-clamp: 2;
-          -webkit-box-orient: vertical;
-          text-overflow: ellipsis;
-          overflow: hidden;
-          white-space: normal;
-        }
       }
-		}
-    &:first-child {
-      margin-left: 5px;
-    }   
+      .nl-card2-header {
+        display: -webkit-box!important;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        text-overflow: ellipsis;
+        overflow: hidden;
+        white-space: normal;
+        height: 35%;
+      }
+		} 
 	}
 
 .nl-card-holder2 {
@@ -2146,6 +2148,7 @@ input.nl-dlg-field-error, .nl-dlg-field-error {
   white-space: normal;
   text-overflow: ellipsis;
   font-family: Montserrat-Regular;
+  height:75%;
 }
 
 .nl-cards-section-hide::-webkit-scrollbar {
@@ -3444,7 +3447,6 @@ img.nl-icon {
   text-overflow: ellipsis;
   white-space: nowrap;
   font-family: Montserrat-Regular;
-  margin-left: 10px;
 }
 
 /*-----------------------------------------------------------------------------------------*

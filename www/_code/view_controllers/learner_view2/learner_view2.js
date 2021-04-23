@@ -316,9 +316,9 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlReportH
 		var className = nl.t('nl-card-section-scroll-{}', cards.type);
 		var element = document.getElementsByClassName(className);
 		var num = Math.floor(element[0].clientWidth/cardWidth);
-		var widthToScroll = num*cardWidth+10;
+		var widthToScroll = num*cardWidth+12;
 		var len = widthToScroll/5;
-		var timeout = 150;
+		var timeout = 65;
 		_callInLoop(0, len, element, 'add', timeout)
 	}
 
@@ -329,9 +329,9 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlReportH
 		var className = nl.t('nl-card-section-scroll-{}', cards.type);
 		var element = document.getElementsByClassName(className);
 		var num = Math.floor(element[0].clientWidth/cardWidth);
-		var widthToScroll = num*cardWidth+10;
+		var widthToScroll = num*cardWidth+20;
 		var len = widthToScroll/5;
-		var timeout = 150;
+		var timeout = 65;
 		_callInLoop(0, len, element, 'sub', timeout)
 	}
 
@@ -342,7 +342,9 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlReportH
 				element[0].scrollLeft += len;
 			else
 				element[0].scrollLeft -= len;
-			if (startpos < 5) _callInLoop(startpos, len, element, type, timeout)
+			if (startpos < 5) {
+				_callInLoop(startpos, len, element, type, timeout)
+			}
 		}, timeout)
 
 	}
@@ -470,7 +472,7 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlReportH
 			_updateTabDataWithRecords(false);
 			resolve(true);
 			nlLearnerViewRecords2.updateCachedRecords(function(datachanged, canFetchMore) {
-				if (datachanged || canFetchMore) _updateTabDataWithRecords(canFetchMore);
+				if (datachanged || $scope.tabData.canFetchMore != canFetchMore) _updateTabDataWithRecords(canFetchMore);
 			});
 		});
 	}
