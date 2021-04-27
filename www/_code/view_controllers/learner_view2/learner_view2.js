@@ -478,11 +478,15 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlReportH
 	}
 
 	function _updateTabDataWithRecords(canFetchMore) {
-		$scope.tabData.dataLoaded = true;
 		$scope.tabData.records = nlLearnerViewRecords2.getRecords();
 		$scope.tabData.recordsLen = Object.keys($scope.tabData.records).length;
 		$scope.tabData.canFetchMore = canFetchMore;
 		_updateCurrentTab();
+		$scope.tabData.dataLoaded = true;
+		var msg = 'Fetched.';
+		if (canFetchMore) msg += ' Press on the fetch more icon to fetch more from server.';
+		nlDlg.popupStatus(msg);
+		nlDlg.hideLoadingScreen();
 	}
 
 	function _updateCurrentTab() {

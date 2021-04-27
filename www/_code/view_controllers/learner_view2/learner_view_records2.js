@@ -160,13 +160,10 @@ function(nl, nlGetManyStore, nlReportHelper, nlServerApi, nlConfig, nlDlg) {
             if (!batchDone) return;
             if (isPastFetch) _isAllFetchedFromPast = !fetcher.canFetchMore();
             var canFetchMore = isPastFetch ? fetcher.canFetchMore() : _isAllFetchedFromPast ? false : true;
-            var msg = 'Fetched.';
-            if (canFetchMore) msg += ' Press on the fetch more icon to fetch more from server.';
-            nlDlg.popupStatus(msg);
             _updateTimestamps(rawRecords);
             if (!isPastFetch) _maxTsForPastFetchs = new Date(_dates.minUpdated);
             _processFetchedRecords(rawRecords, canFetchMore, onDone);
-        }, fetchLimit);
+        }, fetchLimit, true);
 	};
 
     function _isReferredUpdated(raw_record) {
