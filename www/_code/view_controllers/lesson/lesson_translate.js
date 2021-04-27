@@ -7,6 +7,7 @@
 function module_init() {
     angular.module('nl.lessontranslate', []).config(configFn)
     .service('nlLanguageTranslateSrv', LanguageTranslateSrv)
+    .service('nlLanguageVoiceSrv', LanguageVoiceSrv)
 	.controller('nl.LessonTranslateCtrl', LessonTranslateCtrl);
 };
 
@@ -134,30 +135,384 @@ function(nl, nlDlg) {
     }
 }];
 
+var LanguageVoiceSrv = ['nl', 'nlDlg',
+function(nl, nlDlg) {
+    this.getLangsVoice = function () {
+        return {
+            "hi": [
+                {
+                    "id": "hi-IN_Aditi",
+                    "name": "Hindi Female voice with bilingual Indian English: Aditi"
+                },
+                {
+                    "id": "goog:hi-IN_hi-IN-Wavenet-A",
+                    "name": "Hindi Female voice with bilingual Indian English: Pallavi"
+                },
+                {
+                    "id": "goog:hi-IN_hi-IN-Wavenet-B",
+                    "name": "Hindi Male voice with bilingual Indian English: Arjun"
+                },
+                {
+                    "id": "goog:hi-IN_hi-IN-Wavenet-C",
+                    "name": "Hindi Male voice with bilingual Indian English: Rohan"
+                }
+            ],
+            "bn": [
+                {
+                    "id": "goog:bn-IN_bn-IN-Wavenet-A",
+                    "name": "Bengali Female voice: Tanushree"
+                },
+                {
+                    "id": "goog:bn-IN_bn-IN-Wavenet-B",
+                    "name": "Bengali Male voice: Soumitra"
+                }
+            ],
+            "gu": [
+                {
+                    "id": "goog:gu-IN_gu-IN-Wavenet-A",
+                    "name": "Gujarati Female voice: Mallika"
+                },
+                {
+                    "id": "goog:gu-IN_gu-IN-Wavenet-B",
+                    "name": "Gujarati Male voice: Vipul"
+                }
+            ],
+            "kn": [
+                {
+                    "id": "goog:kn-IN_kn-IN-Wavenet-A",
+                    "name": "Kannada Female voice: Lahiri"
+                },
+                {
+                    "id": "goog:kn-IN_kn-IN-Wavenet-B",
+                    "name": "Kannada Male voice: Naveen"
+                }
+            ],
+            "ml": [
+                {
+                    "id": "goog:ml-IN_ml-IN-Wavenet-A",
+                    "name": "Malayalam Female voice: Nithya"
+                },
+                {
+                    "id": "goog:ml-IN_ml-IN-Wavenet-B",
+                    "name": "Malayalam Male voice: Jayaram"
+                }
+            ],
+            "ta": [
+                {
+                    "id": "goog:ta-IN_ta-IN-Wavenet-A",
+                    "name": "Tamil Female voice: Nandhini"
+                },
+                {
+                    "id": "goog:ta-IN_ta-IN-Wavenet-B",
+                    "name": "Tamil Male voice: Karthik"
+                }
+            ],
+            "te": [
+                {
+                    "id": "goog:te-IN_te-IN-Standard-A",
+                    "name": "Telugu Female voice: Soundarya"
+                },
+                {
+                    "id": "goog:te-IN_te-IN-Standard-B",
+                    "name": "Telugu Male voice: Ravi"
+                }
+            ],
+            "da": [
+                {
+                    "id": "da-DK_Naja",
+                    "name": "Danish Female voice: Naja"
+                },
+                {
+                    "id": "da-DK_Mads",
+                    "name": "Danish Male voice: Mads"
+                }
+            ],
+            "nl": [
+                {
+                    "id": "nl-NL_Lotte",
+                    "name": "Dutch Female voice: Lotte"
+                },
+                {
+                    "id": "nl-NL_Ruben",
+                    "name": "Dutch Male voice: Ruben"
+                }
+            ],
+            "en": [
+                {
+                    "id": "en-IN_Aditi",
+                    "name": "English (Indian accent) Female voice with bilingual with Hindi: Aditi"
+                },
+                {
+                    "id": "en-IN_Raveena",
+                    "name": "English (Indian accent) Female voice: Raveena"
+                },
+                {
+                    "id": "goog:en-IN_en-IN-Wavenet-B",
+                    "name": "English (Indian accent) Male voice: Amar"
+                },
+                {
+                    "id": "goog:en-IN_en-IN-Wavenet-C",
+                    "name": "English (Indian accent) Male voice: Rajeev"
+                },
+                {
+                    "id": "en-US_Ivy",
+                    "name": "English (US accent) Female voice: Ivy"
+                },
+                {
+                    "id": "en-US_Joanna",
+                    "name": "English (US accent) Female voice: Joanna"
+                },
+                {
+                    "id": "en-US_Kendra",
+                    "name": "English (US accent) Female voice: Kendra"
+                },
+                {
+                    "id": "en-US_Kimberly",
+                    "name": "English (US accent) Female voice: Kimberly"
+                },
+                {
+                    "id": "en-US_Salli",
+                    "name": "English (US accent) Female voice: Salli"
+                },
+                {
+                    "id": "en-US_Joey",
+                    "name": "English (US accent) Male voice: Joey"
+                },
+                {
+                    "id": "en-US_Justin",
+                    "name": "English (US accent) Male voice: Justin"
+                },
+                {
+                    "id": "en-US_Matthew",
+                    "name": "English (US accent) Male voice: Mathew"
+                },
+                {
+                    "id": "en-GB_Amy",
+                    "name": "English (British accent) Female voice: Amy"
+                },
+                {
+                    "id": "en-GB_Emma",
+                    "name": "English (British accent) Female voice: Emma"
+                },
+                {
+                    "id": "en-GB_Brian",
+                    "name": "English (British accent) Male voice: Brian"
+                },
+                {
+                    "id": "en-GB-WLS_Geraint",
+                    "name": "English (Welsh accent) Male voice: Geraint"
+                },
+                {
+                    "id": "en-AU_Nicole",
+                    "name": "English (Australian accent) Female voice: Nicole"
+                },
+                {
+                    "id": "en-AU_Russell",
+                    "name": "English (Australian accent) Male voice: Russell"
+                }
+            ],
+            "fr": [
+                {
+                    "id": "fr-FR_Céline",
+                    "name": "French Female voice: Céline"
+                },
+                {
+                    "id": "fr-FR_Léa",
+                    "name": "French Female voice: Léa"
+                },
+                {
+                    "id": "fr-FR_Mathieu",
+                    "name": "French Male voice: Mathieu"
+                },
+                {
+                    "id": "fr-CA_Chantal",
+                    "name": "French, Canadian Female voice: Chantal"
+                }
+            ],
+            "de": [
+                {
+                    "id": "de-DE_Marlene",
+                    "name": "German Female voice: Marlene"
+                },
+                {
+                    "id": "de-DE_Vicki",
+                    "name": "German Female voice: Vicki"
+                },
+                {
+                    "id": "de-DE_Hans",
+                    "name": "German Male voice: Hans"
+                }
+            ],
+            "is": [
+                {
+                    "id": "is-IS_Dóra",
+                    "name": "Icelandic Female voice: Dóra/Dora"
+                },
+                {
+                    "id": "is-IS_Karl",
+                    "name": "Icelandic Male voice: Karl"
+                }
+            ],
+            "it": [
+                {
+                    "id": "it-IT_Carla",
+                    "name": "Italian Female voice: Carla"
+                },
+                {
+                    "id": "it-IT_Bianca",
+                    "name": "Italian Female voice: Bianca"
+                },
+                {
+                    "id": "it-IT_Giorgio",
+                    "name": "Italian Male voice: Giorgio"
+                }
+            ],
+            "ja": [
+                {
+                    "id": "ja-JP_Mizuki",
+                    "name": "Japanese Female voice: Mizuki"
+                },
+                {
+                    "id": "ja-JP_Takumi",
+                    "name": "Japanese Male voice: Takumi"
+                }
+            ],
+            "ko": [
+                {
+                    "id": "ko-KR_Seoyeon",
+                    "name": "Korean Female voice: Seoyeon"
+                }
+            ],
+            "pl": [
+                {
+                    "id": "pl-PL_Ewa",
+                    "name": "Polish Female voice: Ewa"
+                },
+                {
+                    "id": "pl-PL_Maja",
+                    "name": "Polish Female voice: Maja"
+                },
+                {
+                    "id": "pl-PL_Jacek",
+                    "name": "Polish Male voice: Jacek"
+                },
+                {
+                    "id": "pl-PL_Jan",
+                    "name": "Polish Male voice: Jan"
+                }
+            ],
+            "pt": [
+                {
+                    "id": "pt-BR_Vitória",
+                    "name": "Portuguese, Brazilian Female voice: Vitória/Vitoria"
+                },
+                {
+                    "id": "pt-BR_Ricardo",
+                    "name": "Portuguese, Brazilian Male voice: Ricardo"
+                },
+                {
+                    "id": "pt-PT_Inês",
+                    "name": "Portuguese, European Female voice: Inês/Ines"
+                },
+                {
+                    "id": "pt-PT_Cristiano",
+                    "name": "Portuguese, European Male voice: Cristiano"
+                }
+            ],
+            "ro": [
+                {
+                    "id": "ro-RO_Carmen",
+                    "name": "Romanian Female voice: Inês/Ines"
+                }
+            ],
+            "ru": [
+                {
+                    "id": "ru-RU_Tatyana",
+                    "name": "Russian Female voice: Tatyana"
+                },
+                {
+                    "id": "ru-RU_Maxim",
+                    "name": "Russian Male voice: Maxim"
+                }
+            ],
+            "es": [
+                {
+                    "id": "es-ES_Conchita",
+                    "name": "Spanish, European Female voice: Conchita"
+                },
+                {
+                    "id": "es-ES_Lucia",
+                    "name": "Spanish, European Female voice: Lucia"
+                },
+                {
+                    "id": "es-ES_Enrique",
+                    "name": "Spanish, European Male voice: Enrique"
+                },
+                {
+                    "id": "es-MX_Mia",
+                    "name": "Spanish, Mexican Female voice: Mia"
+                },
+                {
+                    "id": "es-US_Penélope",
+                    "name": "Spanish, US Female voice: Penélope/Penelope"
+                },
+                {
+                    "id": "es-US_Miguel",
+                    "name": "Spanish, US Male voice: Miguel"
+                }
+            ],
+            "sv": [
+                {
+                    "id": "sv-SE_Astrid",
+                    "name": "Swedish Female voice: Astrid"
+                }
+            ],
+            "tr": [
+                {
+                    "id": "tr-TR_Filiz",
+                    "name": "Turkish Female voice: Filiz"
+                }
+            ],
+            "cy": [
+                {
+                    "id": "cy-GB_Gwyneth",
+                    "name": "Welsh Female voice: Gwyneth"
+                }
+            ]
+        };
+    }
+}];
+
 //-------------------------------------------------------------------------------------------------
-var LessonTranslateCtrl = ['nl', 'nlDlg', 'nlRouter', '$scope', 'nlCardsSrv', 'nlLessonSelect', 'nlTreeSelect', 'nlServerApi', 'nlLanguageTranslateSrv',
-function(nl, nlDlg, nlRouter, $scope, nlCardsSrv, nlLessonSelect, nlTreeSelect, nlServerApi, nlLanguageTranslateSrv) {
+var LessonTranslateCtrl = ['nl', 'nlDlg', 'nlRouter', '$scope', 'nlCardsSrv', 'nlLessonSelect', 'nlTreeSelect', 'nlServerApi', 'nlLanguageTranslateSrv', 'nlLanguageVoiceSrv',
+function(nl, nlDlg, nlRouter, $scope, nlCardsSrv, nlLessonSelect, nlTreeSelect, nlServerApi, nlLanguageTranslateSrv, nlLanguageVoiceSrv) {
     var params = nl.location.search();
     $scope.debug = 'debug' in params;
     var markupSplitter = new MarkupSplitter(nl);
 	var _userInfo = null;
 	var _languageInfo = [];
+    var _voiceInfo = [];
+    var _selectedLang = null;
 	var _scope = null;
 	var _translateDict = {};
 	var _translateArray = [];
+    var _isApi3Possible = false;
 	var _preSelectedLessonId = null;
     var _preSelectedLanguage = null;
     var _trFlags = null; // What all will be translated
-    var _languageFlags = {hi: {lang: 'en-IN', voice: 'Aditi'}};  //Which languages will be generated aldo after translating them
+    // var _languageFlags = {hi: {lang: 'en-IN', voice: 'Aditi'}};  //Which languages will be generated aldo after translating them TODO-NOW
 	var _traslateLangTree = nlLanguageTranslateSrv.getTranslationLangs();
+    var _langsVoiceTree = nlLanguageVoiceSrv.getLangsVoice();
 	function _onPageEnter(userInfo) {
 		_userInfo = userInfo;
 		return nl.q(function (resolve, reject) {
 			$scope.userinfo = _userInfo;
-            $scope.data = {showHelp: {}};
+            $scope.data = {showHelp: {}, showVoice: false};
             $scope.data.contentType = $scope.options.contentType[0];
 			nl.pginfo.pageTitle = nl.t('Translate module');
-	
+            nlServerApi.isApi3PossibleWithUrl("auto_voice").then(function(isPossible){ 
+                _isApi3Possible = isPossible;
+            });
 			if (_preSelectedLessonId) {
 				_getContent(_preSelectedLessonId).then(function(oLesson) {
 			        $scope.data.selectedModule = {lessonId:_preSelectedLessonId, title: oLesson.name};
@@ -176,8 +531,24 @@ function(nl, nlDlg, nlRouter, $scope, nlCardsSrv, nlLessonSelect, nlTreeSelect, 
     _languageInfo.treeIsShown = false;
     _languageInfo.multiSelect = false;
     _languageInfo.fieldmodelid = 'language';
+    _languageInfo.onSelectChange = function() {
+        var _selectedLangId = Object.keys(nlTreeSelect.getSelectedIds(_languageInfo))[0];
+        _selectedLang = _selectedLangId.indexOf(".") > 0 ? _selectedLangId.split(".")[1] : _selectedLangId;
+        var voiceArrayParams = _getLanguageVoiceTree(_selectedLang);
+        if (voiceArrayParams[0].length > 0){
+            _voiceInfo = {data: voiceArrayParams[0] || []};
+            nlTreeSelect.updateSelectionTree(_voiceInfo, {}, 1);
+            _voiceInfo.treeIsShown = false;
+            _voiceInfo.multiSelect = false;
+            _voiceInfo.fieldmodelid = 'voice';
+            $scope.options.voice = _voiceInfo;
+            $scope.data.showVoice = true;
+        } else {
+            $scope.data.showVoice = false;
+        };
+    };
 
-    $scope.options = {  language: _languageInfo, 
+    $scope.options = {  language: _languageInfo,
                         contentType: [  
                             {id: 'textvoice', name: 'Both Text and Voice'},
                             {id: 'textonly', name: 'Text Only'},
@@ -207,6 +578,16 @@ function(nl, nlDlg, nlRouter, $scope, nlCardsSrv, nlLessonSelect, nlTreeSelect, 
         return [treeArray, selectedLangId];
     }
 
+    function _getLanguageVoiceTree(langId) {
+	    var treeArray = _langsVoiceTree[langId];
+        if (!treeArray) return [[],{}]
+        if (treeArray[0].id.startsWith("goog") && !_isApi3Possible) return [[], {}]
+        for(var i=0; i<treeArray.length; i++) {
+            treeArray[i].origId = treeArray[i].id;
+        };
+        return [treeArray, {}];
+    }
+
     function _getIconNodeWithParents(itemObj, treeArray, insertedKeys, _preSelectedLanguage, selectedLangId) {
         if (itemObj.group && !insertedKeys[itemObj.group]) {
         	insertedKeys[itemObj.group] = true;
@@ -220,6 +601,7 @@ function(nl, nlDlg, nlRouter, $scope, nlCardsSrv, nlLessonSelect, nlTreeSelect, 
     }
 
     var targetLang = '';
+    var targetVoice = '';
 	$scope.onTranslate = function() {
 		if(!$scope.data.selectedModule) return _errorMessage(nl.t('Please select the module to translate')); 
 		var lessonId = $scope.data.selectedModule.lessonId;
@@ -228,6 +610,11 @@ function(nl, nlDlg, nlRouter, $scope, nlCardsSrv, nlLessonSelect, nlTreeSelect, 
 		for (var key in selectedLangs) targetLang = selectedLangs[key].origId;
         if(!targetLang) return _errorMessage(nl.t('Please select the target language'));
         
+        targetVoice = '';
+        var selectedVoice = nlTreeSelect.getSelectedIds(_voiceInfo);
+		for (var key in selectedVoice) targetVoice = selectedVoice[key].origId;
+        if($scope.data.showVoice && !targetVoice) return _errorMessage(nl.t('Please select the target voice'));
+
         if(!$scope.data.contentType) return _errorMessage(nl.t('Please select the contentType to translate')); 
         _initTranslationFlags($scope.data.contentType);
 
@@ -236,7 +623,7 @@ function(nl, nlDlg, nlRouter, $scope, nlCardsSrv, nlLessonSelect, nlTreeSelect, 
 		_getContent(lessonId).then(function(oLesson) {
             nlDlg.popupStatus('Analyzing the items requiring translation ...', false);
             nl.timeout(function() {
-                _prepareAndTranslate(oLesson, targetLang);
+                _prepareAndTranslate(oLesson, targetLang, targetVoice);
             });
 		});
     };
@@ -256,13 +643,13 @@ function(nl, nlDlg, nlRouter, $scope, nlCardsSrv, nlLessonSelect, nlTreeSelect, 
         };
     }
 	
-    function _prepareAndTranslate(oLesson, targetLang) {
-        _createTranslationArrayFromLessonContent(oLesson);
+    function _prepareAndTranslate(oLesson, targetLang, targetVoice) {
+        _createTranslationArrayFromLessonContent(oLesson, targetLang, targetVoice);
         _translateTexts(targetLang).then(function(translations) {
             _updateModule(translations);
             oLesson.lang = targetLang;
             var pollyVoiceArray = _createVoiceAndUpdateLesson(oLesson);
-            getPollyVoiceAndCreateLesson(pollyVoiceArray, 0, oLesson);
+            getPollyVoiceAndCreateLesson(pollyVoiceArray, 0, oLesson, targetLang, targetVoice);
         });
     }
 
@@ -284,7 +671,6 @@ function(nl, nlDlg, nlRouter, $scope, nlCardsSrv, nlLessonSelect, nlTreeSelect, 
     }
 
     function getPollyVoiceAndCreateLesson(pollyVoiceArray, currentPos, oLesson) {
-        if(!(targetLang in _languageFlags)) currentPos = pollyVoiceArray.length;
         if(currentPos >= pollyVoiceArray.length) {
             var data = {content:angular.toJson(oLesson), createNew: true};
             nlServerApi.lessonSave(data).then(function(newLessonId) {
@@ -385,7 +771,7 @@ function(nl, nlDlg, nlRouter, $scope, nlCardsSrv, nlLessonSelect, nlTreeSelect, 
         return markup;
     }
 
-	function _createTranslationArrayFromLessonContent(oLesson) {
+	function _createTranslationArrayFromLessonContent(oLesson, targetLang, targetVoice) {
         _translateDict = {};
         _translateArray = [];
         _addTxtToArrayAndDict(oLesson.name, 'module.name', {obj: oLesson});
@@ -393,15 +779,15 @@ function(nl, nlDlg, nlRouter, $scope, nlCardsSrv, nlLessonSelect, nlTreeSelect, 
 			_addTxtToArrayAndDict(oLesson.description, 'module.description', {obj: oLesson});
         if(oLesson.forumTopic)
             _addTxtToArrayAndDict(oLesson.forumTopic, 'module.forumTopic', {obj: oLesson});
-	    _createTranslationArrayFromPages(oLesson, oLesson.pages);
+	    _createTranslationArrayFromPages(oLesson, oLesson.pages, targetLang, targetVoice);
 	}
 
-    function _createTranslationArrayFromPages(oLesson, pages) {
+    function _createTranslationArrayFromPages(oLesson, pages, targetLang, targetVoice) {
         for(var i=0; i<pages.length; i++)
-            _createTranslationArrayFromPage(oLesson, pages[i]);
+            _createTranslationArrayFromPage(oLesson, pages[i], targetLang, targetVoice);
     }
 
-    function _createTranslationArrayFromPage(oLesson, page) {
+    function _createTranslationArrayFromPage(oLesson, page, targetLang, targetVoice) {
         if(page.forumTopic)
             _addTxtToArrayAndDict(page.forumTopic, 'page.forumTopic', {obj: page});
         if(page.autoVoice)
@@ -412,10 +798,10 @@ function(nl, nlDlg, nlRouter, $scope, nlCardsSrv, nlLessonSelect, nlTreeSelect, 
                 var fragment = fragments[i];
                 if(fragment.text == "") continue;
                 if(fragment.type != 'audio') {
-                    if(targetLang in _languageFlags) {
+                    if (targetVoice){
+                        fragment.lang = targetVoice.split("_")[0];
                         fragment.type = 'autovoice';
-                        fragment.lang = _languageFlags[targetLang].lang;
-                        fragment.voice = _languageFlags[targetLang].voice;
+                        fragment.voice = targetVoice.split("_")[1];
                     }
                     else {
                         fragment.lang = 'en-IN';
