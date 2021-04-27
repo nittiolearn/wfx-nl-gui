@@ -4,7 +4,7 @@
             <div class='col section-header-text font-20-in-small'>
                 {{cards.name}}
             </div>
-            <div style="margin-right:-12px">
+            <div ng-if='$root.screenSize != "small"' style="margin-right:-12px">
                 <nl-navigation-section data="cards"></nl-navigation-section>
             </div>
         </div>

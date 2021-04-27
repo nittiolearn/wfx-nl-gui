@@ -4101,6 +4101,9 @@ background-color: var(--nlFontYellow);}
   .font-10-in-small {
     font-size: 10px !important;
   }
+  .font-12-in-small {
+    font-size:12px !important;
+  }
   .font-16-in-small {
     font-size:16px;
   }
@@ -4150,6 +4153,25 @@ background-color: var(--nlFontYellow);}
     &:hover {
       transform: scale(0);
     }
+  }
+  .con {
+    &:hover {
+       .nl-card2{
+        transform: none;
+       }
+       .nl-card2 {
+         &:hover {
+           transform:none;
+         }
+       }
+    }
+  } 
+  .nl-dlg2-details-dim {
+    height: 260px;
+  }
+  .nl-learner-button , .learner-view-stats-button {
+    min-width: 112px;
+    height: 30px;
   }
 }
 
@@ -6392,7 +6414,7 @@ nl-dlg {
 .search-placeholder::placeholder {
   color: var(--nlPrimary);
 }
-.mt-32 {
+.mt-20 {
   margin-top:20px;
 }
 .mt-40 {
@@ -6681,8 +6703,8 @@ Font-size
   align-items: center;
 }
 .nodata {
-  height: 250px;
-  width: 250px;
+  height: 325px;
+  width: 450px;
 }
 .nldlg2-img-container {
   position: relative; 

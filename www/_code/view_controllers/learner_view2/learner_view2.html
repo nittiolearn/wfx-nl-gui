@@ -8,7 +8,7 @@
         <div>
             <nl-learner-view-top-section tabData='tabData'></nl-learner-view-top-section>        
         </div>
-        <div ng-if='tabData.sectionData[0].cardlist.length > 0' id="anchor-progress" class="mt-32">
+        <div ng-if='tabData.sectionData[0].cardlist.length > 0' id="anchor-progress" class="mt-20">
             <nl-cards cards='tabData.sectionData[0]'></nl-cards>
         </div>
         <div ng-if='tabData.sectionData[1].cardlist.length > 0' id="anchor-pending">
@@ -23,10 +23,10 @@
         <div ng-if='tabData.sectionData[4].cardlist.length > 0' id="anchor-expired">
             <nl-cards cards='tabData.sectionData[4]'></nl-cards>
         </div>
-        <div ng-repeat='tabdata in tabData track by $index' ng-if='!(tabData.sectionData[$index].cardlist.length) && tabData.sectionData[$index].type == "expired" '
-             class="padding nl-txt-white nl-font-25 nodata-container nl-display-flex">
-            <img ng-src='{{nodata}}' alt='no-data' class='nodata'>
-            <span class="nl-font-25 nl-txt-white fblue">Oops! Looks like no courses match your search.</span>
+        <div ng-if="!(tabData.sectionData[0].cardlist.length || tabData.sectionData[1].cardlist.length || tabData.sectionData[2].cardlist.length || tabData.sectionData[3].cardlist.length 
+                     || tabData.sectionData[4].cardlist.length)" class="padding nl-txt-white nl-font-25 nodata-container nl-display-flex">
+            <img ng-src='{{nodata}}' alt='no-data' class='nodata' >
+            <span class="nl-font-25 nl-txt-white fblue" >Oops! Looks like no courses match your search.</span>
         </div>
     </div>
     <div ng-if='tabData.dataLoaded && tabData.summaryStats'> 

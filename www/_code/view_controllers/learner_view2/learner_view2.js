@@ -318,7 +318,7 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlReportH
 		var num = Math.floor(element[0].clientWidth/cardWidth);
 		var widthToScroll = num*cardWidth+12;
 		var len = widthToScroll/5;
-		var timeout = 65;
+		var timeout = 75;
 		_callInLoop(0, len, element, 'add', timeout)
 	}
 
@@ -329,9 +329,9 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlReportH
 		var className = nl.t('nl-card-section-scroll-{}', cards.type);
 		var element = document.getElementsByClassName(className);
 		var num = Math.floor(element[0].clientWidth/cardWidth);
-		var widthToScroll = num*cardWidth+20;
+		var widthToScroll = num*cardWidth+8;
 		var len = widthToScroll/5;
-		var timeout = 65;
+		var timeout = 75;
 		_callInLoop(0, len, element, 'sub', timeout)
 	}
 
