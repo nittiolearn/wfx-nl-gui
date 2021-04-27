@@ -37,7 +37,8 @@ function module_init() {
 		'nl.learning_reports.lr_report_records', 'nl.learning_reports.lr_summary_stats', 'nl.learning_reports.lr_import',
 		'nl.learning_reports.lr_drilldown', 'nl.learning_reports.lr_nht_srv',
 		'nl.learning_reports.others.lr_completed_modules',
-		'nl.learning_reports.lr_course_assign_view', 'nl.learning_reports.lr_update_batch_dlg', 'nl.learning_reports.lr_pagelevelscore'])
+		'nl.learning_reports.lr_course_assign_view', 'nl.learning_reports.lr_update_batch_dlg', 'nl.learning_reports.lr_pagelevelscore',
+		'nl.learning_reports.others.lr_tms_view'])
 	.config(configFn)
 	.controller('nl.LearningReportsCtrl', LearningReportsCtrl)
 	.service('nlLearningReports', NlLearningReports);
