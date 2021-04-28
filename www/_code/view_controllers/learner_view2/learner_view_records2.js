@@ -27,6 +27,9 @@ function(nl, nlGetManyStore, nlReportHelper, nlServerApi, nlConfig, nlDlg) {
         _userInfo = userinfo;
         _records = {};
         _dates = {minUpdated: null, maxUpdated: null};
+        _referredRecordTimestamps = {};
+        _maxTsForPastFetchs = null;
+        _isAllFetchedFromPast = false;
     };
 
     this.getRecords = function() {
