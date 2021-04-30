@@ -129,7 +129,7 @@ function($scope, nl, nlDlg, nlRouter, nlGroupInfo, nlServerApi, nlExporter, nlTm
             if (!resp || !resp.data) {
                 resolve();
             }
-          var jsonObj = _dataFromServer || resp.data;
+          var jsonObj = resp.data;
           jsonObj = angular.fromJson(jsonObj);
           $scope.headerTextStr = nl.t('Generated on {}', nl.fmt.date2StrDDMMYY(nl.fmt.json2Date(jsonObj.generatedOn),null, 'date'));
           nlTmsView.updateCounts(jsonObj.report, jsonObj.assignment, jsonObj.course);
