@@ -50,9 +50,77 @@ function($scope, nl, nlDlg, nlRouter, nlGroupInfo, nlServerApi, nlExporter, nlTm
       _updateVisibleTmsRows($scope.nhtInfo.info);  
     }
 
-    function _init() {
+    $scope.onClickOnBatch = function(rec) {
+      if (!rec.batchid) return;
+      var url = nl.fmt2('#/learning_reports?type=course_assign&objid={}', rec.batchid);
+      nl.window.open(url,'_blank');
+    };
+
+    var ctx = {};
+    var headers = null;
+    $scope.exportTmsData = function() {
+        nl.q(function(resolve, reject) {
+            ctx = {};
+            headers = null;
+            headers = _getDefaultCols();
+            headers = headers.concat(_getTmsCols());
+            ctx.rows = [nlExporter.getCsvHeader(headers)];
+            _export();
+        });
+    };
+
+    function _getDefaultCols() {
+        return [{id: 'all', name: 'Overall'}, {id: 'suborg', name: 'Sub-Org name'}, {id: 'batchname', name: 'Batch name'}];
+    }
+    function _export(resolve, reject) {
+        try {
+              var zip = new JSZip();
+              _updateTmsRow();
+              var fileName = nl.fmt2('tms-stats.csv');
+              var content = nlExporter.getUtfCsv(ctx.rows);
+              zip.file(fileName, content);
+              nlExporter.saveZip(zip, 'tmsStats.zip', null, resolve, reject);      
+            } catch(e) {
+              console.error('Error while downloading', e);
+              nlDlg.popupAlert({title: 'Error while downloading', template: e});
+              reject(e);
+        }
+    }
+    function _updateTmsRow() {
+        var nhtStats = $scope.nhtStatusDict;
+        for(var key in nhtStats) {
+            var row = nhtStats[key];
+            row.cnt['all'] = row.cnt.name;
+            row.cnt['suborg'] = '';
+            row.cnt['batchname'] = '';
+            ctx.rows.push(nlExporter.getCsvRow(headers, row.cnt));
+            if(row.children) _updateLevel1Rows(row.children);   
+        }
     }
 
+    function _updateLevel1Rows(level1Rows) {
+        for(var key in level1Rows) {
+            var row = level1Rows[key];
+            row.cnt['all'] = '';
+            row.cnt['suborg'] = row.cnt.name;
+            row.cnt['batchname'] = '';
+            ctx.rows.push(nlExporter.getCsvRow(headers, row.cnt));
+            if(row.children) _updateLevel2Rows(row.children, row.cnt.name);
+        }
+    }
+
+    function _updateLevel2Rows(level2Rows, subOrg) {
+        for(var key in level2Rows) {
+            var row = level2Rows[key];
+            row.cnt['all'] = '';
+            row.cnt['suborg'] = subOrg;
+            row.cnt['batchname'] = row.cnt.name;
+            ctx.rows.push(nlExporter.getCsvRow(headers, row.cnt));
+        }
+    }
+
+    function _init() {
+    }
 
     function _fetchDataFromServer(resolve) {
       $scope.nhtInfo = {};
@@ -61,8 +129,9 @@ function($scope, nl, nlDlg, nlRouter, nlGroupInfo, nlServerApi, nlExporter, nlTm
             if (!resp || !resp.data) {
                 resolve();
             }
-          var jsonObj = resp.data;
-          jsonObj = angular.fromJson(jsonObj)
+          var jsonObj = _dataFromServer || resp.data;
+          jsonObj = angular.fromJson(jsonObj);
+          $scope.headerTextStr = nl.t('Generated on {}', nl.fmt.date2StrDDMMYY(nl.fmt.json2Date(jsonObj.generatedOn),null, 'date'));
           nlTmsView.updateCounts(jsonObj.report, jsonObj.assignment, jsonObj.course);
           $scope.nhtStatusDict = nlTmsView.getStatusCount();
           var allRows = _generateTmsArray();
@@ -79,35 +148,35 @@ function($scope, nl, nlDlg, nlRouter, nlGroupInfo, nlServerApi, nlExporter, nlTm
         var row = nhtInfo.allRows[i];
         _rows.push(row);
         if (row.isOpen && row.children) 
-          _addChildrenToRow(_rows, row);
-          nhtInfo.shown += 1;
+            _addChildrenToRow(_rows, row);
+        nhtInfo.shown += 1;
         if (!nhtInfo.visible) nhtInfo.visible = nhtInfo.defMaxVisible;
         if (nhtInfo.shown < nhtInfo.visible) continue;
         if (nhtInfo.visible < nhtInfo.allRows.length) {
-          _rows.push({cnt: nhtInfo, showMoreLink: true});
-          break;
+            _rows.push({cnt: nhtInfo, showMoreLink: true});
+            break;
         }
       }
       nhtInfo.rows = _rows;
     }
   
     function _addChildrenToRow(_rows, row) {
-      var children = row.children || [];
-      row.shown = 0;
-      for(var i=0; i<children.length; i++) {
-        var child = children[i];
-        _rows.push(child);
-        if (child.isOpen && child.children) {
-          _addChildrenToRow(_rows, child);
+        var children = row.children || [];
+        row.shown = 0;
+        for(var i=0; i<children.length; i++) {
+            var child = children[i];
+            _rows.push(child);
+            if (child.isOpen && child.children) {
+                _addChildrenToRow(_rows, child);
+            }
+            row.shown += 1;
+            if(!row.visible) row.visible = $scope.nhtInfo.info.defMaxVisible;
+            if(row.shown < row.visible) continue;
+            if (row.visible < row.children.length) {
+                _rows.push({cnt: row, showMoreLink: true});
+                break;
+            }
         }
-        row.shown += 1;
-        if(!row.visible) row.visible = $scope.nhtInfo.info.defMaxVisible;
-        if(row.shown < row.visible) continue;
-        if (row.visible < row.children.length) {
-          _rows.push({cnt: row, showMoreLink: true});
-          break;
-        }
-      }
     }
   
     function _getTmsCols() {
@@ -122,51 +191,49 @@ function($scope, nl, nlDlg, nlRouter, nlGroupInfo, nlServerApi, nlExporter, nlTm
         columns.push({id: 'failed', name: 'Failed', table: true, background: 'nl-bg-blue', showAlways: true, hidePerc:true});
         columns.push({id: 'attrition', name: 'Attrition', table: true, background: 'nl-bg-blue', showAlways: true, hidePerc:true});
         for (var i=0; i<customScores.length; i++) {
-          columns.push({id: 'perc'+customScores[i], name: customScores[i], table: true, background: 'nl-bg-blue', hidePerc:true});
+            columns.push({id: 'perc'+customScores[i], name: customScores[i], table: true, background: 'nl-bg-blue', hidePerc:true});
         }
       return columns;
     }
 
     function _generateTmsArray() {
-      var nhtArray = [];
-      var statusDict = $scope.nhtStatusDict;
-      for(var key in statusDict) {
-        var root = statusDict[key];
-        if(key == 0) {
-          root.cnt.style = 'nl-bg-dark-blue';
-          root.cnt['sortkey'] = 0+root.cnt.name;
-          root.cnt.isSummaryRow = true;
+        var nhtArray = [];
+        var statusDict = $scope.nhtStatusDict;
+        for(var key in statusDict) {
+            var root = statusDict[key];
+            if(key == 0) {
+                root.cnt.style = 'nl-bg-dark-blue';
+                root.cnt['sortkey'] = 0+root.cnt.name;
+                root.cnt.isSummaryRow = true;
+            }
+      
+            nhtArray.push(root.cnt);
+            root.cnt.childCount = 0;
+            root.cnt.isOpen = false;
+            root.cnt.shown = 0;
+            root.cnt.children = [];
+            if (root.children) _addSuborgOrOusToDrilldownArray(root.cnt, nhtArray, root.children, root.cnt.sortkey, null);
         }
-  
-        nhtArray.push(root.cnt);
-        root.cnt.childCount = 0;
-        root.cnt.isOpen = false;
-        root.cnt.shown = 0;
-        root.cnt.children = [];
-        if (root.children) _addSuborgOrOusToDrilldownArray(root.cnt, nhtArray, root.children,
-          root.cnt.sortkey, null);
-      }
-      nhtArray.sort(function(a, b) {
-        if(b.sortkey.toLowerCase() < a.sortkey.toLowerCase()) return 1;
-        if(b.sortkey.toLowerCase() > a.sortkey.toLowerCase()) return -1;
-        if(b.sortkey.toLowerCase() == a.sortkey.toLowerCase()) return 0;				
-      });
-      return nhtArray;
+        nhtArray.sort(function(a, b) {
+            if(b.sortkey.toLowerCase() < a.sortkey.toLowerCase()) return 1;
+            if(b.sortkey.toLowerCase() > a.sortkey.toLowerCase()) return -1;
+            if(b.sortkey.toLowerCase() == a.sortkey.toLowerCase()) return 0;				
+        });
+        return nhtArray;
     };
   
     function _addSuborgOrOusToDrilldownArray(folderitem, nhtArray, subOrgDict, sortkey) {
         for(var key in subOrgDict) {
-          folderitem.childCount++;
-          var org = subOrgDict[key];
-            org.cnt['sortkey'] = sortkey+'.aa'+org.cnt.name;
-            folderitem.children.push(org.cnt);
+            folderitem.childCount++;
+            var org = subOrgDict[key];
+                org.cnt['sortkey'] = sortkey+'.aa'+org.cnt.name;
+                folderitem.children.push(org.cnt);
             if(org.children) {
-              org.cnt.childCount = 0;
-              org.cnt.shown = 0;
-              org.cnt.children = [];
-              org.cnt.isOpen = false;
-              _addSuborgOrOusToDrilldownArray(org.cnt, nhtArray,
-              org.children, org.cnt.sortkey);
+                org.cnt.childCount = 0;
+                org.cnt.shown = 0;
+                org.cnt.children = [];
+                org.cnt.isOpen = false;
+                _addSuborgOrOusToDrilldownArray(org.cnt, nhtArray, org.children, org.cnt.sortkey);
             }
         }
     }
@@ -175,8 +242,8 @@ function($scope, nl, nlDlg, nlRouter, nlGroupInfo, nlServerApi, nlExporter, nlTm
 // StatsCount constructer which get update on each record read
 //-------------------------------------------------------------------------------------------------
 
-var TmsViewSrv = ['nl', 'nlDlg',
-function(nl, nlDlg) {
+var TmsViewSrv = ['nl',
+function(nl) {
     var tmsStats = new TmsStatsCounts();
     var self = this;
 
@@ -236,7 +303,7 @@ function(nl, nlDlg) {
 }];
 
 function TmsStatsCounts(nl) {
-    var _statusCountTree = {}; //Is an object {0: {cnt: {}, children:{subgorg1: {cnt: {}, children: {ou1: {cnt: {}}}}}}}
+    var _statusCountTree = {};
     var self = this;
     var statsCountItem = {'cntTotal': 0, 'Training': 0, 'OJT': 0, 'Certification': 0, 'Re-certification': 0, 
                           'Certified': 0, 'isOpen': false, 'attrition': 0, 'failed': 0};
@@ -289,13 +356,12 @@ function TmsStatsCounts(nl) {
         var stats = angular.copy(statsCountItem);
         stats['indentation'] = 44;
         stats['name'] = itemInfo.name;
+        stats['batchid'] = itemId;
         siblings[itemId] = {cnt: stats};
         return siblings[itemId].cnt;
     };
 
     this.updateRootCount = function(rootId, name, statusCnt) {
-        // contentid = 0 for updating all item in the _statusCountTree. 
-        // contentid = courseid/lesson_id for all other records.
         var updatedStats = self.getRoot(rootId, name);
         _updateStatsCount(updatedStats, statusCnt);
     }
@@ -311,7 +377,6 @@ function TmsStatsCounts(nl) {
     } 
 
     function _updateStatsCount(updatedStats, statusCnt) { 
-        //updatedStats is object fetched from _statusCountTree. Value from statusCnt object are added to updatedStats
         for(var key in statusCnt) {
             if(key == 'customScores') {
                 var customScores = statusCnt[key]

@@ -1,9 +1,20 @@
 <div class='padding-small nl-thin-scroll' style='position:absolute; width: 100%; height: 100%'>
+    <div class='row row-center margin0 padding0 nl-border-bottom'
+        style='height: 36px; overflow: hidden;'>
+        <div class='col text-center fsh6 padding-mid'>
+            {{headerTextStr}}
+        </div>
+    </div>
+
     <div class='padding-mid anim-enter'>
         <table class='nl-table nl-table-styled3 rowlines'>
             <tr class='header'>
                 <td class='nl-txt-white nl-txt-dark-hover nl-min-300'>
                     <div class='row row-center magin0 padding0'>
+                        <span class='padding-small nl-toolbar-icon2 nl-link-text' title='Customize Drilldown'
+                            ng-click='exportTmsData()'>
+                            <i class="icon ion-ios-cloud-download bold fsh3"></i>
+                        </span>
                         <div class='col'></div>
                     </div>
                 </td>
@@ -33,10 +44,15 @@
                             <i ng-hide='rec.isOpen' class="icon ion-arrow-right-b bold fsh5"></i>
                             <i ng-show='rec.isOpen' class="icon ion-arrow-down-b bold fsh5"></i>
                         </span>
-                        <div class='col'>{{rec.orgname || rec.name}}</div>
-                        <span ng-click='onDetailsClick($event, rec, nhtInfo.info.columns)' class='nl-link-text'>
-                            <i class="padding-mid icon ion-information-circled fsh4 nl-info-icon"></i>
-                        </span> 
+                        <div class='col {{!rec.isFolder ? "nl-link-text" : ""}}'
+                            ng-click='onClickOnBatch(rec)'>
+                            <div class='row row-center padding0 margin0'>
+                                <div class='col'>{{rec.orgname || rec.name}}</div>
+                                <span class='padding-small' ng-if='!rec.isFolder'>
+                                    <i class="icon ion-android-open bold fsh5"></i>
+                                </span>
+                            </div>
+                        </div>
                     </div>
                 </td>
                 <td ng-repeat='col in nhtInfo.info.columns track by $index'

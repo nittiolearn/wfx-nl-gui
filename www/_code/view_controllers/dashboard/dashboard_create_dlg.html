@@ -116,7 +116,6 @@
             <tr><td>assign_desk.manage</td><td>/#/assignment?type=manage&{}</td><td> assignment_manage</td><td>urlParams="search=xyz&custtype=101"</td></tr>
             <tr><td>assign_desk.summary_report</td><td>/#/learning_reports?type=module&{}</td><td> assignment_send</td><td>urlParams="limit=100"</td></tr>
             <tr><td>assign_desk.active_users</td><td>/#/learning_reports_completed_modules?{}</td><td> assignment_manage</td><td>urlParams="limit=100"</td></tr>
-            <tr><td>assign_desk.tms_view</td><td>/#/tms_view?{}</td><td> assignment_manage</td></tr>
             <tr><td>assign_desk.self_assign_report</td><td>/#/learning_reports?type=module_self_assign&{}</td><td> assignment_manage</td><td>urlParams="objid=(lesson_id)&limit=5000"</td></tr>
             <tr><td>course.view</td><td>/##/course_view?mode=published&{}</td><td> basic_access</td><td>View published link to a course. urlParams must contain "id=xxx"</td></tr>
             <tr><td>course.view_my</td><td>/#/course_list?my=1&{}</td><td> course_create </td><td>Course card items. urlParams could contain search and custtype filtering: e.g. "custtype=123", or "search=xxx" or "custtype=123&search=xxx"</td></tr>
@@ -124,6 +123,7 @@
             <tr><td>course.view_assigned</td><td>/#/course_assign_list?{}</td><td> assignment_manage </td><td></td></tr>
             <tr><td>course.view_assigned_my</td><td>/#/course_assign_my_list?{}</td><td> assignment_send </td><td></td></tr>
             <tr><td>course.summary_report</td><td>/#/learning_reports?type=course&{}</td><td> assignment_send </td><td></td></tr>
+            <tr><td>course.tms_view</td><td>/#/tms_view</td><td>assignment_send </td><td></td></tr>
             <tr><td>course.do</td><td>/#/course_report_list?my=1&{}</td><td> course_do</td><td>urlParams="search=xyz&custtype=101". Accessible from restricted terminals as well</td></tr>
             <tr><td>learner.do</td><td>/#/learner_view</td><td> basic_access</td><td>urlParams="". Accessible from restricted terminals as well</td></tr>
             <tr><td>learning_reports.user</td><td>/#/learning_reports?type=user&{}</td><td> assignment_send</td><td>urlParams="objid=(username eg: admin.nittio)". Accessible from restricted terminals as well</td></tr>
