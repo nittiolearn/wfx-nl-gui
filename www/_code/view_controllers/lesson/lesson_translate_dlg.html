@@ -37,7 +37,32 @@
 		        </div>
 		    </nl-inline-help>
 		</div>
+		
 	</div>
+
+	<div class='row row-top row-wrap margin0 padding-top' ng-if='data.showVoice'>
+		<div ng-class='resp2Col33'
+		     class='padding-mid' ng-click='data.showHelp["voice"] = !data.showHelp["voice"]'>
+		     <div class='row row-center row-wrap margin0 padding0'>
+	             <span class='col padding0 nl-dkonlg-lgondk-text'>Select the target Voice</span>
+	             <i class='padding-mid nl-link-text icon fsh4 fgrey ion-ios-help'></i>
+		     </div>
+		</div>
+		<div ng-class='resp2Col67' 
+			 class='nl-dlg-field-value padding-mid'>
+				   <nl-tree-select info='options.voice'></nl-tree-select>     	 	
+		</div>
+		<div class='w100 padding-mid' ng-if='data.showHelp["voice"]'>
+			<nl-inline-help>
+				<div>
+					<span>Select the voice of language you would like to translate your module voice in.</span>
+				</div>
+			</nl-inline-help>
+		</div>
+	</div>
+
+
+
 	<div class='row row-top row-wrap margin0 padding-top' ng-if='debug'>
 		<div ng-class='resp2Col33'
 		     class='padding-mid' ng-click='data.showHelp["selectedContent"] = !data.showHelp["selectedContent"]'>
