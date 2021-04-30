@@ -313,11 +313,11 @@ function(nl, nlDlg) {
             ],
             "fr": [
                 {
-                    "id": "fr-FR_Céline",
+                    "id": "fr-FR_Celine",
                     "name": "French Female voice: Céline"
                 },
                 {
-                    "id": "fr-FR_Léa",
+                    "id": "fr-FR_Lea",
                     "name": "French Female voice: Léa"
                 },
                 {
@@ -345,7 +345,7 @@ function(nl, nlDlg) {
             ],
             "is": [
                 {
-                    "id": "is-IS_Dóra",
+                    "id": "is-IS_Dora",
                     "name": "Icelandic Female voice: Dóra/Dora"
                 },
                 {
@@ -403,7 +403,7 @@ function(nl, nlDlg) {
             ],
             "pt": [
                 {
-                    "id": "pt-BR_Vitória",
+                    "id": "pt-BR_Vitoria",
                     "name": "Portuguese, Brazilian Female voice: Vitória/Vitoria"
                 },
                 {
@@ -411,7 +411,7 @@ function(nl, nlDlg) {
                     "name": "Portuguese, Brazilian Male voice: Ricardo"
                 },
                 {
-                    "id": "pt-PT_Inês",
+                    "id": "pt-PT_Ines",
                     "name": "Portuguese, European Female voice: Inês/Ines"
                 },
                 {
@@ -422,7 +422,7 @@ function(nl, nlDlg) {
             "ro": [
                 {
                     "id": "ro-RO_Carmen",
-                    "name": "Romanian Female voice: Inês/Ines"
+                    "name": "Romanian Female voice: Carmen"
                 }
             ],
             "ru": [
@@ -453,7 +453,7 @@ function(nl, nlDlg) {
                     "name": "Spanish, Mexican Female voice: Mia"
                 },
                 {
-                    "id": "es-US_Penélope",
+                    "id": "es-US_Penelope",
                     "name": "Spanish, US Female voice: Penélope/Penelope"
                 },
                 {
@@ -580,12 +580,19 @@ function(nl, nlDlg, nlRouter, $scope, nlCardsSrv, nlLessonSelect, nlTreeSelect, 
 
     function _getLanguageVoiceTree(langId) {
 	    var treeArray = _langsVoiceTree[langId];
-        if (!treeArray) return [[],{}]
-        if (treeArray[0].id.startsWith("goog") && !_isApi3Possible) return [[], {}]
-        for(var i=0; i<treeArray.length; i++) {
-            treeArray[i].origId = treeArray[i].id;
+        if (!treeArray){
+            return [[],{}];
         };
-        return [treeArray, {}];
+        var treeArrayWithoutApi3Voices = []
+        treeArray.forEach(function(value){
+            value.origId = value.id;
+            if (!value.id.startsWith("goog")){
+                if (!_isApi3Possible){
+                    treeArrayWithoutApi3Voices.push(value);
+                };   
+            };
+        });
+        return _isApi3Possible ? [treeArray, {}] : [treeArrayWithoutApi3Voices, {}];
     }
 
     function _getIconNodeWithParents(itemObj, treeArray, insertedKeys, _preSelectedLanguage, selectedLangId) {
