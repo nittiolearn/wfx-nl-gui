@@ -617,6 +617,7 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlReportH
 			card.prgClass = 'nl-card2-progress-bar-barGreen';	
 			card.progressPerc = record.stats.progressPerc;	
 			if(!card.progressPerc) card.progressPerc = 0;
+			if(card.progressPerc == 100) card.progressPerc = 99;
 			var not_after = card.not_after;	
 			if (date < not_after) {
 				var date = nl.fmt.date2StrDDMMYYCard(not_after);

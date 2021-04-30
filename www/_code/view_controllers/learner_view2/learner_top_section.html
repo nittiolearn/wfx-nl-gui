@@ -1,6 +1,6 @@
 <div class='nl-topbar-background' ng-if="!tabdata.summaryStats">
     <div class='nl-limitwidth-learner-view padding-mid'>
-        <div class='row row-center row-wrap margin0 padding0-mid'>
+        <div class='row row-center row-wrap margin0 padding0-mid button-container'>
             <div class='padding-mid' ng-repeat='button in tabdata.tabs'>
                 <div class='center-in-small nl-learner-button {{button.count > 0 ? "nl-learner-button-hover nl-link-text" : ""}} {{button.class}}' 
                     ng-click='toScroll(button)'>
@@ -29,8 +29,8 @@
         </div>
        
         <div class='row row-top row-wrap margin0 padding-mid'>
-            <div class='padding0 learner-view-searchbox nl-display-flex' style='padding: 0px 4px;grid-gap: 20px;margin-left:10px'>
-                <div class='row row-center margin0 padding0 learner-view-searchbox2 col-67 dark-default-input'>
+            <div class='padding0 learner-view-searchbox nl-display-flex' style=''>
+                <div class='row row-center margin0 padding0 learner-view-searchbox2 dark-default-input {{$root.screenSize == "small" ? "" : "col-67"}}'>
                     <span style='padding: 0px 6px'><i class='icon ion-ios-search-strong fsh5'></i></span>
                     <div class='col padding0'>
                         <input class='padding-small w100 search-placeholder'

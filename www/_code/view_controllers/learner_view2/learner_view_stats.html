@@ -5,11 +5,11 @@
             Hi {{userName}}! Your learning records are being loaded from the server. Please wait ...
         </div>
         <div ng-show='tabData.dataLoaded'>
+            <div style="margin-bottom:25px;">
+                <nl-learner-view-top-section tabData='tabData'></nl-learner-view-top-section>
+            </div>
             <div ng-show='tabData.recordsLen == 0' class='bgdefault fgrey padding shape-rounded-small'>
                 Nothing to display.
-            </div>
-            <div ng-show='tabData.recordsLen > 0' style="margin-bottom:25px;">
-                <nl-learner-view-top-section tabData='tabData'></nl-learner-view-top-section>
             </div>
             <div ng-show='tabData.recordsLen > 0' class="row row-wrap responsive-md responsive-sm responsive-lg points_container stats-graph-container-in-mobile">
                 <div ng-if="0" ng-class="$root.respCol221" class="col-50 nl-display-flex"
