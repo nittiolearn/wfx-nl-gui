@@ -190,6 +190,10 @@ function($scope, nl, nlDlg, nlRouter, nlGroupInfo, nlServerApi, nlExporter, nlTm
         columns.push({id: 'certified', name: 'Certified', table: true, background: 'nl-bg-blue', showAlways: true, hidePerc:true});
         columns.push({id: 'failed', name: 'Failed', table: true, background: 'nl-bg-blue', showAlways: true, hidePerc:true});
         columns.push({id: 'attrition', name: 'Attrition', table: true, background: 'nl-bg-blue', showAlways: true, hidePerc:true});
+        columns.push({id: 'nQuizzes', name: 'Number of applicable modules', table: true, background: 'nl-bg-blue', showAlways: true, hidePerc:true});
+        columns.push({id: 'nQuizzesCompleted', name: 'Number of completed modules', table: true, background: 'nl-bg-blue', showAlways: true, hidePerc:true});
+        columns.push({id: 'percCompletedLesson', name: 'Completion %', table: true, background: 'nl-bg-blue', showAlways: true, hidePerc:true});
+        columns.push({id: 'percAvgQuizScore', name: 'Assessment scores (Average of attempts)', table: true, background: 'nl-bg-blue', showAlways: true, hidePerc:true});
         for (var i=0; i<customScores.length; i++) {
             columns.push({id: 'perc'+customScores[i], name: customScores[i], table: true, background: 'nl-bg-blue', hidePerc:true});
         }
@@ -298,6 +302,10 @@ function(nl) {
             statsObj['attrition'] = 1;
         else  
             statsObj[status] = 1;
+        var quizSCoreDict = rec.qSD || {};
+        statsObj['nQuizzes'] = quizSCoreDict.nQ || 0;
+        statsObj['nQuizzesCompleted'] = quizSCoreDict.nQC || 0;
+        if (quizSCoreDict.nQP === 0 || quizSCoreDict.nQP > 0) statsObj['nQuizScorePerc'] = quizSCoreDict.nQP || 0;
         return statsObj;
     }
 }];
@@ -306,7 +314,8 @@ function TmsStatsCounts(nl) {
     var _statusCountTree = {};
     var self = this;
     var statsCountItem = {'cntTotal': 0, 'Training': 0, 'OJT': 0, 'Certification': 0, 'Re-certification': 0, 
-                          'Certified': 0, 'isOpen': false, 'attrition': 0, 'failed': 0};
+                          'Certified': 0, 'isOpen': false, 'attrition': 0, 'failed': 0, 'nQuizzes': 0, 'nQuizzesCompleted': 0, 
+                          'nQuizScorePerc': 0, 'nQuizPercScoreCount' : 0};
     var defaultStates = angular.copy(statsCountItem);
     var _dynamicStates = {};
     var _customScores = {};
@@ -402,6 +411,7 @@ function TmsStatsCounts(nl) {
                 updatedStats[key] = 0;
             }
             updatedStats[key] += statusCnt[key];
+            if (key == 'nQuizScorePerc') updatedStats['nQuizPercScoreCount'] += 1;
         }
     }
 
@@ -415,7 +425,9 @@ function TmsStatsCounts(nl) {
     }
 
     function _updateStatsPercs(updatedStats) {
-        for(var key in _dynamicStates) {
+      updatedStats['percCompletedLesson'] = updatedStats['nQuizzes'] > 0 ? Math.round(updatedStats['nQuizzesCompleted']*100/updatedStats['nQuizzes'])+'%' : '-';
+      updatedStats['percAvgQuizScore'] = updatedStats['nQuizPercScoreCount'] > 0 ? Math.round(updatedStats['nQuizScorePerc']/updatedStats['nQuizPercScoreCount'])+'%' : '-';
+      for(var key in _dynamicStates) {
             if(!(key in defaultStates)) {
                 var attr = 'perc'+key;
                 updatedStats[attr] = Math.round(updatedStats[key]*100/updatedStats.cntTotal);
