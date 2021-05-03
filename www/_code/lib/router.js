@@ -146,11 +146,9 @@ function(nl, nlDlg, nlServerApi, nlMarkup, $state, nlTopbarSrv, nlMobileConnecto
                 userInfo.groupinfo.groupCustomClass = nl.rootScope.groupCustomClass;
                 if (userInfo.groupinfo.groupCustomClass == 'nldarkmode') 
                 {
-                    _nl.colorsCodes = Object.assign(_nl.darkcolorsCodes);
                     _initChartsForDarkMode();
                 }
                 else {
-                    _nl.colorsCodes = Object.assign(_nl.tempcolorcode);
                     _initChartsForLightMode();
                 }
             }

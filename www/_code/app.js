@@ -25,34 +25,20 @@ var _nl = {
 		CTYPE_TRAINING: 4 // Depricated and not used
     },
     colorsCodes: {
-        done: '#007700',          // $nlGreen1
-        failed: '#770000',        // $nlRed
-        started: '#44BB44',       // nlGreen2
-        pending: '#eab01f',       // $nlOrange3
+        done: '#2E8B57',          // $nlGreen1
+        failed: '#CD5C5C',        // $nlRed
+        started: '#3db773',       // nlGreen2
+        pending: '#88929c',       // $nlOrange3
         waiting: '#A0A0C0',       // $nlGrey1
-        delayed: '#e84c3d',       // $nlOrange1
+        delayed: '#88929c',       // $nlOrange1
+        upcoming: '#4682B4',
         blue1: '#153673',         // $nlBlue1
-        blue2: '#2461cc'          // $nlBlue2
-    },
-    darkcolorsCodes: {
-        done: '#2FB885',          
-        failed: '#FF646A',        
-        started: '#FFE17D',       
-        pending: '#Ce9bfc',      
-        waiting: '#A0A0C0',       
-        delayed: '#F98E36',       
-        blue1: '#3f7ce4',        
-        blue2: '#008aff' 
-    },
-    tempcolorcode : {
-        done: '#007700',          // $nlGreen1
-        failed: '#770000',        // $nlRed
-        started: '#44BB44',       // nlGreen2
-        pending: '#eab01f',       // $nlOrange3
-        waiting: '#A0A0C0',       // $nlGrey1
-        delayed: '#e84c3d',       // $nlOrange1
-        blue1: '#153673',         // $nlBlue1
-        blue2: '#2461cc'          // $nlBlue2
+        blue2: '#2461cc',          // $nlBlue2
+        nllightred: '#F08080',
+        nllightblue:'#469EB4',
+        nlmediumblue:'#468BB4',
+        nldarkblue:'#4679B4',
+        nldarkerblue: '#4667B4',
     }
 };
 

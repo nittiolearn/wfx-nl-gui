@@ -99,6 +99,19 @@ $nlStatusBlue:#008aff;
 $nllightGreen:#44BB44;
 $nlBlizzardBlue:#B0E9F2;
 
+//status color palate
+$nllightred: #F08080;
+$nllightblue:#469EB4;
+$nlmediumblue:#468BB4;
+$nldarkblue:#4679B4;
+$nldarkerblue: #4667B4;
+
+$nlStatusDone: #2E8B57;
+$nlStatusFailed: #CD5C5C;
+$nlStatusInProgess: #3db773;
+$nlStatusPending: #88929c;
+$nlStatusUpcoming: #4682B4;
+
 // Padding definition
 $nlpad_x:                         20px !default; 
 $nlpad_y:                         20px !default; 
@@ -166,6 +179,16 @@ $ionicons-font-path: "../_external_bundles/ionicfonts" !default;
   --nllightGreen: #{$nllightGreen};
   --nlBgDark1: #{$nlBgDark1};
   --nlBlizzardBlue: #{$nlBlizzardBlue};
+  --nllightred:#{$nllightred};
+  --nllightblue:#{$nllightblue};
+  --nlmediumblue:#{$nlmediumblue};
+  --nldarkblue:#{$nldarkblue};
+  --nldarkblue:#{$nldarkerblue};
+  --nlStatusDone: #{$nlStatusDone};
+  --nlStatusFailed: #{$nlStatusFailed};
+  --nlStatusInProgess: #{$nlStatusInProgess};
+  --nlStatusPending: #{$nlStatusPending};
+  --nlStatusUpcoming: #{$nlStatusUpcoming};
 }
 
 //-------------------------------------------------------------------------------------------
@@ -581,10 +604,10 @@ $animation-duration: 200ms !default;
 }
 
 .assigned-bar {
-  color: var(--nlPrimaryDark);
+  color: var(--nlStatusUpcoming);
 }
 .completed-bar {
-  color:var(--nlStatusGreen);
+  color:var(--nlStatusDone);
   margin-right:20px;
 }
 .assigned-bar > span::before {
@@ -600,7 +623,7 @@ $animation-duration: 200ms !default;
     bottom: 0;
     margin: 10px 12px 0px 0px;
     border-radius: 50%;
-    background-color: var(--nlPrimaryDark);
+    background-color: var(--nlStatusUpcoming);
 }
 .completed-bar >span::before {
     content: '';
@@ -615,38 +638,52 @@ $animation-duration: 200ms !default;
     bottom: 0;
     margin: 10px 12px 0px 0px;
     border-radius: 50%;
-    background-color: var(--nlStatusGreen);
+    background-color: var(--nlStatusDone);
   }
-.lables {
- font-family: Montserrat-Regular;;
- list-style: none;
-}
-
-.certified_label {
-  color: var(--nlStatusGreen);
-}
-.failed_label {
-  color: var(--nlStatusRed);
-}
-.started_label {
-  color: var(--nllightGreen);
-}
-.pending_label {
-  color: var(--nlFontYellow);
-}
-  
-.certified_label:nth-child(1):before {
-  background-color: var(--nlStatusGreen);
-}
-.failed_label:nth-child(2):before {
-  background-color:  var(--nlStatusRed);
-}
-.started_label:nth-child(3):before {
-  background-color: var(--nllightGreen);
-}
-.pending_label:nth-child(4):before {
-  background-color: var(--nlFontYellow);
-}
+  .lables {
+    font-family: Montserrat-Regular;;
+    list-style: none;
+    font-weight: 800;
+   }
+   .complete_label {
+   color: var(--nlStatusDone);
+   }
+   .notstarted_label {
+   color: var(--nlStatusPending);
+   }
+   .inprogress_label {
+   color: var(--nlStatusInProgess);
+   }
+   .upcoming_label {
+   color: var(--nlStatusUpcoming);
+   }
+   .expired_label {
+   color: var(--nlStatusFailed);
+   }
+   .certified_label {
+    color: var(--nlStatusDone);
+   }
+   .failed_label {
+    color: var(--nlStatusFailed);
+   }
+   .started_label {
+    color: var(--nlStatusInProgess);
+   }
+   .pending_label {
+    color: var(--nlStatusPending);
+   }
+   .certified_label:nth-child(1):before {
+    background-color: var(--nlStatusDone);
+  }
+  .failed_label:nth-child(2):before {
+    background-color:  var(--nlStatusFailed);
+  }
+  .started_label:nth-child(3):before {
+    background-color: var(--nlStatusInProgess);
+  }
+  .pending_label:nth-child(4):before {
+    background-color: var(--nlStatusPending);
+  }
 
 //-----------------------------------------------------------------------------------------
 // nl specific styling - lib_ui modules
@@ -2218,14 +2255,14 @@ input.nl-dlg-field-error, .nl-dlg-field-error {
   color: $nlWhite;
   font-weight: normal;
   border-radius: 50px;
-  background-image: -webkit-linear-gradient(-5deg, $nlStatusGreen 0%, $nlStatusGreen 100%);
-  background-image: -webkit-linear-gradient(-5deg, var(--nlStatusGreen) 0%, var(--nlStatusGreen) 100%);
-  background-image: -moz-linear-gradient(-5deg, $nlStatusGreen 0%, $nlStatusGreen 100%);
-  background-image: -moz-linear-gradient(-5deg, var(--nlStatusGreen) 0%, var(--nlStatusGreen) 100%);
-  background-image: -o-linear-gradient(-5deg, $nlStatusGreen 0%, $nlStatusGreen 100%);
-  background-image: -o-linear-gradient(-5deg, var(--nlStatusGreen) 0%, var(--nlStatusGreen) 100%);
-  background-image: linear-gradient(-5deg, $nlStatusGreen 0%, $nlStatusGreen 100%);
-  background-image: linear-gradient(-5deg, var(--nlStatusGreen) 0%, var(--nlStatusGreen) 100%);
+  background-image: -webkit-linear-gradient(-5deg, $nlStatusGreen 0%, $nlStatusDone 100%);
+  background-image: -webkit-linear-gradient(-5deg, var(--nlStatusDone) 0%, var(--nlStatusDone) 100%);
+  background-image: -moz-linear-gradient(-5deg, $nlStatusDone 0%, $nlStatusDone 100%);
+  background-image: -moz-linear-gradient(-5deg, var(--nlStatusdone) 0%, var(--nlStatusDone) 100%);
+  background-image: -o-linear-gradient(-5deg, $nlStatusDone 0%, $nlStatusDone 100%);
+  background-image: -o-linear-gradient(-5deg, var(--nlStatusDone) 0%, var(--nlStatusDone) 100%);
+  background-image: linear-gradient(-5deg, $nlStatusDone 0%, $nlStatusDone 100%);
+  background-image: linear-gradient(-5deg, var(--nlStatusDone) 0%, var(--nlStatusDone) 100%);
 }
 
 .nl-card2-progress-bar-barRed {
@@ -2234,14 +2271,14 @@ input.nl-dlg-field-error, .nl-dlg-field-error {
   color: $nlWhite;
   font-weight: normal;
   border-radius: 50px;
-  background-image: -webkit-linear-gradient(-5deg, $nlStatusRed 0%, $nlStatusRed 100%);
-  background-image: -webkit-linear-gradient(-5deg, var(--nlStatusRed) 0%, var(--nlStatusRed) 100%);
-  background-image: -moz-linear-gradient(-5deg, $nlStatusRed 0%, $nlStatusRed 100%);
-  background-image: -moz-linear-gradient(-5deg, var(--nlStatusRed) 0%, var(--nlStatusRed) 100%);
-  background-image: -o-linear-gradient(-5deg, $nlStatusRed 0%, $nlStatusRed 100%);
-  background-image: -o-linear-gradient(-5deg, var(--nlStatusRed) 0%, var(--nlStatusRed) 100%);
-  background-image: linear-gradient(-5deg, $nlStatusRed 0%, $nlStatusRed 100%);
-  background-image: linear-gradient(-5deg, var(--nlStatusRed) 0%, var(--nlStatusRed) 100%);
+  background-image: -webkit-linear-gradient(-5deg, $nlStatusFailed 0%, $nlStatusFailed 100%);
+  background-image: -webkit-linear-gradient(-5deg, var(--nlStatusFailed) 0%, var(--nlStatusFailed) 100%);
+  background-image: -moz-linear-gradient(-5deg, $nlStatusFailed 0%, $nlStatusFailed 100%);
+  background-image: -moz-linear-gradient(-5deg, var(--nlStatusFailed) 0%, var(--nlStatusFailed) 100%);
+  background-image: -o-linear-gradient(-5deg, $nlStatusFailed 0%, $nlStatusFailed 100%);
+  background-image: -o-linear-gradient(-5deg, var(--nlStatusFailed) 0%, var(--nlStatusFailed) 100%);
+  background-image: linear-gradient(-5deg, $nlStatusFailed 0%, $nlStatusFailed 100%);
+  background-image: linear-gradient(-5deg, var(--nlStatusFailed) 0%, var(--nlStatusFailed) 100%);
 }
  /*-----------------------------------------------------------------------------------------*
  * nl-card
@@ -3779,6 +3816,18 @@ color: var(--nlFontYellow);}
 .fgreen {color: $nlStatusGreen;
 color: var(--nlStatusGreen);}
 
+.fdone {
+  color:var(--nlStatusDone);
+}
+.fpending {
+  color:var(--nlStatusPending);
+}
+.ffailed {
+  color: var(--nlStatusFailed);
+}
+.fprogress {
+  color: var(--nlStatusInProgess);
+}
 .fdarkgrey1 {color: $nlFontDarkGrey1;
 color: var(--nlFontDarkGrey1);}
 .fdarkgrey2 {color: $nlFontDarkGrey2;
@@ -6097,52 +6146,6 @@ nl-dlg {
 #dashboard {
     margin: 2em auto;
 }
-
-.notstarted_label {
-  color: var(--nlStatusLightPurple);
-}
-.inprogress_label {
-  color: var(--nlFontYellow);
-}
-.upcoming_label {
-  color: var(--nlStatusBlue);
-}
-.expired_label {
-  color: var(--nlFontOrange1);
-}
-.complete_label:nth-child(1):before {
-    background-color: var(--nlStatusGreen);
-}
-.notstarted_label:nth-child(2):before {
-    background-color:  var(--nlStatusLightPurple);
-}
-.inprogress_label:nth-child(3):before {
-    background-color: var(--nlFontYellow);
-}
-.upcoming_label:nth-child(4):before {
-    background-color: var(--nlStatusBlue);
-}
-.expired_label:nth-child(5):before {
-    background-color: var(--nlFontOrange1);
-}
-.assigned {
-  color: var(--nlStatusBlue);
-}
-.assigned > span::before {
-    content: '';
-    position: relative;
-    height: 25px;
-    width: 25px;
-    top: -5px;
-    left: 3px;
-    vertical-align: middle;
-    right: 0;
-    display: inline-block;
-    bottom: 0;
-    margin: 10px 12px 0px 0px;
-    border-radius: 50%;
-    background-color: var(--nlStatusBlue);
-}
 .points_container {
   border-radius: 12px;
   box-shadow: inset 0 0 2px var(--nlBorderBlackTransparent20), 1px 1px 2px var(--nlFontDarkGrey2);
@@ -6214,29 +6217,24 @@ nl-dlg {
     background-color: var(--nlBgTextArea); 
   }
   .nl-learner-notstarted {
-  color: var(--nlPrimary);
-  background-color:var(--nlStatusLightPurple);
-  border:1px solid var(--nlStatusLightPurple);
+  color: var(--nlWhite);
+  background-color:var(--nlStatusPending);
   }
   .nl-learner-inprogress {
-  color: var(--nlPrimary);
-  background-color:var(--nlFontYellow);
-  border:1px solid var(--nlFontYellow);
+  color: var(--nlWhite);
+  background-color:var(--nlStatusInProgess);
   }
   .nl-learner-upcoming {
-  color: var( --nlPrimary);
-  background-color:var( --nlStatusBlue);
-  border:1px solid var( --nlStatusBlue);
+  color: var(--nlWhite);
+  background-color:var(--nlStatusUpcoming);
   }
   .nl-learner-complete {
-    color: var( --nlPrimary);
-    background-color: var(--nlStatusGreen);
-    border:1px solid var(--nlStatusGreen);
+    color: var(--nlWhite);
+    background-color: var(--nlStatusDone);
   }
   .nl-learner-expired {
-    color: var( --nlPrimary);
-    background-color: var(--nlFontOrange1);
-    border:1px solid var(--nlFontOrange1);
+    color: var(--nlWhite);
+    background-color: var(--nlStatusFailed);
   }
   .learner-view-stats-button, .learner-view-explore-button {
     border: none !important;
@@ -6244,84 +6242,23 @@ nl-dlg {
   }
   .label_certified {
     color: var(--nlWhite);
-    background-color: var(--nlStatusBlue);
+    background-color: var(--nlStatusUpcoming);
   }
   .label_failed {
     color: var(--nlWhite);
-    background-color: var(--nlStatusRed);
+    background-color: var(--nlStatusFailed);
   }
   .label_done {
     color: var(--nlWhite);
-    background-color: var(--nlStatusGreen);
+    background-color: var(--nlStatusInProgess);
   }
   .label_passed {
     color: var(--nlWhite);
-    background-color: var(--nlStatusGreen);
+    background-color: var(--nlStatusInProgess);
   }
   .nl-card-dlg2-img {
     background-image: radial-gradient(var(--nlPrimaryLight), var(--nlPrimary), var(--nlPrimaryDark));
-  }
-  .certified_label {
-    color: var(--nlStatusGreen);
-  }
-  .failed_label {
-    color: var(--nlStatusRed);
-  }
-  .started_label {
-    color: var(--nlFontYellow);
-  }
-  .pending_label {
-    color: var(--nlStatusLightPurple);
-  }
-  
-  .certified_label:nth-child(1):before {
-    background-color: var(--nlStatusGreen);
-  }
-  .failed_label:nth-child(2):before {
-    background-color:  var(--nlStatusRed);
-  }
-  .started_label:nth-child(3):before {
-    background-color: var(--nlFontYellow);
-  }
-  .pending_label:nth-child(4):before {
-    background-color: var(--nlStatusLightPurple);
-  }
-  .assigned-bar {
-    color: var(--nlStatusBlue);
-  }
-  .completed-bar {
-    color:var(--nlStatusGreen);
-  }
-  .assigned-bar > span::before {
-    content: '';
-    position: relative;
-    height: 20px;
-    width: 20px;
-    top: -5px;
-    left: 3px;
-    vertical-align: middle;
-    right: 0;
-    display: inline-block;
-    bottom: 0;
-    margin: 10px 12px 0px 0px;
-    border-radius: 50%;
-    background-color: var(--nlStatusBlue);
-  }
-  .completed-bar >span::before {
-    content: '';
-    position: relative;
-    height: 20px;
-    width: 20px;
-    top: -5px;
-    left: 3px;
-    vertical-align: middle;
-    right: 0;
-    display: inline-block;
-    bottom: 0;
-    margin: 10px 12px 0px 0px;
-    border-radius: 50%;
-    background-color: var(--nlStatusGreen);
-  }
+  } 
   .dlg2-divider {
     background-color: var(--nlWhite);
   }
@@ -6402,21 +6339,25 @@ nl-dlg {
   background-color: var(--nlWhite);
   color: var(--nlStatusBlue);
   font-weight: 700;
+  text-transform: capitalize;
 }
 .label_failed {
   background-color: var(--nlWhite);
-  color: var(--nlStatusRed);
+  color: var(--nlStatusFailed);
   font-weight: 700;
+  text-transform: capitalize;
 }
 .label_done {
   background-color: var(--nlWhite);
-  color: var(--nlStatusGreen);
+  color: var(--nlStatusDone);
   font-weight: 700;
+  text-transform: capitalize;
 }
 .label_passed {
   background-color: var(--nlWhite);
-  color: var(--nlStatusGreen);
+  color: var(--nlStatusDone);
   font-weight: 700;
+  text-transform: capitalize;
 }
 /*-----------------------------------------------------------------------------------------*
  * Learner view 2 section styles (card2)
@@ -6470,7 +6411,8 @@ background-color: var(--nlWhite);
   line-height: 1.06;
   margin:0 auto; 
   margin-top:5px;
-  color: var(--nlPrimary);
+  color: var(--nlStatusDone);
+  font-weight: 800;
   font-family: Montserrat-Regular;
 }
  .pie_chart_label > li::before {
@@ -6488,11 +6430,13 @@ background-color: var(--nlWhite);
   border-radius: 50%;
 }
 .assigned {
-  color: var(--nlPrimaryDark);
+  color: var(--nlStatusUpcoming);
+  font-weight: 800;
 }
 .completed {
-  color:var(--nlStatusGreen);
+  color:var(--nlStatusDone);
   margin-right:20px;
+  font-weight: 800;
 }
 .assigned > span::before {
     content: '';
@@ -6507,7 +6451,7 @@ background-color: var(--nlWhite);
     bottom: 0;
     margin: 10px 12px 0px 0px;
     border-radius: 50%;
-    background-color: var(--nlPrimaryDark);
+    background-color: var(--nlStatusUpcoming);
 }
 .completed >span::before {
     content: '';
@@ -6522,61 +6466,47 @@ background-color: var(--nlWhite);
     bottom: 0;
     margin: 10px 12px 0px 0px;
     border-radius: 50%;
-    background-color: var(--nlStatusGreen);
+    background-color: var(--nlStatusDone);
   }
-.lables {
- font-family: Montserrat-Regular;;
- list-style: none;
-}
-.complete_label {
-color: var(--nlStatusGreen);
-}
-.notstarted_label {
-color: var(--nlFontYellow);
-}
-.inprogress_label {
-color: var(--nllightGreen);
-}
-.upcoming_label {
-color: var(--nlPrimaryDark);
-}
-.expired_label {
-color: var(--nlFontOrange1);
-}
 .nl-learner-complete {
-color: var(--nlStatusGreen);
-border:1px solid var(--nlStatusGreen)
+background-color: var(--nlStatusDone);
+border:1px solid var(--nlStatusDone);
+color:var(--nlWhite);
 }
 .nl-learner-notstarted {
-color: var(--nlFontYellow);
-border:1px solid var(--nlFontYellow);
+background-color: var(--nlStatusPending);
+border:1px solid var(--nlStatusPending);
+color:var(--nlWhite);
 }
 .nl-learner-inprogress {
-color: var(--nllightGreen);
-border:1px solid var(--nllightGreen)
+background-color: var(--nlStatusInProgess);
+border:1px solid var(--nlStatusInProgess);
+color:var(--nlWhite);
 }
 .nl-learner-upcoming {
-color: var(--nlPrimaryDark);
-border:1px solid var(--nlPrimaryDark)
+background-color: var(--nlStatusUpcoming);
+border:1px solid var(--nlStatusUpcoming);
+color:var(--nlWhite);
 }
 .nl-learner-expired {
-color: var(--nlFontOrange1);
-border:1px solid var(--nlFontOrange1)
+background-color: var(--nlStatusFailed);
+border:1px solid var(--nlStatusFailed);
+color:var(--nlWhite);
 }
 .complete_label:nth-child(1):before {
-  background-color: var(--nlStatusGreen);
+  background-color: var(--nlStatusDone);
 }
 .notstarted_label:nth-child(2):before {
-  background-color:  var(--nlFontYellow);
+  background-color:  var(--nlStatusPending);
 }
 .inprogress_label:nth-child(3):before {
-  background-color: var(--nllightGreen);
+  background-color: var(--nlStatusInProgess);
 }
 .upcoming_label:nth-child(4):before {
-  background-color: var(--nlPrimaryDark);
+  background-color: var(--nlStatusUpcoming);
 }
 .expired_label:nth-child(5):before {
-  background-color: var(--nlFontOrange1);
+  background-color: var(--nlStatusFailed);
 }
 .points_container {
   border-radius: 12px;

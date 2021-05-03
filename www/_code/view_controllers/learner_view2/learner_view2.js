@@ -256,7 +256,7 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlReportH
 			type: 'pie',
 			data: [0, 0, 0, 0],
 			labels: ['Completed', 'Not started', 'Inprogress', 'Upcoming','Expired'],
-			colors: [_nl.colorsCodes.done, _nl.colorsCodes.pending, _nl.colorsCodes.started, _nl.colorsCodes.blue1, _nl.colorsCodes.delayed ],
+			colors: [_nl.colorsCodes.done, _nl.colorsCodes.pending, _nl.colorsCodes.started, _nl.colorsCodes.upcoming, _nl.colorsCodes.failed ],
 			options:{responsive: true, maintainAspectRatio: false,segmentShowStroke: false},
 		},
 		{
@@ -266,7 +266,7 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlReportH
 			data: [[]],
 			labels: [],
 			series: ['Assigned', 'Completed'],
-			colors: [_nl.colorsCodes.blue1, _nl.colorsCodes.done],
+			colors: [_nl.colorsCodes.upcoming, _nl.colorsCodes.done],
 			options: {scales: {
 				xAxes: [{
 					gridLines: {
@@ -563,7 +563,7 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlReportH
 				card.openDlgBtn = nl.url.lessonIconUrl('down-arrow.svg');
 			} 
 		}
-		card.placeHolder = nl.url.lessonIconUrl('placeholder.svg');
+		card.placeHolder = nl.url.lessonIconUrl('placeholder_new.jpg');
 		card.title = record.repcontent.name;
 		var icon = record.repcontent.icon || '';
 		if (icon.indexOf('icon:') == 0) card.icon2 = 'ion-ios-bookmarks fblue';

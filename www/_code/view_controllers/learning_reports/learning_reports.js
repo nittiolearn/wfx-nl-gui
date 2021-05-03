@@ -911,7 +911,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 
 	function _initChartData() {
 		$scope.overviewDict = [];
-		var labels =  ['done', 'failed', 'active-ongoing', 'pending'];
+		var labels =  ['done', 'failed', 'Ongoing', 'Yet to Start'];
 		var colors = [_nl.colorsCodes.done, _nl.colorsCodes.failed, _nl.colorsCodes.started, _nl.colorsCodes.pending];
 
 		var type = nlLrFilter.getType();
@@ -926,7 +926,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		},
 		{
 			type: 'bar',
-			title: nl.fmt2('{} assigned vs completed over time', typeStr),
+			title: nl.fmt2('{} assigned vs completed', typeStr),
 			data: [[]],
 			labels: [],
 			series: ['Assigned', 'Completed'],
@@ -987,7 +987,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		var type = nlLrFilter.getType();
 		var typeStr = type == 'module' || type == 'module_assign' || type == 'module_self_assign' ? 'Module' : type == 'user' ? 'Learning' : 'Course';
 		c.data = [summaryRecord.done.txt, summaryRecord.failed.txt, summaryRecord.started.txt, summaryRecord.pending.txt];
-		c.title = nl.t('{} Reports Status Distribution', typeStr);
+		c.title = nl.t('{} Reports Status', typeStr);
 	}
 	
 	function _updateOverviewInfoGraphicsCards(summaryRecord) {
@@ -1067,7 +1067,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		var ulearnerArray = [uLearnerArr,
 							 [{title: 'Completed All', hover: nl.t('{} assigned to {} unique {}, {} {} ({}%) completed all {} assigned to them.', sType, utotal, _getLearnerStr(utotal), uCompletedAll, _getLearnerStr(uCompletedAll), uCompletedAllPerc, sType.toLowerCase()), val: uCompletedAll, perc: uCompletedAllPerc, class: 'nl-blue-text'},
 							 {title: typeStr == 'course' ? 'Certified All' : 'Passed All', hover: nl.t('{} assigned to {} unique {}, {} {} ({}%) {} all the {} assigned to them.', sType, utotal, _getLearnerStr(utotal), uCertified, _getLearnerStr(uCertified), uCertifiedPerc, certStr, sType.toLowerCase()), val: uCertified, perc: uCertifiedPerc, class: 'nl-dark-green-text'},
-							 {title: 'Failed Some', hover: nl.t('{} assigned to {} unique {}, {} {} ({}%) completed all. But failed at least in one {} assigned to them.', sType, utotal, _getLearnerStr(utotal), uFailed, _getLearnerStr(uFailed), uFailedPerc, sType.toLowerCase()), val: uFailed, perc: uFailedPerc, class: 'nl-failed-text'}]]
+							 {title: 'Not Certified Some', hover: nl.t('{} assigned to {} unique {}, {} {} ({}%) completed all. But not certified some at least in one {} assigned to them.', sType, utotal, _getLearnerStr(utotal), uFailed, _getLearnerStr(uFailed), uFailedPerc, sType.toLowerCase()), val: uFailed, perc: uFailedPerc, class: 'nl-failed-text'}]]
 		//Reports overiew computaion
 		var rdone = summaryRecord.done.txt;
 		var rfailed = summaryRecord.failed.txt;
@@ -1098,7 +1098,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		var reportsArray = [reportArr,
 							 [{title: 'Completed', hover: nl.t('{}({}%) {} reports completed by learners', rcompleted, rcompletedPerc, sRepStr.toLowerCase()), val: rcompleted, perc: rcompletedPerc, class: 'nl-blue-text'},
 							 {title: typeStr == 'course' ? 'Certified' : 'Passed', hover: nl.t('{}({}%) {} reports certified/passed', rdone, rdonePerc, sRepStr.toLowerCase()), val: rdone, perc: rdonePerc, class: 'nl-dark-green-text'},
-							 {title: 'Failed', hover: nl.t('{}({}%) {} reports failed', rfailed, rfailedPerc, sRepStr.toLowerCase()), val: rfailed, perc: rfailedPerc, class: 'nl-failed-text'}]]
+							 {title: 'Not Certified', hover: nl.t('{}({}%) {} reports not certified', rfailed, rfailedPerc, sRepStr.toLowerCase()), val: rfailed, perc: rfailedPerc, class: 'nl-failed-text'}]]
 		var title = 'Course Reports';
 		if (type == 'module' || type == 'module_assign' || type == 'module_self_assign') title = 'Module Reports';
 		if (type == 'user') title = 'Learning reports';
@@ -1214,7 +1214,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 
 	function _getNhtChartData(allCount) {
 		var labels = ['Training', 'OJT', 'Certification', 'Re-certification', 'Certified', 'Failed', 'Attrition'];
-		var colors = [_nl.colorsCodes.blue2, _nl.colorsCodes.blue1, _nl.colorsCodes.started, _nl.colorsCodes.started, _nl.colorsCodes.done,  _nl.colorsCodes.failed, _nl.colorsCodes.delayed];
+		var colors = [_nl.colorsCodes.nllightblue, _nl.colorsCodes.mediumblue, _nl.colorsCodes.darkblue, _nl.colorsCodes.darkerblue, _nl.colorsCodes.done,  _nl.colorsCodes.failed, _nl.colorsCodes.nllightred];
 		var chartData = [{type: 'doughnut', labels: labels, 
 						colors: colors, series: [], options: []}];
 		chartData[0].data = [allCount.Training || 0, allCount.OJT || 0, allCount.Certification || 0,

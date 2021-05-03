@@ -990,11 +990,11 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlCourseEditor, nlC
         none:    {icon: 'ion-information-circled fblue', title: ''},
         waiting: {icon: 'ion-locked fgrey', title: 'waiting'},
         delayed: {icon: 'ion-alert-circled forange', title: 'delayed'},
-        pending: {icon: 'ion-ios-circle-filled fyellow', title: 'pending'},
-        started: {icon: 'ion-ios-circle-filled fgreen', title: 'started'},
-        failed:  {icon: 'icon ion-close-circled forange', title: 'failed'},
-        expired:  {icon: 'icon ion-close-circled forange', title: 'certificate expired'},
-        success: {icon: 'ion-checkmark-circled fgreen', title: 'done'},
+        pending: {icon: 'ion-ios-circle-filled fpending', title: 'pending'},
+        started: {icon: 'ion-ios-circle-filled fprogress', title: 'started'},
+        failed:  {icon: 'icon ion-close-circled ffailed', title: 'failed'},
+        expired:  {icon: 'icon ion-close-circled ffailed', title: 'certificate expired'},
+        success: {icon: 'ion-checkmark-circled fdone', title: 'done'},
         partial_success: {icon: 'ion-checkmark-circled fyellow', title: 'partially done'} // Only folder status
     };
 
@@ -1304,7 +1304,6 @@ function FolderStats($scope, modeHandler) {
     };
    
     function _updateChartInfo(folderStat) {
-        if (_userInfo.groupinfo.groupCustomClass == 'nldarkmode') _nl.colorsCodes=_nl.darkcolorsCodes;
         var _chartLabels = ['done', 'failed', 'started', 'delayed', 'pending', 'waiting'];
         var _chartColours = [_nl.colorsCodes.done, _nl.colorsCodes.failed, _nl.colorsCodes.started, _nl.colorsCodes.delayed, _nl.colorsCodes.pending, _nl.colorsCodes.waiting];
         var ret = {labels: _chartLabels, colours: _chartColours, options: {}};
