@@ -500,7 +500,6 @@ function(nl, nlDlg, nlRouter, $scope, nlCardsSrv, nlLessonSelect, nlTreeSelect, 
 	var _preSelectedLessonId = null;
     var _preSelectedLanguage = null;
     var _trFlags = null; // What all will be translated
-    // var _languageFlags = {hi: {lang: 'en-IN', voice: 'Aditi'}};  //Which languages will be generated aldo after translating them TODO-NOW
 	var _traslateLangTree = nlLanguageTranslateSrv.getTranslationLangs();
     var _langsVoiceTree = nlLanguageVoiceSrv.getLangsVoice();
 	function _onPageEnter(userInfo) {
