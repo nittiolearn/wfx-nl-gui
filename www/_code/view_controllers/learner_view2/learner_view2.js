@@ -8,6 +8,7 @@
 function module_init() {
 	angular.module('nl.learner_view2', ['nl.learner_view_records2'])
 	.config(configFn)
+	.directive('nlLearnerViewDir2', LearnerView2Directive)
 	.directive('nlLearnerViewTopSection', LearnerViewTopSectionDirective)
 	.directive('nlLearnerSection2', LearnerSectionDirective2)
 	.directive('nlLearningStatusCounts2', LearningStatusCountsDirective2)
@@ -27,6 +28,18 @@ function($stateProvider, $urlRouterProvider) {
 				controller: 'nl.LearnerViewCtrl2'
 			}
 		}});
+}];
+
+//-------------------------------------------------------------------------------------------------
+
+var  LearnerView2Directive = ['nl',
+function(nl) {
+    return {
+        restrict: 'E',
+        templateUrl: 'view_controllers/learner_view2/learner_view_dir2.html',
+        link: function($scope, iElem, iAttrs) {
+        }
+	}
 }];
 
 //-------------------------------------------------------------------------------------------------
@@ -187,7 +200,7 @@ function(nl, nlDlg, nlRouter, nlReportHelper, nlLearnerViewRecords2, nlTopbarSrv
 	
 }];
 
-function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlReportHelper, 
+function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView2, nlRouter, nlReportHelper, 
 	nlLearnerViewRecords2, nlTopbarSrv, nlCardsSrv, nlCourse, nlGetManyStore, nlAnnouncementSrv) {
 	var self = this;
 	var _userInfo = null;
@@ -217,7 +230,7 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlReportH
 		_userInfo = userInfo;
 		nl.pginfo.pageTitle = nl.t('Home Dashboard');
 		nl.pginfo.pageSubTitle = nl.fmt2('({})', (userInfo || {}).displayname || '');
-		if (!_isHome) nlLearnerView.initPageBgImg(_userInfo);
+		if (!_isHome) nlLearnerView2.initPageBgImg(_userInfo);
 		return nl.q(function(resolve, reject) {
 			_init(userInfo);
 			_getLearningRecordsFromCacheAndServer(resolve);
@@ -247,6 +260,7 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlReportH
 			nlCardsSrv.initCards(cards);
 		}
 		$scope.userName = userInfo.displayname;
+		nlTopbarSrv.setPageMenus($scope.tabData.toptabs, $scope.tabData.selectedTab.id);
 		_initChartData();
 	}
 
@@ -403,7 +417,8 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlReportH
 
 
 	function _initData() {
-		var ret = {};
+		var ret =  {toptabs: []};
+		_updateTopBarButtons(ret);
 		ret.dataLoaded = false;
 		ret.learningCounts = {};
 		ret.search = '';
@@ -433,6 +448,34 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlReportH
 		return ret;
 	}
 	
+	function _updateTopBarButtons(ret) {
+		ret.canFetchMore = true;
+		var assignedTab = {id: 'assigned', type: 'tab', iconCls : 'ion-play',
+			name: 'Learn', text: 'My learning items', updated: false,
+			onClick: _onTabSelect};
+		var adminTab = {id: 'admin', type: 'tab', iconCls : 'ion-ios-gear', 
+			name: 'Admin', text:'Click here for admin view', updated: false, 
+			onClick: _onTabSelect};
+		var isAdminTabAvailable = _userInfo.dashboard && _userInfo.dashboard.length > 0;
+		ret.toptabs.push(assignedTab);
+		if (isAdminTabAvailable) {
+			var isAdminFirst = _userInfo.dashboard_props && _userInfo.dashboard_props.adminFirst;
+			if (isAdminFirst) 
+				ret.toptabs.splice(0, 0, adminTab);
+			else
+				ret.toptabs.push(adminTab)
+			ret.selectedTab = ret.toptabs[0];	
+		} else {
+			ret.selectedTab = assignedTab;
+			ret.toptabs = [];
+		}
+	}
+
+	function _onTabSelect(tab) {
+		$scope.tabData.selectedTab = tab;
+		_onAfterTabSelect(null);
+	}
+
 	function _onSearch(event) {
 		if (event && event.which !== 13) return;
 		var tabData = $scope.tabData;
@@ -459,29 +502,107 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlReportH
 		});
 	}
 
+	function _onAfterTabSelect() {
+		var tabid = $scope.tabData.selectedTab.id;
+		if (tabid == 'assigned') {
+			_getLearningRecordsFromCacheAndServer(null);
+		} else {
+			_updateCurrentTab(tabid);
+		}
+	}
+
+	function _updateCurrentTab(tabid) {
+		if (tabid == 'assigned') 
+			_updateLearningRecords();
+		else if (tabid == 'admin')
+			_updateAdminTab();
+	}
+
+	function _updateAdminTab() {
+        $scope.adminCards = {
+            staticlist: parent ? [] : _getUnauthorizedCards(_userInfo),
+            cardlist: _getAdminCards(_userInfo, _parent, _userInfo.dashboard)
+        };
+        nlCardsSrv.initCards($scope.adminCards);
+	};
+
+    function _getUnauthorizedCards(userInfo) {
+        var unauthorizedCards = [];
+        if (userInfo.termAccess == 'none') {
+            unauthorizedCards.push(
+                {title: nl.t('Access not allowed'), icon: nl.url.resUrl('dashboard/warning.png'), url: '', 
+                    help: nl.t('<p>Access is not allowed from this device or IP address.</p>'), 
+                    style: 'nl-bg-red', children: []});
+        } else if (userInfo.termAccess == 'restricted') {
+            unauthorizedCards.push(
+                {title: nl.t('Restricted access'), icon: nl.url.resUrl('dashboard/warning.png'), url: '', 
+                    help: nl.t('<p>You have only restricted access from this device or IP address.</p>'), 
+                    style: 'nl-bg-red', children: []});
+        }
+        return unauthorizedCards;
+	}
+
+    function _getAdminCards(userInfo, parent, cardListFromServer) {
+        var cards = _getChildCards(cardListFromServer, parent);
+        _updateDetails(cards);
+        return cards;
+    }
+
+    function _getChildCards(dashboard, parent) {
+        if (!parent) return dashboard;
+        for (var i=0; i < dashboard.length; i++) {
+            var card = dashboard[i];
+            if (card.linkId == parent) return card.children;
+        }
+        return [];
+    }
+
+    function _updateDetails(cards) {
+        for(var i=0; i<cards.length; i++) {
+            var card = cards[i];
+            var avps = [];
+            for (var j=0; j<card.children.length; j++) {
+            	var child = card.children[j];
+            	var avp = {attr:child.title, val:child.help, url:child.url};
+            	avps.push(avp);
+            }
+            card.details = {help: card.help, avps: avps};
+            card.links = [{id: 'details', text: nl.t('details')}];
+        }
+    }
+
 	function _getLearningRecordsFromCacheAndServer(resolve) {
 		var bResolved = false;
-		nlLearnerViewRecords2.initFromCache(function(dataFound) {
-			if (!dataFound) {
-				nlLearnerViewRecords2.fetchLatestChunkFromServer(function(_, canFetchMore) {
-					_updateTabDataWithRecords(canFetchMore);
-					resolve(true);
+		var tabid = $scope.tabData.selectedTab.id;
+		if (tabid == 'assigned' && $scope.tabData.canFetchMore) {
+			nlLearnerViewRecords2.initFromCache(function(dataFound) {
+				if (!dataFound) {
+					nlLearnerViewRecords2.fetchLatestChunkFromServer(function(_, canFetchMore) {
+						_updateTabDataWithRecords(canFetchMore);
+						if (resolve) resolve(true);
+					});
+					return;
+				}
+				_updateTabDataWithRecords(false);
+				if (resolve) resolve(true);
+				nlLearnerViewRecords2.updateCachedRecords(function(datachanged, canFetchMore) {
+					if (datachanged || $scope.tabData.canFetchMore != canFetchMore) 
+						_updateTabDataWithRecords(canFetchMore);
+					else
+						nlDlg.hideLoadingScreen();
 				});
-				return;
-			}
-			_updateTabDataWithRecords(false);
-			resolve(true);
-			nlLearnerViewRecords2.updateCachedRecords(function(datachanged, canFetchMore) {
-				if (datachanged || $scope.tabData.canFetchMore != canFetchMore) _updateTabDataWithRecords(canFetchMore);
-			});
-		});
+			});	
+		} else {
+			_updateCurrentTab(tabid);
+			if (resolve) resolve(true);
+		}
 	}
 
 	function _updateTabDataWithRecords(canFetchMore) {
 		$scope.tabData.records = nlLearnerViewRecords2.getRecords();
 		$scope.tabData.recordsLen = Object.keys($scope.tabData.records).length;
 		$scope.tabData.canFetchMore = canFetchMore;
-		_updateCurrentTab();
+		_updateCurrentLrReportsTab();
 		$scope.tabData.dataLoaded = true;
 		var msg = 'Fetched.';
 		if (canFetchMore) msg += ' Press on the fetch more icon to fetch more from server.';
@@ -489,7 +610,7 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView, nlRouter, nlReportH
 		nlDlg.hideLoadingScreen();
 	}
 
-	function _updateCurrentTab() {
+	function _updateCurrentLrReportsTab() {
 		_updateLearningRecords();
 		for(var i=0; i<$scope.tabData.sectionData.length; i++) {
 			var cards = $scope.tabData.sectionData[i];

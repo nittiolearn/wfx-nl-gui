@@ -212,6 +212,7 @@ var _dashboardActions = {
     'course.tms_view': {'url': '/#/tms_view', 'permission': 'assignment_send'},
     'course.do': {'url': '/#/course_report_list?my=1&{}', 'permission': 'course_do', 'termCheck': 'Restricted'},
     'learner.do': {'url': '/#/learner_view', 'permission': 'basic_access', 'termCheck': 'Restricted'},
+    'learner.do2': {'url': '/#/learner_view2', 'permission': 'basic_access', 'termCheck': 'Restricted'},
     'learning_reports.user': {'url': '/#/learning_reports?type=user&{}', 'permission': 'assignment_send', 'termCheck': 'Restricted'},
     'sco.export': {'url': '/#/sco_export?{}', 'permission': 'sco_export'},
     'sco.offline_export': {'url': '/#/offline_export?{}', 'permission': 'sco_export'},

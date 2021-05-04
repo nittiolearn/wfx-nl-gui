@@ -443,7 +443,7 @@ function Permission(nl) {
     
     var openPages = {'/login_now': 1, '/logout_now': 1,  '/pw_reset': 1,
                      '/welcome': 1};
-    var updateCheckPages = {'/home': 1, '/learner_view': 1};
+    var updateCheckPages = {'/home': 1, '/learner_view': 1, '/learner_view2': 1};
     this.isOpenPage = function(pageUrl) {
         var page = (pageUrl == '') ? nl.location.path() : pageUrl;
         return (page in openPages);

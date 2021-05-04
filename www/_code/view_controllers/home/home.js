@@ -68,18 +68,18 @@ function($stateProvider) {
     });
 }];
 //-------------------------------------------------------------------------------------------------
-var HomeCtrl = ['nl', 'nlRouter', '$scope', 'nlServerApi', 'nlConfig', 'nlCardsSrv', 'nlAnnouncementSrv', 'nlLearnerView',
-function(nl, nlRouter, $scope, nlServerApi, nlConfig, nlCardsSrv, nlAnnouncementSrv, nlLearnerView) {
-    HomeCtrlImpl(true, nl, nlRouter, $scope, nlServerApi, nlConfig, nlCardsSrv, nlAnnouncementSrv, nlLearnerView);
+var HomeCtrl = ['nl', 'nlRouter', '$scope', 'nlServerApi', 'nlConfig', 'nlCardsSrv', 'nlAnnouncementSrv', 'nlLearnerView', 'nlLearnerView2',
+function(nl, nlRouter, $scope, nlServerApi, nlConfig, nlCardsSrv, nlAnnouncementSrv, nlLearnerView, nlLearnerView2) {
+    HomeCtrlImpl(true, nl, nlRouter, $scope, nlServerApi, nlConfig, nlCardsSrv, nlAnnouncementSrv, nlLearnerView, nlLearnerView2);
 }];
 
-var DashboardViewCtrl = ['nl', 'nlRouter', '$scope', 'nlServerApi', 'nlConfig', 'nlCardsSrv', 'nlAnnouncementSrv', 'nlLearnerView',
-function(nl, nlRouter, $scope, nlServerApi, nlConfig, nlCardsSrv, nlAnnouncementSrv, nlLearnerView) {
-    HomeCtrlImpl(false, nl, nlRouter, $scope, nlServerApi, nlConfig, nlCardsSrv, nlAnnouncementSrv, nlLearnerView);
+var DashboardViewCtrl = ['nl', 'nlRouter', '$scope', 'nlServerApi', 'nlConfig', 'nlCardsSrv', 'nlAnnouncementSrv', 'nlLearnerView', 'nlLearnerView2',
+function(nl, nlRouter, $scope, nlServerApi, nlConfig, nlCardsSrv, nlAnnouncementSrv, nlLearnerView, nlLearnerView2) {
+    HomeCtrlImpl(false, nl, nlRouter, $scope, nlServerApi, nlConfig, nlCardsSrv, nlAnnouncementSrv, nlLearnerView, nlLearnerView2);
 }];
 
 //-------------------------------------------------------------------------------------------------
-function HomeCtrlImpl(isHome, nl, nlRouter, $scope, nlServerApi, nlConfig, nlCardsSrv, nlAnnouncementSrv, nlLearnerView) {
+function HomeCtrlImpl(isHome, nl, nlRouter, $scope, nlServerApi, nlConfig, nlCardsSrv, nlAnnouncementSrv, nlLearnerView, nlLearnerView2) {
     var oldScreenState = angular.copy(nl.rootScope.screenSize);
 
     function _onPageEnter(userInfo) {
@@ -102,6 +102,15 @@ function HomeCtrlImpl(isHome, nl, nlRouter, $scope, nlServerApi, nlConfig, nlCar
                         resolve(true);
                     });
                 });
+            } else if(userInfo.dashboard_props['dashboardType'] == "learner_view2" && isHome) { 
+                var learnerView = nlLearnerView2.create($scope);
+                $scope.isTabs2 = true;               
+                nlLearnerView2.initPageBgImg(userInfo);
+                learnerView.afterPageEnter(userInfo, parent).then(function(result) {
+                    nlAnnouncementSrv.onPageEnter(userInfo, $scope, 'pane').then(function() {
+                        resolve(true);
+                    });
+                });
             } else {
                 if (!isHome && dbid) {
                     nlServerApi.dashboardGetCards(dbid, published).then(function(dashboardCards) {
@@ -109,6 +118,9 @@ function HomeCtrlImpl(isHome, nl, nlRouter, $scope, nlServerApi, nlConfig, nlCar
                         nl.pginfo.pageSubTitle = '';
                         if(dashboardCards.dashboard_props['dashboardType'] == 'learner_view') {
                             $scope.isTabs = true;
+                            _loadLearnerViewForDashBoardPreview(dashboardCards, userInfo, parent, resolve);
+                        } else if(dashboardCards.dashboard_props['dashboardType'] == 'learner_view2') {
+                            $scope.isTabs2 = true;
                             _loadLearnerViewForDashBoardPreview(dashboardCards, userInfo, parent, resolve);
                         } else {
                             _init(userInfo, parent, dashboardCards, resolve);
@@ -124,10 +136,13 @@ function HomeCtrlImpl(isHome, nl, nlRouter, $scope, nlServerApi, nlConfig, nlCar
     nlRouter.initContoller($scope, '', _onPageEnter);
 
     function _loadLearnerViewForDashBoardPreview(dashboardCards, userInfo, parent, resolve) {
-        var learnerView = nlLearnerView.create($scope);
+        var learnerView = dashboardCards.dashboard_props['dashboardType'] == 'learner_view' ? nlLearnerView.create($scope) : nlLearnerView2.create($scope);
         userInfo.dashboard = dashboardCards.dashboard;
         userInfo.dashboard_props = dashboardCards.dashboard_props;
-        nlLearnerView.initPageBgImg(userInfo);
+        if (dashboardCards.dashboard_props['dashboardType'] == 'learner_view')
+            nlLearnerView.initPageBgImg(userInfo);
+        else 
+            nlLearnerView2.initPageBgImg(userInfo);
         learnerView.afterPageEnter(userInfo, parent).then(function(result) {
             nlAnnouncementSrv.onPageEnter(userInfo, $scope, 'pane').then(function() {
                 resolve(true);
@@ -138,7 +153,10 @@ function HomeCtrlImpl(isHome, nl, nlRouter, $scope, nlServerApi, nlConfig, nlCar
     function _init(userInfo, parent, dashboardCards, resolve) {
         $scope.isCards = true;
         _initDashboardCards(userInfo, parent, dashboardCards.dashboard);
-        nlLearnerView.initPageBgImg(dashboardCards);
+        if (dashboardCards.dashboard_props['dashboardType'] == 'learner_view')
+            nlLearnerView.initPageBgImg(dashboardCards);
+        else
+            nlLearnerView2.initPageBgImg(dashboardCards);
         nlAnnouncementSrv.onPageEnter(userInfo, $scope, 'pane').then(function() {
             resolve(true);
         });
