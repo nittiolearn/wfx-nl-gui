@@ -32,13 +32,13 @@ var _nl = {
         waiting: '#A0A0C0',       // $nlGrey1
         delayed: '#88929c',       // $nlOrange1
         upcoming: '#4682B4',
-        blue1: '#153673',         // $nlBlue1
-        blue2: '#2461cc',          // $nlBlue2
-        nllightred: '#F08080',
-        nllightblue:'#469EB4',
-        nlmediumblue:'#468BB4',
-        nldarkblue:'#4679B4',
-        nldarkerblue: '#4667B4',
+        blue1: '#153673',         //$nlBlue1
+        blue2: '#2461cc',         //$nlBlue2
+        nllightred: '#F08080',     //$nllightred
+        nllightblue:'#469EB4',     //$nllightblue
+        nlmediumblue:'#468BB4',    //$nlmediumblue
+        nldarkblue:'#4679B4',      //$nldarkblue
+        nldarkerblue: '#4667B4',   //$nldarkerblue
     }
 };
 

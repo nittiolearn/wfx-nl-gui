@@ -4,7 +4,7 @@
             <div class="row-center margin0 padding0 nl-dlg2-details-dim {{ !(record.type == 'expired' || record.type =='upcoming') ? 'nl-cursor' : ''}}" ng-click='!(record.type == "expired" || record.type =="upcoming") ? onCardInternalUrlClicked(record) : "" '>
                 <div class="padding0 nldlg2-img-container {{canCoverdlg(record.icon) ? 'cover' : ''}}">
                     <img ng-if='record.repcontent.icon != "icon:"' ng-src='{{record.repcontent.icon}}' class="nldlg2-img"  nl-compute-img-info></img>
-                    <img ng-if='record.repcontent.icon == "icon:"' style="width: 100%;height: 100%;object-fit: cover;" ng-src='{{record.placeHolder}}' 
+                    <img ng-if='record.repcontent.icon == "icon:"' class='default_placeholder' ng-src='{{record.placeHolder}}' 
                         alt='default_placeholder'>
                 </div>
                 <div class='col padding-mid fblue2 dlg2-title-box'>

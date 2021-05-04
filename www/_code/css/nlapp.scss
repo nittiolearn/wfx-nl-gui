@@ -3828,6 +3828,9 @@ color: var(--nlStatusGreen);}
 .fprogress {
   color: var(--nlStatusInProgess);
 }
+.fupcoming {
+  color: var(--nlStatusUpcoming)
+}
 .fdarkgrey1 {color: $nlFontDarkGrey1;
 color: var(--nlFontDarkGrey1);}
 .fdarkgrey2 {color: $nlFontDarkGrey2;
@@ -6679,4 +6682,7 @@ Font-size
 }
 .nl-cursor {
   cursor: pointer;
+}
+.fontsize30 {
+  font-size: 30px;
 }
