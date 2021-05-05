@@ -29,7 +29,7 @@
             <span class="nl-font-25 nl-txt-white fblue" >Oops! Looks like no courses match your search.</span>
         </div>
     </div>
-    <div ng-if='tabData.dataLoaded && tabData.summaryStats'> 
+    <div ng-if='tabData.selectedTab.id == "assigned" && tabData.dataLoaded && tabData.summaryStats'> 
         <nl-learning-stats></nl-learning-stats>
     </div>
     <div ng-if='tabData.selectedTab.id == "admin"'

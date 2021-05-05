@@ -104,8 +104,9 @@ function HomeCtrlImpl(isHome, nl, nlRouter, $scope, nlServerApi, nlConfig, nlCar
                 });
             } else if(userInfo.dashboard_props['dashboardType'] == "learner_view2" && isHome) { 
                 var learnerView = nlLearnerView2.create($scope);
-                $scope.isTabs2 = true;               
-                nlLearnerView2.initPageBgImg(userInfo);
+                $scope.isTabs2 = true;
+                //Remove because the new learner view doesn't look better with background images.
+                //nlLearnerView2.initPageBgImg(userInfo);
                 learnerView.afterPageEnter(userInfo, parent).then(function(result) {
                     nlAnnouncementSrv.onPageEnter(userInfo, $scope, 'pane').then(function() {
                         resolve(true);
@@ -141,8 +142,9 @@ function HomeCtrlImpl(isHome, nl, nlRouter, $scope, nlServerApi, nlConfig, nlCar
         userInfo.dashboard_props = dashboardCards.dashboard_props;
         if (dashboardCards.dashboard_props['dashboardType'] == 'learner_view')
             nlLearnerView.initPageBgImg(userInfo);
-        else 
-            nlLearnerView2.initPageBgImg(userInfo);
+        //Remove because the new learner view doesn't look better with background images.
+        // else 
+        //     nlLearnerView2.initPageBgImg(userInfo);
         learnerView.afterPageEnter(userInfo, parent).then(function(result) {
             nlAnnouncementSrv.onPageEnter(userInfo, $scope, 'pane').then(function() {
                 resolve(true);
@@ -155,8 +157,6 @@ function HomeCtrlImpl(isHome, nl, nlRouter, $scope, nlServerApi, nlConfig, nlCar
         _initDashboardCards(userInfo, parent, dashboardCards.dashboard);
         if (dashboardCards.dashboard_props['dashboardType'] == 'learner_view')
             nlLearnerView.initPageBgImg(dashboardCards);
-        else
-            nlLearnerView2.initPageBgImg(dashboardCards);
         nlAnnouncementSrv.onPageEnter(userInfo, $scope, 'pane').then(function() {
             resolve(true);
         });

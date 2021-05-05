@@ -197,7 +197,10 @@ function(nl, nlDlg, nlRouter, nlReportHelper, nlLearnerViewRecords2, nlTopbarSrv
         var pos = Math.floor((Math.random() * bgimgs.length));
         nl.rootScope.pgBgimg = bgimgs[pos];
 	};
-	
+
+	this.resetPageBgImg = function() {
+        nl.rootScope.pgBgimg = null;
+	}
 }];
 
 function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView2, nlRouter, nlReportHelper, 
@@ -505,6 +508,7 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView2, nlRouter, nlReport
 	function _onAfterTabSelect() {
 		var tabid = $scope.tabData.selectedTab.id;
 		if (tabid == 'assigned') {
+			nlLearnerView2.resetPageBgImg();
 			_getLearningRecordsFromCacheAndServer(null);
 		} else {
 			_updateCurrentTab(tabid);
@@ -512,10 +516,13 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView2, nlRouter, nlReport
 	}
 
 	function _updateCurrentTab(tabid) {
-		if (tabid == 'assigned') 
+		if (tabid == 'assigned') {
+			nlLearnerView2.resetPageBgImg();
 			_updateLearningRecords();
-		else if (tabid == 'admin')
+		} else if (tabid == 'admin') {
+			nlLearnerView2.initPageBgImg(_userInfo);
 			_updateAdminTab();
+		}
 	}
 
 	function _updateAdminTab() {
@@ -586,10 +593,12 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView2, nlRouter, nlReport
 				_updateTabDataWithRecords(false);
 				if (resolve) resolve(true);
 				nlLearnerViewRecords2.updateCachedRecords(function(datachanged, canFetchMore) {
-					if (datachanged || $scope.tabData.canFetchMore != canFetchMore) 
+					if (datachanged || $scope.tabData.canFetchMore != canFetchMore) {
 						_updateTabDataWithRecords(canFetchMore);
-					else
+					} else {
 						nlDlg.hideLoadingScreen();
+						nlDlg.popupStatus('', 0);
+					}
 				});
 			});	
 		} else {
