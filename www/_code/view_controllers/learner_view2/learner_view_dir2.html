@@ -26,7 +26,8 @@
         <div ng-if="!(tabData.sectionData[0].cardlist.length || tabData.sectionData[1].cardlist.length || tabData.sectionData[2].cardlist.length || tabData.sectionData[3].cardlist.length 
                         || tabData.sectionData[4].cardlist.length)" class="padding nl-txt-white nl-font-25 nodata-container nl-display-flex">
             <img ng-src='{{nodata}}' alt='no-data' class='nodata' >
-            <span class="nl-font-25 nl-txt-white fblue" >Oops! Looks like no courses match your search.</span>
+            <span class="nl-font-25 font-16-in-small nl-txt-white fblue" ng-if="tabData.recordsLen">Oops! Looks like no courses match your search.</span>
+            <span class="nl-font-25 font-16-in-small nl-txt-white fblue" ng-if="!tabData.recordsLen">We could not find any courses assigned to you.</span>
         </div>
     </div>
     <div ng-if='tabData.selectedTab.id == "assigned" && tabData.dataLoaded && tabData.summaryStats'> 
