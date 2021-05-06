@@ -402,7 +402,7 @@ function Permission(nl) {
         '/course_charts': {login: true, permission: 'assignment_manage', termRestriction: TR_CLOSED},
         '/learning_reports': {login: true, permission: 'assignment_send', termRestriction: TR_CLOSED},
         '/learning_reports_completed_modules': {login: true, permission: 'assignment_manage', termRestriction: TR_CLOSED},
-        '/tms_view': {login: true, permission: 'assignment_send', termRestriction: TR_CLOSED},
+        '/nht_report': {login: true, permission: 'assignment_send', termRestriction: TR_CLOSED},
         '/lr_import': {login: true, permission: 'nittio_support', termRestriction: TR_CLOSED},
         '/dashboard': {login: true, permission: 'nittio_support', termRestriction: TR_CLOSED},
         '/dashboard_view': {login: true, permission: 'nittio_support', termRestriction: TR_CLOSED},

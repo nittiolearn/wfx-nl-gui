@@ -13,8 +13,8 @@ function module_init() {
 
 var configFn = ['$stateProvider', '$urlRouterProvider',
 function($stateProvider, $urlRouterProvider) {
-    $stateProvider.state('app.tms_view', {
-        url: '^/tms_view',
+    $stateProvider.state('app.nht_report', {
+        url: '^/nht_report',
         views: {
             'appContent': {
                 templateUrl: 'view_controllers/learning_reports/others/lr_tms_view.html',

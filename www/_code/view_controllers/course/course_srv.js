@@ -209,7 +209,7 @@ var _dashboardActions = {
     'course.view_assigned_my': {'url': '/#/course_assign_my_list?{}', 'permission': 'assignment_send'},
     'course.view_assigned_suborg': {'url': '/#/course_assign_suborg_list?{}', 'permission': 'assignment_send'},
     'course.summary_report': {'url': '/#/learning_reports?type=course&{}', 'permission': 'assignment_send'},
-    'course.tms_view': {'url': '/#/tms_view', 'permission': 'assignment_send'},
+    'course.nht_report': {'url': '/#/nht_report', 'permission': 'assignment_send'},
     'course.do': {'url': '/#/course_report_list?my=1&{}', 'permission': 'course_do', 'termCheck': 'Restricted'},
     'learner.do': {'url': '/#/learner_view', 'permission': 'basic_access', 'termCheck': 'Restricted'},
     'learner.do2': {'url': '/#/learner_view2', 'permission': 'basic_access', 'termCheck': 'Restricted'},
