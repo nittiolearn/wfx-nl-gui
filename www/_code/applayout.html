@@ -9,7 +9,7 @@
 
 <div id='nl-pagecanvas' ng-click='onCanvasClick($event)' ng-keydown="onKeyDown($event)" tabindex='0'
     ng-class='{"nl-hide":!pgInfo.isPageShown}'>
-    <div ng-show='pgBgimg' class='nl-pagecanvas-bg {{ currentPageURL != "/learner_view2" ? "nl-pagecanvas-bgimg"  : "" }}'></div>
+    <div ng-show='pgBgimg' class='nl-pagecanvas-bg'></div>
 
     <nl-topbar></nl-topbar>
     <div id='nl-body' ng-class='{fullpage:!topbar.isShown, rightpane:announcement.mode == "pane"}'>

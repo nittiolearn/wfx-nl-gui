@@ -147,7 +147,6 @@ function(nl) {
 var LearnerViewCtrl2 = ['nl', '$scope', 'nlLearnerView2',
 function(nl, $scope, nlLearnerView2) {
 	nl.rootScope.showAnnouncement = !nl.rootScope.hideAnnouncement;
-	$scope.nodata = nl.url.lessonIconUrl('nodata.svg');
 	$scope.canCoverdlg = function(url) {
 		var info = _imgInfo[url];
 		if (!info) return false;
@@ -210,6 +209,7 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView2, nlRouter, nlReport
 	var _parent = false;
 	var _isHome = false;
 	var _enableAnnouncements = false; 
+	$scope.nodata = nl.url.lessonIconUrl('nodata.svg');
 	this.show = function(enableAnnouncements) {
 		_enableAnnouncements = enableAnnouncements;
 		nlRouter.initContoller($scope, '', _onPageEnter);
