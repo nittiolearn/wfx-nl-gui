@@ -394,7 +394,9 @@ function(nl, nlGetManyStore, nlReportHelper, nlServerApi, nlConfig, nlDlg) {
                 }    
             }
             if (not_after && not_after < curDate) {
-                return {type: "expired", cardSize: 'S', url: nl.fmt2('#/course_view?id={}&mode=do', raw_record.id)};
+                var ret = {type: "expired", cardSize: 'S'};
+                if (type == 'course') ret.url = nl.fmt2('#/course_view?id={}&mode=report_view_my', raw_record.id);
+                return ret;
             }    
         }
         if (stats.status.id == nlReportHelper.STATUS_STARTED) {
@@ -406,7 +408,9 @@ function(nl, nlGetManyStore, nlReportHelper, nlServerApi, nlConfig, nlDlg) {
                 }
             }
             if (not_after && not_after < curDate) {
-                return {type: "expired", cardSize: 'S'};
+                var ret = {type: "expired", cardSize: 'S'};
+                if (type == 'course') ret.url = nl.fmt2('#/course_view?id={}&mode=report_view_my', raw_record.id);
+                return ret;
             }
         }
 
