@@ -636,7 +636,7 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView2, nlRouter, nlReport
 	var SEC_POS = {'progress': 0, 'pending': 1, 'upcoming': 2, 'completed': 3, 'expired': 4};
 	var CARD_SIZE = {0: 'L', 1: 'L', 2: 'M', 3: 'S', 4: 'S'};
 	var LAUNCH_BUTTON = {'progress': 'start.svg', 'pending': 'start.svg', 'upcoming': 'true', 'completed': 'review.svg', 'expired': 'info.svg'};
-	var LAUNCH_BUTTON_LIGHT = {'progress': 'start-dark.svg', 'pending': 'start-dark.svg', 'upcoming': 'true', 'completed': 'review-dark.svg', 'expired': 'info.svg'};
+	var LAUNCH_BUTTON_LIGHT = {'progress': 'start-dark.svg', 'pending': 'start-dark.svg', 'upcoming': 'true', 'completed': 'review-dark.svg', 'expired': 'info-dark.svg'};
     
 	function _getFilteredRecords() {
 		var records = $scope.tabData.records;
