@@ -27,7 +27,7 @@
 			<div class='col nl-card2-desc nl-txt-white' nl-compile='card.help' style='text-align: left'>
 			</div>
 			<div ng-click='onCardInternalUrlClicked($event, card, card.url)' style='margin-right: 5px;'>
-				<span ng-if="!(card.type == 'upcoming' || card.type == 'expired')" class="nl-card-more-icon {{getLaunchIconClass(card)}}" style='padding:0px;'>
+				<span ng-if="card.canShowLaunchbutton" class="nl-card-more-icon {{getLaunchIconClass(card)}}" style='padding:0px;'>
 					<img ng-src='{{card.buttonUrl}}' class="scardIcon"></img>
 				</span>
 			</div>

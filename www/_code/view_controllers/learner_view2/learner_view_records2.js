@@ -394,7 +394,7 @@ function(nl, nlGetManyStore, nlReportHelper, nlServerApi, nlConfig, nlDlg) {
                 }    
             }
             if (not_after && not_after < curDate) {
-                return {type: "expired", cardSize: 'S'};
+                return {type: "expired", cardSize: 'S', url: nl.fmt2('#/course_view?id={}&mode=do', raw_record.id)};
             }    
         }
         if (stats.status.id == nlReportHelper.STATUS_STARTED) {

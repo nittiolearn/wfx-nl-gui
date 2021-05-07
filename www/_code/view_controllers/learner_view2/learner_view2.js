@@ -693,6 +693,9 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView2, nlRouter, nlReport
 				card.openDlgBtn = nl.url.lessonIconUrl('down-arrow.svg');
 			} 
 		}
+		if(card.type != 'upcoming') {
+			if(card.type != 'expired' || (card.type == 'expired' && record.type == 'course')) card.canShowLaunchbutton = true;
+		}
 		card.placeHolder = nl.url.lessonIconUrl('placeholder_new.jpg');
 		card.title = record.repcontent.name;
 		var icon = record.repcontent.icon || '';
