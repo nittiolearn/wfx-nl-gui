@@ -403,6 +403,10 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
 		return _etm;
 	}
 
+	function _canShowLearningCredits(attr) {
+		return _userInfo.groupinfo.features['learningCredits'];
+	}
+
 	function _onBooleanClick(e, attr, item) {
 		item[attr.name] = !item[attr.name];
         _onAttrChange(e, attr, item);
@@ -689,6 +693,8 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
         {name: 'trainer_notes', stored_at: 'module', fields: ['iltsession'], type: 'object_with_gui', contentType: 'object', text: 'Trainer notes'},
         {name: 'gateFormula', stored_at: 'module', fields: ['gate'], text: 'Formula',type: 'intellitext'},
         {name: 'gatePassscore', stored_at: 'module', fields: ['gate'], text: 'Gate pass score',type: 'number', min:0, max:100},
+		{name: 'learningCredits', stored_at: 'module', fields: ['module', 'lesson-assesment', 'lesson-self', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating', 'gate'], text: 'Learning Credits',type: 'number', min:0, max:100,
+			canShow: function(attr) {return _canShowLearningCredits(attr);}},
         {name: 'start_after', stored_at: 'module', fields: ['lesson-assesment', 'lesson-self', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating', 'gate'], type: 'object_with_gui', contentType: 'object', text: 'Start after'},
         {name: 'canMarkAttendance', stored_at: 'module', text: 'Learner can mark attendance', type:'hidden', fields: ['iltsession']},
         {name: 'grp_depAttrs', stored_at: 'module', fields: ['lesson-assesment', 'lesson-self', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating', 'gate'], type: 'group', text: 'Planning', debug: true},
@@ -762,6 +768,7 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
 		canMarkAttendance: 'Set this to allow learner to mark attendance.',
 		gateFormula: _getGateFormulaHelp(),
 		gatePassscore: 'Provide the pass score to mark status of item for learner.',
+		learningCredits: 'Provide the learning credits a user would receive upon passing this gate.',
 		showInReport: 'Enable this to show the score of this gate item in the overall learning report.',
 		isReattempt: 'You could control if the learning report is marked as certified in first attempt or not with this attribute. If this attribute is enabled and the learner reached upto to this item, it means that the learner did not complete the course in first attempt. This is useful to set for the re-certification items within the course.',
 		hide_answers: 'Enable this attribute to disallow the learners from opening the module report after submission. This restrict learner from verifying the correct answers.'
