@@ -693,7 +693,7 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
         {name: 'trainer_notes', stored_at: 'module', fields: ['iltsession'], type: 'object_with_gui', contentType: 'object', text: 'Trainer notes'},
         {name: 'gateFormula', stored_at: 'module', fields: ['gate'], text: 'Formula',type: 'intellitext'},
         {name: 'gatePassscore', stored_at: 'module', fields: ['gate'], text: 'Gate pass score',type: 'number', min:0, max:100},
-		{name: 'learningCredits', stored_at: 'module', fields: ['module', 'lesson-assesment', 'lesson-self', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating', 'gate'], text: 'Learning Credits',type: 'number', min:0, max:100,
+		{name: 'learningCredits', stored_at: 'module', fields: ['lesson-assesment', 'lesson-self', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating', 'gate'], text: 'Learning Credits',type: 'number', min:0, max:100,
 			canShow: function(attr) {return _canShowLearningCredits(attr);}},
         {name: 'start_after', stored_at: 'module', fields: ['lesson-assesment', 'lesson-self', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating', 'gate'], type: 'object_with_gui', contentType: 'object', text: 'Start after'},
         {name: 'canMarkAttendance', stored_at: 'module', text: 'Learner can mark attendance', type:'hidden', fields: ['iltsession']},
