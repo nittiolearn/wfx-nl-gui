@@ -30,7 +30,7 @@ function($scope, nl, nlDlg, nlRouter, nlGroupInfo, nlServerApi, nlExporter, nlTm
     var _pastUserInfosFetcher = nlGroupInfo.getPastUserInfosFetcher();
     function _onPageEnter(userInfo) {
       return nl.q(function(resolve, reject) {
-        nl.pginfo.pageTitle = nl.t('Tms view');
+        nl.pginfo.pageTitle = nl.t('NHT batches');
         nlGroupInfo.init2().then(function() {
           nlGroupInfo.update();
                   _groupInfo = nlGroupInfo.get();
@@ -47,9 +47,20 @@ function($scope, nl, nlDlg, nlRouter, nlGroupInfo, nlServerApi, nlExporter, nlTm
     $scope.generateTmsArray = function(item) {
       if(!item.isFolder) return;
       item.isOpen = !item.isOpen;
+      var allRow = $scope.nhtInfo.info.allRows[0];
+      for (var i=0; i<allRow.children.length; i++) {
+        var cntItem = allRow.children[i];
+        if (cntItem.name == item.name) continue;
+        cntItem.isOpen = false;
+      }
       _updateVisibleTmsRows($scope.nhtInfo.info);  
     }
 
+    $scope.onClickOnShowMore = function(item) {
+      item.cnt.visible += $scope.nhtInfo.info.defMaxVisible;
+      _updateVisibleTmsRows($scope.nhtInfo.info);  
+    };
+  
     $scope.onClickOnBatch = function(rec) {
       if (!rec.batchid) return;
       var url = nl.fmt2('#/learning_reports?type=course_assign&objid={}', rec.batchid);
@@ -213,7 +224,7 @@ function($scope, nl, nlDlg, nlRouter, nlGroupInfo, nlServerApi, nlExporter, nlTm
       
             nhtArray.push(root.cnt);
             root.cnt.childCount = 0;
-            root.cnt.isOpen = false;
+            root.cnt.isOpen = true;
             root.cnt.shown = 0;
             root.cnt.children = [];
             if (root.children) _addSuborgOrOusToDrilldownArray(root.cnt, nhtArray, root.children, root.cnt.sortkey, null);
