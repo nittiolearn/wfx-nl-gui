@@ -63,22 +63,22 @@ function($scope, nlLearningReports) {
 }];
 	
 var NlLearningReports = ['nl', 'nlDlg', 'nlRouter', 'nlServerApi', 'nlGroupInfo', 'nlTable', 'nlTableViewSelectorSrv', 'nlSendAssignmentSrv',
-'nlLrHelper', 'nlReportHelper', 'nlLrFilter', 'nlLrFetcher', 'nlLrExporter', 'nlLrReportRecords', 'nlLrSummaryStats', 'nlGetManyStore', 
+'nlLrHelper', 'nlReportHelper', 'nlLrFilter', 'nlLrFetcher', 'nlLrExporter', 'nlExporter', 'nlLrReportRecords', 'nlLrSummaryStats', 'nlGetManyStore', 
 'nlTreeListSrv', 'nlMarkup', 'nlLrDrilldown', 'nlCourse', 'nlLrNht', 'nlLrUpdateBatchDlg', 'nlTreeSelect', 'nlIframeDlg',
 function(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlTable, nlTableViewSelectorSrv, nlSendAssignmentSrv,
-	nlLrHelper, nlReportHelper, nlLrFilter, nlLrFetcher, nlLrExporter, nlLrReportRecords, nlLrSummaryStats,
+	nlLrHelper, nlReportHelper, nlLrFilter, nlLrFetcher, nlLrExporter, nlExporter, nlLrReportRecords, nlLrSummaryStats,
 	nlGetManyStore, nlTreeListSrv, nlMarkup, nlLrDrilldown, nlCourse, nlLrNht, nlLrUpdateBatchDlg, nlTreeSelect, nlIframeDlg) {
 	this.create = function($scope, settings) {
 		if (!settings) settings = {};
 		return new NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlTable, nlTableViewSelectorSrv, nlSendAssignmentSrv,
-			nlLrHelper, nlReportHelper, nlLrFilter, nlLrFetcher, nlLrExporter, nlLrReportRecords, nlLrSummaryStats,
+			nlLrHelper, nlReportHelper, nlLrFilter, nlLrFetcher, nlLrExporter, nlExporter, nlLrReportRecords, nlLrSummaryStats,
 			$scope, settings, nlGetManyStore, nlTreeListSrv, nlMarkup, nlLrDrilldown, nlCourse, nlLrNht, nlLrUpdateBatchDlg, nlTreeSelect, nlIframeDlg);
 	};
 }];
 	
 //-------------------------------------------------------------------------------------------------
 function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlTable, nlTableViewSelectorSrv, nlSendAssignmentSrv,
-			nlLrHelper, nlReportHelper, nlLrFilter, nlLrFetcher, nlLrExporter, nlLrReportRecords, nlLrSummaryStats,
+			nlLrHelper, nlReportHelper, nlLrFilter, nlLrFetcher, nlLrExporter, nlExporter, nlLrReportRecords, nlLrSummaryStats,
 			$scope, settings, nlGetManyStore, nlTreeListSrv, nlMarkup, nlLrDrilldown, nlCourse, nlLrNht, nlLrUpdateBatchDlg, nlTreeSelect, nlIframeDlg) {
 	var _userInfo = null;
 	var _groupInfo = null;
@@ -324,11 +324,17 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			icon_content : 'assignment_returned',
 			id: 'exportCustomReport',
 			onClick : _onExportCustomReport
+		}, {
+			title : 'Download overall user learning credits report',
+			icon : 'material-icons',
+			icon_content : 'assignment_returned',
+			id: 'exportLearningCreditsReport',
+			onClick : _onExportLearningCreditsReport
 		}];
 	}
 
 	$scope.canShowToolbarIcon = function(tbid) {
-			var type = nlLrFilter.getType();
+		var type = nlLrFilter.getType();
 		if (nlLrFetcher.fetchInProgress(true)) return false;
 		if (tbid == 'tbfetchmore') return nlLrFetcher.canFetchMore();
 		if (tbid == 'tbfilter') return nlLrFilter.isFilterShown();
@@ -368,6 +374,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			if (courseAssignment.info && courseAssignment.info.forum) return true;
  			return false;
 		}
+		if (tbid == 'exportLearningCreditsReport') return (type == 'course' && _userInfo.groupinfo.features['learningCredits']);
 		if (tbid == 'exportCustomReport') return (type == 'course') && ($scope.debug || _customReportTemplate);
 		if (tbid == 'selectUser') return (nlLrFilter.getType() == 'user');
 		var canManage = nlRouter.isPermitted(_userInfo, 'assignment_manage');
@@ -2305,6 +2312,29 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		var reportRecordsDict = nlLrReportRecords.getRecords();
 		var customReportTemplate = _customReportTemplate || nlGroupInfo.getDefaultCustomReportTemplate();
 		nlLrExporter.exportCustomReport($scope, reportRecordsDict, customReportTemplate);
+	}
+
+	function _onExportLearningCreditsReport() {
+		if (nlLrFetcher.fetchInProgress()) return;
+		nlDlg.popupStatus('Downloading ...', false);
+        nlDlg.showLoadingScreen();
+        nl.timeout(function() {
+			var data = {grpid: _groupInfo.grpid, table: 'learningcredits', recid: 0, field:'usertooverallscore.json'};
+			nlServerApi.jsonFieldStream(data).then(function(resp) {
+				if (!resp || !resp.data) {
+					nlDlg.popupStatus('Some error occured while downloading ...', false);
+					return;
+				}
+				var jsonObj = resp.data;
+				jsonObj = angular.fromJson(jsonObj);
+				var strData = nlExporter.objToCsv(jsonObj, [{id:"userid",name:"User Id"},{id:"overallscore",name:"Overall Score"}]);
+				nlExporter.exportCsvFile('usertooverallscore.csv', strData, true);
+				nl.timeout(function() {
+					nlDlg.popdownStatus(0);
+					nlDlg.hideLoadingScreen();
+				}, 1000);
+        	});
+		});
 	}
 	
 	function _onBulkDelete() {
