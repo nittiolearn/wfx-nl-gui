@@ -94,15 +94,7 @@ function(nl, nlDlg, nlServerApi) {
         transclude: true,
         templateUrl: 'view_controllers/learner_view2/learner_section2.html',
         scope: {
-			record: '=',
-			attr: '=',
-			nltitle: '=',
-			desc: '=',
-			icon: '=',
-			url: '=',
-			isreport: '=',
-			buttontype:'=',
-			buttontext: '='
+			card: '='
 		},
         link: function($scope, iElem, iAttrs) {
 			$scope.onDetailsLinkClicked = function($event, record, clickAttr) {
@@ -114,15 +106,10 @@ function(nl, nlDlg, nlServerApi) {
 			$scope.myfun = function(exploreCard) {
 				const urlParams = new URLSearchParams(exploreCard.url);
 				const params = Object.fromEntries(urlParams);
-				var ret = {};
-				_copyIf(params, ret, 'grade');
-				for(var i=0; i<100; i++) {
-					_copyIf(params, ret, 'attr'+i);
+				for (var key in params) {
+					if (key.indexOf('/#/') == 0) delete params[key];
 				}
-				function _copyIf(src, dest, attr) {
-					if (attr in src) dest[attr] = src[attr];
-				}
-				$scope.$parent.fetchTheExploreSectionCards(ret, false);
+				$scope.$parent.fetchTheExploreSectionCards(exploreCard, params, false);
 			}
 		}
 	}
@@ -451,7 +438,7 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView2, nlRouter, nlReport
 		ret.records = null; 
 		ret.recordsLen = 0;
 		ret.summaryStats = false;
-		ret.exploreSection = isExploreTabAvailable ? true: false;
+		ret.exploreSection = isExploreTabAvailable;
 		ret.explore = false;
 		ret.summaryStatSummaryRow = null;
 		ret.onSearch = _onSearch;
@@ -858,26 +845,23 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView2, nlRouter, nlReport
 
 	function _updateExploreTab() {
 		$scope.exploreCards = _userInfo.dashboard_props.explore || [];
+		$scope.isSelected = $scope.exploreCards[0];
 	}
     
-	$scope.fetchTheExploreSectionCards = function(ret, fetchMore) {
-		var dashboardCards = {};
-		dashboardCards.resultList = [];
-		var params = {};
-		params.metadata = ret;
-		var _pageFetcher = nlServerApi.getPageFetcher({defMax: 100});
-		if(fetchMore) params['max'] = 100;
+	$scope.fetchTheExploreSectionCards = function(card, ret, fetchMore) {
+		if (!card.resultList) card.resultList = [];
+		var params = {metadata: ret};
+		if (!card._pageFetcher) card._pageFetcher = nlServerApi.getPageFetcher({defMax: 100});
+		if(card.fetchMore) params['max'] = 100;
 		var listingFn = nlServerApi.lessonGetApprovedList;
-		_pageFetcher.fetchPage(listingFn, params, fetchMore, function(results) {
+		card._pageFetcher.fetchPage(listingFn, params, fetchMore, function(results) {
             if (!results) {
                 return;
-            }
-           dashboardCards.resultList = dashboardCards.resultList.concat(results);
-            nlCardsSrv.updateCards($scope.cards, {
-                cardlist: _updateCardUrl(_userInfo, dashboardCards.resultList),
-                canFetchMore: _pageFetcher.canFetchMore()
-            });
-			console.log(results);
+			}
+			$scope.isSelected = card;
+			var cards = _getLessonCards(_userInfo, results)
+			card.resultList = card.resultList.concat(cards);
+			card.fetcMore = card._pageFetcher.canFetchMore();
 		});
 	}
 	
@@ -891,8 +875,31 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView2, nlRouter, nlReport
 		return cards;
 	}
 	
+	function _createLessonCard(lesson, userInfo) {
+        var card = {
+            lessonId : lesson.id,
+            updated: nl.fmt.json2Date(lesson.updated),
+            grp: lesson.grp,
+            title : lesson.name,
+            subject : lesson.subject,
+            grade : lesson.grade,
+            icon : nl.url.lessonIconUrl(lesson.image),
+            authorName : lesson.authorname,
+            description : lesson.description,
+            esttime : lesson.esttime,
+            children : [],
+			links: []
+			//TODO-NOw: Dalchand please check and update
+            //details: {help: lesson.description, avps: _getLessonListAvps(lesson)}
+        };
+		card.url = nl.fmt2('/lesson/do_report_selfassign?lessonid={}', lesson.id);
+		//TODO-NOw: Dalchand please check and update
+        //_updateLinks(card, lesson, userInfo);
+		//card.links.push({id : 'details', text : nl.t('details')});
+		return card;
+	}
+
     function _updateCardUrl(resultList) {
-		card.url = nl.fmt2('/lesson/do_report_selfassign?lessonid={}', resultList.id);
 	 }
 
 	
