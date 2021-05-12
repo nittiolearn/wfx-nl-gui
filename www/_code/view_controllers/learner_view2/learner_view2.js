@@ -73,6 +73,9 @@ function(nl, nlDlg) {
 			$scope.viewStatistics =function() {
 				$scope.tabdata.summaryStats= true;
 			};
+			$scope.exploreAvailable =function() {
+				$scope.tabdata.explore= true;
+			};
 			$scope.goback = function() {
 				$scope.tabdata.summaryStats= false;
 			};
@@ -84,12 +87,12 @@ function(nl, nlDlg) {
 }];
 
 //-------------------------------------------------------------------------------------------------
-var LearnerSectionDirective2 = ['nl', 'nlDlg',
-function(nl, nlDlg) {
+var LearnerSectionDirective2 = ['nl', 'nlDlg', 'nlServerApi',
+function(nl, nlDlg, nlServerApi) {
     return {
         restrict: 'E',
         transclude: true,
-        templateUrl: 'view_controllers/learner_view2/learner_section.html',
+        templateUrl: 'view_controllers/learner_view2/learner_section2.html',
         scope: {
 			record: '=',
 			attr: '=',
@@ -107,6 +110,19 @@ function(nl, nlDlg) {
 				detailsDlg.setCssClass('nl-dlg2');
                 detailsDlg.scope.record = record;
                 detailsDlg.show('view_controllers/learner_view2/learner_view_details.html');
+			}
+			$scope.myfun = function(exploreCard) {
+				const urlParams = new URLSearchParams(exploreCard.url);
+				const params = Object.fromEntries(urlParams);
+				var ret = {};
+				_copyIf(params, ret, 'grade');
+				for(var i=0; i<100; i++) {
+					_copyIf(params, ret, 'attr'+i);
+				}
+				function _copyIf(src, dest, attr) {
+					if (attr in src) dest[attr] = src[attr];
+				}
+				$scope.$parent.fetchTheExploreSectionCards(ret, false);
 			}
 		}
 	}
@@ -181,11 +197,11 @@ function(nl, nlDlg) {
 //-------------------------------------------------------------------------------------------------
 
 var NlLearnerView2 = ['nl', 'nlDlg', 'nlRouter', 'nlReportHelper',
-'nlLearnerViewRecords2', 'nlTopbarSrv', 'nlCardsSrv', 'nlCourse', 'nlGetManyStore', 'nlAnnouncementSrv',
-function(nl, nlDlg, nlRouter, nlReportHelper, nlLearnerViewRecords2, nlTopbarSrv, nlCardsSrv, nlCourse, nlGetManyStore, nlAnnouncementSrv) {
+'nlLearnerViewRecords2', 'nlTopbarSrv', 'nlCardsSrv', 'nlCourse', 'nlGetManyStore', 'nlAnnouncementSrv', 'nlServerApi',
+function(nl, nlDlg, nlRouter, nlReportHelper, nlLearnerViewRecords2, nlTopbarSrv, nlCardsSrv, nlCourse, nlGetManyStore, nlAnnouncementSrv, nlServerApi) {
 	this.create = function($scope) {
 		return new NlLearnerViewImpl($scope, nl, nlDlg, this, nlRouter, nlReportHelper,
-			nlLearnerViewRecords2, nlTopbarSrv, nlCardsSrv, nlCourse, nlGetManyStore, nlAnnouncementSrv);
+			nlLearnerViewRecords2, nlTopbarSrv, nlCardsSrv, nlCourse, nlGetManyStore, nlAnnouncementSrv, nlServerApi);
 	};
 
 	this.initPageBgImg = function(data) {
@@ -203,7 +219,7 @@ function(nl, nlDlg, nlRouter, nlReportHelper, nlLearnerViewRecords2, nlTopbarSrv
 }];
 
 function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView2, nlRouter, nlReportHelper, 
-	nlLearnerViewRecords2, nlTopbarSrv, nlCardsSrv, nlCourse, nlGetManyStore, nlAnnouncementSrv) {
+	nlLearnerViewRecords2, nlTopbarSrv, nlCardsSrv, nlCourse, nlGetManyStore, nlAnnouncementSrv, nlServerApi) {
 	var self = this;
 	var _userInfo = null;
 	var _parent = false;
@@ -213,6 +229,7 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView2, nlRouter, nlReport
 	this.show = function(enableAnnouncements) {
 		_enableAnnouncements = enableAnnouncements;
 		nlRouter.initContoller($scope, '', _onPageEnter);
+		
 	};
 
 	this.afterPageEnter = function(userInfo, parent) {
@@ -240,7 +257,7 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView2, nlRouter, nlReport
 			if(_enableAnnouncements) _loadAndShowAnnouncements();
 		});
 	}
-
+	
 	function _loadAndShowAnnouncements() {
 		nlAnnouncementSrv.onPageEnter(_userInfo, $scope, 'pane').then(function() {
 		});
@@ -266,7 +283,7 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView2, nlRouter, nlReport
 		nlTopbarSrv.setPageMenus($scope.tabData.toptabs, $scope.tabData.selectedTab.id);
 		_initChartData();
 	}
-
+	
 	function _initChartData() {
 		$scope.charts = [{
 			show: false,
@@ -421,6 +438,9 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView2, nlRouter, nlReport
 
 	function _initData() {
 		var ret =  {toptabs: []};
+		var isExploreTabAvailable = _userInfo.dashboard_props && 
+			_userInfo.dashboard_props.explore && 
+			(_userInfo.dashboard_props.explore.length > 0);
 		_updateTopBarButtons(ret);
 		ret.dataLoaded = false;
 		ret.learningCounts = {};
@@ -431,6 +451,8 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView2, nlRouter, nlReport
 		ret.records = null; 
 		ret.recordsLen = 0;
 		ret.summaryStats = false;
+		ret.exploreSection = isExploreTabAvailable ? true: false;
+		ret.explore = false;
 		ret.summaryStatSummaryRow = null;
 		ret.onSearch = _onSearch;
 		ret.onKeyupSearch=_onKeyupSearch;
@@ -626,6 +648,7 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView2, nlRouter, nlReport
 			nlCardsSrv.updateCards(cards, {});
 		}
 		_updateSummaryTab();
+		_updateExploreTab();
 	}
     
 	function _updateLearningRecords() {
@@ -832,7 +855,48 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView2, nlRouter, nlReport
 		if (!inStr) return false;
 		return (inStr.toLowerCase().indexOf(str) >= 0);
 	}
+
+	function _updateExploreTab() {
+		$scope.exploreCards = _userInfo.dashboard_props.explore || [];
+	}
     
+	$scope.fetchTheExploreSectionCards = function(ret, fetchMore) {
+		var dashboardCards = {};
+		dashboardCards.resultList = [];
+		var params = {};
+		params.metadata = ret;
+		var _pageFetcher = nlServerApi.getPageFetcher({defMax: 100});
+		if(fetchMore) params['max'] = 100;
+		var listingFn = nlServerApi.lessonGetApprovedList;
+		_pageFetcher.fetchPage(listingFn, params, fetchMore, function(results) {
+            if (!results) {
+                return;
+            }
+           dashboardCards.resultList = dashboardCards.resultList.concat(results);
+            nlCardsSrv.updateCards($scope.cards, {
+                cardlist: _updateCardUrl(_userInfo, dashboardCards.resultList),
+                canFetchMore: _pageFetcher.canFetchMore()
+            });
+			console.log(results);
+		});
+	}
+	
+	function _getLessonCards(userInfo, resultList) {
+		var cards = [];
+		for (var i = 0; i < resultList.length; i++)
+			cards.push(_createLessonCard(resultList[i], userInfo));
+        cards.sort(function(a, b) {
+            return (b.updated - a.updated);
+        });
+		return cards;
+	}
+	
+    function _updateCardUrl(resultList) {
+		card.url = nl.fmt2('/lesson/do_report_selfassign?lessonid={}', resultList.id);
+	 }
+
+	
+
 	function _updateSummaryTab() {
 		for(var i=0; i<$scope.charts.length; i++) $scope.charts[i].show = false;
 		nl.timeout(function() {

@@ -4,7 +4,7 @@
         class='nl-limitwidth bgdefault shape-rounded-small padding nl-txt-white'>
         Hi {{userName}}! Your learning records are being loaded from the server. Please wait ...
     </div>
-    <div ng-if='tabData.selectedTab.id == "assigned" && tabData.dataLoaded && !tabData.summaryStats'>
+    <div ng-if='tabData.selectedTab.id == "assigned" && tabData.dataLoaded && !tabData.summaryStats && !tabData.explore'>
         <div>
             <nl-learner-view-top-section tabData='tabData'></nl-learner-view-top-section>        
         </div>
@@ -32,6 +32,18 @@
     </div>
     <div ng-if='tabData.selectedTab.id == "assigned" && tabData.dataLoaded && tabData.summaryStats'> 
         <nl-learning-stats></nl-learning-stats>
+    </div>
+    <div ng-if='tabData.explore'>
+        <nl-learner-section2  ng-repeat="link in exploreCards"
+            record='link' 
+            nltitle='link.title'
+            desc='link.help'
+            icon='link.icon'
+            url='link.url'
+            isreport='false'
+            buttontype='"highlight"'
+            buttontext='"EXPLORE"'>
+        </nl-learner-section2>
     </div>
     <div ng-if='tabData.selectedTab.id == "admin"'
         class='padding'>

@@ -1,0 +1,67 @@
+<div class="row">
+	<div class="horizontal-card-container">
+		<div class="hcardimg-container col-50">
+            <img ng-if='icon != "icon:"' class='card2-img {{canCover() ? "old-learnerview-cover" : ""}}' style='width: 100%;height: 100%;' ng-src='{{icon}}' nl-compute-img-info></img>
+            <div ng-if='icon == "icon:"' class='card2-img text-center'><i class='ion-ios-bookmarks-outline fblue' style='width: 100%;height: 100%;'></i></div>
+		</div>
+		<div class="h-card-desc col">
+			<h6 class="nl-txt-white">{{nltitle}}</h6>
+			<span ng-show='record.raw_record.not_before && isreport'>
+				<span ng-hide='record.raw_record.not_after' class="nl-txt-grey">From <b class="nl-txt-grey">{{record.raw_record.not_before | nlDateTimeFormat:'date'}}</b>.</span>
+				<span ng-show='record.raw_record.not_after' class="nl-txt-grey">From <b class="nl-txt-grey">{{record.raw_record.not_before | nlDateTimeFormat:'date'}}</b>,<span class="nl-txt-grey">till</span><b class="nl-txt-grey">{{record.raw_record.not_after | nlDateTimeFormat:'date'}}</b></span>
+			</span>
+			<span ng-show='desc' class="nl-txt-white">
+				{{desc}}
+			</span>
+			<div class='card2-buttons'>
+				<div class='row row-center margin0 padding0'>
+					<i class='{{record.stats.status.icon}}' style='font-size:180%'></i>
+					<span style='padding: 0 4px' class="nl-txt-white">{{record.stats.status.txt}}</span>
+					<span class='col padding0 margin0 text-center'></span>
+					<span ng-if='isreport'
+						class='fblue2 fsh5 lnblue2 padding-small shape-oval'
+						ng-click='onDetailsLinkClicked($event, record, "details")'>
+						<i class='icon ion-more nl-txt-white'></i>
+					</span>
+					<span ng-show='url' class='padding-small'></span>
+					<span ng-show='url'>
+						<button target='' class='row row-center padding0 margin0 nl-link-text'>
+							<span ng-show='buttontype == "lowlight"' class='nl-button-lowlight lnblue2' ng-click="myfun(record)">{{buttontext}}</span>
+							<span ng-show='buttontype == "highlight"' class='nl-button-highlight lnblue2' ng-click="myfun(record)">{{buttontext}}</span>
+						</button>
+					</span>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<style>
+    .horizontal-card-container{
+	border-radius: 10px;
+	box-shadow: 0 10px 10px rgba(0, 0, 0, 0.2);
+	display: flex;
+	max-width: 100%;
+	margin: 0 auto;
+	overflow: hidden;
+	width: 875px;
+    height:200px;
+    border: solid 1px rgba(255, 255, 255, 0.3);
+    background-image: linear-gradient(rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.2));
+}
+.hcardimg-container {
+	max-width: 250px;
+    height: 100%;
+}
+.h-card-desc {
+	padding: 30px;
+	position: relative;
+	width: 100%;
+}
+
+.btn {
+	position: absolute;
+    bottom: 30px;
+    right: 30px;
+}
+</style>

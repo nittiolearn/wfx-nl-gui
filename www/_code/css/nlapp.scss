@@ -4221,7 +4221,7 @@ background-color: var(--nlFontYellow);}
   .nl-dlg2-details-dim {
     height: 260px;
   }
-  .nl-learner-button , .learner-view-stats-button {
+  .nl-learner-button , .learner-view-stats-button, .learner-view-explore-button {
     min-width: 105px;
     height: 30px;
     &:first-child {
@@ -6535,9 +6535,7 @@ color:var(--nlWhite);
     transform: scale(1.08);
   }
 }
-.learner-view-explore-button {
-  margin-left:20px;
-}
+
 .default_placeholder {
     position: absolute;
     top: 0;
