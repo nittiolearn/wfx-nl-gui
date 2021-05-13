@@ -2,8 +2,8 @@
 	class='nl-card-img row row-center margin0 {{canCover() ? "cover" : ""}} row-justify-evenly nl-display-flex'></nl-card-image>
 <div class='nl-card-text-section'>
 	<nl-card-title></nl-card-title>
-	<nl-card-desc ng-show='!card.fullDesc'></nl-card-desc>
-	<div ng-show='card.fullDesc' class='nl-card-fullDesc' nl-compile='card.help'></div>
+	<nl-card-desc ng-if='!card.fullDesc'></nl-card-desc>
+	<div ng-if='card.fullDesc' class='nl-card-fullDesc' nl-compile='card.help'></div>
 </div>
 <div class='nl-card-links'>
 	<div class='nl-card-more-links'>
