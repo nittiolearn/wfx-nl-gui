@@ -566,7 +566,8 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView2, nlRouter, nlReport
 
     function _updateDetails(cards) {
         for(var i=0; i<cards.length; i++) {
-            var card = cards[i];
+			var card = cards[i];
+				card.fullDesc = false;
             var avps = [];
             for (var j=0; j<card.children.length; j++) {
             	var child = card.children[j];

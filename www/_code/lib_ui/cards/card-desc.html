@@ -1,6 +1,6 @@
 <div class='nl-card-desc'>
 	<div style='max-height: 100%; overflow: hidden;' class="nl-txt-in-create-card">
-    <ul ng-show='card.children.length>0' style='width: 100%'>
+    <ul ng-if='card.children.length > 0' style='width: 100%'>
         <li ng-repeat='child in card.children track by $index'
             ng-if='$index < 4'>
             <div ng-if='child.url'>
@@ -18,6 +18,6 @@
             </div>
         </li>
     </ul>
-    <div ng-show='card.children.length==0' ng-bind-html='card.help' class="nl-txt-grey nl-txt-in-create-card"></div>
+    <div ng-if='card.children.length == 0' ng-bind-html='card.help' class="nl-txt-grey nl-txt-in-create-card"></div>
 	</div>
 </div>
