@@ -199,6 +199,7 @@ function($scope, nl, nlDlg, nlRouter, nlGroupInfo, nlServerApi, nlExporter, nlTm
         columns.push({id: 'Certification', name: 'Certification', table: true, background: 'nl-bg-blue', showAlways: true, hidePerc:true});
         columns.push({id: 'Re-certification', name: 'Re-certification', table: true, background: 'nl-bg-blue', showAlways: true, hidePerc:true});
         columns.push({id: 'certified', name: 'Certified', table: true, background: 'nl-bg-blue', showAlways: true, hidePerc:true});
+        columns.push({id: 'Closed', name: 'Closed', table: true, background: 'nl-bg-blue', showAlways: true, hidePerc:true});
         columns.push({id: 'failed', name: 'Failed', table: true, background: 'nl-bg-blue', showAlways: true, hidePerc:true});
         columns.push({id: 'attrition', name: 'Attrition', table: true, background: 'nl-bg-blue', showAlways: true, hidePerc:true});
         columns.push({id: 'nQuizzes', name: 'Number of applicable modules', table: true, background: 'nl-bg-blue', showAlways: true, hidePerc:true});
@@ -325,7 +326,7 @@ function TmsStatsCounts(nl) {
     var _statusCountTree = {};
     var self = this;
     var statsCountItem = {'cntTotal': 0, 'Training': 0, 'OJT': 0, 'Certification': 0, 'Re-certification': 0, 
-                          'Certified': 0, 'isOpen': false, 'attrition': 0, 'failed': 0, 'nQuizzes': 0, 'nQuizzesCompleted': 0, 
+                          'certified': 0, 'Closed': 0, 'isOpen': false, 'attrition': 0, 'failed': 0, 'nQuizzes': 0, 'nQuizzesCompleted': 0, 
                           'nQuizScorePerc': 0, 'nQuizPercScoreCount' : 0};
     var defaultStates = angular.copy(statsCountItem);
     var _dynamicStates = {};
