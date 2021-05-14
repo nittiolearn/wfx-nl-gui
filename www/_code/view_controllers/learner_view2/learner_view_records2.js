@@ -270,7 +270,7 @@ function(nl, nlGetManyStore, nlReportHelper, nlServerApi, nlConfig, nlDlg) {
             stats.progressPerc = Math.round(100*completed/total);
         } 
         if (recState.type == 'completed') stats.progressPerc = 100;
-
+        if (report.content) delete report.content; // To save space
         var ret = {raw_record: report, repcontent: repcontent, stats: stats,
             recStateObj: recState,
             detailsavps : _getRecordAvps(repcontent, report, 'course'), type: 'course'
@@ -464,7 +464,6 @@ function(nl, nlGetManyStore, nlReportHelper, nlServerApi, nlConfig, nlDlg) {
 
     function _updateCommonParams(raw_record, ctypestr) {
         var repcontent = angular.fromJson(raw_record.content);
-        delete raw_record.content; // To save space
         raw_record._batchName = repcontent.batchname || '';
         raw_record.assign_remarks = (raw_record.ctype == _nl.ctypes.CTYPE_COURSE ? repcontent.remarks : repcontent.assign_remarks) || '';
         raw_record.not_before = repcontent.not_before || '';
