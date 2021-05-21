@@ -27,6 +27,7 @@ var TmsViewCtrl = ['$scope', 'nl', 'nlDlg', 'nlRouter', 'nlGroupInfo',
 'nlServerApi', 'nlExporter', 'nlTmsView',
 function($scope, nl, nlDlg, nlRouter, nlGroupInfo, nlServerApi, nlExporter, nlTmsView) {
     var _groupInfo = null;
+    var jsonObj = null;
     var _pastUserInfosFetcher = nlGroupInfo.getPastUserInfosFetcher();
     function _onPageEnter(userInfo) {
       return nl.q(function(resolve, reject) {
@@ -80,6 +81,18 @@ function($scope, nl, nlDlg, nlRouter, nlGroupInfo, nlServerApi, nlExporter, nlTm
         });
     };
 
+    $scope.onClickOnSearch = function(event) {
+        _onSearch(event);
+    };
+
+    $scope.onClickOnClear = function(event) {
+        $scope.searchObj.start = null;
+        $scope.searchObj.end = null;
+        $scope.searchObj.laststart = null;
+        $scope.searchObj.lastend = null;
+        _computeNhtTable();
+    };
+
     function _getDefaultCols() {
         return [{id: 'all', name: 'Overall'}, {id: 'suborg', name: 'Sub-Org name'}, {id: 'batchname', name: 'Batch name'}];
     }
@@ -131,7 +144,19 @@ function($scope, nl, nlDlg, nlRouter, nlGroupInfo, nlServerApi, nlExporter, nlTm
     }
 
     function _init() {
+        jsonObj = null;
+        $scope.searchObj = {start: null, end: null, placeHolder: 'Search based on Batch name/BatchId', laststart: '', lastend: '', canShow: false};
     }
+
+
+    function _onSearch() {
+        if ($scope.searchObj.laststart == $scope.searchObj.start &&
+            $scope.searchObj.lastend == $scope.searchObj.end) return;
+        $scope.searchObj.laststart = $scope.searchObj.start;
+        $scope.searchObj.lastend = $scope.searchObj.end;
+        _computeNhtTable();
+    }
+    
 
     function _fetchDataFromServer(resolve) {
       $scope.nhtInfo = {};
@@ -140,16 +165,20 @@ function($scope, nl, nlDlg, nlRouter, nlGroupInfo, nlServerApi, nlExporter, nlTm
             if (!resp || !resp.data) {
                 resolve();
             }
-          var jsonObj = resp.data;
+          jsonObj = resp.data;
           jsonObj = angular.fromJson(jsonObj);
           $scope.headerTextStr = nl.t('Generated on {}', nl.fmt.date2StrDDMMYY(nl.fmt.json2Date(jsonObj.generatedOn),null, 'date'));
-          nlTmsView.updateCounts(jsonObj.report, jsonObj.assignment, jsonObj.course);
-          $scope.nhtStatusDict = nlTmsView.getStatusCount();
-          var allRows = _generateTmsArray();
-          $scope.nhtInfo.info = {columns: _getTmsCols(), rows: [], allRows: allRows, defMaxVisible: 100};
-          _updateVisibleTmsRows($scope.nhtInfo.info);
+          _computeNhtTable();
           resolve(true);
         });
+    }
+    
+    function _computeNhtTable() {
+        nlTmsView.updateCounts(jsonObj.report, jsonObj.assignment, jsonObj.course, $scope.searchObj);
+        $scope.nhtStatusDict = nlTmsView.getStatusCount();
+        var allRows = _generateTmsArray();
+        $scope.nhtInfo.info = {columns: _getTmsCols(), rows: [], allRows: allRows, defMaxVisible: 100};
+        _updateVisibleTmsRows($scope.nhtInfo.info);
     }
 
     function _updateVisibleTmsRows(nhtInfo) {
@@ -271,7 +300,7 @@ function(nl) {
       return tmsStats.getCustomScores();
     }
 
-    this.updateCounts = function(records, assignments, courses) {
+    this.updateCounts = function(records, assignments, courses, searchObj) {
         tmsStats.clear();
         for (var suborg in records) {
             var subOrgObj = records[suborg];
@@ -282,10 +311,20 @@ function(nl) {
                     var assignment = assignments[batch];
                     var level1Info = {id: suborg, name: suborg};
                     var level2Info = {id: batch, name: assignment.batchname};
+                    if (!_doesPassFilter(assignment, searchObj)) continue;
                     self.addCount(recObj, level1Info, level2Info);
                 }
-            }            
+            }
         }
+    }
+
+    function _doesPassFilter(assignment, searchObj) {
+        if (!(searchObj.start || searchObj.end)) return true;
+        var created = nl.fmt.json2Date(assignment.created);
+        if (searchObj.start && searchObj.end && created >= searchObj.start && created <= searchObj.end) return true;
+        if (!searchObj.start && searchObj.end && created <= searchObj.end) return true;
+        if (!searchObj.end && searchObj.start && created >= searchObj.start) return true;
+        return false;
     }
 
     this.addCount = function(record, level1Info, level2Info) {
