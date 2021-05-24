@@ -28,7 +28,7 @@
             <div  class='row margin0 padding0 show-in-small' style="border: solid 1px var(--white);
             background-color: rgba(255, 255, 255, 0.3);">
                 <div class="col" style="padding-top: 0px;">
-                    <div  ng-repeat='avp in record.detailsavps track by $index' ng-if="$index > 3 && avp.attr != 'REMARKS' " class="row">
+                    <div  ng-repeat='avp in record.detailsavps track by $index' ng-if="$index < 3 && avp.attr != 'REMARKS' " class="row">
                         <a ng-if='avp.url' ng-href='{{avp.url}}'
                             class='col col-50 padding-mid nl-link-text nl-txt-white nl-font-12 dlg2-key'>{{avp.attr}}:</a>
                         <span ng-if='!avp.url && !(avp.attr ==  "ASSIGNED TO")'
@@ -49,7 +49,7 @@
                     <span class="dlg2-divider"></span>
                 </div>
                 <div class="col" style="padding-top: 0px;">
-                    <div ng-repeat='avp in record.detailsavps track by $index' ng-if="$index < 4 && (avp.attr != 'REMARKS' &&  avp.attr != 'STARTED ON' && avp.attr != 'ENDED ON')" class="row">
+                    <div ng-repeat='avp in record.detailsavps track by $index' ng-if="$index > 2 && (avp.attr != 'REMARKS' &&  avp.attr != 'STARTED ON' && avp.attr != 'ENDED ON')" class="row">
                         <a ng-if='avp.url && !(avp.attr ==  "UPDATED ON")' ng-href='{{avp.url}}'
                         class='col col-50 padding-mid nl-link-text nl-txt-white nl-font-12 dlg2-key'>{{avp.attr}}:</a>
                         <span ng-if='!avp.url && !(avp.attr ==  "UPDATED ON")'

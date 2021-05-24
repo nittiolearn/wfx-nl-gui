@@ -1,11 +1,16 @@
 <div>
     <div class='nl-limitwidth-learner-view padding-mid'>
         <div class='row row-center padding-mid margin0'>
-            <div class='col section-header-text font-20-in-small'>
+            <div class='col-80 section-header-text font-20-in-small'>
                 {{cards.name}}
             </div>
-            <div ng-if='$root.screenSize != "small"' style="margin-right:-12px">
-                <nl-navigation-section data="cards"></nl-navigation-section>
+            <div class='col-20' style="margin-right:-12px">
+                <div class="row" style="justify-content: flex-end;">
+                    <div ng-if='cards.dropdown' ng-click='closeContainer()'>
+                        <img src='{{cards.closeDlgBtn}}' alt='close_container' style="height: 30px;width:30px;">
+                    </div>
+                    <nl-navigation-section data="cards" ng-if='$root.screenSize != "small"'></nl-navigation-section>
+                </div>
             </div>
         </div>
         <div class='row row-center padding0 margin0' style="margin-top:-15px">
@@ -13,10 +18,10 @@
                 <div class='nl-card2 nl-link-text-container {{cards.largeData ? "" : "anim fade" '
                     ng-repeat="card in cards.cardlist track by $index" nlta='{{card.title}}'>
                     <div style="padding: 10px;width: 100%;height: 100%;position: relative;">
-                    <nl-card2 card='card'
-                        class='nl-card-holder2  {{card.style}}'
-                        ng-click='onCardLinkClicked(card, "details")'>
-                    </nl-card2>
+                            <nl-card2 card='card'
+                                class='nl-card-holder2  {{card.style}}'
+                                ng-click='onCardLinkClicked(card, "details")'>
+                            </nl-card2>
                     </div>  
                 </div>
             </div>

@@ -1,9 +1,5 @@
 <div class='nl-thin-scroll body' style='position:absolute; width: 100%;'>
-    <div class='{{tabData.cls}} padding' style="max-width:1100px;margin: 0 auto;">
-        <!-- Dummy div to solve scrolled view disappears with popup issue #701 -->
-        <div ng-if='!tabData.dataLoaded' class='nl-limitwidth bgdefault shape-rounded-small fgrey padding'>
-            Hi {{userName}}! Your learning records are being loaded from the server. Please wait ...
-        </div>
+    <div class='{{tabData.cls}}'>
         <div ng-show='tabData.dataLoaded'>
             <div style="margin-bottom:25px;">
                 <nl-learner-view-top-section tabData='tabData'></nl-learner-view-top-section>
@@ -11,7 +7,7 @@
             <div ng-show='tabData.recordsLen == 0' class='bgdefault fgrey padding shape-rounded-small'>
                 Nothing to display.
             </div>
-            <div ng-show='tabData.recordsLen > 0' class="row row-wrap responsive-md responsive-sm responsive-lg points_container stats-graph-container-in-mobile">
+            <div ng-show='tabData.recordsLen > 0' class="row row-wrap responsive-md responsive-sm responsive-lg points_container stats-graph-container-in-mobile" style='max-width: 1100px;margin:0 auto;'>
                 <div ng-if="0" ng-class="$root.respCol221" class="col-50 nl-display-flex"
                     style="grid-gap: 13px;justify-content: space-evenly;">
                     <div ng-class="" class="stats_block_background points_container stats-in-small">

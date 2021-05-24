@@ -1,58 +1,46 @@
-<div ng-if='!card.resultList || card.resultList.length == 0' class="row">
-	<div class="horizontal-card-container">
-		<div class="hcardimg-container col-50">
-            <img ng-if='icon != "icon:"' class='card2-img {{canCover() ? "old-learnerview-cover" : ""}}' style='width: 100%;height: 100%;' ng-src='{{icon}}' nl-compute-img-info></img>
-            <div ng-if='icon == "icon:"' class='card2-img text-center'><i class='ion-ios-bookmarks-outline fblue' style='width: 100%;height: 100%;'></i></div>
+
+<div class="explore-card-container">	
+	<div ng-if='!card.cardlist'>
+		<div class="horizontal-card-container">
+			<div class="hcardimg-container col-50">
+				<img ng-if='icon != "icon:"' class='card2-img {{canCover() ? "old-learnerview-cover" : ""}}' style='width: 100%;height: 100%;' ng-src='{{card.icon}}' nl-compute-img-info></img>
+				<div ng-if='icon == "icon:"' class='card2-img text-center'><i class='ion-ios-bookmarks-outline fblue' style='width: 100%;height: 100%;'></i></div>
+			</div>
+			<div class="col padding-mid" style="height: 100%;">
+				<div class="nl-txt-white font-16-in-small" style="font-size: 20px;height: 20%;">{{card.title}}</div>
+				<div class="nl-txt-white font-12-in-small" style="font-size: 16px;height: 60%;">
+					{{card.help}}
+				</div>
+				<div style="height: 20%;">
+					<div class='row row-center margin0 padding0'">
+						<div target='' class='row row-center padding0 margin0 nl-link-text' style="justify-content: flex-end;">
+							<img style="width: 35px; height: 35px;" ng-src='{{card.openDlgBtn}}' ng-click="explore(card)"></img>
+						</div>
+					</div>
+				</div>
+			</div>
 		</div>
-		<div class="h-card-desc col">
-			<h6 class="nl-txt-white">{{card.nltitle}}</h6>
-			<span class="nl-txt-white">
-				{{card.desc}}
-			</span>
-			<div class='card2-buttons'>
-				<div class='row row-center margin0 padding0'>
-					<i class='{{record.stats.status.icon}}' style='font-size:180%'></i>
-					<span style='padding: 0 4px' class="nl-txt-white">{{record.stats.status.txt}}</span>
-					<span class='col padding0 margin0 text-center'></span>
-					<span ng-show='card.url'>
-						<button target='' class='row row-center padding0 margin0 nl-link-text'>
-							<span class='nl-button-lowlight lnblue2' ng-click="myfun(card)">Explore</span>
-						</button>
-					</span>
+	</div>	
+</div>
+
+<div ng-if='card.cardlist'>
+	<div ng-if='card.cardlist.length > 0'>
+		<nl-cards2 cards='card'></nl-cards2>
+	</div>
+	<div ng-if='card.cardlist.length == 0 && card.isSelected' class="explore-card-container" style="width: 100%;">
+		<div class="horizontal-card-container" style="display: block;">
+			<div>
+				<div ng-click='closeContainer(card)' class="row">
+					<div class="col-90 section-header-text font-20-in-small">{{card.title}}</div>
+					<div class="col-10 nl-display-flex" style="justify-content: flex-end;">
+						<img src='{{card.closeDlgBtn}}' alt='close_container' style="height: 30px;width:35px;">
+					</div>
+				</div>
+				<div class="row row-center nl-txt-white row-justify-evenly" style="align-items: center;padding:40px">
+					There are no items to display.
 				</div>
 			</div>
 		</div>
 	</div>
 </div>
-<div ng-if='selected.id == card.id && card.resultList && card.resultList.length > 0'>
-	{{card.resultList}}
-</div>
-<style>
-    .horizontal-card-container{
-	border-radius: 10px;
-	box-shadow: 0 10px 10px rgba(0, 0, 0, 0.2);
-	display: flex;
-	max-width: 100%;
-	margin: 0 auto;
-	overflow: hidden;
-	width: 875px;
-    height:200px;
-    border: solid 1px rgba(255, 255, 255, 0.3);
-    background-image: linear-gradient(rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.2));
-}
-.hcardimg-container {
-	max-width: 250px;
-    height: 100%;
-}
-.h-card-desc {
-	padding: 30px;
-	position: relative;
-	width: 100%;
-}
 
-.btn {
-	position: absolute;
-    bottom: 30px;
-    right: 30px;
-}
-</style>

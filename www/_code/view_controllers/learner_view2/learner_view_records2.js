@@ -484,16 +484,14 @@ function(nl, nlGetManyStore, nlReportHelper, nlServerApi, nlConfig, nlDlg) {
         var assignedTo = raw_record.assigned_to;
         var avps = [];
         var contentmetadata = repcontent.content && repcontent.content.contentmetadata ? repcontent.content.contentmetadata : {};
-        nl.fmt.addAvp(avps, 'FROM', raw_record.not_before || '', 'date');
-        nl.fmt.addAvp(avps, 'TILL', raw_record.not_after || '', 'date');
-        
-        nl.fmt.addAvp(avps, 'SUBMISSION AFTER ENDTIME', raw_record.submissionAfterEndtime, 'boolean');
-        nl.fmt.addAvp(avps, 'INTERNAL IDENTIFIER', repcontent.id);
-
         nl.fmt.addAvp(avps, 'BATCH NAME', repcontent.batchname);
         if (repcontent.batchtype) nl.fmt.addAvp(avps, 'BATCH TYPE', repcontent.batchtype);
         nl.fmt.addAvp(avps, 'ASSIGNED BY', type == 'module' ? repcontent.assigned_by : repcontent.sendername);
-        nl.fmt.addAvp(avps, 'AUTHOR', raw_record.authorname);       
+        nl.fmt.addAvp(avps, 'AUTHOR', raw_record.authorname); 
+        nl.fmt.addAvp(avps, 'FROM', raw_record.not_before || '', 'date');
+        nl.fmt.addAvp(avps, 'TILL', raw_record.not_after || '', 'date');
+        nl.fmt.addAvp(avps, 'SUBMISSION AFTER ENDTIME', raw_record.submissionAfterEndtime, 'boolean');
+        nl.fmt.addAvp(avps, 'INTERNAL IDENTIFIER', repcontent.id);      
        
         nl.fmt.addAvp(avps, 'REMARKS', raw_record.assign_remarks);
         

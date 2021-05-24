@@ -72,12 +72,15 @@ function(nl, nlDlg) {
 			};
 			$scope.viewStatistics =function() {
 				$scope.tabdata.summaryStats= true;
+				$scope.tabdata.explore= false;
 			};
 			$scope.exploreAvailable =function() {
 				$scope.tabdata.explore= true;
+				$scope.tabdata.summaryStats= false;
 			};
 			$scope.goback = function() {
 				$scope.tabdata.summaryStats= false;
+				$scope.tabdata.explore= false;
 			};
 			$scope.getImageResUrl = function(image) {
 				return nl.url.lessonIconUrl(image);
@@ -103,13 +106,18 @@ function(nl, nlDlg, nlServerApi) {
                 detailsDlg.scope.record = record;
                 detailsDlg.show('view_controllers/learner_view2/learner_view_details.html');
 			}
-			$scope.myfun = function(exploreCard) {
+			$scope.explore = function(exploreCard) {
 				const urlParams = new URLSearchParams(exploreCard.url);
 				const params = Object.fromEntries(urlParams);
 				for (var key in params) {
 					if (key.indexOf('/#/') == 0) delete params[key];
 				}
-				$scope.$parent.fetchTheExploreSectionCards(exploreCard, params, false);
+				return nl.q(function(resolve, reject) { 
+					$scope.$parent.fetchTheExploreSectionCards(exploreCard, params, false,resolve);	
+				});				
+			}
+			$scope.closeContainer = function(card) {
+				$scope.$parent.closeContainer(card);
 			}
 		}
 	}
@@ -332,7 +340,7 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView2, nlRouter, nlReport
 
 	function _onClickOnNextFn(cards, scope) {
 		if (!cards) return;
-		var cardWidth = scope.w;
+		var cardWidth = 225;
 		var document = nl.window.document;
 		var className = nl.t('nl-card-section-scroll-{}', cards.type);
 		var element = document.getElementsByClassName(className);
@@ -345,7 +353,7 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView2, nlRouter, nlReport
 
 	function _onClickOnPrevFn(cards, scope) {
 		if (!cards) return;
-		var cardWidth = scope.w;
+		var cardWidth = 225;
 		var document = nl.window.document;
 		var className = nl.t('nl-card-section-scroll-{}', cards.type);
 		var element = document.getElementsByClassName(className);
@@ -457,6 +465,8 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView2, nlRouter, nlReport
 					{id:'upcoming', title: 'Upcoming', count: 0, class: 'nl-learner-upcoming'},
 					{id:'completed', title: 'Completed', count: 0, class: 'nl-learner-complete'},
 					{id:'expired', title: 'Expired', count: 0, class: 'nl-learner-expired'}]
+		ret.exploreCardsSection = [];
+		ret.isSelected = false;
 		return ret;
 	}
 	
@@ -493,7 +503,18 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView2, nlRouter, nlReport
 		var tabData = $scope.tabData;
 		if (tabData.lastSeached == tabData.search) return;
 		tabData.lastSeached = tabData.search;
-		_updateLearningRecords();		
+		if($scope.tabData.explore) _updateExploreRecords();
+		else _updateLearningRecords();		
+	}
+    
+	function _updateExploreRecords() {
+		var card = {};
+		for(var i=0; i<$scope.tabData.exploreCardsSection.length; i++) {
+			if(tabdata.search == $scope.tabData.exploreCard[i].title)  {
+				card =  $scope.tabData.exploreCard[i];
+			}
+		}
+		return card;
 	}
 
 	function _onKeyupSearch(event) {
@@ -509,9 +530,12 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView2, nlRouter, nlReport
 
 	function _fetchMore(event) {
 		if (!$scope.tabData.canFetchMore) return;
-		nlLearnerViewRecords2.fetchNextChunkFromServer(function(_, canFetchMore) {
-			_updateTabDataWithRecords(canFetchMore);
-		});
+		else {
+			if($scope.tabData.explore) $scope.fetchTheExploreSectionCards();
+			nlLearnerViewRecords2.fetchNextChunkFromServer(function(_, canFetchMore) {
+				_updateTabDataWithRecords(canFetchMore);
+			});
+		}
 	}
 
 	function _onAfterTabSelect() {
@@ -846,30 +870,63 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView2, nlRouter, nlReport
 
 	function _updateExploreTab() {
 		$scope.exploreCards = _userInfo.dashboard_props.explore || [];
-		$scope.isSelected = $scope.exploreCards[0];
+		var currentTheme = _userInfo.settings.userCustomClass;
+		for(var i=0;i<$scope.exploreCards.length;i++) {
+			if(currentTheme == 'nllightmode') {
+				$scope.exploreCards[i].openDlgBtn = nl.url.lessonIconUrl('down-arrow-dark.svg');
+				$scope.exploreCards[i].closeDlgBtn = nl.url.lessonIconUrl('up-arrow-dark.svg');
+				$scope.exploreCards[i].buttonUrl = nl.url.lessonIconUrl('start-dark.svg');
+				
+			}
+			if(currentTheme == 'nldarkmode') {
+				$scope.exploreCards[i].openDlgBtn = nl.url.lessonIconUrl('down-arrow.svg');
+				$scope.exploreCards[i].closeDlgBtn = nl.url.lessonIconUrl('up-arrow.svg');
+				$scope.exploreCards[i].buttonUrl = nl.url.lessonIconUrl('start.svg');
+			}
+		}
 	}
     
-	$scope.fetchTheExploreSectionCards = function(card, ret, fetchMore) {
-		if (!card.resultList) card.resultList = [];
+	$scope.fetchTheExploreSectionCards = function(card, ret, fetchMore, resolve) {
+		if (!card.cardlist) card.cardlist = [];
 		var params = {metadata: ret};
 		if (!card._pageFetcher) card._pageFetcher = nlServerApi.getPageFetcher({defMax: 100});
-		if(card.fetchMore) params['max'] = 100;
 		var listingFn = nlServerApi.lessonGetApprovedList;
 		card._pageFetcher.fetchPage(listingFn, params, fetchMore, function(results) {
             if (!results) {
+                if (resolve) resolve(false);
                 return;
 			}
-			$scope.isSelected = card;
 			var cards = _getLessonCards(_userInfo, results)
-			card.resultList = card.resultList.concat(cards);
-			card.fetcMore = card._pageFetcher.canFetchMore();
-		});
+			card.cardlist = card.cardlist.concat(cards);
+			card.name = card.title;
+			card.fetchMore = card._pageFetcher.canFetchMore();
+			card.onCardLinkClicked = _onCardLinkClickedFn;
+			card.onCardInternalUrlClicked = _onCardInternalUrlClickedFn;
+			card.onClickOnNextFn = _onClickOnNextFn;
+			card.onClickOnPrevFn = _onClickOnPrevFn;
+			card.canShowNext = _canShowNext;
+			card.canShowPrev = _canShowPrev;
+			card.getVisibleString = _getVisibleString;
+			card.closeContainer= _closeContainers;
+            card.canSort = _canSort;
+			card.dropdown = true;
+			card.type = 'explore';	
+			card.isSelected = true; 
+			if (resolve) resolve(true);
+		});	
 	}
-	
-	function _getLessonCards(userInfo, resultList) {
+  
+	function _closeContainers(card) {
+		delete card['cardlist'];
+	}
+
+	$scope.closeContainer = function(card) {
+		_closeContainers(card);
+	}
+	function _getLessonCards(userInfo, cardlist) {
 		var cards = [];
-		for (var i = 0; i < resultList.length; i++)
-			cards.push(_createLessonCard(resultList[i], userInfo));
+		for (var i = 0; i < cardlist.length; i++)
+		cards.push(_createLessonCard(cardlist[i], userInfo));
         cards.sort(function(a, b) {
             return (b.updated - a.updated);
         });
@@ -886,24 +943,58 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView2, nlRouter, nlReport
             grade : lesson.grade,
             icon : nl.url.lessonIconUrl(lesson.image),
             authorName : lesson.authorname,
-            description : lesson.description,
+            remarks : lesson.description,
             esttime : lesson.esttime,
             children : [],
-			links: []
-			//TODO-NOw: Dalchand please check and update
-            //details: {help: lesson.description, avps: _getLessonListAvps(lesson)}
+			links: [],
+			openDlgBtn : $scope.exploreCards[0].openDlgBtn,
+			closeDlgBtn : $scope.exploreCards[0].closeDlgBtn,
+			buttonUrl : $scope.exploreCards[0].buttonUrl,
+			canShowLaunchbutton : true,
+			isSelected : true, 
+            details: {help: lesson.description, avps: _getLessonListAvps(lesson)},
         };
+		card.repcontent = card;
+		card.repcontent.name=card.title;
+		card.detailsavps = _getLessonListAvps(lesson);
 		card.url = nl.fmt2('/lesson/do_report_selfassign?lessonid={}', lesson.id);
-		//TODO-NOw: Dalchand please check and update
-        //_updateLinks(card, lesson, userInfo);
-		//card.links.push({id : 'details', text : nl.t('details')});
+        _updateLinks(card, lesson, userInfo);
 		return card;
-	}
+	}	
+	function _updateLinks(card, lesson, userInfo) {
+            if (lesson.grp == _userInfo.groupinfo.id && userInfo.permissions.lesson_create 
+                && userInfo.permissions.lesson_copy)
+                card.links.push({id : 'lesson_copy', text : nl.t('copy')});
+            card.links.push({id : 'lesson_report', text : nl.t('report')});
+           
+    }
+	function _getLessonListAvps(lesson) {
+        var avps = [];
+		var linkAvp = nl.fmt.addLinksAvp(avps, 'Operation(s)');
+		_populateLinks(linkAvp, lesson.id, lesson);
+        nl.fmt.addAvp(avps, 'Name', lesson.name);
+        nl.fmt.addAvp(avps, 'Author', lesson.authorname);
+		nl.fmt.addAvp(avps, 'Approved by', lesson.approvername);		
+        nl.fmt.addAvp(avps, 'REMARKS', lesson.description);
+        nl.fmt.addAvp(avps, 'Internal identifier', lesson.id);
+        return avps;
+    }
 
-    function _updateCardUrl(resultList) {
-	 }
-
+	function _populateLinks(linkAvp, lessonId, lesson) {
+		nl.fmt.addLinkToAvp(linkAvp, 'view', nl.fmt2('/lesson/view/{}/', lessonId));
+		
+		//Update after confirmation for learner view
+		// if (lesson.grp == _userInfo.groupinfo.id && _userInfo.permissions.lesson_copy)
+		// 	nl.fmt.addLinkToAvp(linkAvp, 'copy', null, 'lesson_copy');
+		// nl.fmt.addLinkToAvp(linkAvp, 'send assignment', null, 'send_assignment');
+		// _addApproveLinkToDetails(lesson, linkAvp);
+		// if(_userInfo.permissions.lesson_approve)
+		// 	nl.fmt.addLinkToAvp(linkAvp, 'change owner', null, 'change_owner');;
+    }
 	
+    function _addApproveLinkToDetails(lesson, linkAvp) {
+         nl.fmt.addLinkToAvp(linkAvp, 'disapprove', null, 'lesson_disapprove');
+    }
 
 	function _updateSummaryTab() {
 		for(var i=0; i<$scope.charts.length; i++) $scope.charts[i].show = false;

@@ -31,7 +31,7 @@
 					<img ng-src='{{card.buttonUrl}}' class="scardIcon"></img>
 				</span>
 			</div>
-			<div ng-if='$root.screenSize != "small"' class="arrow-container">
+			<div ng-show='card.openDlgBtn' class="arrow-container">
 				<img ng-src='{{card.openDlgBtn}}' class="arrow-down"/>
 			</div>
 		</div>

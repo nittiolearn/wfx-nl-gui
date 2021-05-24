@@ -4228,9 +4228,7 @@ background-color: var(--nlFontYellow);}
       margin-left: 0px;
     }
   }
-  .button-container {
-    justify-content:space-evenly;
-  }
+  
   .learner-view-searchbox {
     padding:0px 6px;
     margin-left: 0px;
@@ -6683,4 +6681,25 @@ Font-size
 }
 .fontsize30 {
   font-size: 30px;
+}
+//new explore section 
+.explore-card-container {
+  margin: 10px 0px;
+  display: block;
+   .horizontal-card-container{
+    border-radius: 10px;
+    box-shadow: 0 10px 10px rgba(0, 0, 0, 0.2);
+    display: flex;
+    max-width: 100%;
+    margin: 0 auto;
+    overflow: hidden;
+    width: 85%;
+    height:180px;
+    border: solid 1px rgba(255, 255, 255, 0.3);
+    background-image: linear-gradient(rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.2));
+  }
+    .hcardimg-container {
+      max-width: 250px;
+      height: 100%;
+    }
 }

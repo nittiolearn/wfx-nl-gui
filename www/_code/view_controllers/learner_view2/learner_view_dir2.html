@@ -34,7 +34,10 @@
         <nl-learning-stats></nl-learning-stats>
     </div>
     <div ng-if='tabData.selectedTab.id == "assigned" && tabData.dataLoaded && tabData.explore'>
-        <nl-learner-section2  ng-repeat="card in exploreCards"
+        <div style="margin-bottom:25px;">
+            <nl-learner-view-top-section tabData='tabData'></nl-learner-view-top-section>
+        </div>
+        <nl-learner-section2  ng-repeat="card in exploreCards track by $index" 
             card='card'>
         </nl-learner-section2>
     </div>

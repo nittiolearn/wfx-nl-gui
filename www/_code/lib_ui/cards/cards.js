@@ -247,13 +247,16 @@ function _cardsDirectiveImpl(nl, nlDlg, $filter, nlCardsSrv, nlExporter, templat
                     $scope.showResultDetails();
                     return;
                 }
-                $scope.$parent.onCardInternalUrlClicked(card, internalUrl);
+                if($scope.$parent.onCardInternalUrlClicked)  $scope.$parent.onCardInternalUrlClicked(card, internalUrl);
+               else if($scope.$parent.$parent.$parent.$parent.$parent.$parent.onCardInternalUrlClicked) $scope.$parent.$parent.$parent.$parent.$parent.$parent.onCardInternalUrlClicked(card, internalUrl);
             };
 
             $scope.onCardLinkClicked = function(card, linkid) {
                 if ($scope.$parent.onCardLinkClicked) $scope.$parent.onCardLinkClicked(card, linkid);
                 else if ($scope.$parent.$parent.onCardLinkClicked) $scope.$parent.$parent.onCardLinkClicked(card, linkid)
                 else if ($scope.$parent.$parent.$parent.onCardLinkClicked) $scope.$parent.$parent.$parent.onCardLinkClicked(card, linkid)
+                else if ($scope.$parent.$parent.$parent.$parent.onCardLinkClicked) $scope.$parent.$parent.$parent.$parent.onCardLinkClicked(card, linkid)
+                
             };
 
             $scope.onSearchButton = function() {
@@ -303,6 +306,12 @@ function _cardsDirectiveImpl(nl, nlDlg, $filter, nlCardsSrv, nlExporter, templat
             $scope.onClickOnPrev = function(cards) {
                 cards.onClickOnPrevFn(cards, $scope);
             };
+
+            $scope.closeContainer = function() {
+                if (!$scope.cards) return;
+                $scope.cards.closeContainer($scope.cards);
+            }
+
 
             function _onSearchParamChange(filter, category) {
                 $scope.cards._internal.search.filter = filter || '';
