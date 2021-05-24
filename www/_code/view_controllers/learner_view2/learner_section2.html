@@ -1,5 +1,5 @@
 
-<div class="explore-card-container">	
+<div class="explore-card-container" ng-click="explore(card)">	
 	<div ng-if='card.hideCardList'>
 		<div class="horizontal-card-container">
 			<div class="hcardimg-container col-50">
@@ -12,9 +12,9 @@
 					{{card.help}}
 				</div>
 				<div style="height: 20%;">
-					<div class='row row-center margin0 padding0'">
-						<div target='' class='row row-center padding0 margin0 nl-link-text' style="justify-content: flex-end;">
-							<img style="width: 35px; height: 35px;" ng-src='{{card.openDlgBtn}}' ng-click="explore(card)"></img>
+					<div class='row row-center margin0 padding0' style="justify-content: flex-end;">
+						<div class='nl-link-text'>
+							<img style="width: 35px; height: 35px;" ng-src='{{card.dropdownBtn}}'></img>
 						</div>
 					</div>
 				</div>

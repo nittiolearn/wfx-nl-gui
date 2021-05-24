@@ -11,13 +11,6 @@
                 </div>
             </div>
             <div class='{{$root.screenSize == "small" ?  "row" : ""}} padding-mid nl-display-flex' style="grid-gap:15px;">
-                <div ng-show='!tabdata.summaryStats' class='col learner-view-stats-button tabs-in-small center-in-small' 
-                    ng-click='viewStatistics()'>
-                    <span class="nl-display-flex" style="grid-gap:5px">
-                        <img ng-src="{{summary}}" style="width: 20px; height: 30px; filter: invert(90%);" alt="summary">
-                        <span class="nl-display-flex" style="justify-content: center; align-items: center;">Statistics</span> 
-                    </span> 
-                </div>
                 <div ng-show='tabdata.exploreSection && !tabdata.explore' class='col learner-view-explore-button tabs-in-small center-in-small' ng-click='exploreAvailable()'>
                     <span class="nl-display-flex" style="grid-gap:5px">
                         <img ng-src="{{explore}}" style="width: 20px; height: 30px; filter: invert(90%);" alt="summary">
@@ -30,6 +23,13 @@
                         <img ng-src="{{learn}}" alt="left_arrow">
                         <span>Learn</span>
                     </div>
+                </div>
+                <div ng-show='!tabdata.summaryStats' class='col learner-view-stats-button tabs-in-small center-in-small' 
+                    ng-click='viewStatistics()'>
+                    <span class="nl-display-flex" style="grid-gap:5px">
+                        <img ng-src="{{summary}}" style="width: 20px; height: 30px; filter: invert(90%);" alt="summary">
+                        <span class="nl-display-flex" style="justify-content: center; align-items: center;">Statistics</span> 
+                    </span> 
                 </div>
             </div>
         </div>
@@ -48,7 +48,7 @@
                     </div>
                 </div>
                 <div class='fetch-more bgblue3 nl-txt-white justify:center margin0 nl-link-text padding-0 row row-center'
-                        ng-show='tabdata.canFetchMore'
+                        ng-show='tabdata.canFetchMore && !tabdata.explore'
                         title='Fetch more learning records from the server'
                         ng-click='tabdata.fetchMore($event)' style="align-items: center;width:auto; border-radius: 4px;">
                         <i class='icon ion-refresh' style="font-size: 20px;margin: 2px;"></i>

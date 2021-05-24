@@ -534,7 +534,10 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView2, nlRouter, nlReport
 	}
 
 	function _onKeyupSearch(event) {
-		if(event.target.value=='') _updateLearningRecords();
+		if(event.target.value=='') {
+			if($scope.tabData.explore)  _updateExploreRecords();
+			_updateLearningRecords();
+		}
 	}
 
 	function _onFilter(event, filter) {
@@ -890,13 +893,15 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView2, nlRouter, nlReport
 			$scope.exploreCards[i].hideCardList = true;
 			if(currentTheme == 'nllightmode') {
 				$scope.exploreCards[i].openDlgBtn = nl.url.lessonIconUrl('down-arrow-dark.svg');
-				$scope.exploreCards[i].closeDlgBtn = nl.url.lessonIconUrl('up-arrow-dark.svg');
+				$scope.exploreCards[i].dropdownBtn = nl.url.lessonIconUrl('drop-down-arrow.svg');
+				$scope.exploreCards[i].uparrownBtn = nl.url.lessonIconUrl('up-arrow.svg');
 				$scope.exploreCards[i].buttonUrl = nl.url.lessonIconUrl('start-dark.svg');
 				
 			}
 			if(currentTheme == 'nldarkmode') {
 				$scope.exploreCards[i].openDlgBtn = nl.url.lessonIconUrl('down-arrow.svg');
-				$scope.exploreCards[i].closeDlgBtn = nl.url.lessonIconUrl('up-arrow.svg');
+				$scope.exploreCards[i].dropdownBtn = nl.url.lessonIconUrl('drop-down-arrow-dark.svg');
+				$scope.exploreCards[i].uparrownBtn = nl.url.lessonIconUrl('up-arrow-dark.svg');
 				$scope.exploreCards[i].buttonUrl = nl.url.lessonIconUrl('start.svg');
 			}
 		}
@@ -972,7 +977,8 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView2, nlRouter, nlReport
             children : [],
 			links: [],
 			openDlgBtn : $scope.exploreCards[0].openDlgBtn,
-			closeDlgBtn : $scope.exploreCards[0].closeDlgBtn,
+			dropdownBtn : $scope.exploreCards[0].dropdownBtn,
+			uparrownBtn : $scope.exploreCards[0].uparrownBtn,
 			buttonUrl : $scope.exploreCards[0].buttonUrl,
 			canShowLaunchbutton : true,
 			isSelected : true, 
@@ -994,32 +1000,14 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView2, nlRouter, nlReport
     }
 	function _getLessonListAvps(lesson) {
         var avps = [];
-		var linkAvp = nl.fmt.addLinksAvp(avps, 'Operation(s)');
-		_populateLinks(linkAvp, lesson.id, lesson);
-        nl.fmt.addAvp(avps, 'Name', lesson.name);
         nl.fmt.addAvp(avps, 'Author', lesson.authorname);
 		nl.fmt.addAvp(avps, 'Approved by', lesson.approvername);		
         nl.fmt.addAvp(avps, 'REMARKS', lesson.description);
+		nl.fmt.addAvp(avps, 'Approved on', lesson.approvedon, 'date');
         nl.fmt.addAvp(avps, 'Internal identifier', lesson.id);
         return avps;
     }
-
-	function _populateLinks(linkAvp, lessonId, lesson) {
-		nl.fmt.addLinkToAvp(linkAvp, 'view', nl.fmt2('/lesson/view/{}/', lessonId));
-		
-		//Update after confirmation for learner view
-		// if (lesson.grp == _userInfo.groupinfo.id && _userInfo.permissions.lesson_copy)
-		// 	nl.fmt.addLinkToAvp(linkAvp, 'copy', null, 'lesson_copy');
-		// nl.fmt.addLinkToAvp(linkAvp, 'send assignment', null, 'send_assignment');
-		// _addApproveLinkToDetails(lesson, linkAvp);
-		// if(_userInfo.permissions.lesson_approve)
-		// 	nl.fmt.addLinkToAvp(linkAvp, 'change owner', null, 'change_owner');;
-    }
 	
-    function _addApproveLinkToDetails(lesson, linkAvp) {
-         nl.fmt.addLinkToAvp(linkAvp, 'disapprove', null, 'lesson_disapprove');
-    }
-
 	function _updateSummaryTab() {
 		for(var i=0; i<$scope.charts.length; i++) $scope.charts[i].show = false;
 		nl.timeout(function() {

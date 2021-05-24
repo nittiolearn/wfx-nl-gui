@@ -5,16 +5,17 @@
                 {{cards.name}}
             </div>
             <div class='col-20' style="margin-right:-12px">
-                <div class="row" style="justify-content: flex-end;">
-                    <div class='fetch-more bgblue3 nl-txt-white justify:center margin0 nl-link-text padding-0 row row-center'
-                            ng-if='cards.type == "explore" && cards.canFetchMore'
-                            title='Fetch more learning records from the server'
-                            ng-click='cards._onClickOnFetchMore(cards, true)' style="align-items: center;width:auto; border-radius: 4px;">
-                            <i class='icon ion-refresh' style="font-size: 20px;margin: 2px;"></i>
-                        <span ng-if='$root.screenSize != "small"' style='font-size:15px;margin: 2px;'>Fetch more</span>
-                    </div>
-                    <div ng-if='cards.type == "explore"' ng-click='cards.hideCardList = !cards.hideCardList'>
-                        <img src='{{cards.closeDlgBtn}}' alt='close_container' style="height: 30px;width:30px;">
+                <div class="row" style="justify-content: flex-end;grid-gap: 12px;align-items: center;">
+                    <div class='row' ng-if='cards.type == "explore"' ng-click='cards.hideCardList = !cards.hideCardList' style="justify-content: flex-end;grid-gap: 5px;align-items: center;">
+                            <div class='nl-txt-white justify:center margin0 nl-link-text padding-0 nl-cursor'
+                                ng-if='cards.type == "explore" && cards.canFetchMore'
+                                title='Fetch more learning records from the server'
+                                ng-click='cards._onClickOnFetchMore(cards, true)'>
+                                <i class='icon ion-refresh' style="font-size: 30px;margin: 2px;"></i>
+                            </div>
+                        <div class="nl-cursor">
+                            <img src='{{cards.uparrownBtn}}' alt='close_container' style="height: 30px;width:30px;">
+                        </div>
                     </div>
                     <nl-navigation-section data="cards" ng-if='$root.screenSize != "small"'></nl-navigation-section>
                 </div>

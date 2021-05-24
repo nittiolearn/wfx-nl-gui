@@ -1,12 +1,6 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" style='transform:rotate(180deg)'>
-  <g id="down_arrow_blue" data-name="down arrow blue" transform="translate(-542 -667)">
-    <g id="Ellipse_273" data-name="Ellipse 273" transform="translate(542 667)" fill="none" stroke="#0d324d" stroke-width="40">
-      <circle cx="256" cy="256" r="256" stroke="none"/>
-      <circle cx="256" cy="256" r="236" fill="none"/>
-    </g>
-    <g id="Group_757" data-name="Group 757" transform="translate(43.5 5.5)">
-      <line id="Line_23" data-name="Line 23" x2="129" y2="136" transform="translate(625.5 849.5)" fill="none" stroke="#0d324d" stroke-linecap="round" stroke-width="40"/>
-      <line id="Line_24" data-name="Line 24" x1="130" y2="136" transform="translate(754.5 849.5)" fill="none" stroke="#0d324d" stroke-linecap="round" stroke-width="40"/>
-    </g>
+<svg xmlns="http://www.w3.org/2000/svg" width="315.551" height="192.554" viewBox="0 0 315.551 192.554">
+  <g id="up_arrow_white" data-name="up arrow_white" transform="translate(28.274 28.277)">
+    <line id="Line_23" data-name="Line 23" y1="136" x2="129" fill="none" stroke="#fff" stroke-linecap="round" stroke-width="40"/>
+    <line id="Line_24" data-name="Line 24" x1="130" y1="136" transform="translate(129)" fill="none" stroke="#fff" stroke-linecap="round" stroke-width="40"/>
   </g>
 </svg>
