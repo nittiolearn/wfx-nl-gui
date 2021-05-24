@@ -508,13 +508,29 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView2, nlRouter, nlReport
 	}
     
 	function _updateExploreRecords() {
-		var card = {};
-		for(var i=0; i<$scope.tabData.exploreCardsSection.length; i++) {
-			if(tabdata.search == $scope.tabData.exploreCard[i].title)  {
-				card =  $scope.tabData.exploreCard[i];
+		var searchInfo = _getSearchInfo($scope.tabData);
+		for(var i=0; i<$scope.exploreCards.length; i++) {
+			var cards = $scope.exploreCards[i];
+			var children = cards.masterCopy || [];
+			if (children.length > 0) {
+				cards.cardlist = [];
+				for (var j=0; j<children.length; j++) {
+					var child = children[j];
+					if (!_doesPassSearchFn(child, searchInfo)) continue;
+					cards.cardlist.push(child);
+				}
 			}
 		}
-		return card;
+	}
+
+	function _doesPassSearchFn(child, searchInfo) {
+		for (var i=0; i<searchInfo.length; i++) {
+			var searchElem = searchInfo[i];
+			if (_isFoundInAnyOfAttrs(searchElem, child.repcontent, ['grade', 'subject', 'title'])) continue;
+			if (_isFoundInAnyOfAttrs(searchElem, child, ['name', 'title', 'authorName'])) continue;
+			return false;
+		}
+		return true;
 	}
 
 	function _onKeyupSearch(event) {
@@ -664,7 +680,6 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView2, nlRouter, nlReport
 	}
     
 	function _updateLearningRecords() {
-		//TODO: Naveen - Rename and change this to UpdateLearningCards
 		$scope.tabData.sectionData = _getFilteredRecords();
 	}
 
@@ -872,6 +887,7 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView2, nlRouter, nlReport
 		$scope.exploreCards = _userInfo.dashboard_props.explore || [];
 		var currentTheme = _userInfo.settings.userCustomClass;
 		for(var i=0;i<$scope.exploreCards.length;i++) {
+			$scope.exploreCards[i].hideCardList = true;
 			if(currentTheme == 'nllightmode') {
 				$scope.exploreCards[i].openDlgBtn = nl.url.lessonIconUrl('down-arrow-dark.svg');
 				$scope.exploreCards[i].closeDlgBtn = nl.url.lessonIconUrl('up-arrow-dark.svg');
@@ -888,18 +904,30 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView2, nlRouter, nlReport
     
 	$scope.fetchTheExploreSectionCards = function(card, ret, fetchMore, resolve) {
 		if (!card.cardlist) card.cardlist = [];
-		var params = {metadata: ret};
+		if (!card.masterCopy) card.masterCopy = [];
+		if (card.cardlist.length > 0) {
+			card.hideCardList = !card.hideCardList;
+			return;
+		}
+		if (!card.ret) card.ret = ret
+		if (!card.params) card.params = {metadata: card.ret};
 		if (!card._pageFetcher) card._pageFetcher = nlServerApi.getPageFetcher({defMax: 100});
-		var listingFn = nlServerApi.lessonGetApprovedList;
-		card._pageFetcher.fetchPage(listingFn, params, fetchMore, function(results) {
+		card.listingFn = nlServerApi.lessonGetApprovedList;
+		_getDataFromServerForExploreSection(card, fetchMore)
+	}
+
+	function _getDataFromServerForExploreSection(card, fetchMore, resolve) {
+		card._pageFetcher.fetchPage(card.listingFn, card.params, fetchMore, function(results) {
             if (!results) {
                 if (resolve) resolve(false);
                 return;
 			}
 			var cards = _getLessonCards(_userInfo, results)
+			card.masterCopy = card.masterCopy.concat(cards);
 			card.cardlist = card.cardlist.concat(cards);
 			card.name = card.title;
-			card.fetchMore = card._pageFetcher.canFetchMore();
+			card.canFetchMore = card._pageFetcher.canFetchMore();
+			card._onClickOnFetchMore = _onClickOnFetchMoreFn;
 			card.onCardLinkClicked = _onCardLinkClickedFn;
 			card.onCardInternalUrlClicked = _onCardInternalUrlClickedFn;
 			card.onClickOnNextFn = _onClickOnNextFn;
@@ -907,22 +935,18 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView2, nlRouter, nlReport
 			card.canShowNext = _canShowNext;
 			card.canShowPrev = _canShowPrev;
 			card.getVisibleString = _getVisibleString;
-			card.closeContainer= _closeContainers;
+			card.hideCardList = false;
             card.canSort = _canSort;
-			card.dropdown = true;
 			card.type = 'explore';	
 			card.isSelected = true; 
 			if (resolve) resolve(true);
 		});	
 	}
-  
-	function _closeContainers(card) {
-		delete card['cardlist'];
+
+	function _onClickOnFetchMoreFn(card, fetchMore) {
+		_getDataFromServerForExploreSection(card, fetchMore, null);
 	}
 
-	$scope.closeContainer = function(card) {
-		_closeContainers(card);
-	}
 	function _getLessonCards(userInfo, cardlist) {
 		var cards = [];
 		for (var i = 0; i < cardlist.length; i++)

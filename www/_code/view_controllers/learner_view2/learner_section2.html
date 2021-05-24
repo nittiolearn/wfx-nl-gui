@@ -1,6 +1,6 @@
 
 <div class="explore-card-container">	
-	<div ng-if='!card.cardlist'>
+	<div ng-if='card.hideCardList'>
 		<div class="horizontal-card-container">
 			<div class="hcardimg-container col-50">
 				<img ng-if='icon != "icon:"' class='card2-img {{canCover() ? "old-learnerview-cover" : ""}}' style='width: 100%;height: 100%;' ng-src='{{card.icon}}' nl-compute-img-info></img>
@@ -23,14 +23,14 @@
 	</div>	
 </div>
 
-<div ng-if='card.cardlist'>
+<div ng-if='card.cardlist && !card.hideCardList'>
 	<div ng-if='card.cardlist.length > 0'>
 		<nl-cards2 cards='card'></nl-cards2>
 	</div>
 	<div ng-if='card.cardlist.length == 0 && card.isSelected' class="explore-card-container" style="width: 100%;">
 		<div class="horizontal-card-container" style="display: block;">
 			<div>
-				<div ng-click='closeContainer(card)' class="row">
+				<div ng-click='card.hideCardList = !card.hideCardList' class="row">
 					<div class="col-90 section-header-text font-20-in-small">{{card.title}}</div>
 					<div class="col-10 nl-display-flex" style="justify-content: flex-end;">
 						<img src='{{card.closeDlgBtn}}' alt='close_container' style="height: 30px;width:35px;">
