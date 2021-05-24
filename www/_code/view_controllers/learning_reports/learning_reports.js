@@ -374,7 +374,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			if (courseAssignment.info && courseAssignment.info.forum) return true;
  			return false;
 		}
-		if (tbid == 'exportLearningCreditsReport') return (type == 'course' && _userInfo.groupinfo.features['learningCredits']);
+		if (tbid == 'exportLearningCreditsReport') return (type == 'course' && _userInfo.groupinfo.features['learningCredits'] && _userInfo.permissions['assignment_manage']);
 		if (tbid == 'exportCustomReport') return (type == 'course') && ($scope.debug || _customReportTemplate);
 		if (tbid == 'selectUser') return (nlLrFilter.getType() == 'user');
 		var canManage = nlRouter.isPermitted(_userInfo, 'assignment_manage');

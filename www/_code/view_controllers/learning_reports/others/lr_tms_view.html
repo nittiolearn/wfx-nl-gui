@@ -1,16 +1,58 @@
 <div class='padding-small nl-thin-scroll' style='position:absolute; width: 100%; height: 100%'>
     <div class='row row-center margin0 padding0 nl-border-bottom'
         style='height: 36px; overflow: hidden;'>
-        <div class='col text-center fsh6 padding-mid'>
+        <div class='col text-center fsh6 padding-mid nl-dkonlg-lgondk-text'>
             {{headerTextStr}}
         </div>
+        <span title='Download nht table'
+            class='nl-toolbar-icon'
+            ng-click='searchObj.canShow = !searchObj.canShow'>
+            <i class="icon ion-funnel"></i>
+        </span>
         <span title='Download nht table'
             class='nl-toolbar-icon'
             ng-click='exportTmsData()'>
             <i class="icon ion-ios-cloud-download"></i>
         </span>
+        
     </div>
-
+    <div ng-if='searchObj.canShow'>
+        <div class='row row-center row-wrap padding-mid margin0'>
+            <div ng-class='$root.respCol211'>
+                <div class='row row-center row-wrap margin0 padding0'>
+                    <div class='col padding-mid nl-dkonlg-lgondk-text'><b>Filter batches created from:</b></div>
+                    <div class='col padding-mid'><nl-date-select fieldmodelbyref='searchObj.start'></nl-date-select></div>
+                </div>
+            </div>
+            <div ng-class='$root.respCol211'>
+                <div class='row row-center row-wrap margin0 padding0'>
+                    <div class='col padding-mid nl-dkonlg-lgondk-text'><b>Filter batches created till:</b></div>
+                    <div class='col padding-mid'><nl-date-select fieldmodelbyref='searchObj.end'></nl-date-select></div>
+                </div>
+            </div>
+        </div>
+        <div class='row row-center row-wrap padding-mid margin0' >
+            <div class='col'></div>
+            <span ng-show='searchObj.start || searchObj.end'
+                class='lnblue2 nl-button-highlight'
+                ng-click='onClickOnSearch($event)'
+                style='max-width:108px; min-width: 100px;text-align: center'>
+                <span style='vertical-align: super;'>Filter</span>
+            </span>
+            <div class='padding-small'></div>        
+            <span class='lnblue2 nl-button-highlight'
+                ng-click='onClickOnClear($event)'
+                style='max-width:108px; min-width: 100px;text-align: center'>
+                <span style='vertical-align: super;'>Clear</span>
+            </span>
+            <div class='padding-small'></div>        
+            <span class='lnblue2 nl-button-highlight'
+                ng-click='searchObj.canShow = !canShow'
+                style='max-width:108px; min-width: 100px;text-align: center'>
+                <span style='vertical-align: super;'>Close</span>
+            </span>
+        </div>
+    </div>
     <div class='padding-mid anim-enter'>
         <table class='nl-table nl-table-styled3 rowlines'>
             <tr class='header'>
