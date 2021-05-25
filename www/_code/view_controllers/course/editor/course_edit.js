@@ -398,6 +398,19 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
 		return;
 	}
 
+	function _updateSecondAttemptDropdown(cm, attr) {
+		attr.valueNames = {'': ' '};
+		attr.values = [''];
+		for(var i=0; i< _allModules.length; i++) {
+			var item = _allModules[i];
+			if(cm.id === item.id) break;
+			if (item.type != 'lesson-assesment') continue;
+			attr.values.push(item.id);
+			attr.valueNames[item.id] = item.name;
+		}
+		return;
+	}
+
 	function _canShowReattempt(attr) {
 		if(attr.name != 'isReattempt') return true;
 		return _etm;
@@ -696,6 +709,9 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
 		{name: 'learningCredits', stored_at: 'module', fields: ['lesson-assesment', 'lesson-self', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating', 'gate'], text: 'Learning Credits',type: 'number', min:0, max:100,
 			canShow: function(attr) {return _canShowLearningCredits(attr);}},
         {name: 'start_after', stored_at: 'module', fields: ['lesson-assesment', 'lesson-self', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating', 'gate'], type: 'object_with_gui', contentType: 'object', text: 'Start after'},
+		{name: 'second_attempt', stored_at: 'module', fields: ['lesson-assesment'], type: 'list', text: 'Second attempt of',
+				valueNames: {}, values: [], 
+				updateDropdown: _updateSecondAttemptDropdown},
         {name: 'canMarkAttendance', stored_at: 'module', text: 'Learner can mark attendance', type:'hidden', fields: ['iltsession']},
         {name: 'grp_depAttrs', stored_at: 'module', fields: ['lesson-assesment', 'lesson-self', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating', 'gate'], type: 'group', text: 'Planning', debug: true},
         {name: 'start_date', stored_at: 'module', fields: ['lesson-assesment', 'lesson-self', 'link', 'info', 'certificate', 'iltsession', 'milestone', 'rating', 'gate'], type: 'date', text: 'Start date', group: 'grp_depAttrs', debug: true},
@@ -1000,7 +1016,7 @@ function(nl, nlDlg, nlServerApi, nlLessonSelect, nlExportLevel, nlRouter, nlCour
 			if (newModule.type == 'rating') ratingAdded = true;
 			if (newModule.type == 'iltsession' && !modeHandler.course.content.blended) modeHandler.course.content.blended = true;
 			if (newModule.type == 'lesson-assesment') newModule.isQuiz = true;
-			if (newModule.type == 'lesson-self') newModule.isQuiz = false;			
+			if (newModule.type == 'lesson-self') newModule.isQuiz = false;
 		    modeHandler.course.content.modules.push(newModule);
 		}
 

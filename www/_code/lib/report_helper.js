@@ -908,6 +908,17 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
         if (!isEnded && !itemInfo.isModuleCompleted) return;
         if (itemInfo.status == 'failed') ret.nFailedQuizes++;
         if (itemInfo.status == 'success') ret.nPassedQuizes++;
+        if (cm.second_attempt) {
+            var attempt1 = ret.itemIdToInfo[cm.second_attempt];
+            var attempt1Score = attempt1.isModuleCompleted ? attempt1.isModuleCompleted.nScore : attempt1.rawScore;
+            var attempt1MaxScore = attempt1.isModuleCompleted ? attempt1.isModuleCompleted.nMaxScore : attempt1.maxScore;
+            var attempt2Score = itemInfo.isModuleCompleted ? itemInfo.isModuleCompleted.nScore : itemInfo.rawScore;
+            var attempt2MaxScore = itemInfo.isModuleCompleted ? itemInfo.isModuleCompleted.nMaxScore : itemInfo.maxScore;
+            if ((attempt1Score/attempt1MaxScore) < (attempt2Score/attempt2MaxScore)) {
+                ret.nTotalQuizScore -= attempt1Score;
+                ret.nTotalQuizMaxScore -= attempt1MaxScore;        
+            }
+        }
         if (itemInfo.isModuleCompleted) {
             ret.nTotalQuizScore += itemInfo.isModuleCompleted.nScore;
             ret.nTotalQuizMaxScore += itemInfo.isModuleCompleted.nMaxScore;    
