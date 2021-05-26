@@ -1,20 +1,20 @@
 <div>
     <div class='nl-limitwidth-learner-view padding-mid'>
         <div class='row row-center padding-mid margin0'>
-            <div class='col-80 section-header-text font-20-in-small'>
+            <div class='col section-header-text font-20-in-small'>
                 {{cards.name}}
             </div>
-            <div class='col-20' style="margin-right:-12px">
+            <div class='col' style="margin-right:-12px">
                 <div class="row" style="justify-content: flex-end;grid-gap: 12px;align-items: center;">
-                    <div class='row' ng-if='cards.type == "explore"' ng-click='cards.hideCardList = !cards.hideCardList' style="justify-content: flex-end;grid-gap: 5px;align-items: center;">
-                            <div class='nl-txt-white justify:center margin0 nl-link-text padding-0 nl-cursor'
+                    <div class='row' ng-if='cards.type == "explore"' style="justify-content: flex-end;grid-gap: 5px;align-items: center;">  
+                        <div class='nl-txt-white justify:center margin0 nl-link-text padding-0 nl-cursor'
                                 ng-if='cards.type == "explore" && cards.canFetchMore'
                                 title='Fetch more learning records from the server'
                                 ng-click='cards._onClickOnFetchMore(cards, true)'>
                                 <i class='icon ion-refresh' style="font-size: 30px;margin: 2px;"></i>
-                            </div>
-                        <div class="nl-cursor">
-                            <img src='{{cards.uparrownBtn}}' alt='close_container' style="height: 30px;width:30px;">
+                        </div>
+                        <div class="nl-cursor" ng-click='showAndHide()'>
+                            <img src='{{cards.uparrownBtn}}' alt='close_container' style="height: 20px;width:20px;">
                         </div>
                     </div>
                     <nl-navigation-section data="cards" ng-if='$root.screenSize != "small"'></nl-navigation-section>

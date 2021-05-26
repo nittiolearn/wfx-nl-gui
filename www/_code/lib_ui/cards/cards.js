@@ -307,11 +307,10 @@ function _cardsDirectiveImpl(nl, nlDlg, $filter, nlCardsSrv, nlExporter, templat
                 cards.onClickOnPrevFn(cards, $scope);
             };
 
-            $scope.closeContainer = function() {
+            $scope.showAndHide = function() {
                 if (!$scope.cards) return;
-                $scope.cards.closeContainer($scope.cards);
+                $scope.cards.showAndHide($scope.cards);
             }
-
 
             function _onSearchParamChange(filter, category) {
                 $scope.cards._internal.search.filter = filter || '';

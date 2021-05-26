@@ -71,16 +71,19 @@ function(nl, nlDlg) {
 				nl.anchorScroll();
 			};
 			$scope.viewStatistics =function() {
-				$scope.tabdata.summaryStats= true;
-				$scope.tabdata.explore= false;
+				$scope.tabdata.summaryStats = true;
+				$scope.tabdata.explore = false;
+				$scope.tabdata.showSearchbar = false;
 			};
 			$scope.exploreAvailable =function() {
 				$scope.tabdata.explore= true;
 				$scope.tabdata.summaryStats= false;
+				$scope.tabdata.showSearchbar = false;
 			};
 			$scope.goback = function() {
 				$scope.tabdata.summaryStats= false;
 				$scope.tabdata.explore= false;
+				$scope.tabdata.showSearchbar = true;
 			};
 			$scope.getImageResUrl = function(image) {
 				return nl.url.lessonIconUrl(image);
@@ -97,7 +100,9 @@ function(nl, nlDlg, nlServerApi) {
         transclude: true,
         templateUrl: 'view_controllers/learner_view2/learner_section2.html',
         scope: {
-			card: '='
+			card: '=',
+			activecard : '=',
+			tabdata: '=',
 		},
         link: function($scope, iElem, iAttrs) {
 			$scope.onDetailsLinkClicked = function($event, record, clickAttr) {
@@ -106,18 +111,16 @@ function(nl, nlDlg, nlServerApi) {
                 detailsDlg.scope.record = record;
                 detailsDlg.show('view_controllers/learner_view2/learner_view_details.html');
 			}
-			$scope.explore = function(exploreCard) {
+			$scope.explore = function(exploreCard, activecard) {
+				$scope.$parent.$parent.$parent.tabData.showSearchbar = true;
 				const urlParams = new URLSearchParams(exploreCard.url);
 				const params = Object.fromEntries(urlParams);
 				for (var key in params) {
 					if (key.indexOf('/#/') == 0) delete params[key];
 				}
 				return nl.q(function(resolve, reject) { 
-					$scope.$parent.fetchTheExploreSectionCards(exploreCard, params, false,resolve);	
+					var a =$scope.$parent.fetchTheExploreSectionCards(exploreCard, params, false, resolve, activecard);	 
 				});				
-			}
-			$scope.closeContainer = function(card) {
-				$scope.$parent.closeContainer(card);
 			}
 		}
 	}
@@ -346,7 +349,7 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView2, nlRouter, nlReport
 		var element = document.getElementsByClassName(className);
 		var num = Math.floor(element[0].clientWidth/cardWidth);
 		var widthToScroll = num*cardWidth+12;
-		var len = widthToScroll/5;
+		var len = widthToScroll/num;
 		var timeout = 75;
 		_callInLoop(0, len, element, 'add', timeout)
 	}
@@ -375,7 +378,6 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView2, nlRouter, nlReport
 				_callInLoop(startpos, len, element, type, timeout)
 			}
 		}, timeout)
-
 	}
 
 	function _getVisibleString(cards) {
@@ -453,6 +455,7 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView2, nlRouter, nlReport
 		ret.onKeyupSearch=_onKeyupSearch;
 		ret.onFilter = _onFilter;
 		ret.fetchMore = _fetchMore;
+		ret.showSearchbar = true;
 		ret.sectionData = [
 						{name: 'Continue Learning', type: 'progress', card2: true, cardlist: []},
 						{name: 'New Assignments', type: 'pending', card2: true, cardlist: []},
@@ -466,7 +469,6 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView2, nlRouter, nlReport
 					{id:'completed', title: 'Completed', count: 0, class: 'nl-learner-complete'},
 					{id:'expired', title: 'Expired', count: 0, class: 'nl-learner-expired'}]
 		ret.exploreCardsSection = [];
-		ret.isSelected = false;
 		return ret;
 	}
 	
@@ -891,6 +893,7 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView2, nlRouter, nlReport
 		var currentTheme = _userInfo.settings.userCustomClass;
 		for(var i=0;i<$scope.exploreCards.length;i++) {
 			$scope.exploreCards[i].hideCardList = true;
+			$scope.exploreCards[i].activeCardContainer = false;
 			if(currentTheme == 'nllightmode') {
 				$scope.exploreCards[i].openDlgBtn = nl.url.lessonIconUrl('down-arrow-dark.svg');
 				$scope.exploreCards[i].dropdownBtn = nl.url.lessonIconUrl('drop-down-arrow.svg');
@@ -907,10 +910,19 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView2, nlRouter, nlReport
 		}
 	}
     
-	$scope.fetchTheExploreSectionCards = function(card, ret, fetchMore, resolve) {
+	$scope.fetchTheExploreSectionCards = function(card, ret, fetchMore, resolve, activecard) {
 		if (!card.cardlist) card.cardlist = [];
 		if (!card.masterCopy) card.masterCopy = [];
-		if (card.cardlist.length > 0) {
+		if(!card.showSearchbar);
+		card.hideCardList=true;
+		for(var i=0; i<$scope.exploreCards.length; i++) {
+			$scope.exploreCards[i].activeCardContainer = false;
+			if(i != activecard) {
+				$scope.exploreCards[i].activeCardContainer = !$scope.exploreCards[i].activeCardContainer;
+			}
+		}
+		card.showSearchbar = $scope.tabData.showSearchbar;
+		if (card.cardlist.length > 0 ) {
 			card.hideCardList = !card.hideCardList;
 			return;
 		}
@@ -918,7 +930,7 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView2, nlRouter, nlReport
 		if (!card.params) card.params = {metadata: card.ret};
 		if (!card._pageFetcher) card._pageFetcher = nlServerApi.getPageFetcher({defMax: 100});
 		card.listingFn = nlServerApi.lessonGetApprovedList;
-		_getDataFromServerForExploreSection(card, fetchMore)
+		_getDataFromServerForExploreSection(card, fetchMore);
 	}
 
 	function _getDataFromServerForExploreSection(card, fetchMore, resolve) {
@@ -940,14 +952,18 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView2, nlRouter, nlReport
 			card.canShowNext = _canShowNext;
 			card.canShowPrev = _canShowPrev;
 			card.getVisibleString = _getVisibleString;
+			card.showAndHide = _showAndHide;
 			card.hideCardList = false;
             card.canSort = _canSort;
 			card.type = 'explore';	
-			card.isSelected = true; 
 			if (resolve) resolve(true);
 		});	
 	}
 
+	function _showAndHide(cards) {
+		cards.hideCardList = !cards.hideCardList;
+		$scope.tabData.showSearchbar = false;
+	}
 	function _onClickOnFetchMoreFn(card, fetchMore) {
 		_getDataFromServerForExploreSection(card, fetchMore, null);
 	}
@@ -981,7 +997,6 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView2, nlRouter, nlReport
 			uparrownBtn : $scope.exploreCards[0].uparrownBtn,
 			buttonUrl : $scope.exploreCards[0].buttonUrl,
 			canShowLaunchbutton : true,
-			isSelected : true, 
             details: {help: lesson.description, avps: _getLessonListAvps(lesson)},
         };
 		card.repcontent = card;
