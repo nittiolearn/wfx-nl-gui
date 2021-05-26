@@ -251,6 +251,11 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
                 isAttrition = true;
                 ret.attritedAt = cm.id;
                 ret.attritionStr = itemInfo.state;
+                if (itemInfo.otherRemarks)
+                    ret.attrReason = itemInfo.otherRemarks;
+                else
+                    ret.attrReason = itemInfo.remarks;
+                ret.attrOn = itemInfo.attMarkedOn;
                 itemInfo.status = 'attrition';
                 var suffix = itemInfo.customStatus ? '-' +  itemInfo.customStatus : '';
                 defaultCourseStatus = 'attrition' + suffix;

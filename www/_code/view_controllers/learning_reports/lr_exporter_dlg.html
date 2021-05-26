@@ -104,5 +104,11 @@
             <i ng-hide='export.iltBatch' class="fsh4 icon ion-android-checkbox-outline-blank"></i>
             <span>download training batch attendance data</span>
         </div>
+        <div ng-show='showIltBatchCheckbox' class='padding-mid nl-link-text' 
+             ng-click='export.attrition = !export.attrition'>
+            <i ng-show='export.attrition' class="fsh4 icon ion-android-checkbox-outline"></i>
+            <i ng-hide='export.attrition' class="fsh4 icon ion-android-checkbox-outline-blank"></i>
+            <span>download attrition data</span>
+        </div>
     </nl-dlg-content>
 </nl-dlg>
