@@ -2334,7 +2334,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		nlDlg.popupStatus('Downloading ...', false);
         nlDlg.showLoadingScreen();
         nl.timeout(function() {
-			var data = {grpid: _groupInfo.grpid, table: 'learningcredits', recid: 0, field:'usertooverallscore.json'};
+			var data = {grpid: _groupInfo.grpid, table: 'learningcredits', recid: 0, field:'learning_credits.json'};
 			nlServerApi.jsonFieldStream(data).then(function(resp) {
 				if (!resp || !resp.data) {
 					nlDlg.popupStatus('Some error occured while downloading ...', false);
@@ -2343,7 +2343,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 				var jsonObj = resp.data;
 				jsonObj = angular.fromJson(jsonObj);
 				var strData = nlExporter.objToCsv(jsonObj, [{id:"userid",name:"User Id"},{id:"lcredits7",name:"Learning Credits (7 Days)"},{id:"lcredits30",name:"Learning Credits (30 Days)"},{id:"lcredits90",name:"Learning Credits (90 Days)"},{id:"cohort",name:"Cohort"}]);
-				nlExporter.exportCsvFile('usertooverallscore.csv', strData, true);
+				nlExporter.exportCsvFile('learning_credits.csv', strData, true);
 				nl.timeout(function() {
 					nlDlg.popdownStatus(0);
 					nlDlg.hideLoadingScreen();
