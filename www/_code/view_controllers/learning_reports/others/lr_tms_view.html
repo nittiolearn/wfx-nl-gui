@@ -1,9 +1,38 @@
-<div class='padding-small nl-thin-scroll' style='position:absolute; width: 100%; height: 100%'>
-    <div class='row row-center margin0 padding0 nl-border-bottom'
+table tbody, table thead
+{
+    display: block;
+}
+<div class='nl-lr-tms-report-body padding-small' style='position:absolute; width: 100%; height: 100%; overflow-x:scroll'>
+    <div class='nl-lr-tms-top-section row row-center margin0 padding0 nl-border-bottom'
         style='height: 36px; overflow: hidden;'>
         <div class='col text-center fsh6 padding-mid nl-dkonlg-lgondk-text'>
             {{headerTextStr}}
         </div>
+		<div class="dropdown">
+			<div class='row row-center margin0 dropbtn nl-link-text2'
+				ng-click='toggleTableSelector = !toggleTableSelector'>
+				<div class='col button-inner-style'>
+					<span>{{getSelectedView()}} </span>
+				</div>
+				<span class="nl-link-text">
+					<i ng-show='!toggleTableSelector' class='icon ion-chevron-down fsh5'></i>
+					<i ng-show='toggleTableSelector' class='icon ion-chevron-up fsh5'></i>
+				</span>
+			</div>
+			<div ng-show='toggleTableSelector' class="dropdown-content" style='top:44px'>
+				<div ng-repeat='type in tableSelector track by $index' class='nl-link-text2 {{type.selected ? "dropdown-selected" : ""}}' style='border-bottom: 2px solid #FFFFFF;padding: 2px 8px;'>
+					<div class='row row-center margin0 padding0' ng-click='type.selected = !type.selected;'>
+						<div class='col'>
+							{{type.name}}
+						</div>
+					</div>
+                </div>
+                <div class="add-new-cls nl-link-text w100 text-center" ng-click="changeColumns()" style="padding: 8px;">
+                    <span class="add-new-button-style"> Apply </span>
+                </div>
+			</div>
+		</div>
+
         <span title='Download nht table'
             class='nl-toolbar-icon'
             ng-click='searchObj.canShow = !searchObj.canShow'>
@@ -13,10 +42,9 @@
             class='nl-toolbar-icon'
             ng-click='exportTmsData()'>
             <i class="icon ion-ios-cloud-download"></i>
-        </span>
-        
+        </span>        
     </div>
-    <div ng-if='searchObj.canShow'>
+    <div ng-if='searchObj.canShow' class='nl-lr-filter-section'>
         <div class='row row-center row-wrap padding-mid margin0'>
             <div ng-class='$root.respCol211'>
                 <div class='row row-center row-wrap margin0 padding0'>
@@ -54,58 +82,57 @@
         </div>
     </div>
     <div class='padding-mid anim-enter'>
-        <table class='nl-table nl-table-styled3 rowlines'>
+        <table class='nl-table nl-table-styled3 rowlines nl-lr-header-section'>
             <tr class='header'>
-                <td class='nl-txt-white nl-txt-dark-hover nl-min-300'>
-                    <div class='row row-center magin0 padding0'>
-                        <div class='col'></div>
-                    </div>
-                </td>
-                <td ng-repeat='col in nhtInfo.info.columns track by $index'
+                <th class='nl-txt-white nl-txt-dark-hover nl-min-300'></th>
+                <th ng-repeat='col in nhtInfo.info.columns track by $index'
                     class='nl-txt-white text-center nl-min-125' 
                     ng-if='($root.screenSize != "small" && col.table) || ($root.screenSize == "small" && col.smallScreen)'>
-                    <div>{{col.name}}</div>
-                </td>
-            </tr>
-            <tr class='{{rec.isFolder ? "clickable hover" : ""}}'
-                 ng-repeat='rec in nhtInfo.info.rows track by $index'
-                 ng-click='generateTmsArray(rec)'>
-                 <td class="nl-txt-white">
-                    <div ng-if='rec.showMoreLink' class='minw-name fgrey td-cell-clickable td-cell-hover'
-                        ng-click='onClickOnShowMore(rec);$event.stopImmediatePropagation(); $event.preventDefault();'>
-                        <div class='row row-center magin0 padding0'style='padding-left:{{rec.indentation}}px' >
-                            <div class='col'  style='padding-left:{{24+rec.cnt.indentation}}px'>Show more</div>
-                            <span class='nl-link-text'>
-                                <i class="padding-mid icon ion-chevron-down fsh4 nl-info-icon"></i>
-                            </span> 
-                        </div>
-                    </div>
-    
-                    <div ng-if='!rec.showMoreLink'
-                        class='row row-center magin0 padding0 nl-hover-txt'style='padding-left:{{rec.indentation}}px' >
-                        <span class='padding-small' ng-show='rec.isFolder'>
-                            <i ng-hide='rec.isOpen' class="icon ion-arrow-right-b bold fsh5"></i>
-                            <i ng-show='rec.isOpen' class="icon ion-arrow-down-b bold fsh5"></i>
-                        </span>
-                        <div class='col {{!rec.isFolder ? "nl-link-text" : ""}}'
-                            ng-click='onClickOnBatch(rec)'>
-                            <div class='row row-center padding0 margin0'>
-                                <div class='col'>{{rec.orgname || rec.name}}</div>
-                                <span class='padding-small' ng-if='!rec.isFolder'>
-                                    <i class="icon ion-android-open bold fsh5"></i>
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-                </td>
-                <td ng-repeat='col in nhtInfo.info.columns track by $index'
-                    class='nl-txt-white text-center'  ng-if='($root.screenSize != "small" && col.table) || ($root.screenSize == "small" && col.smallScreen)'>
-                    <div class='row row-center {{!col.hidePerc ? "text-right" : "text-center"}}'>
-                        <div class='col nl-perc-class nl-txt-white'>{{rec[col.id] ? rec[col.id] : rec.showMoreLink ? '' : '-'}}</div>
-                        <div class='col nl-perc-class text-left nl-txt-white' ng-if='!col.hidePerc'>{{(col.percid && rec[col.percid]) ? rec[col.percid]+'%' : ''}}</div>
-                    </div>
-                </td>
+                    {{col.name}}
+                </th>    
             </tr>
         </table>
+        <div style='position: absolute; height:{{getTmsContTabHeight($event)}}px; overflow-y: scroll;'>
+            <table class='nl-table nl-table-styled3 rowlines'>
+                <tr class='{{rec.isFolder ? "clickable hover" : ""}}'
+                    ng-repeat='rec in nhtInfo.info.rows track by $index'
+                    ng-click='generateTmsArray(rec)'>
+                    <td class="nl-txt-white nl-min-300">
+                        <div ng-if='rec.showMoreLink' class='fgrey td-cell-clickable td-cell-hover'
+                            ng-click='onClickOnShowMore(rec);$event.stopImmediatePropagation(); $event.preventDefault();'>
+                            <div class='row row-center magin0 padding0'style='padding-left:{{rec.indentation}}px' >
+                                <div class='col'  style='padding-left:{{24+rec.cnt.indentation}}px'>Show more</div>
+                                <span class='nl-link-text'>
+                                    <i class="padding-mid icon ion-chevron-down fsh4 nl-info-icon"></i>
+                                </span> 
+                            </div>
+                        </div>
+                        <div ng-if='!rec.showMoreLink'
+                            class='row row-center magin0 padding0 nl-hover-txt'style='padding-left:{{rec.indentation}}px' >
+                            <span class='padding-small' ng-show='rec.isFolder'>
+                                <i ng-hide='rec.isOpen' class="icon ion-arrow-right-b bold fsh5"></i>
+                                <i ng-show='rec.isOpen' class="icon ion-arrow-down-b bold fsh5"></i>
+                            </span>
+                            <div class='col {{!rec.isFolder ? "nl-link-text" : ""}}'
+                                ng-click='onClickOnBatch(rec)'>
+                                <div class='row row-center padding0 margin0'>
+                                    <div class='col'>{{rec.orgname || rec.name}}</div>
+                                    <span class='padding-small' ng-if='!rec.isFolder'>
+                                        <i class="icon ion-android-open bold fsh5"></i>
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+                    <td ng-repeat='col in nhtInfo.info.columns track by $index'
+                        class='nl-txt-white text-center nl-min-125'  ng-if='($root.screenSize != "small" && col.table) || ($root.screenSize == "small" && col.smallScreen)'>
+                        <div class='row row-center {{!col.hidePerc ? "text-right" : "text-center"}}'>
+                            <div class='col nl-perc-class nl-txt-white'>{{rec[col.id] ? rec[col.id] : rec.showMoreLink ? '' : '-'}}</div>
+                            <div class='col nl-perc-class text-left nl-txt-white' ng-if='!col.hidePerc'>{{(col.percid && rec[col.percid]) ? rec[col.percid]+'%' : ''}}</div>
+                        </div>
+                    </td>
+                </tr>
+            </table>
+        </div>
     </div>
 </div>

@@ -895,6 +895,11 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlCourseEditor, nlC
 		}
 	};
 	
+    $scope.getQuizPerc = function() {
+        var nScore = _statusInfo.nTotalQuizScore || 0;
+        var nMaxScore = _statusInfo.nTotalQuizMaxScore || 0;
+        return Math.round((100*nScore/nMaxScore));
+    }
 	$scope.getCompletionStatus = function() {
         if (!_statusInfo) return 0;
         var ncompleted = _statusInfo.nCompletedItems;
