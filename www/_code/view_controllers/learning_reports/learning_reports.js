@@ -2294,13 +2294,28 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		}
         var isNHTEnabled = (!_groupInfo.props.milestones) ? false : true;
 		nlLrExporter.export($scope, _getReportRecordsForExport, _customScoresHeader, 
-			drillDownStats, nhtStats, (isNHTEnabled &&  _tabManager.isTmsRecordFound() && subtype != 'lms' || subtype == 'nht') ? _getNhtBatchAttendanceFn : null, lrStats, certificateStats);
+			drillDownStats, nhtStats, (isNHTEnabled &&  _tabManager.isTmsRecordFound() && subtype != 'lms' || subtype == 'nht') ? _getNhtBatchAttendanceFn : null, lrStats, certificateStats,
+			_getTmsRecordsFn);
 	}
 	
 	function _getNhtBatchAttendanceFn() {
 		if (nlLrFilter.getType() == 'course_assign') _updateNhtBatchAttendanceTab();
 		if (nlLrFilter.getType() == 'course') _updateNhtBatchAttendanceTabForCourses();
 		return {statsCountArray: $scope.iltBatchInfo.rows, columns: $scope.iltBatchInfo.origColumns};
+	}
+
+	function _getTmsRecordsFn() {
+		var tmsRecordsDict = nlLrNht.getStatsCountDict('', $scope.tabData.records || [], true);
+		var attritionArray = [];
+		for (var key in tmsRecordsDict) {
+			var tmsRecord = tmsRecordsDict[key];
+			var status = tmsRecord.stats.status.txt;
+			if (status.indexOf('attrition') == 0) 
+				attritionArray.push(tmsRecord);
+			else if (tmsRecord.user.state == 0 && status == 'failed')
+				attritionArray.push(tmsRecord);
+		}
+		return attritionArray;
 	}
 
 	function _getReportRecordsForExport(bFiltered) {

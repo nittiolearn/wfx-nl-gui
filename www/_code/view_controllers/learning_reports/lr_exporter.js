@@ -26,6 +26,7 @@ function(nl, nlDlg, nlRouter, nlExporter, nlLrHelper, nlLrSummaryStats, nlGroupI
     var _nhtDict = {};
     var _lrDict = {};
     var _iltBatchDict = {};
+    var _attritionArray = [];
     var _certificateDict = {};
     var _canzip = true;
     var _exportFormat = 'xlsx';
@@ -50,7 +51,7 @@ function(nl, nlDlg, nlRouter, nlExporter, nlLrHelper, nlLrSummaryStats, nlGroupI
     	_subjectlabel = userInfo.groupinfo.subjectlabel;
 	};
 	
-    this.export = function($scope, getReportRecordsFn, customScoresHeader, drillDownDict, nhtDict, getNhtAttendanceFn, lrDict, certificateDict) {
+    this.export = function($scope, getReportRecordsFn, customScoresHeader, drillDownDict, nhtDict, getNhtAttendanceFn, lrDict, certificateDict, getTmsRecordsFn) {
         var dlg = nlDlg.create($scope);
         _canzip = nlLrFilter.canZip();
         _customScoresHeader = customScoresHeader || [];
@@ -88,6 +89,7 @@ function(nl, nlDlg, nlRouter, nlExporter, nlLrHelper, nlLrSummaryStats, nlGroupI
         if (getNhtAttendanceFn) {
             dlg.scope.showIltBatchCheckbox = dlg.scope.reptype == 'course_assign' || dlg.scope.reptype == 'course';
             dlg.scope.export['iltBatch'] = false;
+            dlg.scope.export['attrition'] = false;
         }
         dlg.scope.data = {};
         dlg.scope.help = _getHelp();
@@ -123,6 +125,7 @@ function(nl, nlDlg, nlRouter, nlExporter, nlLrHelper, nlLrSummaryStats, nlGroupI
                     nl.timeout(function() {
                         var reportRecords = getReportRecordsFn(isFiltered);
                         if (filter.exportTypes.iltBatch) _iltBatchDict = getNhtAttendanceFn();
+                        if (filter.exportTypes.attrition) _attritionArray = getTmsRecordsFn();
 	        	        _initCtx(reportRecords, _userInfo, filter);
 	                    _export(resolve, reject, filter, reportRecords);
                     }); // Seems needed for loadingScreen to appear properly.
@@ -173,6 +176,7 @@ function(nl, nlDlg, nlRouter, nlExporter, nlLrHelper, nlLrSummaryStats, nlGroupI
             if(filter.exportTypes.iltBatch) _updateIltBatchRow();
             if(filter.exportTypes.lr) _updateLrRow(reportRecords);
             if(filter.exportTypes.certificate) _updateCertificateRow();
+            if (filter.exportTypes.attrition) _updateAttritionRow();
             if(_exportFormat == 'csv') {
                 for(var start=0, i=1; start < reportRecords.length; i++) {
                     var pending = reportRecords.length - start;
@@ -278,6 +282,15 @@ function(nl, nlDlg, nlRouter, nlExporter, nlLrHelper, nlLrSummaryStats, nlGroupI
                         pending = pending > nlExporter.MAX_RECORDS_PER_CSV ? nlExporter.MAX_RECORDS_PER_CSV : pending;
                         var fileName = nl.fmt2('feedback-reports-{}.csv', i);
                         _createCsv(filter, ctx.feedbackRows, zip, fileName, start, start+pending);
+                        start += pending;
+                    }
+                }
+                if (filter.exportTypes.attrition && ctx.attritionRow.length > 1) {
+                    for(var start=0, i=1; start < ctx.attritionRow.length; i++) {
+                        var pending = ctx.attritionRow.length - start;
+                        pending = pending > nlExporter.MAX_RECORDS_PER_CSV ? nlExporter.MAX_RECORDS_PER_CSV : pending;
+                        var fileName = nl.fmt2('attrition-reports-{}.csv', i);
+                        _createCsv(filter, ctx.attritionRow, zip, fileName, start, start+pending);
                         start += pending;
                     }
                 }
@@ -451,6 +464,20 @@ function(nl, nlDlg, nlRouter, nlExporter, nlLrHelper, nlLrSummaryStats, nlGroupI
                 ctx.certificateRow.push(nlExporter.getCsvRow(_certificateDict.columns, row));
             else 
                 ctx.certificateRow.push(nlExporter.getItemRow(_certificateDict.columns, row));
+        }
+    }
+
+    function _updateAttritionRow() {
+        for (var i=0; i<_attritionArray.length; i++) {
+            var report = _attritionArray[i];
+            var rep = {name: report.user.name, userid: report.user.username, batchname: report.raw_record._batchName,
+                        attritionStr: report.stats.attritionStr, attritionOn: report.stats.attrOn ? nl.fmt.date2StrDDMMYY(nl.fmt.json2Date(report.stats.attrOn || '', 'date')) : '', attritionReason: report.stats.attrReason,
+                        repid: 'id=' + report.raw_record.id, repStatus: report.stats.status.txt, assignid: 'id=' + report.raw_record.assignment};
+            if (!report.stats.attritionStr && report.user.state == 0) rep.attritionReason = 'Learner is inactive';
+            if(_exportFormat == 'csv') 
+                ctx.attritionRow.push(nlExporter.getCsvRow(_hAttritionRows, rep));
+            else
+                ctx.attritionRow.push(nlExporter.getItemRow(_hAttritionRows, rep));
         }
     }
 
@@ -659,6 +686,7 @@ function(nl, nlDlg, nlRouter, nlExporter, nlLrHelper, nlLrSummaryStats, nlGroupI
             if(filter.exportTypes.iltBatch) ctx.iltBatchRow = [nlExporter.getCsvHeader(_iltBatchDict.columns)];
             if(filter.exportTypes.certificate) ctx.certificateRow = [nlExporter.getCsvHeader(_certificateDict.columns)];
             if(filter.exportTypes.lr) ctx.lrRow = [nlExporter.getCsvHeader(_lrDict.columns)];
+            if(filter.exportTypes.attrition) ctx.attritionRow = [nlExporter.getCsvHeader(_hAttritionRows)];
         } else {
             ctx.courseReportRows = [_getCsvHeader()];
             ctx.moduleRows = [nlExporter.getHeaderRow(_hModuleRow)];
@@ -671,6 +699,7 @@ function(nl, nlDlg, nlRouter, nlExporter, nlLrHelper, nlLrSummaryStats, nlGroupI
             if(filter.exportTypes.iltBatch) ctx.iltBatchRow = [nlExporter.getHeaderRow(_iltBatchDict.columns)];
             if(filter.exportTypes.certificate) ctx.certificateRow = [nlExporter.getHeaderRow(_certificateDict.columns)];
             if(filter.exportTypes.lr) ctx.lrRow = [nlExporter.getHeaderRow(_lrDict.columns)];
+            if(filter.exportTypes.attrition) ctx.attritionRow = [nlExporter.getHeaderRow(_hAttritionRows)];
         }
         ctx.reports = reports;
         ctx.zip = new JSZip();
@@ -777,6 +806,18 @@ function(nl, nlDlg, nlRouter, nlExporter, nlLrHelper, nlLrSummaryStats, nlGroupI
         {id: '_versionId', name:'Version ID'},
         {id: '_language', name: 'Language' },
     ]
+
+    var _hAttritionRows = [
+        {id: 'name', name: 'User name'},
+        {id: 'userid', name: 'User id'},
+        {id: 'attritionStr', name: 'Attrition type'},
+        {id: 'attritionOn', name: 'Attrition on'},
+        {id: 'attritionReason', name: 'Reason for attrition'},
+        {id: 'repStatus', name: 'Report status'},
+        {id: 'batchname', name: 'Batch name'},
+        {id: 'repid', name: 'Report Id'},
+        {id: 'assignid', name: 'Assign Id'}
+    ];
 
     function _initExportHeaders(_userInfo, exportIds) {
         var _commonFieldsPre = [
