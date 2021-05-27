@@ -327,7 +327,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		}, {
 			title : 'Download overall user learning credits report',
 			icon : 'material-icons',
-			icon_content : 'assignment_returned',
+			icon_content : 'file_download',
 			id: 'exportLearningCreditsReport',
 			onClick : _onExportLearningCreditsReport
 		}];
@@ -2342,7 +2342,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 				}
 				var jsonObj = resp.data;
 				jsonObj = angular.fromJson(jsonObj);
-				var strData = nlExporter.objToCsv(jsonObj, [{id:"userid",name:"User Id"},{id:"overallscore",name:"Overall Score"}]);
+				var strData = nlExporter.objToCsv(jsonObj, [{id:"userid",name:"User Id"},{id:"lcredits7",name:"Learning Credits (7 Days)"},{id:"lcredits30",name:"Learning Credits (30 Days)"},{id:"lcredits90",name:"Learning Credits (90 Days)"},{id:"cohort",name:"Cohort"}]);
 				nlExporter.exportCsvFile('usertooverallscore.csv', strData, true);
 				nl.timeout(function() {
 					nlDlg.popdownStatus(0);
