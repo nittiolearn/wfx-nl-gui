@@ -23,26 +23,24 @@
 	</div>	
 </div>
 
-<div ng-if='card.cardlist && !card.hideCardList && !card.activeCardContainer' class="nl-limitwidth-learner-view" style="padding:0px 10px 10px 10px;">
+<div ng-if='card.cardlist && !card.hideCardList && !card.activeCardContainer' style="max-width: 1160px;margin: 0 auto;">
 	<div ng-if='card.cardlist.length > 0'>
 		<nl-cards2 cards='card'></nl-cards2>
 	</div>
 	<div ng-if='card.cardlist.length == 0' ng-click='card.hideCardList = !card.hideCardList' class="explore-card-container" style="width: 100%;">
-		<div class="horizontal-card-container" style="display: block;">
-			<div>
-				<div class="row">
-					<div class="col-90 section-header-text font-20-in-small">{{card.title}}</div>
-					<div class="col-10 nl-display-flex" style="justify-content: flex-end;">
-						<img src='{{card.uparrownBtn}}' alt='close_container' style="height: 30px;width:35px;">
-					</div>
+		<div>
+			<div class="row" style="padding:0px 20px;">
+				<div class="col-90 section-header-text font-20-in-small">{{card.title}}</div>
+				<div class="col-10 nl-display-flex" style="justify-content: flex-end;">
+					<img src='{{card.uparrownBtn}}' alt='close_container' style="height: 20px;width:20px;">
 				</div>
-				<div>
-					<div class="text-center">
-						<img ng-src='{{card.nodataimg}}' alt='no-data'  width="250" height="105" >
-					</div>
-					<div class="text-center nl-txt-white">
-						<span>There are no items to display.</span>
-					</div>
+			</div>
+			<div>
+				<div class="text-center">
+					<img ng-src='{{card.nodataimg}}' alt='no-data'  width="250" height="105" >
+				</div>
+				<div class="text-center nl-txt-white">
+					<span>There are no assignments to display.</span>
 				</div>
 			</div>
 		</div>
