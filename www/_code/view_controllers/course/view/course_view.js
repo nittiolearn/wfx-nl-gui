@@ -898,9 +898,10 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlCourseEditor, nlC
     $scope.getQuizPerc = function() {
         var nScore = _statusInfo.nTotalQuizScore || 0;
         var nMaxScore = _statusInfo.nTotalQuizMaxScore || 0;
-        return Math.round((100*nScore/nMaxScore));
-    }
-	$scope.getCompletionStatus = function() {
+        return nMaxScore > 0 ?  Math.round((100*nScore/nMaxScore)) : 0;
+    };
+
+    $scope.getCompletionStatus = function() {
         if (!_statusInfo) return 0;
         var ncompleted = _statusInfo.nCompletedItems;
         var nActual = _statusInfo.cnttotal - (_statusInfo.nlockedcnt + _statusInfo.nhiddencnt);

@@ -196,17 +196,17 @@ function($scope, nl, nlDlg, nlRouter, nlGroupInfo, nlServerApi, nlExporter, nlTm
     
 
     function _fetchDataFromServer(resolve) {
-      $scope.nhtInfo = {};
+        $scope.nhtInfo = {};
         var data = {grpid: _groupInfo.grpid, table: 'lr_report', recid: 0, field:'nhtinfo.json'};
         nlServerApi.jsonFieldStream(data).then(function(resp) {
             if (!resp || !resp.data) {
                 resolve();
             }
-          jsonObj = resp.data;
-          jsonObj = angular.fromJson(jsonObj);
-          $scope.headerTextStr = nl.t('Generated on {}', nl.fmt.date2StrDDMMYY(nl.fmt.json2Date(jsonObj.generatedOn),null, 'date'));
-          _computeNhtTable();
-          resolve(true);
+            jsonObj = resp.data;
+            jsonObj = angular.fromJson(jsonObj);
+            $scope.headerTextStr = nl.t('Generated on {}', nl.fmt.date2StrDDMMYY(nl.fmt.json2Date(jsonObj.generatedOn),null, 'date'));
+            _computeNhtTable();
+            resolve(true);
         });
     }
     
@@ -428,7 +428,7 @@ function TmsStatsCounts(nl) {
     };
 
     this.statsCountDict = function() {
-        _updateStatsCountTree(_statusCountTree);
+        _updateStatsCountTree(null, _statusCountTree);
         return _statusCountTree;
     };
 
@@ -519,24 +519,36 @@ function TmsStatsCounts(nl) {
         }
     }
 
-    function _updateStatsCountTree(rowObjs) {
+    function _updateStatsCountTree(parentRow, rowObjs) {
         for(var key in rowObjs) {
             var row = rowObjs[key];
             var statsObj = row.cnt;
-            _updateStatsPercs(statsObj)
-            if(row.children) _updateStatsCountTree(row.children);
+            _updateStatsPercs(parentRow, statsObj)
+            if(row.children) _updateStatsCountTree(row.cnt, row.children);
         }
     }
 
-    function _updateStatsPercs(updatedStats) {
-      updatedStats['percCompletedLesson'] = updatedStats['nQuizzes'] > 0 ? Math.round(updatedStats['nQuizzesCompleted']*100/updatedStats['nQuizzes'])+'%' : '-';
-      updatedStats['percAvgQuizScore'] = updatedStats['nQuizPercScoreCount'] > 0 ? Math.round(updatedStats['nQuizScorePerc']/updatedStats['nQuizPercScoreCount'])+'%' : '-';
-      for(var key in _dynamicStates) {
-            if(!(key in defaultStates)) {
-                var attr = 'perc'+key;
-                updatedStats[attr] = Math.round(updatedStats[key]*100/updatedStats.cntTotal);
-            }
+    function _updateStatsPercs(parentRow, updatedStats) {
+        updatedStats['percCompletedLesson'] = updatedStats['nQuizzes'] > 0 ? Math.round(updatedStats['nQuizzesCompleted']*100/updatedStats['nQuizzes'])+'%' : '-';
+        var percScore = null;
+        if (updatedStats['nQuizPercScoreCount'] > 0) {
+            percScore = Math.round(updatedStats['nQuizScorePerc']/updatedStats['nQuizPercScoreCount']);         
         }
+        if (parentRow && percScore != null && percScore >= 0) {
+            if (!parentRow.contPercQS) parentRow.contPercQS = 0;
+            if (!parentRow.percQS) parentRow.percQS = 0;
+            parentRow.contPercQS += 1;
+            parentRow.percQS += percScore;
+            var percQS = Math.round(parentRow.percQS/parentRow.contPercQS);
+            parentRow['percAvgQuizScore'] = percQS ? percQS+'%' : '-'
+        }
+        updatedStats['percAvgQuizScore'] = percScore ? percScore+'%' : '-'
+        for(var key in _dynamicStates) {
+                if(!(key in defaultStates)) {
+                    var attr = 'perc'+key;
+                    updatedStats[attr] = Math.round(updatedStats[key]*100/updatedStats.cntTotal);
+                }
+            }
 
         for(var i=0; i<_customScoresArray.length; i++) {
             var itemName = _customScoresArray[i];
