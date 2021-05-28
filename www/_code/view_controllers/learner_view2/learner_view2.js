@@ -899,7 +899,6 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView2, nlRouter, nlReport
 				$scope.exploreCards[i].dropdownBtn = nl.url.lessonIconUrl('drop-down-arrow.svg');
 				$scope.exploreCards[i].uparrownBtn = nl.url.lessonIconUrl('up-arrow.svg');
 				$scope.exploreCards[i].buttonUrl = nl.url.lessonIconUrl('start-dark.svg');
-				
 			}
 			if(currentTheme == 'nldarkmode') {
 				$scope.exploreCards[i].openDlgBtn = nl.url.lessonIconUrl('down-arrow.svg');
@@ -922,6 +921,7 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView2, nlRouter, nlReport
 			}
 		}
 		card.showSearchbar = $scope.tabData.showSearchbar;
+		card.nodataimg = $scope.nodata;
 		if (card.cardlist.length > 0 ) {
 			card.hideCardList = !card.hideCardList;
 			return;

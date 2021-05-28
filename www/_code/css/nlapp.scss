@@ -1471,6 +1471,7 @@ a.black {
   .popup-body{ 
     border-radius: 8px;
     margin-right: 1px;
+    width:640px;
     padding: 0px;
   }
   .popup-body::-webkit-scrollbar {
@@ -4221,6 +4222,11 @@ background-color: var(--nlFontYellow);}
   .nl-dlg2-details-dim {
     height: 260px;
   }
+  .nl-dlg2 {
+    .popup-body {
+      width: 300px;
+    }
+  }
   .nl-learner-button , .learner-view-stats-button, .learner-view-explore-button {
     min-width: 105px;
     height: 30px;
@@ -6618,7 +6624,6 @@ Font-size
   font-family: Montserrat-medium;
 }
 .nl-card-dlg2-img {
-  min-width: 600px;
   background-color: var(--nlBgTextArea);
 }
 .launch-button {
@@ -6684,6 +6689,7 @@ Font-size
   display: block;
    .horizontal-card-container{
     border-radius: 10px;
+    position: relative;
     display: flex;
     overflow: hidden;
     height:180px;
