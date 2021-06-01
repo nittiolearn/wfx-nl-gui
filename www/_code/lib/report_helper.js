@@ -919,7 +919,7 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
             var attempt1MaxScore = attempt1.isModuleCompleted ? attempt1.isModuleCompleted.nMaxScore : attempt1.maxScore;
             var attempt2Score = itemInfo.isModuleCompleted ? itemInfo.isModuleCompleted.nScore : itemInfo.rawScore;
             var attempt2MaxScore = itemInfo.isModuleCompleted ? itemInfo.isModuleCompleted.nMaxScore : itemInfo.maxScore;
-            if (Math.round(attempt1Score/attempt1MaxScore) < Math.round(attempt2Score/attempt2MaxScore)) {
+            if (Math.round(100*attempt1Score/attempt1MaxScore) < Math.round(100*attempt2Score/attempt2MaxScore)) {
                 ret.nTotalQuizScore -= attempt1Score;
                 ret.nTotalQuizMaxScore -= attempt1MaxScore;        
             } else {
