@@ -111,6 +111,7 @@ function($scope, nl, nlDlg, nlRouter, nlGroupInfo, nlServerApi, nlExporter, nlTm
             if ($scope.tableSelector[i].selected) { 
                 if (selectedCount > 0) str += ', ';
                 str += $scope.tableSelector[i].name;
+                selectedCount++;
             }
         }
         return str;
@@ -429,6 +430,21 @@ function TmsStatsCounts(nl) {
 
     this.statsCountDict = function() {
         _updateStatsCountTree(null, _statusCountTree);
+        var allRow = _statusCountTree[0];
+        allRow.cnt.contPercQS = 0;
+        allRow.cnt.percQS = 0;
+
+        for (var child in allRow.children) {
+            var suborg = allRow.children[child]
+            var cnt = suborg.cnt;
+            var percScore = Math.round(cnt.percQS/cnt.contPercQS);
+            if (percScore >= 0) {
+                allRow.cnt.contPercQS += 1;
+                allRow.cnt.percQS += percScore;
+            }
+        }
+        var perc = Math.round(allRow.cnt.percQS/allRow.cnt.contPercQS);
+        allRow.cnt['percAvgQuizScore'] =  perc >= 0 ? perc+'%' : '-';
         return _statusCountTree;
     };
 
@@ -530,19 +546,19 @@ function TmsStatsCounts(nl) {
 
     function _updateStatsPercs(parentRow, updatedStats) {
         updatedStats['percCompletedLesson'] = updatedStats['nQuizzes'] > 0 ? Math.round(updatedStats['nQuizzesCompleted']*100/updatedStats['nQuizzes'])+'%' : '-';
-        var percScore = null;
+        var percScore = -1;
         if (updatedStats['nQuizPercScoreCount'] > 0) {
             percScore = Math.round(updatedStats['nQuizScorePerc']/updatedStats['nQuizPercScoreCount']);         
         }
-        if (parentRow && percScore != null && percScore >= 0) {
+        if (parentRow && percScore >= 0) {
             if (!parentRow.contPercQS) parentRow.contPercQS = 0;
             if (!parentRow.percQS) parentRow.percQS = 0;
             parentRow.contPercQS += 1;
             parentRow.percQS += percScore;
             var percQS = Math.round(parentRow.percQS/parentRow.contPercQS);
-            parentRow['percAvgQuizScore'] = percQS ? percQS+'%' : '-'
+            parentRow['percAvgQuizScore'] = percQS >= 0 ? percQS+'%' : '-';
         }
-        updatedStats['percAvgQuizScore'] = percScore ? percScore+'%' : '-'
+        updatedStats['percAvgQuizScore'] = percScore >= 0 ? percScore+'%' : '-';
         for(var key in _dynamicStates) {
                 if(!(key in defaultStates)) {
                     var attr = 'perc'+key;
