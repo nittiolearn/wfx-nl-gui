@@ -2180,13 +2180,16 @@ input.nl-dlg-field-error, .nl-dlg-field-error {
 
 .nl-card2-header {
   text-align: left;
-  font-size: 16px;
+  font-size: 14px;
   padding: 4px 12px;
   overflow: hidden;
   white-space: normal;
   text-overflow: ellipsis;
   font-family: Montserrat-Regular;
-  height:75%;
+  display: -webkit-box!important; 
+  -webkit-line-clamp: 4; 
+  -webkit-box-orient: vertical; 
+  text-overflow: ellipsis;
 }
 
 .nl-cards-section-hide::-webkit-scrollbar {
@@ -2204,14 +2207,15 @@ input.nl-dlg-field-error, .nl-dlg-field-error {
   bottom: 0;
   width: 100%;
   height: auto;
-  padding: 8px;
-  font-size: 100%;
+  padding: 8px 8px 0px 8px;
   color: var(--nlPrimaryDark);
   display: none;
   
   .nl-card2-desc{
-    font-size: 70%;
+    font-size: 9px;
     font-family: Montserrat-Regular;
+    padding: 0px;
+    margin-left: 5px;
   }
   .nl-card-more-links {
     display: inline-block;

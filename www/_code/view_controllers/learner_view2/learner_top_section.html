@@ -11,7 +11,7 @@
                 </div>
             </div>
             <div class='{{$root.screenSize == "small" ?  "row" : ""}} padding-mid nl-display-flex' style="grid-gap: 15px;">
-                <div ng-show='tabdata.exploreSection && !tabdata.explore' class='col learner-view-explore-button tabs-in-small center-in-small' ng-click='exploreAvailable()'>
+                <div ng-show='tabdata.exploreSection && !(tabdata.explore || tabdata.summaryStats)' class='col learner-view-explore-button tabs-in-small center-in-small' ng-click='exploreAvailable()'>
                     <span class="nl-display-flex" style="grid-gap:5px">
                         <img ng-src="{{explore}}" style="width: 20px; height: 30px; filter: invert(90%);" alt="summary">
                         <span class="nl-display-flex" style="justify-content: center; align-items: center;">Explore</span> 
@@ -24,7 +24,7 @@
                         <span>Learn</span>
                     </div>
                 </div>
-                <div ng-show='!tabdata.summaryStats' class='col learner-view-stats-button tabs-in-small center-in-small ' 
+                <div ng-show='!(tabdata.summaryStats || tabdata.explore)' class='col learner-view-stats-button tabs-in-small center-in-small ' 
                     ng-click='viewStatistics()' style="margin-right: 0px;">
                     <span class="nl-display-flex" style="grid-gap:5px">
                         <img ng-src="{{summary}}" style="width: 20px; height: 30px; filter: invert(90%);" alt="summary">
