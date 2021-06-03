@@ -1750,7 +1750,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		var summaryRow = (_drilldownStatsCountDict[0] && _drilldownStatsCountDict[0].children) ? _drilldownStatsCountDict[0].children : {};
 		var darkmode = false;
 		if (_userInfo.groupinfo.groupCustomClass == 'nldarkmode') darkmode = true;
-		var charts = {labels: [], series: ['Certified/Done', 'Failed', 'Pending'],
+		var charts = {labels: [],labelMap : [], series: ['Certified/Done', 'Failed', 'Pending'],
 					  	options: {scales: {
 							xAxes: [{
 								stacked: true,
@@ -1773,10 +1773,15 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 								enabled: true,
 								callbacks: {
 								  label: function(tooltipItem, data) {
+									var statusarr = ['cert', 'failed', 'notcompleted'];
+									var num = nl.window.statuscountseries;
+									var numlabel = statusarr[tooltipItem.datasetIndex];
+									var statusvalue = num[numlabel];
+									var statusnumber = statusvalue[tooltipItem.index];
 									var allData = data.datasets[tooltipItem.datasetIndex].data;
 									var tooltipLabel = data.datasets[tooltipItem.datasetIndex].label;
 									var tooltipData = allData[tooltipItem.index];
-									return tooltipLabel + ": " + tooltipData + "%";
+									return tooltipLabel + ":" + statusnumber + "(" + tooltipData + "%)";
 								  }
 								}
 							}
@@ -1793,6 +1798,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			charts.options.scales.yAxes[0].ticks = {fontColor: "#FFFFFF", 'beginAtZero': true}
 		}
 		charts.graphData = [];
+		nl.window.statuscountseries = { cert: [], notcompleted: [], failed: [] };
 		for (var key in summaryRow) {
 			var statsDict = summaryRow[key].cnt;
 			var total = statsDict.certified+statsDict.failed+statsDict.notcompleted;
@@ -1800,7 +1806,10 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			var failPerc = Math.round(statsDict.failed/total*100);
 			if (certPerc + failPerc > 100) failPerc--;
 			var notCompPerc = 100 - (certPerc+failPerc);
-			charts.graphData.push({name: statsDict.name || key, cert: certPerc, failed: failPerc, notCompleted: notCompPerc});
+			var certNumber = statsDict.certified;
+			var failedNumber = statsDict.failed;
+			var notcompletedNumber = statsDict.notcompleted;
+			charts.graphData.push({name: statsDict.name || key, cert: certPerc, failed: failPerc, notCompleted: notCompPerc, certNumber: certNumber, failedNumber: failedNumber, notcompletedNumber: notcompletedNumber });
 		}
 		_sortAndUpdate(charts, 'pending');
 		$scope.drillDownInfo.charts.chartsArray= [charts];
@@ -1840,9 +1849,13 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		charts.labels = [];
 		for(var i=0; i<charts.maxvisible; i++) {
 			charts.labels.push(charts.graphData[i].name);
+			charts.labelMap.push(charts.graphData[i].certNumber);
 			series1.push(charts.graphData[i].cert);
 			series2.push(charts.graphData[i].failed);
 			series3.push(charts.graphData[i].notCompleted);
+			statuscountseries.cert.push(charts.graphData[i].certNumber);
+			statuscountseries.notcompleted.push(charts.graphData[i].notcompletedNumber);
+			statuscountseries.failed.push(charts.graphData[i].failedNumber);
 		}
 		charts.data = [series1, series2, series3];
 	}
