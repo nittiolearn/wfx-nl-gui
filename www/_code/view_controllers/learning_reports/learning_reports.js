@@ -1750,7 +1750,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		var summaryRow = (_drilldownStatsCountDict[0] && _drilldownStatsCountDict[0].children) ? _drilldownStatsCountDict[0].children : {};
 		var darkmode = false;
 		if (_userInfo.groupinfo.groupCustomClass == 'nldarkmode') darkmode = true;
-		var charts = {labels: [],labelMap : [], series: ['Certified/Done', 'Failed', 'Pending'],
+		var charts = {labels: [], series: ['Certified/Done', 'Failed', 'Pending'],
 					  	options: {scales: {
 							xAxes: [{
 								stacked: true,
@@ -1849,7 +1849,6 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		charts.labels = [];
 		for(var i=0; i<charts.maxvisible; i++) {
 			charts.labels.push(charts.graphData[i].name);
-			charts.labelMap.push(charts.graphData[i].certNumber);
 			series1.push(charts.graphData[i].cert);
 			series2.push(charts.graphData[i].failed);
 			series3.push(charts.graphData[i].notCompleted);
