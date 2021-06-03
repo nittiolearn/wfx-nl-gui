@@ -13,6 +13,22 @@
                         width: 30px;"></span>
                 </div>
             </div>
+            <div class='padding-mid nl-card-progress-area' ng-if='record.type=="expired" || record.type=="progress"' style="background-color: rgba(255, 255, 255, 0.3);">
+                <div class='margin0 padding-mid-x padding0 row row-center' style="grid-gap:4px">
+                    <div class='col margin0 nl-card2-progress-bar padding0' style="margin-top: 7px;">
+                        <div class='{{record.prgClass}}'
+                                style='width: {{record.progressPerc}}%;'>
+                        </div>
+                        <div ng-if='!record.progressPerc'
+                                style='width: 100%'>
+                        </div>
+                    </div>
+                    <div class="nl-txt-white" style="font-size: 12px;height: 5px;">{{record.progressPerc}}%</div>
+                </div>  
+            </div>
+            <div  ng-if="record.label" class='row' ng-class="{label_certified: record.label == 'certified',label_failed: record.label == 'failed',label_done: record.label == 'done' || record.label == 'passed'}" style="justify-content: center; align-items: center;">
+                <span class="nl-txt-white">{{record.label}}</span>
+            </div>
             <div class="row margin0 padding-large-left"  ng-repeat='avp in record.detailsavps track by $index' ng-if="avp.attr == 'REMARKS' && avp.val != '-' " style="border: solid 1px var(--white);
             background-color: rgba(255, 255, 255, 0.3);">
                 <span ng-if='avp.type != "links"'
