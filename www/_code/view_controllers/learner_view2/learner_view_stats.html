@@ -1,4 +1,4 @@
-<div class='nl-thin-scroll body' style='position:absolute; width: 100%;'>
+<div>
     <div class='{{tabData.cls}}'>
         <div ng-show='tabData.dataLoaded'>
             <div style="margin-bottom:25px;">
@@ -7,65 +7,85 @@
             <div ng-show='tabData.recordsLen == 0' class='bgdefault fgrey padding shape-rounded-small'>
                 Nothing to display.
             </div>
-            <div ng-show='tabData.recordsLen > 0' class="row row-wrap responsive-md responsive-sm responsive-lg points_container stats-graph-container-in-mobile" style='max-width: 1150px;margin:0 auto;'>
-                <div ng-if="0" ng-class="$root.respCol221" class="col-50 nl-display-flex"
-                    style="grid-gap: 13px;justify-content: space-evenly;">
+            <div ng-show='tabData.recordsLen > 0' class="row row-wrap responsive-md responsive-sm responsive-lg stats-graph-container-in-mobile" style='max-width: 1150px;margin:0 auto; padding: 0px;'>
+                <div ng-class="$root.respCol221" class="col-50 nl-display-flex" style="padding: 0px;margin-bottom: 25px;">
                     <div ng-class="" class="stats_block_background points_container stats-in-small">
-                        <div class="margin-auto">
-                            <p class="total_heading">Total Points Earned</p>
+                        <div class="margin-auto padding-mid">
+                            <p class="total_heading">Points Earned This Quarter</p>
                         </div>
                         <div class="margin-auto">
-                            <h1 class="total_sub_points">Coming Soon</h1>
+                            <h1 class="total_sub_points">100</h1>
                         </div>
                         <div class="margin-auto"><img class="img-in-small" src="/static/nittio_icon_v41/star.svg"
                                 alt=""></div>
                     </div>
-                    <div class="stats_block_background points_container stats-in-small">
-                        <div><img class="img-in-small" src="/static/nittio_icon_v41/badge.svg" alt=""></div>
+                    <div ng-class="" class="stats_block_background points_container stats-in-small">
                         <div class="margin-auto">
-                            <h1 class="total_sub_points">Coming Soon</h1>
+                            <p class="total_heading padding-mid">Points Earned This Month</p>
                         </div>
-                        <div class="">
-                            <p class="month_total_points font-10-in-small">Total Points This Month</p>
+                        <div class="margin-auto">
+                            <h1 class="total_sub_points">100</h1>
                         </div>
+                        <div class="margin-auto"><img class="img-in-small" src="/static/nittio_icon_v41/star.svg"
+                                alt=""></div>
                     </div>
-                    <div class="stats_block_background points_container stats-in-small">
+                    <div ng-class="" class="stats_block_background points_container stats-in-small">
                         <div class="margin-auto">
-                            <p class="total_heading">Active Days This Month</p>
+                            <p class="total_heading padding-mid">Points Earned This Week</p>
                         </div>
                         <div class="margin-auto">
-                            <h1 class="total_sub_points">Coming Soon</h1>
+                            <h1 class="total_sub_points">100</h1>
                         </div>
-                        <div class="margin-auto"><img class="img-in-small" src="/static/nittio_icon_v41/watch.svg"
-                                alt="" class="block3_img"></div>
-                    </div>
+                        <div class="margin-auto"><img class="img-in-small" src="/static/nittio_icon_v41/star.svg"
+                                alt=""></div>
+                    </div>                  
                 </div>
-                <div class="col col-50 w-in-small bg-in-small">
-                    <div class="chart-heading-position nl-display-flex">
-                        <div class="assigned"><span>Assigned</span></div><br>
-                        <div class="completed"><span>Completed</span></div>
-                    </div>
-                    <div class='padding-small'></div>
-                    <div class='padding-small'></div>
-                    <div>
-                        <div class='text-center padding-mid'>
-                            <div class='padding-small'></div>
-                            <div class='padding-small'></div>
-                            <div>
-                                <canvas class='chart chart-bar' height='250' chart-data='charts[1].data'
-                                    chart-labels='charts[1].labels' chart-colors='charts[1].colors'
-                                    chart-series='charts[1].series' chart-options='charts[1].options'>
-                                </canvas>
+                <div ng-class="$root.respCol221" class="col-50" style="padding: 0px;">
+                    <div class="margin-auto mt-0-in-small responsive-md responsive-sm row points_container stats-graph-container-in-mobile w-in-small">
+                        <div class="col bg-in-small">
+                            <div class="row">
+                                <div class="col col-50">
+                                    <h2 class="progress_heading hide-in-small">Time Spent in This Month</h2>
+                                </div>
+                                <div class="col col-50 completiontime completiontime-heading">
+                                    <span>Completion Time</span>
+                                </div>
+                            </div>
+                            <div class='progress_chart text-center padding-mid'>
+                                <div class='padding-small'></div>
+                                <div ng-if='charts[0].show && charts[2].data'>
+                                    <!-- <canvas class='chart chart-line' height='250' chart-data='charts[2].data'
+                                        chart-labels='charts[2].labels' chart-colors='charts[2].colors'
+                                        chart-series='charts[2].series' chart-options='charts[2].options'>
+                                    </canvas> -->
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
-                <div class="col col-50 row-justify-evenly mt-in-small nl-display-flex" ng-class="$root.respCol221">
+            </div>
+
+            <div class="row row-wrap responsive-md responsive-sm responsive-lg stats-graph-container-in-mobile points_container" style='max-width: 1150px;margin:0 auto; height: 250px'>
+                <div class="col col-50 w-in-small bg-in-smal">
+                    <div class="row">
+                        <div class="col col-66">
+                            <canvas class='chart chart-bar' height='225' width='445' chart-data='charts[1].data'
+                            chart-labels='charts[1].labels' chart-colors='charts[1].colors'
+                            chart-series='charts[1].series' chart-options='charts[1].options'>
+                            </canvas>
+                        </div>
+                        <div class="col padding">
+                            <div class="assigned"><span>Assigned</span></div><br>
+                            <div class="completed"><span>Completed</span></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col col-50 row-justify-evenly mt-in-small nl-display-flex row" ng-class="$root.respCol221">
                     <div class="w-in-small bg-in-small w-in-small">
                         <div class="padding-left row row-justify-evenly ">
                             <h2 class="heading-in-small pie_chart_heading nl-txt-white">Your Overall Progress</h2>
                         </div>
-                        <div style="display: flex;justify-content: center;align-items: center; min-height: 200px; margin-top:35px;"
+                        <div style="display: flex;justify-content: center;align-items: center; min-height: 200px;"
                             class="mt-0-in-small">
                             <div ng-class='' class='col-50 text-center padding-mid'>
                                 <div style="position: relative; height:200px;width:160px;margin:0 auto;">
@@ -84,39 +104,6 @@
                                     <li class="expired_label lables">Expired</li>
                                 </ul>
                             </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div ng-if="0" style="margin-left: 1rem;">
-                <h2 class="progress_heading show show-in-small" style="display: none;margin-top:15px">Your Module
-                    Progress in past 6 Months</h2>
-            </div>
-            <div ng-if="0"
-                class="margin-auto mt-0-in-small responsive-md responsive-sm row points_container stats-graph-container-in-mobile w-in-small"
-                id="dashboard" style="max-width: 98%;">
-                <div class="col col-50 bg-in-small">
-                    <div class="row">
-                        <div class="col col-50">
-                            <h2 class="progress_heading hide-in-small">Your Module Progress in past 6 Months</h2>
-                        </div>
-                        <div class="col col-50 completiontime completiontime-heading">
-                            <span>Completion Time</span>
-                        </div>
-                    </div>
-                    <div class='progress_chart text-center padding-mid'>
-                        <div class='padding-small'></div>
-                        <div class='padding-small'></div>
-                        <div class='padding-small'></div>
-                        <div class='padding-small'></div>
-                        <div ng-if='charts[0].show && charts[2].data'>
-                            <canvas class='chart chart-line' height='250' chart-data='charts[2].data'
-                                chart-labels='charts[2].labels' chart-colors='charts[2].colors'
-                                chart-series='charts[2].series' chart-options='charts[2].options'>
-                            </canvas>
-                        </div>
-                        <div style="margin:0 auto; width:200px;">
-                            <h1 class="fwhite">Coming Soon</h1>
                         </div>
                     </div>
                 </div>

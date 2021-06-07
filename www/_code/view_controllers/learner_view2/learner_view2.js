@@ -44,8 +44,8 @@ function(nl) {
 
 //-------------------------------------------------------------------------------------------------
 
-var LearnerViewTopSectionDirective = ['nl', 'nlDlg',
-function(nl, nlDlg) {
+var LearnerViewTopSectionDirective = ['nl', 'nlDlg', 'nlServerApi', 'nlGroupInfo', 
+function(nl, nlDlg, nlServerApi, nlGroupInfo) {
     return {
         restrict: 'E',
         transclude: true,
@@ -74,6 +74,7 @@ function(nl, nlDlg) {
 				$scope.tabdata.summaryStats = true;
 				$scope.tabdata.explore = false;
 				$scope.tabdata.showSearchbar = false;
+				$scope.$parent._statsDetails();
 			};
 			$scope.exploreAvailable =function() {
 				$scope.tabdata.explore= true;
@@ -195,11 +196,11 @@ function(nl, nlDlg) {
 //-------------------------------------------------------------------------------------------------
 
 var NlLearnerView2 = ['nl', 'nlDlg', 'nlRouter', 'nlReportHelper',
-'nlLearnerViewRecords2', 'nlTopbarSrv', 'nlCardsSrv', 'nlCourse', 'nlGetManyStore', 'nlAnnouncementSrv', 'nlServerApi',
-function(nl, nlDlg, nlRouter, nlReportHelper, nlLearnerViewRecords2, nlTopbarSrv, nlCardsSrv, nlCourse, nlGetManyStore, nlAnnouncementSrv, nlServerApi) {
+'nlLearnerViewRecords2', 'nlTopbarSrv', 'nlCardsSrv', 'nlCourse', 'nlGetManyStore', 'nlAnnouncementSrv', 'nlServerApi', 'nlGroupInfo',
+function(nl, nlDlg, nlRouter, nlReportHelper, nlLearnerViewRecords2, nlTopbarSrv, nlCardsSrv, nlCourse, nlGetManyStore, nlAnnouncementSrv, nlServerApi, nlGroupInfo) {
 	this.create = function($scope) {
 		return new NlLearnerViewImpl($scope, nl, nlDlg, this, nlRouter, nlReportHelper,
-			nlLearnerViewRecords2, nlTopbarSrv, nlCardsSrv, nlCourse, nlGetManyStore, nlAnnouncementSrv, nlServerApi);
+			nlLearnerViewRecords2, nlTopbarSrv, nlCardsSrv, nlCourse, nlGetManyStore, nlAnnouncementSrv, nlServerApi, nlGroupInfo);
 	};
 
 	this.initPageBgImg = function(data) {
@@ -217,7 +218,7 @@ function(nl, nlDlg, nlRouter, nlReportHelper, nlLearnerViewRecords2, nlTopbarSrv
 }];
 
 function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView2, nlRouter, nlReportHelper, 
-	nlLearnerViewRecords2, nlTopbarSrv, nlCardsSrv, nlCourse, nlGetManyStore, nlAnnouncementSrv, nlServerApi) {
+	nlLearnerViewRecords2, nlTopbarSrv, nlCardsSrv, nlCourse, nlGetManyStore, nlAnnouncementSrv, nlServerApi, nlGroupInfo) {
 	var self = this;
 	var _userInfo = null;
 	var _parent = false;
@@ -253,6 +254,10 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView2, nlRouter, nlReport
 			_init(userInfo);
 			_getLearningRecordsFromCacheAndServer(resolve);
 			if(_enableAnnouncements) _loadAndShowAnnouncements();
+			nlGroupInfo.init2().then(function() {
+				nlGroupInfo.update();
+				
+			});
 		});
 	}
 	
@@ -1023,6 +1028,21 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView2, nlRouter, nlReport
         return avps;
     }
 	
+	$scope._statsDetails = function() {
+		var _groupInfo = nlGroupInfo.get();
+		var _userid = _userInfo.userid;
+		var data = {grpid: _groupInfo.grpid, table: 'learningcredits', recid: 'users', field: _userid+'.json'};
+		//var data2 = {grpid: _groupInfo.grpid, table: 'learningcredits', recid: 'cohorts', field:'cohortnameuserdata.json'};
+		nl.timeout(function() {
+			nlServerApi.jsonFieldStream(data).then(function(resp) {
+				if (!resp || !resp.data) {
+					nlDlg.popupStatus('Some error occured while downloading ...', false);
+					return;
+				}
+				console.log(resp);
+			})
+		})
+	}
 	function _updateSummaryTab() {
 		for(var i=0; i<$scope.charts.length; i++) $scope.charts[i].show = false;
 		nl.timeout(function() {
