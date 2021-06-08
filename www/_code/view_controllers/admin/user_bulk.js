@@ -83,7 +83,8 @@ function(nl, nlDlg, nlGroupInfo, nlExporter) {
                 };
                 var val = toCsv(user, attr, groupInfo);
                 if (val === null || val === undefined) val = '';
-                if (val && NUM_REG.test(val) && val.length > 12) val = 'id='+val; //add id= while exporting user list
+                val = '' + val;
+                if (val && NUM_REG.test(val) && val.length > 10) val = 'id='+val; //add id= while exporting user list
                 row.push(val);
             }
             csv += DELIM + nlExporter.getCsvString(row);
