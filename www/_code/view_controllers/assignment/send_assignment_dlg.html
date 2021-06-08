@@ -30,9 +30,20 @@
                      fieldindex="0">
         </nl-checkbox>
 	</nl-dlg-row>
-
 	<nl-dlg-row ng-show='assignInfo.assigntype != "training"' attr='batchname' data='data' help='help'>
-		<nl-input fieldmodel='batchname' fieldtype='text' fieldCls='w100'></nl-input>
+                <div ng-show='isBatchnameStructured' class='row row-center padding0 margin0'>
+                        <div class='col padding0 margin0' style='padding-right: 4px'>
+                                <nl-select fieldmodel='batchnamePart1'></nl-select>
+                        </div>
+                        <div ng-show='options.batchnamePart2' class='col padding0 margin0' style='padding-right: 4px'>
+                                <nl-select fieldmodel='batchnamePart2'></nl-select>
+                        </div>
+                        <div class='col padding0 margin0'>
+                                <nl-input fieldmodel='batchnamePart3' fieldtype='number' fieldminvalue='1'></nl-input>
+                        </div>
+                </div>
+                <div ng-show='error["batchnameParts"]' class='nl-dlg-field-errormsg'>{{error["batchnameParts"]}}</div>
+		<nl-input ng-show='!isBatchnameStructured' fieldmodel='batchname' fieldtype='text' fieldCls='w100'></nl-input>
 	</nl-dlg-row>
 
 	<nl-dlg-row ng-show='options.batchtype' attr='batchtype' data='data' help='help'>

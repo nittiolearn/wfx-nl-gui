@@ -2689,6 +2689,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			starttime: assignContent.not_before || '', 
 			endtime: assignContent.not_after || '', 
 			msDates: assignContent.msDates || null,
+			batchnameStructured: assignContent.batchnameStructured || null,
 			submissionAfterEndtime: assignContent.submissionAfterEndtime,
 			dontShowUsers: nominatedUsers};
 			
@@ -2711,6 +2712,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			if (!result) return;
 			
 			assignContent.batchname = result.batchname;
+			if(result.batchnameStructure) assignContent.batchnameStructure = result.batchnameStructure;
 			if(result.batchtype) assignContent.batchtype = result.batchtype;
 			assignContent.not_before = result.not_before || '';
 			assignContent.not_after = result.not_after || '';
@@ -2730,6 +2732,8 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 					}
 				}
 			}
+			if (result.batchnameStructured) assignContent.batchnameStructured = result.batchnameStructured;
+			if (result.msDates) assignContent.msDates = result.msDates;
 			if(result.selectedusers.length > 0) {
 				nl.window.location.reload();
 			} else {
