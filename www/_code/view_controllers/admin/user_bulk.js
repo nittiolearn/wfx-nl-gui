@@ -121,6 +121,7 @@ function(nl, nlDlg, nlGroupInfo, nlImporter, nlProgressLog, nlRouter, nlServerAp
     var _pastUserInfosFetcher = nlGroupInfo.getPastUserInfosFetcher();
     var _ouDict = {};
     var _secloginDict = {};
+    var _renamedUserIds = {};
     this.init = function(groupInfo, userInfo, grpid) {
         _ouDict = {};
         _groupInfo = groupInfo;
@@ -211,6 +212,7 @@ function(nl, nlDlg, nlGroupInfo, nlImporter, nlProgressLog, nlRouter, nlServerAp
 
     function _updateSecLoginDict() {
         _secloginDict = {};
+        _renamedUserIds = {};
         var columnMap = _groupInfo.column_mapping || [];
         var secPos = null;
         for (var i=0; i<columnMap.length; i++) {
@@ -568,6 +570,10 @@ function(nl, nlDlg, nlGroupInfo, nlImporter, nlProgressLog, nlRouter, nlServerAp
                     _throwException('User id already exists', row);
                 if (_pastUserInfosFetcher.getUserObj(null, row.user_id))
                     _throwException('User id already exists in archived list', row);
+                if (newUserName in _renamedUserIds) {
+                    _throwException('User id already exists', row);
+                }
+                _renamedUserIds[newUserName] = true;
             }
         }
         
