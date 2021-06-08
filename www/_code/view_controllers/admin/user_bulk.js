@@ -212,7 +212,6 @@ function(nl, nlDlg, nlGroupInfo, nlImporter, nlProgressLog, nlRouter, nlServerAp
 
     function _updateSecLoginDict() {
         _secloginDict = {};
-        _renamedUserIds = {};
         var columnMap = _groupInfo.column_mapping || [];
         var secPos = null;
         for (var i=0; i<columnMap.length; i++) {
@@ -233,6 +232,7 @@ function(nl, nlDlg, nlGroupInfo, nlImporter, nlProgressLog, nlRouter, nlServerAp
         self.foundKeys = {};
         self.showRowNumber = false;
         self.missingOus = {};
+        _renamedUserIds = {};
     };
 
     var lstUidChanges = [];        // [{oldUserId, newUserId},...] when user_id is modified
