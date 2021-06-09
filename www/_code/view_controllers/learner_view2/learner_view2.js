@@ -228,7 +228,6 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView2, nlRouter, nlReport
 	this.show = function(enableAnnouncements) {
 		_enableAnnouncements = enableAnnouncements;
 		nlRouter.initContoller($scope, '', _onPageEnter);
-		
 	};
 
 	this.afterPageEnter = function(userInfo, parent) {
@@ -256,8 +255,8 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView2, nlRouter, nlReport
 			if(_enableAnnouncements) _loadAndShowAnnouncements();
 			nlGroupInfo.init2().then(function() {
 				nlGroupInfo.update();
-				
 			});
+			$scope.showCreditpoints = ((((_userInfo.groupinfo || {}).features || {}).learningCredits || {}).learnerUi || false) || false;
 		});
 	}
 	
@@ -461,6 +460,9 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView2, nlRouter, nlReport
 		ret.onFilter = _onFilter;
 		ret.fetchMore = _fetchMore;
 		ret.showSearchbar = true;
+		ret.sevenDayscp = '',
+		ret.thirtyDayscp = '',
+		ret.nintyDayscp = '',
 		ret.sectionData = [
 						{name: 'Continue Learning', type: 'progress', card2: true, cardlist: []},
 						{name: 'New Assignments', type: 'pending', card2: true, cardlist: []},
@@ -1032,17 +1034,29 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView2, nlRouter, nlReport
 		var _groupInfo = nlGroupInfo.get();
 		var _userid = _userInfo.userid;
 		var data = {grpid: _groupInfo.grpid, table: 'learningcredits', recid: 'users', field: _userid+'.json'};
-		//var data2 = {grpid: _groupInfo.grpid, table: 'learningcredits', recid: 'cohorts', field:'cohortnameuserdata.json'};
+		$scope.tabData.bluestar = nl.url.lessonIconUrl('blue-star.svg');
+		$scope.tabData.greenstar = nl.url.lessonIconUrl('green-star.svg');
+		$scope.tabData.redstar = nl.url.lessonIconUrl('red-star.svg');
 		nl.timeout(function() {
 			nlServerApi.jsonFieldStream(data).then(function(resp) {
 				if (!resp || !resp.data) {
 					nlDlg.popupStatus('Some error occured while downloading ...', false);
 					return;
 				}
-				console.log(resp);
+				$scope.tabData.sevenDayscp = resp.data.lcredits7;
+				$scope.tabData.thirtyDayscp = resp.data.lcredits30;
+				$scope.tabData.nintyDayscp = resp.data.lcredits90;
+				leaderboard(resp.data,_groupInfo);
 			})
 		})
 	}
+
+	function leaderboard(data,_groupInfo) {
+		var cohort = data.cohort;
+		var data2 = {grpid: _groupInfo.grpid, table: 'learningcredits', recid: 'cohorts', field: cohort+'.json'};
+		console.log(data2);
+	}
+
 	function _updateSummaryTab() {
 		for(var i=0; i<$scope.charts.length; i++) $scope.charts[i].show = false;
 		nl.timeout(function() {
@@ -1072,7 +1086,6 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView2, nlRouter, nlReport
 
 		var ranges = nlLearnerViewRecords2.getTimeRanges();
 		var records = $scope.tabData.records;
-		
 		var tabs= $scope.tabData.tabs;
 		for(var tabid in tabs) {
 			var tab = tabs[tabid];
@@ -1111,7 +1124,6 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView2, nlRouter, nlReport
 			var isModuleRep = rec.type == 'module';
 			var ended;
 			var ended = isModuleRep ? _getModuleEndedTime(rec.raw_record) : _getCourseEndedTime(rec);
-
 			var isAssignedCountFound = false;
 			var isCompletedCountFound = false;
 			for(var i=0; i<ranges.length; i++) {

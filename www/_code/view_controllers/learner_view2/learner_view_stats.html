@@ -7,37 +7,35 @@
             <div ng-show='tabData.recordsLen == 0' class='bgdefault fgrey padding shape-rounded-small'>
                 Nothing to display.
             </div>
-            <div ng-show='tabData.recordsLen > 0' class="row row-wrap responsive-md responsive-sm responsive-lg stats-graph-container-in-mobile" style='max-width: 1150px;margin:0 auto; padding: 0px;'>
+            
+            <div ng-if='showCreditpoints' ng-show='tabData.recordsLen > 0' class="row row-wrap responsive-md responsive-sm responsive-lg stats-graph-container-in-mobile" style='max-width: 1150px;margin:0 auto; padding: 0px;'>
                 <div ng-class="$root.respCol221" class="col-50 nl-display-flex" style="padding: 0px;margin-bottom: 25px;">
                     <div ng-class="" class="stats_block_background points_container stats-in-small">
-                        <div class="margin-auto padding-mid">
-                            <p class="total_heading">Points Earned This Quarter</p>
+                        <div class="margin-auto">
+                            <p class="total_heading nl-txt-white">Points Earned Last 90 Days</p>
                         </div>
                         <div class="margin-auto">
-                            <h1 class="total_sub_points">100</h1>
+                            <h1 class="total_sub_points nl-txt-white">{{tabData.nintyDayscp}}</h1>
                         </div>
-                        <div class="margin-auto"><img class="img-in-small" src="/static/nittio_icon_v41/star.svg"
-                                alt=""></div>
+                        <div class="margin-auto"><img class="img-in-small" src="{{tabData.bluestar}}" alt="bluestar"></div>
                     </div>
                     <div ng-class="" class="stats_block_background points_container stats-in-small">
                         <div class="margin-auto">
-                            <p class="total_heading padding-mid">Points Earned This Month</p>
+                            <p class="total_heading padding-mid nl-txt-white">Points Earned Last 30 Days</p>
                         </div>
                         <div class="margin-auto">
-                            <h1 class="total_sub_points">100</h1>
+                            <h1 class="total_sub_points nl-txt-white">{{tabData.thirtyDayscp}}</h1>
                         </div>
-                        <div class="margin-auto"><img class="img-in-small" src="/static/nittio_icon_v41/star.svg"
-                                alt=""></div>
+                        <div class="margin-auto"><img class="img-in-small" src="{{tabData.greenstar}}" alt="greenstar"></div>
                     </div>
                     <div ng-class="" class="stats_block_background points_container stats-in-small">
                         <div class="margin-auto">
-                            <p class="total_heading padding-mid">Points Earned This Week</p>
+                            <p class="total_heading nl-txt-white">Points Earned last 7 Days</p>
                         </div>
                         <div class="margin-auto">
-                            <h1 class="total_sub_points">100</h1>
+                            <h1 class="total_sub_points nl-txt-white">{{tabData.sevenDayscp}}</h1>
                         </div>
-                        <div class="margin-auto"><img class="img-in-small" src="/static/nittio_icon_v41/star.svg"
-                                alt=""></div>
+                        <div class="margin-auto"><img class="img-in-small" src="{{tabData.redstar}}" alt="redstar"></div>
                     </div>                  
                 </div>
                 <div ng-class="$root.respCol221" class="col-50" style="padding: 0px;">
@@ -45,7 +43,7 @@
                         <div class="col bg-in-small">
                             <div class="row">
                                 <div class="col col-50">
-                                    <h2 class="progress_heading hide-in-small">Time Spent in This Month</h2>
+                                    <h2 class="progress_heading nl-txt-white hide-in-small">Time Spent By Learner</h2>
                                 </div>
                                 <div class="col col-50 completiontime completiontime-heading">
                                     <span>Completion Time</span>
@@ -64,7 +62,6 @@
                     </div>
                 </div>
             </div>
-
             <div class="row row-wrap responsive-md responsive-sm responsive-lg stats-graph-container-in-mobile points_container" style='max-width: 1150px;margin:0 auto; height: 250px'>
                 <div class="col col-50 w-in-small bg-in-smal">
                     <div class="row">
@@ -81,33 +78,35 @@
                     </div>
                 </div>
                 <div class="col col-50 row-justify-evenly mt-in-small nl-display-flex row" ng-class="$root.respCol221">
-                    <div class="w-in-small bg-in-small w-in-small">
-                        <div class="padding-left row row-justify-evenly ">
-                            <h2 class="heading-in-small pie_chart_heading nl-txt-white">Your Overall Progress</h2>
-                        </div>
-                        <div style="display: flex;justify-content: center;align-items: center; min-height: 200px;"
-                            class="mt-0-in-small">
-                            <div ng-class='' class='col-50 text-center padding-mid'>
-                                <div style="position: relative; height:200px;width:160px;margin:0 auto;">
-                                    <canvas class='chart chart-pie' height='150' width="150" chart-data='charts[0].data'
-                                        chart-labels='charts[0].labels' chart-colors='charts[0].colors'
-                                        chart-series='charts[0].series' chart-options='charts[0].options' legend="true">
-                                    </canvas>
-                                </div>
+                    <div class="w-in-small bg-in-small w-in-small" style="display: flex;justify-content: center;align-items: center;">
+                        <div class="row">
+                            <div class="col-25">
+                                <h2 class="heading-in-small pie_chart_heading nl-txt-white">Your Overall Progress</h2>
                             </div>
-                            <div ng-class='' class='col-50 text-center padding-mid'>
-                                <ul class="pie_chart_label">
-                                    <li class="complete_label lables">Completed</li>
-                                    <li class="notstarted_label lables">Not Started</li>
-                                    <li class="inprogress_label lables">In Progress</li>
-                                    <li class="upcoming_label lables">Upcoming</li>
-                                    <li class="expired_label lables">Expired</li>
-                                </ul>
+                            <div class="col" style="display: flex;justify-content: center;align-items: center; min-height: 200px;">
+                                <div ng-class='' class='col-50 text-center padding-mid'>
+                                    <div style="position: relative; height:200px;width:160px;margin:0 auto;">
+                                        <canvas class='chart chart-pie' height='150' width="150" chart-data='charts[0].data'
+                                            chart-labels='charts[0].labels' chart-colors='charts[0].colors'
+                                            chart-series='charts[0].series' chart-options='charts[0].options' legend="true">
+                                        </canvas>
+                                    </div>
+                                </div>
+                                <div ng-class='' class='col-50 text-center padding-mid'>
+                                    <ul class="pie_chart_label">
+                                        <li class="complete_label lables">Completed</li>
+                                        <li class="notstarted_label lables">Not Started</li>
+                                        <li class="inprogress_label lables">In Progress</li>
+                                        <li class="upcoming_label lables">Upcoming</li>
+                                        <li class="expired_label lables">Expired</li>
+                                    </ul>
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
+            <!-- <nl-leaderboard></nl-leaderboard> -->
         </div>
     </div>
 </div>
