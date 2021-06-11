@@ -8,7 +8,6 @@ function module_init() {
     .config(configFn)
     .controller('nl.TmsViewCtrl', TmsViewCtrl)
     .service('nlTmsView', TmsViewSrv);
-
 }
 
 var configFn = ['$stateProvider', '$urlRouterProvider',
@@ -24,14 +23,18 @@ function($stateProvider, $urlRouterProvider) {
 }];
 
 var TmsViewCtrl = ['$scope', 'nl', 'nlDlg', 'nlRouter', 'nlGroupInfo', 
-'nlServerApi', 'nlExporter', 'nlTmsView',
-function($scope, nl, nlDlg, nlRouter, nlGroupInfo, nlServerApi, nlExporter, nlTmsView) {
+'nlServerApi', 'nlExporter', 'nlTmsView', 'nlFileReader',
+function($scope, nl, nlDlg, nlRouter, nlGroupInfo, nlServerApi, nlExporter, nlTmsView, nlFileReader) {
     var _groupInfo = null;
     var jsonObj = null;
     var _pastUserInfosFetcher = nlGroupInfo.getPastUserInfosFetcher();
+    var _readFromFile = false;
     function _onPageEnter(userInfo) {
       return nl.q(function(resolve, reject) {
         nl.pginfo.pageTitle = nl.t('NHT batches');
+        var params = nl.location.search();
+        _readFromFile = (params.fromfile == '1'); 
+        $scope.showFilterAndView = (params.debug == '1'); 
         nlGroupInfo.init2().then(function() {
           nlGroupInfo.update();
                   _groupInfo = nlGroupInfo.get();
@@ -183,7 +186,7 @@ function($scope, nl, nlDlg, nlRouter, nlGroupInfo, nlServerApi, nlExporter, nlTm
     function _init() {
         jsonObj = null;
         $scope.searchObj = {start: null, end: null, placeHolder: 'Search based on Batch name/BatchId', laststart: '', lastend: '', canShow: false};
-        $scope.tableSelector = [{id: 'default', name: 'Overview', selected: true}, {id: 'customScores', name: 'Custom scores', selected: false}];
+        $scope.tableSelector = [{id: 'default', name: 'Overview', selected: true}, {id: 'customScores', name: 'Custom scores', selected: true}];
     }
 
 
@@ -199,7 +202,8 @@ function($scope, nl, nlDlg, nlRouter, nlGroupInfo, nlServerApi, nlExporter, nlTm
     function _fetchDataFromServer(resolve) {
         $scope.nhtInfo = {};
         var data = {grpid: _groupInfo.grpid, table: 'lr_report', recid: 0, field:'nhtinfo.json'};
-        nlServerApi.jsonFieldStream(data).then(function(resp) {
+        var fetchFn = _readFromFile ? nlFileReader.loadAndReadFile : nlServerApi.jsonFieldStream;
+        fetchFn(data).then(function(resp) {
             if (!resp || !resp.data) {
                 resolve();
             }
