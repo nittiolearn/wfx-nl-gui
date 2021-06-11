@@ -30,7 +30,7 @@
                     </div>
                     <div ng-class="" class="stats_block_background points_container stats-in-small">
                         <div class="margin-auto">
-                            <p class="total_heading nl-txt-white">Points Earned last 7 Days</p>
+                            <p class="total_heading nl-txt-white">Points Earned Last 7 Days</p>
                         </div>
                         <div class="margin-auto">
                             <h1 class="total_sub_points nl-txt-white">{{tabData.sevenDayscp}}</h1>
@@ -51,11 +51,9 @@
                             </div>
                             <div class='progress_chart text-center padding-mid'>
                                 <div class='padding-small'></div>
-                                <div ng-if='charts[0].show && charts[2].data'>
-                                    <!-- <canvas class='chart chart-line' height='250' chart-data='charts[2].data'
-                                        chart-labels='charts[2].labels' chart-colors='charts[2].colors'
-                                        chart-series='charts[2].series' chart-options='charts[2].options'>
-                                    </canvas> -->
+                                {{tabData.tsnintydays}}
+                                {{tabData.tsthirtydays}}
+                                {{tabData.tssevendays}}
                                 </div>
                             </div>
                         </div>
@@ -106,7 +104,6 @@
                     </div>
                 </div>
             </div>
-            <!-- <nl-leaderboard></nl-leaderboard> -->
         </div>
     </div>
 </div>

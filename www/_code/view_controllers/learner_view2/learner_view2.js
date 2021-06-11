@@ -463,6 +463,9 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView2, nlRouter, nlReport
 		ret.sevenDayscp = '',
 		ret.thirtyDayscp = '',
 		ret.nintyDayscp = '',
+		ret.tsnintydays = '';
+		ret.tsthirtydays = '';
+		ret.tssevendays = '';
 		ret.sectionData = [
 						{name: 'Continue Learning', type: 'progress', card2: true, cardlist: []},
 						{name: 'New Assignments', type: 'pending', card2: true, cardlist: []},
@@ -1031,6 +1034,7 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView2, nlRouter, nlReport
     }
 	
 	$scope._statsDetails = function() {
+		timespentCalc();
 		var _groupInfo = nlGroupInfo.get();
 		var _userid = _userInfo.userid;
 		var data = {grpid: _groupInfo.grpid, table: 'learningcredits', recid: 'users', field: _userid+'.json'};
@@ -1049,6 +1053,60 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView2, nlRouter, nlReport
 				leaderboard(resp.data,_groupInfo);
 			})
 		})
+	}
+
+	function timespentCalc() {
+		var totaltimeSpent = 0, count = 0, updatedDate = [];
+		var records = $scope.tabData.records
+		for (var recid in records) {
+				updatedDate.push({'updatedate' : records[recid].raw_record.updated, 'timespent': records[recid].stats.timeSpentSeconds});
+		}
+		sortByUpdatedDate(updatedDate);
+		timespentEachSection(updatedDate);
+	}
+
+	function sortByUpdatedDate(records) {
+		records.sort(function(a, b) {
+			var dateA = new Date(a.updatedate), dateB = new Date(b.updatedate);
+			return dateB - dateA;
+		});
+	}
+
+	function timespentEachSection(updatedDate) {
+		var daysRange = [];
+		var currDate = new Date();
+		currDate.setDate(currDate.getDate() - 7)
+		var sevendayagodate = new Date(currDate.toLocaleString().split(',')[0]);
+		currDate.setDate(currDate.getDate() - 23);
+		var thirtydayagodate = new Date(currDate.toLocaleString().split(',')[0]);
+		currDate.setDate(currDate.getDate() - 60);
+		var nintydayagodate = new Date(currDate.toLocaleString().split(',')[0]);
+		showTimespent(updatedDate, nintydayagodate, sevendayagodate, thirtydayagodate );
+	}
+
+	function showTimespent(updatedDate, nintydayagodate, sevendayagodate, thirtydayagodate) {
+		var tsnintydays = 0, tsthirtydays=0, tssevendays=0;
+		for(var i=0 ; i<updatedDate.length;i++) {
+			var b = new Date(updatedDate[i].updatedate.toLocaleString().split(',')[0]);
+			if(sevendayagodate <= b) {
+				tssevendays += updatedDate[i].timespent;
+			}
+				else if(thirtydayagodate <=b) {
+					tsthirtydays += updatedDate[i].timespent;
+				}
+				else if(nintydayagodate <= b) {
+					tsnintydays += updatedDate[i].timespent;
+				}
+			else {
+				tsthirtydays = tsthirtydays + tssevendays;
+				tsnintydays = tsthirtydays + tsnintydays;
+				break;
+			}
+			//updatedDate.splice(i,updatedDate.length-1);
+		}
+		$scope.tabData.tsnintydays = tsnintydays;
+		$scope.tabData.tsthirtydays = tsthirtydays;
+		$scope.tabData.tssevendays = tssevendays;
 	}
 
 	function leaderboard(data,_groupInfo) {
