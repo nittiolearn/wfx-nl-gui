@@ -460,9 +460,9 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView2, nlRouter, nlReport
 		ret.onFilter = _onFilter;
 		ret.fetchMore = _fetchMore;
 		ret.showSearchbar = true;
-		ret.sevenDayscp = '',
-		ret.thirtyDayscp = '',
-		ret.nintyDayscp = '',
+		ret.sevenDayscp = 0,
+		ret.thirtyDayscp = 0,
+		ret.nintyDayscp = 0,
 		ret.tsnintydays = '';
 		ret.tsthirtydays = '';
 		ret.tssevendays = '';
@@ -841,18 +841,18 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView2, nlRouter, nlReport
 					card.help += nl.t('<div>Total time spent: {}</div>', timeString);	
 			}
 		}
-		function timeinseconds(timeObj) {
-			if(!timeObj) return '00:00:00';
-			
-			var hours = Math.floor(timeObj / 3600); 
-            var minutes = Math.floor((timeObj - (hours * 3600)) / 60); 
-           	var seconds = timeObj - (hours * 3600) - (minutes * 60)
-			var timeString = hours.toString().padStart(2, '0') + ':' + 
-    						 minutes.toString().padStart(2, '0') + ':' + 
-    						 seconds.toString().padStart(2, '0');
-			return timeString;
-		}
 		return card;
+	}
+
+	function timeinseconds(timeObj) {
+		if(!timeObj) return '00:00:00';
+		var hours = Math.floor(timeObj / 3600); 
+		var minutes = Math.floor((timeObj - (hours * 3600)) / 60); 
+		   var seconds = timeObj - (hours * 3600) - (minutes * 60)
+		var timeString = hours.toString().padStart(2, '0') + ':' + 
+						 minutes.toString().padStart(2, '0') + ':' + 
+						 seconds.toString().padStart(2, '0');
+		return timeString;
 	}
 
 	function _getSearchInfo(tabData) {
@@ -1050,7 +1050,6 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView2, nlRouter, nlReport
 				$scope.tabData.sevenDayscp = resp.data.lcredits7;
 				$scope.tabData.thirtyDayscp = resp.data.lcredits30;
 				$scope.tabData.nintyDayscp = resp.data.lcredits90;
-				leaderboard(resp.data,_groupInfo);
 			})
 		})
 	}
@@ -1073,7 +1072,6 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView2, nlRouter, nlReport
 	}
 
 	function timespentEachSection(updatedDate) {
-		var daysRange = [];
 		var currDate = new Date();
 		currDate.setDate(currDate.getDate() - 7)
 		var sevendayagodate = new Date(currDate.toLocaleString().split(',')[0]);
@@ -1102,11 +1100,11 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView2, nlRouter, nlReport
 				tsnintydays = tsthirtydays + tsnintydays;
 				break;
 			}
-			//updatedDate.splice(i,updatedDate.length-1);
 		}
-		$scope.tabData.tsnintydays = tsnintydays;
-		$scope.tabData.tsthirtydays = tsthirtydays;
-		$scope.tabData.tssevendays = tssevendays;
+		
+		$scope.tabData.tsnintydays = Math.round(tsnintydays/60);
+		$scope.tabData.tsthirtydays = Math.round(tsthirtydays/60);
+		$scope.tabData.tssevendays = Math.round(tssevendays/60);
 	}
 
 	function leaderboard(data,_groupInfo) {

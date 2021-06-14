@@ -7,60 +7,57 @@
             <div ng-show='tabData.recordsLen == 0' class='bgdefault fgrey padding shape-rounded-small'>
                 Nothing to display.
             </div>
-            
-            <div ng-if='showCreditpoints' ng-show='tabData.recordsLen > 0' class="row row-wrap responsive-md responsive-sm responsive-lg stats-graph-container-in-mobile" style='max-width: 1150px;margin:0 auto; padding: 0px;'>
-                <div ng-class="$root.respCol221" class="col-50 nl-display-flex" style="padding: 0px;margin-bottom: 25px;">
-                    <div ng-class="" class="stats_block_background points_container stats-in-small">
-                        <div class="margin-auto">
-                            <p class="total_heading nl-txt-white">Points Earned Last 90 Days</p>
+            <div ng-if='showCreditpoints' ng-show='tabData.recordsLen > 0' class="row row-wrap" style='max-width: 1150px;margin:0 auto; padding: 0px;margin-bottom: 25px;'>
+                <div class="nl-display-flex points_container show-in-small">
+                    <div ng-class="" class="stats_container points_container_background stats-in-small">
+                        <div class='days_container_small days_container {{$root.screenSize == "small" ? "col-50" : ""}}'>
+                            <span class="total_heading nl-txt-white Montserrat-font">In Past 7 Days</span>
                         </div>
-                        <div class="margin-auto">
-                            <h1 class="total_sub_points nl-txt-white">{{tabData.nintyDayscp}}</h1>
-                        </div>
-                        <div class="margin-auto"><img class="img-in-small" src="{{tabData.bluestar}}" alt="bluestar"></div>
-                    </div>
-                    <div ng-class="" class="stats_block_background points_container stats-in-small">
-                        <div class="margin-auto">
-                            <p class="total_heading padding-mid nl-txt-white">Points Earned Last 30 Days</p>
-                        </div>
-                        <div class="margin-auto">
-                            <h1 class="total_sub_points nl-txt-white">{{tabData.thirtyDayscp}}</h1>
-                        </div>
-                        <div class="margin-auto"><img class="img-in-small" src="{{tabData.greenstar}}" alt="greenstar"></div>
-                    </div>
-                    <div ng-class="" class="stats_block_background points_container stats-in-small">
-                        <div class="margin-auto">
-                            <p class="total_heading nl-txt-white">Points Earned Last 7 Days</p>
-                        </div>
-                        <div class="margin-auto">
-                            <h1 class="total_sub_points nl-txt-white">{{tabData.sevenDayscp}}</h1>
-                        </div>
-                        <div class="margin-auto"><img class="img-in-small" src="{{tabData.redstar}}" alt="redstar"></div>
-                    </div>                  
-                </div>
-                <div ng-class="$root.respCol221" class="col-50" style="padding: 0px;">
-                    <div class="margin-auto mt-0-in-small responsive-md responsive-sm row points_container stats-graph-container-in-mobile w-in-small">
-                        <div class="col bg-in-small">
-                            <div class="row">
-                                <div class="col col-50">
-                                    <h2 class="progress_heading nl-txt-white hide-in-small">Time Spent By Learner</h2>
-                                </div>
-                                <div class="col col-50 completiontime completiontime-heading">
-                                    <span>Completion Time</span>
-                                </div>
+                        <div class='{{$root.screenSize == "small" ? "col-50" : "row"}}'>
+                            <div class='text-center time_spent_small mt-0-in-small {{$root.screenSize == "small" ? "row" : "col-50"}} '>
+                                <div class="fdone total_sub_points Montserrat-font font-20-in-small">{{tabData.sevenDayscp}}</div>
+                                <div class="nl-txt-white mt-20 mt-0-in-small Montserrat-font font-12-in-small">Points Earned</div>
                             </div>
-                            <div class='progress_chart text-center padding-mid'>
-                                <div class='padding-small'></div>
-                                {{tabData.tsnintydays}}
-                                {{tabData.tsthirtydays}}
-                                {{tabData.tssevendays}}
-                                </div>
-                            </div>
+                            <div class='text-center time_spent_small {{$root.screenSize == "small" ? "row " : "col-50"}}'>
+                                <div class="fdone total_sub_points Montserrat-font font-20-in-small">{{tabData.tssevendays}}</div>
+                                <div class="nl-txt-white mt-20 mt-0-in-small Montserrat-font font-12-in-small">Time Spent <br> In Minutes</div>
+                            </div>                     
+                        </div>         
+                    </div>   
+                    <div ng-class="" class="stats_container points_container_background stats-in-small">
+                        <div class='days_container_small days_container {{$root.screenSize == "small" ? "col-50" : ""}}'>
+                            <span class="total_heading nl-txt-white Montserrat-font">In Past 30 Days</span>
                         </div>
-                    </div>
+                        <div class='{{$root.screenSize == "small" ? "col-50" : "row"}}'>
+                            <div class='text-center time_spent_small mt-0-in-small {{$root.screenSize == "small" ? "row" : "col-50"}} '>
+                                <div class="fdone total_sub_points Montserrat-font font-20-in-small">{{tabData.thirtyDayscp}}</div>
+                                <div class="nl-txt-white mt-20 mt-0-in-small Montserrat-font font-12-in-small">Points Earned</div>
+                            </div>
+                            <div class='text-center time_spent_small {{$root.screenSize == "small" ? "row " : "col-50"}}'>
+                                <div class="fdone total_sub_points Montserrat-font font-20-in-small">{{tabData.tsthirtydays}}</div>
+                                <div class="nl-txt-white mt-20 mt-0-in-small Montserrat-font font-12-in-small">Time Spent <br> In Minutes</div>
+                            </div>                     
+                        </div>         
+                    </div>   
+                    <div ng-class="" class="stats_container points_container_background stats-in-small">
+                        <div class='days_container_small days_container {{$root.screenSize == "small" ? "col-50" : ""}}'>
+                            <span class="total_heading nl-txt-white Montserrat-font">In Past 90 Days</span>
+                        </div>
+                        <div class='{{$root.screenSize == "small" ? "col-50" : "row"}}'>
+                            <div class='text-center time_spent_small mt-0-in-small {{$root.screenSize == "small" ? "row" : "col-50"}} '>
+                                <div class="fdone total_sub_points Montserrat-font font-20-in-small">{{tabData.nintyDayscp}}</div>
+                                <div class="nl-txt-white mt-20 mt-0-in-small Montserrat-font font-12-in-small">Points Earned</div>
+                            </div>
+                            <div class='text-center time_spent_small {{$root.screenSize == "small" ? "row " : "col-50"}}'>
+                                <div class="fdone total_sub_points Montserrat-font font-20-in-small">{{tabData.tsnintydays}}</div>
+                                <div class="nl-txt-white mt-20 mt-0-in-small Montserrat-font font-12-in-small">Time Spent <br> In Minutes</div>
+                            </div>                     
+                        </div>         
+                    </div>     
                 </div>
             </div>
-            <div class="row row-wrap responsive-md responsive-sm responsive-lg stats-graph-container-in-mobile points_container" style='max-width: 1150px;margin:0 auto; height: 250px'>
+            </div>
+            <div class="row row-wrap responsive-md responsive-sm responsive-lg stats-graph-container-in-mobile points_container_background" style='max-width: 1150px;margin:0 auto; height: 250px'>
                 <div class="col col-50 w-in-small bg-in-smal">
                     <div class="row">
                         <div class="col col-66">

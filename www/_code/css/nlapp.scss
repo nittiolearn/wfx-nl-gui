@@ -4182,10 +4182,8 @@ background-color: var(--nlFontYellow);}
   .total_heading {
     font-size: 10px !important;
     line-height: 1.25 !important;
-    margin: 0px 15px 0px 15px !important;
   }
   .total_sub_points {
-    font-size: 12px !important;
     line-height: .65 !important;
   }
   .stats-graph-container-in-mobile {
@@ -4251,6 +4249,24 @@ background-color: var(--nlFontYellow);}
     overflow: hidden;
     white-space: normal;
     height: 35%;
+  }
+  .points_container {
+    margin-bottom: 20px;
+    .stats_container {
+      flex-direction: row !important;
+      margin: 0 auto 20px auto;
+      max-width: 90%;
+      padding: 10px;
+      grid-gap:15px;
+        .time_spent_small {
+        margin-top: 15px;
+        align-items: center;
+        justify-content: space-between;
+        }
+        .days_container_small {
+          max-width: 140px;
+        }
+    }
   }
 }
 
@@ -6147,7 +6163,7 @@ nl-dlg {
  * Stats Page style
  *-----------------------------------------------------------------------------------------*/
 
-.points_container {
+.points_container_background, .days_container {
   border-radius: 12px;
   box-shadow: inset 0 0 2px var(--nlBorderBlackTransparent20), 1px 1px 2px var(--nlFontDarkGrey2);
   box-shadow: inset 0 0 2px var(--nlBorderBlackTransparent20), 1px 1px 2px var(--nlFontDarkGrey2);
@@ -6446,39 +6462,46 @@ color:var(--nlWhite);
   background-color: var(--nlStatusFailed);
 }
 .points_container {
+  padding: 0px;
+  flex:1;
+  grid-gap:20px
+}
+.points_container_background, .days_container {
   border-radius: 12px;
   box-shadow: 0 3px 6px 0 var(--nlPrimary);
   background-color: #f0f0f0;
 }
-.stats_block_background {
-  width: 170px;
+.days_container {
+  box-shadow: 0px 0px 0px 0px;
+  background-color: var(--nlLinkTextBg);
+}
+.stats_container {
+  flex-basis: 33.33%;
   height: 250px;
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   flex-direction: column;
   align-items: center;
-  margin-right: 22px;
+  grid-gap: 35px;
+  .days_container_small {
+    height: 40px;
+    width: 200px;
+    text-align: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+   }
 }
 .total_heading {
-  font-family: Montserrat-Medium;
   font-size: 16px;
-  font-weight: 500;
-  font-stretch: normal;
-  font-style: normal;
   line-height: 1;
-  letter-spacing: normal;
-  padding: 0px 10px;
-  text-align: center;
+  letter-spacing: 2px;
 }
 .total_sub_points {
+  font-size: 28px;
+}
+.Montserrat-font {
   font-family: Montserrat-Medium;
-  font-size: 20px;
-  font-weight: 500;
-  font-stretch: normal;
-  font-style: normal;
-  line-height: 1;
-  letter-spacing: normal;
-  text-align: center;
 }
 .progress_heading {
   line-height:25px;
@@ -6671,6 +6694,7 @@ Font-size
 .fontsize30 {
   font-size: 30px;
 }
+
 //new explore section 
 .explore-card-container {
   margin-bottom: 20px;
