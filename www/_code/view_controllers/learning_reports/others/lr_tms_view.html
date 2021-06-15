@@ -125,6 +125,9 @@ table tbody, table thead
                                     </span>
                                 </div>
                             </div>
+                            <span ng-if='!rec.isFolder' ng-click='onDetailsClick($event, rec, nhtInfo.info.columns)' class='nl-link-text'>
+                                <i class="padding-mid icon ion-information-circled fsh4 nl-info-icon"></i>
+                            </span> 
                         </div>
                     </td>
                     <td ng-repeat='col in nhtInfo.info.columns track by $index'

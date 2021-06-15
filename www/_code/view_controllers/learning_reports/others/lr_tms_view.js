@@ -132,6 +132,21 @@ function($scope, nl, nlDlg, nlRouter, nlGroupInfo, nlServerApi, nlExporter, nlTm
         $scope.nhtInfo.info.columns = _getTmsCols();
     };
 
+	$scope.onDetailsClick = function(e, item, columns) {
+		e.stopImmediatePropagation();
+		e.preventDefault();
+		var detailsDlg = nlDlg.create($scope);
+		detailsDlg.setCssClass('nl-heigth-max nl-width-max');
+		detailsDlg.scope.item = item;
+		detailsDlg.scope.columns = columns;
+		detailsDlg.scope.getRoundedPerc = function(divider, dividend) {
+			return Math.round((divider*100)/dividend);
+		}
+		var cancelButton = {text: nl.t('Close')};
+		detailsDlg.show('view_controllers/learning_reports/lr_courses_tab_details.html',
+			[], cancelButton);
+	};
+
     function _getDefaultCols() {
         return [{id: 'all', name: 'Overall'}, {id: 'suborg', name: 'Sub-Org name'}, {id: 'batchname', name: 'Batch name'}];
     }
@@ -274,6 +289,7 @@ function($scope, nl, nlDlg, nlRouter, nlGroupInfo, nlServerApi, nlExporter, nlTm
         columns.push({id: 'Closed', name: 'Closed', table: true, background: 'nl-bg-blue', showAlways: true, hidePerc:true, type: 'default'});
         columns.push({id: 'failed', name: 'Failed', table: true, background: 'nl-bg-blue', showAlways: true, hidePerc:true, type: 'default'});
         columns.push({id: 'attrition', name: 'Attrition', table: true, background: 'nl-bg-blue', showAlways: true, hidePerc:true, type: 'default'});
+        columns.push({id: 'otherRecords', name: 'Transferred out or added in next batches', table: false, background: 'nl-bg-blue', showAlways: true, background: 'bggrey', hidePerc:true, type: 'default'});
         columns.push({id: 'nQuizzes', name: 'Number of applicable modules', table: true, background: 'nl-bg-blue', showAlways: true, hidePerc:true, type: 'default'});
         columns.push({id: 'nQuizzesCompleted', name: 'Number of completed modules', table: true, background: 'nl-bg-blue', showAlways: true, hidePerc:true, type: 'default'});
         columns.push({id: 'percCompletedLesson', name: 'Completion %', table: true, background: 'nl-bg-blue', showAlways: true, hidePerc:true, type: 'default'});
@@ -362,7 +378,7 @@ function(nl) {
                     var recObj = batchObj[rec];
                     var assignment = assignments[batch];
                     var level1Info = {id: suborg, name: suborg};
-                    var level2Info = {id: batch, name: assignment.batchname};
+                    var level2Info = {id: batch, name: assignment.batchname, otherRecs: assignment.otherRecords || 0};
                     if (!_doesPassFilter(assignment, searchObj)) continue;
                     self.addCount(recObj, level1Info, level2Info);
                 }
@@ -382,6 +398,7 @@ function(nl) {
     this.addCount = function(record, level1Info, level2Info) {
         var statusCntObj = _getStatusCountObj(record);
         statusCntObj.assignment = level2Info.id;
+        statusCntObj.otherRecs = level2Info.otherRecs;
         _addCount(level1Info, level2Info, statusCntObj);
 
     };
@@ -419,7 +436,8 @@ function TmsStatsCounts(nl) {
     var self = this;
     var statsCountItem = {'cntTotal': 0, 'Training': 0, 'OJT': 0, 'Certification': 0, 'Re-certification': 0, 
                           'certified': 0, 'Closed': 0, 'isOpen': false, 'attrition': 0, 'failed': 0, 'nQuizzes': 0, 'nQuizzesCompleted': 0, 
-                          'nQuizScorePerc': 0, 'nQuizPercScoreCount' : 0, batchCounted: {}, batchCount: 0};
+                          'nQuizScorePerc': 0, 'nQuizPercScoreCount' : 0, batchCounted: {}, batchCount: 0,
+                          'otherRecords': 0};
     var defaultStates = angular.copy(statsCountItem);
     var _dynamicStates = {};
     var _customScores = {};
@@ -506,8 +524,10 @@ function TmsStatsCounts(nl) {
 
     function _updateStatsCount(updatedStats, statusCnt) { 
         for(var key in statusCnt) {
+            if (key == 'otherRecs') continue;
             if (key == 'assignment') {
                 if (statusCnt[key] in updatedStats.batchCounted) continue;
+                updatedStats.otherRecords += statusCnt.otherRecs || 0;
                 updatedStats.batchCount += 1;
                 updatedStats.batchCounted[statusCnt[key]] = true;
             }
