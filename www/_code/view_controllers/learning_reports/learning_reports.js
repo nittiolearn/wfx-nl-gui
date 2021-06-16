@@ -2321,11 +2321,8 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		var attritionArray = [];
 		for (var key in tmsRecordsDict) {
 			var tmsRecord = tmsRecordsDict[key];
-			var status = tmsRecord.stats.status.txt;
-			if (status.indexOf('attrition') == 0) 
-				attritionArray.push(tmsRecord);
-			else if (tmsRecord.user.state == 0 && status == 'failed')
-				attritionArray.push(tmsRecord);
+			var attritionStr = tmsRecord.stats.attritionStr;
+			if (attritionStr) attritionArray.push(tmsRecord);
 		}
 		return attritionArray;
 	}

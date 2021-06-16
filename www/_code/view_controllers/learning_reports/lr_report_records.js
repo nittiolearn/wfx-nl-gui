@@ -398,6 +398,7 @@ function(nl, nlRouter, nlDlg, nlGroupInfo, nlLrHelper, nlLrFilter, nlGetManyStor
         
         if(repcontent.started) {
             stats.timeSpentSeconds = repcontent.timeSpentSeconds || 0;
+            stats.timeSpentMinutes = repcontent.timeSpentSeconds > 0 ? Math.ceil(stainf.onlineTimeSpentSeconds/60) : '';
             stats.nLessonsAttempted = 1;
             stats.nQuiz = 1;
             stats.totalQuizAttempts = 1;
