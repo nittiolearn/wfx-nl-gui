@@ -6,7 +6,7 @@
 	// 						   delegates to nlLearnerView service.
 
 function module_init() {
-	angular.module('nl.learner_view2', ['nl.learner_view_records2'])
+	angular.module('nl.learner_view2', ['nl.learner_view_records2', 'nl.learner_view_timespent'])
 	.config(configFn)
 	.directive('nlLearnerViewDir2', LearnerView2Directive)
 	.directive('nlLearnerViewTopSection', LearnerViewTopSectionDirective)
@@ -44,8 +44,8 @@ function(nl) {
 
 //-------------------------------------------------------------------------------------------------
 
-var LearnerViewTopSectionDirective = ['nl', 'nlDlg', 'nlServerApi', 'nlGroupInfo', 
-function(nl, nlDlg, nlServerApi, nlGroupInfo) {
+var LearnerViewTopSectionDirective = ['nl', 'nlDlg', 'nlLearnerViewTimeSpent',
+function(nl, nlDlg, nlLearnerViewTimeSpent) {
     return {
         restrict: 'E',
         transclude: true,
@@ -57,6 +57,7 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo) {
 			$scope.summary = nl.url.lessonIconUrl('summary.svg');
 			$scope.learn = nl.url.lessonIconUrl('learn.svg');
 			$scope.explore=nl.url.lessonIconUrl('explore.svg');
+			$scope.creditStar =nl.url.lessonIconUrl('credit-star.svg');
 			$scope.onDetailsLinkClicked = function($event, record, clickAttr) {
                 var detailsDlg = nlDlg.create($scope);
 				detailsDlg.setCssClass('nl-dlg2');
@@ -74,7 +75,6 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo) {
 				$scope.tabdata.summaryStats = true;
 				$scope.tabdata.explore = false;
 				$scope.tabdata.showSearchbar = false;
-				$scope.$parent._statsDetails();
 			};
 			$scope.exploreAvailable =function() {
 				$scope.tabdata.explore= true;
@@ -196,11 +196,11 @@ function(nl, nlDlg) {
 //-------------------------------------------------------------------------------------------------
 
 var NlLearnerView2 = ['nl', 'nlDlg', 'nlRouter', 'nlReportHelper',
-'nlLearnerViewRecords2', 'nlTopbarSrv', 'nlCardsSrv', 'nlCourse', 'nlGetManyStore', 'nlAnnouncementSrv', 'nlServerApi', 'nlGroupInfo',
-function(nl, nlDlg, nlRouter, nlReportHelper, nlLearnerViewRecords2, nlTopbarSrv, nlCardsSrv, nlCourse, nlGetManyStore, nlAnnouncementSrv, nlServerApi, nlGroupInfo) {
+'nlLearnerViewRecords2', 'nlTopbarSrv', 'nlCardsSrv', 'nlCourse', 'nlGetManyStore', 'nlAnnouncementSrv', 'nlServerApi', 'nlGroupInfo','nlLearnerViewTimeSpent',
+function(nl, nlDlg, nlRouter, nlReportHelper, nlLearnerViewRecords2, nlTopbarSrv, nlCardsSrv, nlCourse, nlGetManyStore, nlAnnouncementSrv, nlServerApi, nlGroupInfo, nlLearnerViewTimeSpent) {
 	this.create = function($scope) {
 		return new NlLearnerViewImpl($scope, nl, nlDlg, this, nlRouter, nlReportHelper,
-			nlLearnerViewRecords2, nlTopbarSrv, nlCardsSrv, nlCourse, nlGetManyStore, nlAnnouncementSrv, nlServerApi, nlGroupInfo);
+			nlLearnerViewRecords2, nlTopbarSrv, nlCardsSrv, nlCourse, nlGetManyStore, nlAnnouncementSrv, nlServerApi, nlGroupInfo, nlLearnerViewTimeSpent);
 	};
 
 	this.initPageBgImg = function(data) {
@@ -218,7 +218,7 @@ function(nl, nlDlg, nlRouter, nlReportHelper, nlLearnerViewRecords2, nlTopbarSrv
 }];
 
 function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView2, nlRouter, nlReportHelper, 
-	nlLearnerViewRecords2, nlTopbarSrv, nlCardsSrv, nlCourse, nlGetManyStore, nlAnnouncementSrv, nlServerApi, nlGroupInfo) {
+	nlLearnerViewRecords2, nlTopbarSrv, nlCardsSrv, nlCourse, nlGetManyStore, nlAnnouncementSrv, nlServerApi, nlGroupInfo, nlLearnerViewTimeSpent) {
 	var self = this;
 	var _userInfo = null;
 	var _parent = false;
@@ -255,8 +255,8 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView2, nlRouter, nlReport
 			if(_enableAnnouncements) _loadAndShowAnnouncements();
 			nlGroupInfo.init2().then(function() {
 				nlGroupInfo.update();
+				_statsDetails();
 			});
-			$scope.showCreditpoints = ((((_userInfo.groupinfo || {}).features || {}).learningCredits || {}).learnerUi || false) || false;
 		});
 	}
 	
@@ -278,7 +278,6 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView2, nlRouter, nlReport
 			cards.canShowPrev = _canShowPrev;
 			cards.getVisibleString = _getVisibleString;
 			cards.canSort = _canSort;
-
 			nlCardsSrv.initCards(cards);
 		}
 		$scope.userName = userInfo.displayname;
@@ -439,9 +438,8 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView2, nlRouter, nlReport
 
 	function _initData() {
 		var ret =  {toptabs: []};
-		var isExploreTabAvailable = _userInfo.dashboard_props && 
-			_userInfo.dashboard_props.explore && 
-			(_userInfo.dashboard_props.explore.length > 0);
+		var isExploreTabAvailable = _userInfo.dashboard_props &&  _userInfo.dashboard_props.explore && (_userInfo.dashboard_props.explore.length > 0);
+		var showCreditpoints = ((((_userInfo.groupinfo || {}).features || {}).learningCredits || {}).learnerUi || false) || false;
 		_updateTopBarButtons(ret);
 		ret.dataLoaded = false;
 		ret.learningCounts = {};
@@ -460,6 +458,7 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView2, nlRouter, nlReport
 		ret.onFilter = _onFilter;
 		ret.fetchMore = _fetchMore;
 		ret.showSearchbar = true;
+		ret.showCreditpoints = showCreditpoints;
 		ret.sevenDayscp = 0,
 		ret.thirtyDayscp = 0,
 		ret.nintyDayscp = 0,
@@ -1033,8 +1032,8 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView2, nlRouter, nlReport
         return avps;
     }
 	
-	$scope._statsDetails = function() {
-		timespentCalc();
+	function _statsDetails() {
+		showTimeSpent();
 		var _groupInfo = nlGroupInfo.get();
 		var _userid = _userInfo.userid;
 		var data = {grpid: _groupInfo.grpid, table: 'learningcredits', recid: 'users', field: _userid+'.json'};
@@ -1047,64 +1046,31 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView2, nlRouter, nlReport
 					nlDlg.popupStatus('Some error occured while downloading ...', false);
 					return;
 				}
-				$scope.tabData.sevenDayscp = resp.data.lcredits7;
-				$scope.tabData.thirtyDayscp = resp.data.lcredits30;
-				$scope.tabData.nintyDayscp = resp.data.lcredits90;
+				$scope.tabData.sevenDayscp = resp.data.lcredits7 >999 ? nFormatter(resp.data.lcredits7) : resp.data.lcredits7;
+				$scope.tabData.thirtyDayscp = resp.data.lcredits30 > 999 ? nFormatter(resp.data.lcredits30) : resp.data.lcredits30;
+				$scope.tabData.nintyDayscp = resp.data.lcredits90 > 999 ? nFormatter(resp.data.lcredits90) : resp.data.lcredits90;
 			})
 		})
 	}
 
-	function timespentCalc() {
-		var totaltimeSpent = 0, count = 0, updatedDate = [];
-		var records = $scope.tabData.records
-		for (var recid in records) {
-				updatedDate.push({'updatedate' : records[recid].raw_record.updated, 'timespent': records[recid].stats.timeSpentSeconds});
+	function nFormatter(num) {
+		if (num >= 1000000000) {
+		   return (num / 1000000000).toFixed(1).replace(/\.0$/, '') + 'G';
 		}
-		sortByUpdatedDate(updatedDate);
-		timespentEachSection(updatedDate);
-	}
-
-	function sortByUpdatedDate(records) {
-		records.sort(function(a, b) {
-			var dateA = new Date(a.updatedate), dateB = new Date(b.updatedate);
-			return dateB - dateA;
-		});
-	}
-
-	function timespentEachSection(updatedDate) {
-		var currDate = new Date();
-		currDate.setDate(currDate.getDate() - 7)
-		var sevendayagodate = new Date(currDate.toLocaleString().split(',')[0]);
-		currDate.setDate(currDate.getDate() - 23);
-		var thirtydayagodate = new Date(currDate.toLocaleString().split(',')[0]);
-		currDate.setDate(currDate.getDate() - 60);
-		var nintydayagodate = new Date(currDate.toLocaleString().split(',')[0]);
-		showTimespent(updatedDate, nintydayagodate, sevendayagodate, thirtydayagodate );
-	}
-
-	function showTimespent(updatedDate, nintydayagodate, sevendayagodate, thirtydayagodate) {
-		var tsnintydays = 0, tsthirtydays=0, tssevendays=0;
-		for(var i=0 ; i<updatedDate.length;i++) {
-			var b = new Date(updatedDate[i].updatedate.toLocaleString().split(',')[0]);
-			if(sevendayagodate <= b) {
-				tssevendays += updatedDate[i].timespent;
-			}
-				else if(thirtydayagodate <=b) {
-					tsthirtydays += updatedDate[i].timespent;
-				}
-				else if(nintydayagodate <= b) {
-					tsnintydays += updatedDate[i].timespent;
-				}
-			else {
-				tsthirtydays = tsthirtydays + tssevendays;
-				tsnintydays = tsthirtydays + tsnintydays;
-				break;
-			}
+		if (num >= 1000000) {
+		   return (num / 1000000).toFixed(1).replace(/\.0$/, '') + 'M';
 		}
-		
-		$scope.tabData.tsnintydays = Math.round(tsnintydays/60);
-		$scope.tabData.tsthirtydays = Math.round(tsthirtydays/60);
-		$scope.tabData.tssevendays = Math.round(tssevendays/60);
+		if (num >= 1000) {
+		   return (num / 1000).toFixed(1).replace(/\.0$/, '') + 'K';
+		}
+		return num;
+   }
+
+	function showTimeSpent() { 
+		var timeSpentArr = nlLearnerViewTimeSpent.show();
+		$scope.tabData.tssevendays = timeSpentArr[0]; //time spent last 7 days
+		$scope.tabData.tsthirtydays = timeSpentArr[1]; //time spent last 30 days
+		$scope.tabData.tsnintydays = timeSpentArr[2]; //time spent last 7 days
 	}
 
 	function leaderboard(data,_groupInfo) {
