@@ -358,6 +358,10 @@ function(nl, nlDlg, nlRouter, nlExporter, nlLrHelper, nlLrSummaryStats, nlGroupI
                 if (filter.exportTypes.feedback && ctx.feedbackRows.length > 1) {
                     zipData.push({aoa: ctx.feedbackRows, fileName: 'feedback', fileExt: 'xlsx'});
                 }
+                if (filter.exportTypes.attrition && ctx.attritionRow.length > 1) {
+                    zipData.push({aoa: ctx.attritionRow, fileName: 'attrition-reports', fileExt: 'xlsx'});
+                }
+
                 _downloadedFiles = [];
                 _addXlsFilesToZip(zipData, null, resolve, reject, (_canzip ? zip : null));                
             }
