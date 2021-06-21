@@ -146,7 +146,11 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 
 	var _tableNavPos = {};
 	var MAX_VISIBLE = 100;
+	var _debugLC = false;
 	function _initScope() {
+		var urlParams = nl.location.search();
+		if (urlParams.debuglc=='1') _debugLC = true;
+
 		$scope.debug = nlLrFilter.isDebugMode();
 		$scope.toolbar = _getToolbar();
 		$scope.learningRecords = nlLrReportRecords.getRecords();
@@ -374,7 +378,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 			if (courseAssignment.info && courseAssignment.info.forum) return true;
  			return false;
 		}
-		if (tbid == 'exportLearningCreditsReport') return (type == 'course' && _userInfo.groupinfo.features['learningCredits'] && _userInfo.permissions['assignment_manage']);
+		if (tbid == 'exportLearningCreditsReport') return (type == 'course' && (_debugLC || _userInfo.groupinfo.features['learningCredits']) && _userInfo.permissions['assignment_manage']);
 		if (tbid == 'exportCustomReport') return (type == 'course') && ($scope.debug || _customReportTemplate);
 		if (tbid == 'selectUser') return (nlLrFilter.getType() == 'user');
 		var canManage = nlRouter.isPermitted(_userInfo, 'assignment_manage');
@@ -2351,7 +2355,10 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 				}
 				var jsonObj = resp.data;
 				jsonObj = angular.fromJson(jsonObj);
-				var strData = nlExporter.objToCsv(jsonObj, [{id:"userid",name:"User Id"},{id:"username",name:"Username"},{id:"cohort",name:"Cohort"},{id:"lrank7",name:"Learner Rank (7 days)"},{id:"lrank30",name:"Learner Rank (30 days)"},{id:"lrank90",name:"Learner Rank (90 days)"},{id:"lcredits7",name:"Learning Credits (7 Days)"},{id:"lcredits30",name:"Learning Credits (30 Days)"},{id:"lcredits90",name:"Learning Credits (90 Days)"}]);
+				var strData = nlExporter.objToCsv(jsonObj, [{id:"username",name:"Username"},{id:"cohort",name:"Cohort"},
+					{id:"lrank7",name:"Learner Rank (7 days)"},{id:"lrank30",name:"Learner Rank (30 days)"},{id:"lrank90",name:"Learner Rank (90 days)"},
+					{id:"lcredits7",name:"Learning Credits (7 Days)"},{id:"lcredits30",name:"Learning Credits (30 Days)"},{id:"lcredits90",name:"Learning Credits (90 Days)"},
+					{id:"userid",name:"User Id"}]);
 				nlExporter.exportCsvFile('learning_credits.csv', strData, true);
 				nl.timeout(function() {
 					nlDlg.popdownStatus(0);
