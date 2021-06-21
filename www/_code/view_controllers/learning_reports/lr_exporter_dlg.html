@@ -47,6 +47,49 @@
             <i ng-hide='export.courseDetails' class="fsh4 icon ion-android-checkbox-outline-blank"></i>
             <span>download course details</span>
         </div>
+        <div ng-if='export.courseDetails'
+            ng-click='detailAttrs.lesson = !detailAttrs.lesson'  class='padding-mid nl-link-text'
+            style='padding-left: 24px'>
+            <i ng-show='detailAttrs.lesson' class="fsh4 icon ion-android-checkbox-outline"></i>
+            <i ng-hide='detailAttrs.lesson' class="fsh4 icon ion-android-checkbox-outline-blank"></i>
+            <span>download lesson reports</span>            
+        </div>
+        <div ng-if='export.courseDetails && detailAttrs.lesson'>
+            <div ng-click='lessonAttrs.quiz = !lessonAttrs.quiz'  class='padding-mid nl-link-text'
+                style='padding-left: 48px'>
+                <i ng-show='lessonAttrs.quiz' class="fsh4 icon ion-android-checkbox-outline"></i>
+                <i ng-hide='lessonAttrs.quiz' class="fsh4 icon ion-android-checkbox-outline-blank"></i>
+                <span>download quiz reports</span>
+            </div>
+        </div>
+        <div ng-if='export.courseDetails && detailAttrs.lesson && lessonAttrs.quiz'>
+            <div ng-click='lessonAttrs.pastAttempt = !lessonAttrs.pastAttempt'  class='padding-mid nl-link-text'
+                style='padding-left: 72px'>
+                <i ng-show='lessonAttrs.pastAttempt' class="fsh4 icon ion-android-checkbox-outline"></i>
+                <i ng-hide='lessonAttrs.pastAttempt' class="fsh4 icon ion-android-checkbox-outline-blank"></i>
+                <span>download past attempt of quiz reports</span>
+            </div>
+        </div>
+        <div ng-if='export.courseDetails && detailAttrs.lesson'>
+            <div ng-click='lessonAttrs.selflearning = !lessonAttrs.selflearning'  class='padding-mid nl-link-text'
+                style='padding-left: 48px'>
+                <i ng-show='essonAttrs.selflearning' class="fsh4 icon ion-android-checkbox-outline"></i>
+                <i ng-hide='essonAttrs.selflearning' class="fsh4 icon ion-android-checkbox-outline-blank"></i>
+                <span>download self learning reports</span>
+            </div>            
+        </div>
+        <div ng-if='export.courseDetails'>
+            <div class='row row-center margin0 padding-mid'
+                ng-repeat='item in detailAttrsArray'
+                ng-if='item != "lesson"'
+                style='padding-left: 16px'>
+                <div ng-click='detailAttrs[item] = !detailAttrs[item]'  class='padding-mid nl-link-text'>
+                    <i ng-show='detailAttrs[item]' class="fsh4 icon ion-android-checkbox-outline"></i>
+                    <i ng-hide='detailAttrs[item]' class="fsh4 icon ion-android-checkbox-outline-blank"></i>
+                    <span>download {{item}} of course</span>            
+                </div>    
+            </div>
+        </div>
         <div class='padding-mid nl-link-text' 
              ng-show='reptype == "module_assign" || reptype == "module" || reptype == "module_self_assign"'
              ng-click='export.module = !export.module'>
