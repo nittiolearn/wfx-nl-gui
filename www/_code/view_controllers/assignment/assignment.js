@@ -44,10 +44,12 @@ function TypeHandler(nl, nlServerApi) {
 	this.title = null;
 	this.max_delete = 50;
 	this.max2 = 500;
+	this.isSubOrgScope = false;
 
 	this.initFromUrl = function(userInfo) {
 		var params = nl.location.search();
 		this.type = _convertType(params.type, userInfo);
+		this.isSubOrgScope = ('scope' in params) && params.scope == 'suborg';
 		this.custtype = ('custtype' in params) ? parseInt(params.custtype) : null;
 		this.title = params.title || null;
 		this.max_delete = params.max_delete || 50;
@@ -160,6 +162,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlGetManyStore, n
                 if (resolve) resolve(false);
                 return;
             }
+			results = _filterSuborgs(results);
 			if (mode.type != TYPES.NEW && mode.type != TYPES.PAST) {
 				_afterSubFetching(results, resolve);
 			} else {
@@ -168,6 +171,11 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlGetManyStore, n
         });
 	}
 	
+	function _filterSuborgs(results) {
+		if (mode.type != TYPES.MANAGE || !mode.isSubOrgScope) return results;
+		// TODO-NOW-AAZAR - filter out and return only my suborg
+	}
+
 	function _subfetchAndOverride(results, resolve) {
         nlGetManyStore.fetchReferredRecords(results, true, function() {
             for(var i=0; i<results.length; i++) {

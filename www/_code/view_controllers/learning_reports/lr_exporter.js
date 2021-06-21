@@ -358,6 +358,10 @@ function(nl, nlDlg, nlRouter, nlExporter, nlLrHelper, nlLrSummaryStats, nlGroupI
                 if (filter.exportTypes.feedback && ctx.feedbackRows.length > 1) {
                     zipData.push({aoa: ctx.feedbackRows, fileName: 'feedback', fileExt: 'xlsx'});
                 }
+                if (filter.exportTypes.attrition && ctx.attritionRow.length > 1) {
+                    zipData.push({aoa: ctx.attritionRow, fileName: 'attrition-reports', fileExt: 'xlsx'});
+                }
+
                 _downloadedFiles = [];
                 _addXlsFilesToZip(zipData, null, resolve, reject, (_canzip ? zip : null));                
             }
@@ -472,7 +476,7 @@ function(nl, nlDlg, nlRouter, nlExporter, nlLrHelper, nlLrSummaryStats, nlGroupI
             var report = _attritionArray[i];
             var rep = {name: report.user.name, userid: report.user.username, batchname: report.raw_record._batchName,
                         attritionStr: report.stats.attritionStr, attritionOn: report.stats.attrOn ? nl.fmt.date2StrDDMMYY(nl.fmt.json2Date(report.stats.attrOn || '', 'date')) : '', attritionReason: report.stats.attrReason,
-                        repid: 'id=' + report.raw_record.id, repStatus: report.stats.status.txt, assignid: 'id=' + report.raw_record.assignment};
+                        org_unit: report.user.org_unit, repid: 'id=' + report.raw_record.id, repStatus: report.stats.status.txt, assignid: 'id=' + report.raw_record.assignment};
             if (!report.stats.attritionStr && report.user.state == 0) rep.attritionReason = 'Learner is inactive';
             if(_exportFormat == 'csv') 
                 ctx.attritionRow.push(nlExporter.getCsvRow(_hAttritionRows, rep));
@@ -815,6 +819,7 @@ function(nl, nlDlg, nlRouter, nlExporter, nlLrHelper, nlLrSummaryStats, nlGroupI
         {id: 'attritionReason', name: 'Reason for attrition'},
         {id: 'repStatus', name: 'Report status'},
         {id: 'batchname', name: 'Batch name'},
+        {id: 'org_unit', name: 'Org unit'},
         {id: 'repid', name: 'Report Id'},
         {id: 'assignid', name: 'Assign Id'}
     ];

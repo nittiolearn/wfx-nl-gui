@@ -1,14 +1,16 @@
+<style>
 table tbody, table thead
 {
     display: block;
 }
+</style>
 <div class='nl-lr-tms-report-body padding-small' style='position:absolute; width: 100%; height: 100%; overflow-x:scroll'>
     <div class='nl-lr-tms-top-section row row-center margin0 padding0 nl-border-bottom'
         style='height: 36px; overflow: hidden;'>
         <div class='col text-center fsh6 padding-mid nl-dkonlg-lgondk-text'>
             {{headerTextStr}}
         </div>
-		<div class="dropdown">
+		<div class="dropdown" ng-if='showFilterAndView'>
 			<div class='row row-center margin0 dropbtn nl-link-text2'
 				ng-click='toggleTableSelector = !toggleTableSelector'>
 				<div class='col button-inner-style'>
@@ -33,8 +35,9 @@ table tbody, table thead
 			</div>
 		</div>
 
-        <span title='Download nht table'
+        <span title='Filter batches'
             class='nl-toolbar-icon'
+            ng-if='showFilterAndView'
             ng-click='searchObj.canShow = !searchObj.canShow'>
             <i class="icon ion-funnel"></i>
         </span>
@@ -46,13 +49,13 @@ table tbody, table thead
     </div>
     <div ng-if='searchObj.canShow' class='nl-lr-filter-section'>
         <div class='row row-center row-wrap padding-mid margin0'>
-            <div ng-class='$root.respCol211'>
+            <div ng-class='$root.respCol221'>
                 <div class='row row-center row-wrap margin0 padding0'>
                     <div class='col padding-mid nl-dkonlg-lgondk-text'><b>Filter batches created from:</b></div>
                     <div class='col padding-mid'><nl-date-select fieldmodelbyref='searchObj.start'></nl-date-select></div>
                 </div>
             </div>
-            <div ng-class='$root.respCol211'>
+            <div ng-class='$root.respCol221'>
                 <div class='row row-center row-wrap margin0 padding0'>
                     <div class='col padding-mid nl-dkonlg-lgondk-text'><b>Filter batches created till:</b></div>
                     <div class='col padding-mid'><nl-date-select fieldmodelbyref='searchObj.end'></nl-date-select></div>
@@ -82,18 +85,18 @@ table tbody, table thead
         </div>
     </div>
     <div class='padding-mid anim-enter'>
-        <table class='nl-table nl-table-styled3 rowlines nl-lr-header-section'>
-            <tr class='header'>
-                <th class='nl-txt-white nl-txt-dark-hover nl-min-300'></th>
-                <th ng-repeat='col in nhtInfo.info.columns track by $index'
-                    class='nl-txt-white text-center nl-min-125' 
-                    ng-if='($root.screenSize != "small" && col.table) || ($root.screenSize == "small" && col.smallScreen)'>
-                    {{col.name}}
-                </th>    
-            </tr>
-        </table>
-        <div style='position: absolute; height:{{getTmsContTabHeight($event)}}px; overflow-y: scroll;'>
-            <table class='nl-table nl-table-styled3 rowlines'>
+        <table class='nl-table nl-table-styled3 rowlines'>
+            <thead class='nl-lr-header-section'>
+                <tr class='header'>
+                    <th class='nl-txt-white nl-txt-dark-hover nl-min-300'></th>
+                    <th ng-repeat='col in nhtInfo.info.columns track by $index'
+                        class='nl-txt-white text-center nl-min-125' 
+                        ng-if='($root.screenSize != "small" && col.table) || ($root.screenSize == "small" && col.smallScreen)'>
+                        {{col.name}}
+                    </th>    
+                </tr>
+            </thead>
+            <tbody style='position: absolute; height:{{getTmsContTabHeight($event)}}px; overflow-y: scroll;'>
                 <tr class='{{rec.isFolder ? "clickable hover" : ""}}'
                     ng-repeat='rec in nhtInfo.info.rows track by $index'
                     ng-click='generateTmsArray(rec)'>
@@ -122,6 +125,9 @@ table tbody, table thead
                                     </span>
                                 </div>
                             </div>
+                            <span ng-if='!rec.isFolder' ng-click='onDetailsClick($event, rec, nhtInfo.info.columns)' class='nl-link-text'>
+                                <i class="padding-mid icon ion-information-circled fsh4 nl-info-icon"></i>
+                            </span> 
                         </div>
                     </td>
                     <td ng-repeat='col in nhtInfo.info.columns track by $index'
@@ -132,7 +138,7 @@ table tbody, table thead
                         </div>
                     </td>
                 </tr>
-            </table>
-        </div>
+            </tbody>
+        </table>
     </div>
 </div>

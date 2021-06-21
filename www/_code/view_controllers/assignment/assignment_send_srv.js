@@ -170,7 +170,8 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect, nlCourse) {
             onlineSessions: []
         };
         if (_assignInfo.batchtype) dlgScope.data.batchtype = {id: _assignInfo.batchtype, name: _assignInfo.batchtype};
-        if(!_assignInfo.batchname) {
+        _updateStructuredBatchName(dlgScope);
+        if(!_assignInfo.batchname && !dlgScope.isBatchnameStructured) {
 		    var	d = nl.fmt.date2Str(new Date(), 'date');
 		    dlgScope.data.batchname = nl.t('{} - Batch', d);
         }
@@ -215,6 +216,65 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect, nlCourse) {
             var cancelButton = {text : nl.t('Modify')};
             modifyDlg.show('view_controllers/assignment/modify_training_details_dlg.html',
                 [], cancelButton);
+        }
+    }
+
+    function _updateStructuredBatchName(dlgScope) {
+        dlgScope.isBatchnameStructured = false;
+        if (dlgScope.assignInfo.assigntype != 'course') return;
+        var content = dlgScope.assignInfo.course.content;
+        if (!content.nht) return;
+        if (_assignInfo.isModify && !_assignInfo.batchnameStructured) return;
+        var groupInfo = nlGroupInfo.get();
+        if (!groupInfo.props.batchname) return;
+        dlgScope.isBatchnameStructured = true;
+
+        var batchnameStructure = groupInfo.props.batchname;
+        if (batchnameStructure.part1) {
+            dlgScope.options.batchnamePart1 = _toOptions(batchnameStructure.part1);
+        } else if (!nlGroupInfo.isSubOrgEnabled()) {
+            dlgScope.isBatchnameStructured = false;
+            return;
+        } else {
+            _updateBatchnamePart1WithSubOrgs(groupInfo, dlgScope);
+        }
+        dlgScope.options.batchnamePart2 = batchnameStructure.part2 ? _toOptions(batchnameStructure.part2) : null;
+
+        var inputbns = _assignInfo.batchnameStructured || {};
+        if (inputbns.part1) dlgScope.data.batchnamePart1 =  inputbns.part1;
+        dlgScope.data.batchnamePart2 =  inputbns.part2 || null;
+        dlgScope.data.batchnamePart3 =  inputbns.part3 || null;
+
+    }
+
+    function _toOptions(input) {
+        var output = [];
+        for (var i=0; i<input.length; i++) {
+            output.push({id: input[i], name: input[i]});
+        }
+        return output;
+    }
+
+    function _updateBatchnamePart1WithSubOrgs(groupInfo, dlgScope) {
+        var loggedInUser = nlGroupInfo.getUserObj(''+_userInfo.userid);
+        var myOu = loggedInUser.org_unit;
+        var mySuborg = null; 
+        var orgToSubOrg = nlGroupInfo.getOrgToSubOrgDict(groupInfo);
+        var subOrgs = {};
+        for (var org in orgToSubOrg) {
+            subOrgs[orgToSubOrg[org]] = true;
+            if (org == myOu) mySuborg = orgToSubOrg[org];
+        }
+        var suborgList = [];
+        for (var suborg in subOrgs) {
+            suborgList.push({id: suborg, name: suborg});
+        }
+        suborgList.sort(function(a, b) {
+            return (a.id < b.id) ? -1 : 1;
+        });
+        dlgScope.options.batchnamePart1 = suborgList;
+        if (mySuborg) {
+            dlgScope.data.batchnamePart1 = {id: mySuborg};
         }
     }
 
@@ -266,9 +326,9 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect, nlCourse) {
 			submissionAfterEndtime: {name: 'Submission after end time', help: nl.t('You can allow learners to submit assignment after the mentioned end time.')},
 			sendEmail: {name: 'Notifications', help: nl.t('You could choose to send notifications to the learners.')},
             batchParams: {name: 'Training details', help: nl.t('You may configure the training batch details.')},
-			batchname: {name: 'Batch name', help: nl.t('This is an batch name mentioned while sending an assignemnt.')},
+			batchname: {name: 'Batch name', help: nl.t('helps you easily identify the assignment batch.')},
 			update_content: {name: 'Update content', help: updateContentStr},
-			batchtype: {name: 'Batch type', help: nl.t('This is an batch type mentioned while sending an assignemnt.')},
+			batchtype: {name: 'Batch type', help: nl.t('choose a batchtype to appropriately tag the batch.')},
 		};
 	}
 
@@ -304,6 +364,7 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect, nlCourse) {
 
     function _validateBeforeAssign() {
         _dlg.scope.error = {};
+        if (!_validateBatchName(_dlg.scope)) return;
         if (_dlg.scope.assignInfo.showDateField) {
             if (!_dlg.scope.data.starttime) {
                 return _validateFail('starttime', 'Start date/time is mandatory.');
@@ -478,7 +539,8 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect, nlCourse) {
             }
         }
         _updateMilestoneDates(_dlg.scope, params);
-		_validateBeforeModify(params, assignInfo, function() {
+        _updateBatchnameStructured(_dlg.scope, params);
+        _validateBeforeModify(params, assignInfo, function() {
 			if (params.not_before) params.not_before = nl.fmt.date2UtcStr(params.not_before, 'second');
 			if (params.not_after) params.not_after = nl.fmt.date2UtcStr(params.not_after, 'second');
             nlDlg.showLoadingScreen();
@@ -524,6 +586,40 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect, nlCourse) {
             bFound = true;
         }
         if (bFound) serverParams.msDates = msDates;
+    }
+
+    function _updateBatchnameStructured(dlgScope, serverParams) {
+        if (!dlgScope.isBatchnameStructured) return;
+        serverParams.batchnameStructured = {
+            part1: dlgScope.data.batchnamePart1,
+            part2: dlgScope.data.batchnamePart2,
+            part3: dlgScope.data.batchnamePart3
+        };
+        serverParams.batchname = _formatBatchName(dlgScope);
+    }
+
+    function _validateBatchName(dlgScope) {
+        if (!dlgScope.isBatchnameStructured) return true;
+        var d = dlgScope.data;
+        if (!d.batchnamePart1 || !d.batchnamePart1.id) {
+            return _validateFail('batchnameParts', 'Please select batchname section 1');
+        }
+        if (dlgScope.options.batchnamePart2 && (!d.batchnamePart2 || !d.batchnamePart2.id)) {
+            return _validateFail('batchnameParts', 'Please select batchname section 2');
+        }
+        if (!d.batchnamePart3) {
+            return _validateFail('batchnameParts', 'Please enter the unique batch number');
+        }
+        return true;
+    }
+    function _formatBatchName(dlgScope) {
+        var d = dlgScope.data;
+        var ret = d.batchnamePart1.id;
+        if (dlgScope.options.batchnamePart2) {
+            ret += ' ' + d.batchnamePart2.id;
+        }
+        ret += ' Batch ' + d.batchnamePart3;
+        return ret;
     }
     
     //---------------------------------------------------------------------------------------------
@@ -574,6 +670,7 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect, nlCourse) {
 			}
         }
         _updateMilestoneDates(_dlg.scope, data);
+        _updateBatchnameStructured(_dlg.scope, data);
         _confirmAndSend(data, ouUserInfo);
     }
     

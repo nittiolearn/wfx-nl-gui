@@ -83,7 +83,8 @@ function(nl, nlDlg, nlGroupInfo, nlExporter) {
                 };
                 var val = toCsv(user, attr, groupInfo);
                 if (val === null || val === undefined) val = '';
-                if (val && NUM_REG.test(val) && val.length > 12) val = 'id='+val; //add id= while exporting user list
+                val = '' + val;
+                if (val && NUM_REG.test(val) && val.length > 10) val = 'id='+val; //add id= while exporting user list
                 row.push(val);
             }
             csv += DELIM + nlExporter.getCsvString(row);
@@ -120,6 +121,7 @@ function(nl, nlDlg, nlGroupInfo, nlImporter, nlProgressLog, nlRouter, nlServerAp
     var _pastUserInfosFetcher = nlGroupInfo.getPastUserInfosFetcher();
     var _ouDict = {};
     var _secloginDict = {};
+    var _renamedUserIds = {};
     this.init = function(groupInfo, userInfo, grpid) {
         _ouDict = {};
         _groupInfo = groupInfo;
@@ -230,6 +232,7 @@ function(nl, nlDlg, nlGroupInfo, nlImporter, nlProgressLog, nlRouter, nlServerAp
         self.foundKeys = {};
         self.showRowNumber = false;
         self.missingOus = {};
+        _renamedUserIds = {};
     };
 
     var lstUidChanges = [];        // [{oldUserId, newUserId},...] when user_id is modified
@@ -567,6 +570,10 @@ function(nl, nlDlg, nlGroupInfo, nlImporter, nlProgressLog, nlRouter, nlServerAp
                     _throwException('User id already exists', row);
                 if (_pastUserInfosFetcher.getUserObj(null, row.user_id))
                     _throwException('User id already exists in archived list', row);
+                if (newUserName in _renamedUserIds) {
+                    _throwException('User id already exists', row);
+                }
+                _renamedUserIds[newUserName] = true;
             }
         }
         

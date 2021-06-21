@@ -264,6 +264,7 @@ function OuUserSelector(nl, nlDlg, nlGroupInfo, nlTreeSelect, nlOuUserSelect,
         for(var i=0; i<selectedIdTemp.length; i++) {
             var selectedId = selectedIdTemp[i].trim();
             selectedId = selectedId.split('.')[0];
+            selectedId = selectedId.toLowerCase();
             if(selectedId in manualSelectedIds) errorArray.push({id:selectedIdTemp[i].trim(), msg:'This userid is repeated.'})
             if (selectedId) manualSelectedIds[selectedId] = true;
         }
