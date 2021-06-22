@@ -62,10 +62,6 @@ function(nl, nlDlg, nlRouter, nlExporter, nlLrHelper, nlLrSummaryStats, nlGroupI
         dlg.setCssClass('nl-height-max nl-width-max');
         dlg.scope.export = {summary: false, course: (dlg.scope.reptype == 'course' || dlg.scope.reptype == 'course_assign') ? true : false, module: (dlg.scope.reptype == 'module' || dlg.scope.reptype == 'module_assign' || dlg.scope.reptype  == 'module_self_assign') ? true : false, ids: true,
                             indUser: (dlg.scope.reptype == 'user'), pageScore: false, feedback: false, courseDetails: false};
-        dlg.scope.detailAttrs = {lesson: false, iltsession: false, rating: false, gate: false, milestone: false, info: false, link: false,
-                                certificate: false};
-        dlg.scope.detailAttrsArray = ['iltsession', 'rating', 'gate', 'milestone', 'info', 'link', 'certificate'];
-        dlg.scope.lessonAttrs = {quiz: false, selflearning: false, pastAttempt: false};
         if (drillDownDict) {
             _drillDownDict = drillDownDict || {};
             dlg.scope.showDrillDownCheckbox = !dlg.scope.certmode ? true : false;
@@ -101,6 +97,71 @@ function(nl, nlDlg, nlRouter, nlExporter, nlLrHelper, nlLrSummaryStats, nlGroupI
                              recordType: [{id: 'filtered', name: 'Export filtered records'}, {id: 'all', name: 'Export all records (Applicable only for certain reports see help for details)'}]};
         dlg.scope.data.exportFormat = dlg.scope.options.exportFormat[0];
         dlg.scope.data.recordType = dlg.scope.options.recordType[0];
+        dlg.scope.detailAttrs = {quiz: true, selflearning: true, pastAttempt: false, info: true, link: true,
+                                certificate: true};
+        dlg.scope.detailAttrsArray = ['quiz', 'pastAttempt', 'selflearning', 'info', 'link', 'certificate'];
+        if (_groupInfo && _groupInfo.props.features['training']) {
+            dlg.scope.detailAttrs['iltsession'] = true;
+            dlg.scope.detailAttrsArray.push('iltsession');
+        }
+        var _etm = (_userInfo && _userInfo.groupinfo && _userInfo.groupinfo.features['etm']) || false;
+        if (_etm) {
+            dlg.scope.detailAttrs['gate'] = true;
+            dlg.scope.detailAttrsArray.push('gate');    
+            if (_groupInfo.props.milestones) {
+                dlg.scope.detailAttrs['milestone'] = true;
+                dlg.scope.detailAttrsArray.push('milestone');    
+            }
+            if (_groupInfo.props.ratings) {
+                dlg.scope.detailAttrs['rating'] = true;
+                dlg.scope.detailAttrsArray.push('rating');
+            }
+        }
+        dlg.scope.onFilterCourseDetails = function(e) {
+            e.preventDefault();
+            var detailsDlg = nlDlg.create($scope);
+            detailsDlg.setCssClass('nl-height-max nl-width-max');
+            detailsDlg.scope.detailAttrs = dlg.scope.detailAttrs;
+            detailsDlg.scope.detailAttrsArray = dlg.scope.detailAttrsArray;
+            detailsDlg.scope.detailsIdToNames = _getIdToNames();
+            detailsDlg.scope.onClickOnItem = function(item) {
+                if (item == 'quiz') {
+                    detailsDlg.scope.detailAttrs[item] = !detailsDlg.scope.detailAttrs[item];
+                    if (detailsDlg.scope.detailAttrs[item]) detailsDlg.scope.detailAttrs.pastAttempt = false;
+                } else if (item == 'pastAttempt') {
+                    detailsDlg.scope.detailAttrs[item] = !detailsDlg.scope.detailAttrs[item];
+                    if (detailsDlg.scope.detailAttrs[item]) detailsDlg.scope.detailAttrs.quiz = false;
+                } else {
+                    detailsDlg.scope.detailAttrs[item] = !detailsDlg.scope.detailAttrs[item];
+                }
+            }
+
+            detailsDlg.scope.selectAll = function() {
+                for (var key in detailsDlg.scope.detailAttrs) {
+                    if (key == 'pastAttempt') {
+                        detailsDlg.scope.detailAttrs[key] = false;
+                        continue;
+                    } else {
+                        detailsDlg.scope.detailAttrs[key] = true;
+                    }
+                }
+            }
+            detailsDlg.scope.deSelectAll = function() {
+                for (var key in detailsDlg.scope.detailAttrs) {
+                    detailsDlg.scope.detailAttrs[key] = false;
+                }
+            }
+
+            var filterButton = {
+                text : nl.t('Filter'),
+                onTap : function(e) {
+                    detailsDlg.close();
+                }
+            };
+            var cancelButton = {text : nl.t('Cancel')};
+            detailsDlg.show('view_controllers/learning_reports/lr_exporter_course_details_filter.html',
+                [filterButton], cancelButton);    
+        }
         var exportButton = {
             text : nl.t('Download'),
             onTap : function(e) {
@@ -122,14 +183,9 @@ function(nl, nlDlg, nlRouter, nlExporter, nlLrHelper, nlLrSummaryStats, nlGroupI
                 filter.reptype = dlg.scope.reptype;
                 filter.exportTypes = exp;
                 filter.courseItems = {};
-                filter.lessonItems = {};
                 var details = dlg.scope.detailAttrs;
-                var lessons = dlg.scope.lessonAttrs;
                 for (var key in details) {
                     if (details[key]) filter.courseItems[key] = true;
-                }
-                for (var key in lessons) {
-                    if (lessons[key]) filter.lessonItems[key] = true;
                 }
                 _exportFormat = dlg.scope.data.exportFormat.id;
                 var promise = nl.q(function(resolve, reject) {
@@ -156,6 +212,17 @@ function(nl, nlDlg, nlRouter, nlExporter, nlLrHelper, nlLrSummaryStats, nlGroupI
             [exportButton], cancelButton);
     };
     
+    function _getIdToNames() {
+        var ret = {iltsession: 'ILT session reports', milestone: 'Milestone reports', rating: 'Rating reports', 
+                gate: 'Gate reports',
+                quiz: 'Quiz reports',
+                pastAttempt: 'Quiz reports with all attempt data',
+                selflearning: 'Self-learning module reports',
+                certificate: 'Certificate reports',
+                info: 'Information reports',
+                link: 'Link reports'};
+        return ret;
+    }
     function _getHelp() {
         var courseRepType = {'course': true, 'course_assign': true};
         var moduleRepType = {'module': true, 'module_assign': true, 'module_self_assign': true};
@@ -1023,17 +1090,17 @@ function(nl, nlDlg, nlRouter, nlExporter, nlLrHelper, nlLrSummaryStats, nlGroupI
             defObj._itemname = item.name;
             var statusinfo = report.repcontent.statusinfo ? report.repcontent.statusinfo[item.id] : null;
             var canAddRow = false;
-            if(item.type == 'lesson' && filter.courseItems.lesson) {
-                if (item.isQuiz && filter.lessonItems.quiz) {
-                    if (!filter.lessonItems.pastAttempt) {
+            if(item.type == 'lesson') {
+                if (item.isQuiz) {
+                    if (filter.courseItems.quiz){
                         canAddRow = true;
                         _updateCsvModuleRows1(report, item, statusinfo, defObj);
                     }
-                    if (filter.lessonItems.pastAttempt) {
+                    if (filter.courseItems.pastAttempt) {
                         _updateCsvModuleRowsForPastAttempt(report, item, statusinfo, defObj);
                         continue;
                     }
-                } else if (filter.lessonItems.selflearning) {
+                } else if (filter.courseItems.selflearning) {
                     canAddRow = true;
                     _updateCsvModuleRows1(report, item, statusinfo, defObj);
                 }
@@ -1093,7 +1160,7 @@ function(nl, nlDlg, nlRouter, nlExporter, nlLrHelper, nlLrSummaryStats, nlGroupI
 
     function _updateCsvModuleRowForLesson(item, statusinfo, defaultRowObj, defReportId){
         defaultRowObj._assignTypeStr = 'Module inside course';
-        if (statusinfo && (defReportId == statusinfo.reportId)) defaultRowObj._assignTypeStr += ' Default report';
+        // if (statusinfo && (defReportId == statusinfo.reportId)) defaultRowObj._assignTypeStr += ' Default report';
         defaultRowObj._moduleId = 'id=' +item.refid;
         if (!statusinfo) return;
         defaultRowObj._language = statusinfo.targetLang || '';
