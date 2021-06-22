@@ -342,6 +342,9 @@ function(nl, nlRouter, nlDlg, nlGroupInfo, nlLrHelper, nlLrFilter, nlGetManyStor
                 }
             }
         }
+        if (stainf.iltStatusOfCourse && stats.status.txt == 'failed') {
+            stats.status = {txt: stainf.iltStatusOfCourse, icon: 'ion-checkmark-circled forange', id: 2};
+        }
         report.typeStr = 'Course';
         _updateHideDeleteButton(report);
         var modules = course && course.content ? course.content.modules : repcontent.content.modules;

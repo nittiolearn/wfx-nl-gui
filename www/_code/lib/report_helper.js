@@ -187,7 +187,8 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
             quizScore: {},
             nlockedcnt: 0,
             nhiddencnt: 0,
-            ndelayedcnt: 0,            
+            ndelayedcnt: 0,
+            iltStatusOfCourse: null         
             // Also may have has following:
             // reattempt: true/false
         };
@@ -987,6 +988,9 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
                 ret.status = defaultCourseStatus;
 
             }
+        }
+        if (cm.type == 'iltsession') {
+            ret.iltStatusOfCourse = itemInfo.state;
         }
         if (!_isNHT) return; 
         if (defaultCourseStatus == 'started') {
