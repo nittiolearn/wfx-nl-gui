@@ -97,9 +97,9 @@ function(nl, nlDlg, nlRouter, nlExporter, nlLrHelper, nlLrSummaryStats, nlGroupI
                              recordType: [{id: 'filtered', name: 'Export filtered records'}, {id: 'all', name: 'Export all records (Applicable only for certain reports see help for details)'}]};
         dlg.scope.data.exportFormat = dlg.scope.options.exportFormat[0];
         dlg.scope.data.recordType = dlg.scope.options.recordType[0];
-        dlg.scope.detailAttrs = {quiz: true, selflearning: true, pastAttempt: false, info: true, link: true,
+        dlg.scope.detailAttrs = {quiz: true, selflearning: true, pastAttempt: false, info: true,
                                 certificate: true};
-        dlg.scope.detailAttrsArray = ['quiz', 'pastAttempt', 'selflearning', 'info', 'link', 'certificate'];
+        dlg.scope.detailAttrsArray = ['quiz', 'pastAttempt', 'selflearning', 'info', 'certificate'];
         if (_groupInfo && _groupInfo.props.features['training']) {
             dlg.scope.detailAttrs['iltsession'] = true;
             dlg.scope.detailAttrsArray.push('iltsession');
@@ -219,8 +219,7 @@ function(nl, nlDlg, nlRouter, nlExporter, nlLrHelper, nlLrSummaryStats, nlGroupI
                 pastAttempt: 'Quiz reports with all attempt data',
                 selflearning: 'Self-learning module reports',
                 certificate: 'Certificate reports',
-                info: 'Information reports',
-                link: 'Link reports'};
+                info: 'Information reports'};
         return ret;
     }
     function _getHelp() {
@@ -1116,7 +1115,7 @@ function(nl, nlDlg, nlRouter, nlExporter, nlLrHelper, nlLrSummaryStats, nlGroupI
             } else if(item.type == 'milestone' && filter.courseItems.milestone) {
                 canAddRow = true;
                 _updateCsvMilestoneRows1(item, statusinfo, defObj);
-            } else if((item.type == 'info' && filter.courseItems.info) || (item.type == 'link' && filter.courseItems.link)) {
+            } else if((item.type == 'info' || item.type == 'link') && filter.courseItems.info) {
                 canAddRow = true;
                 _updateCsvInfoOrLinkRows1(item, statusinfo, defObj);
             } else if(item.type == 'certificate' && filter.courseItems.certificate) {
