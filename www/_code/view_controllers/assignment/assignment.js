@@ -187,6 +187,7 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlGetManyStore, n
 		if (!_groupInfo) return filteredResults;
 		for (var i=0; i <= results.length; i++){
 			var report = results[i];
+			if (!report) continue;
 			var sender = nlGroupInfo.getCachedUserObjWithMeta(report.author, report.authorname,
 				_pastUserInfosFetcher);
 			if (!sender) continue;
