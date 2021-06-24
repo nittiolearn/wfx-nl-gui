@@ -97,6 +97,71 @@ function(nl, nlDlg, nlRouter, nlExporter, nlLrHelper, nlLrSummaryStats, nlGroupI
                              recordType: [{id: 'filtered', name: 'Export filtered records'}, {id: 'all', name: 'Export all records (Applicable only for certain reports see help for details)'}]};
         dlg.scope.data.exportFormat = dlg.scope.options.exportFormat[0];
         dlg.scope.data.recordType = dlg.scope.options.recordType[0];
+        dlg.scope.detailAttrs = {quiz: true, selflearning: true, pastAttempt: false, info: true,
+                                certificate: true};
+        dlg.scope.detailAttrsArray = ['quiz', 'pastAttempt', 'selflearning', 'info', 'certificate'];
+        if (_groupInfo && _groupInfo.props.features['training']) {
+            dlg.scope.detailAttrs['iltsession'] = true;
+            dlg.scope.detailAttrsArray.push('iltsession');
+        }
+        var _etm = (_userInfo && _userInfo.groupinfo && _userInfo.groupinfo.features['etm']) || false;
+        if (_etm) {
+            dlg.scope.detailAttrs['gate'] = true;
+            dlg.scope.detailAttrsArray.push('gate');    
+            if (_groupInfo.props.milestones) {
+                dlg.scope.detailAttrs['milestone'] = true;
+                dlg.scope.detailAttrsArray.push('milestone');    
+            }
+            if (_groupInfo.props.ratings) {
+                dlg.scope.detailAttrs['rating'] = true;
+                dlg.scope.detailAttrsArray.push('rating');
+            }
+        }
+        dlg.scope.onFilterCourseDetails = function(e) {
+            e.preventDefault();
+            var detailsDlg = nlDlg.create($scope);
+            detailsDlg.setCssClass('nl-height-max nl-width-max');
+            detailsDlg.scope.detailAttrs = dlg.scope.detailAttrs;
+            detailsDlg.scope.detailAttrsArray = dlg.scope.detailAttrsArray;
+            detailsDlg.scope.detailsIdToNames = _getIdToNames();
+            detailsDlg.scope.onClickOnItem = function(item) {
+                if (item == 'quiz') {
+                    detailsDlg.scope.detailAttrs[item] = !detailsDlg.scope.detailAttrs[item];
+                    if (detailsDlg.scope.detailAttrs[item]) detailsDlg.scope.detailAttrs.pastAttempt = false;
+                } else if (item == 'pastAttempt') {
+                    detailsDlg.scope.detailAttrs[item] = !detailsDlg.scope.detailAttrs[item];
+                    if (detailsDlg.scope.detailAttrs[item]) detailsDlg.scope.detailAttrs.quiz = false;
+                } else {
+                    detailsDlg.scope.detailAttrs[item] = !detailsDlg.scope.detailAttrs[item];
+                }
+            }
+
+            detailsDlg.scope.selectAll = function() {
+                for (var key in detailsDlg.scope.detailAttrs) {
+                    if (key == 'pastAttempt') {
+                        detailsDlg.scope.detailAttrs[key] = false;
+                        continue;
+                    } else {
+                        detailsDlg.scope.detailAttrs[key] = true;
+                    }
+                }
+            }
+            detailsDlg.scope.deSelectAll = function() {
+                for (var key in detailsDlg.scope.detailAttrs) {
+                    detailsDlg.scope.detailAttrs[key] = false;
+                }
+            }
+
+            var filterButton = {
+                text : nl.t('Filter'),
+                onTap : function(e) {
+                    detailsDlg.close();
+                }
+            };
+            var cancelButton = {text : nl.t('Cancel')};
+            detailsDlg.show('view_controllers/learning_reports/lr_exporter_course_details_filter.html',
+                [filterButton], cancelButton);    
+        }
         var exportButton = {
             text : nl.t('Download'),
             onTap : function(e) {
@@ -117,6 +182,11 @@ function(nl, nlDlg, nlRouter, nlExporter, nlLrHelper, nlLrSummaryStats, nlGroupI
                 var filter = {};
                 filter.reptype = dlg.scope.reptype;
                 filter.exportTypes = exp;
+                filter.courseItems = {};
+                var details = dlg.scope.detailAttrs;
+                for (var key in details) {
+                    if (details[key]) filter.courseItems[key] = true;
+                }
                 _exportFormat = dlg.scope.data.exportFormat.id;
                 var promise = nl.q(function(resolve, reject) {
 	                nlDlg.showLoadingScreen();
@@ -142,6 +212,16 @@ function(nl, nlDlg, nlRouter, nlExporter, nlLrHelper, nlLrSummaryStats, nlGroupI
             [exportButton], cancelButton);
     };
     
+    function _getIdToNames() {
+        var ret = {iltsession: 'ILT session reports', milestone: 'Milestone reports', rating: 'Rating reports', 
+                gate: 'Gate reports',
+                quiz: 'Quiz reports',
+                pastAttempt: 'Quiz reports with all attempt data',
+                selflearning: 'Self-learning module reports',
+                certificate: 'Certificate reports',
+                info: 'Information reports'};
+        return ret;
+    }
     function _getHelp() {
         var courseRepType = {'course': true, 'course_assign': true};
         var moduleRepType = {'module': true, 'module_assign': true, 'module_self_assign': true};
@@ -1008,13 +1088,41 @@ function(nl, nlDlg, nlRouter, nlExporter, nlLrHelper, nlLrSummaryStats, nlGroupI
     
             defObj._itemname = item.name;
             var statusinfo = report.repcontent.statusinfo ? report.repcontent.statusinfo[item.id] : null;
-            if(item.type == 'lesson') _updateCsvModuleRows1(report, item, statusinfo, defObj);
-            else if(item.type == 'iltsession') _updateCsvSessionRows1(statusinfo, defObj);
-            else if(item.type == 'rating') _updateCsvRatingRows1(statusinfo, defObj);
-            else if(item.type == 'gate') _updateCsvGateRows1(statusinfo, defObj);
-            else if(item.type == 'milestone') _updateCsvMilestoneRows1(item, statusinfo, defObj);
-            else if(item.type == 'info' || item.type == 'link') _updateCsvInfoOrLinkRows1(item, statusinfo, defObj);
-            else if(item.type == 'certificate') _updateCsvCertRows1(statusinfo, defObj);
+            var canAddRow = false;
+            if(item.type == 'lesson') {
+                if (item.isQuiz) {
+                    if (filter.courseItems.quiz){
+                        canAddRow = true;
+                        _updateCsvModuleRows1(report, item, statusinfo, defObj);
+                    }
+                    if (filter.courseItems.pastAttempt) {
+                        _updateCsvModuleRowsForPastAttempt(report, item, statusinfo, defObj);
+                        continue;
+                    }
+                } else if (filter.courseItems.selflearning) {
+                    canAddRow = true;
+                    _updateCsvModuleRows1(report, item, statusinfo, defObj);
+                }
+            } else if(item.type == 'iltsession' && filter.courseItems.iltsession) {
+                canAddRow = true;
+                _updateCsvSessionRows1(statusinfo, defObj);
+            } else if(item.type == 'rating' && filter.courseItems.rating) {
+                canAddRow = true;
+                _updateCsvRatingRows1(statusinfo, defObj);
+            } else if(item.type == 'gate' && filter.courseItems.gate) {
+                canAddRow = true;
+                _updateCsvGateRows1(statusinfo, defObj);
+            } else if(item.type == 'milestone' && filter.courseItems.milestone) {
+                canAddRow = true;
+                _updateCsvMilestoneRows1(item, statusinfo, defObj);
+            } else if((item.type == 'info' || item.type == 'link') && filter.courseItems.info) {
+                canAddRow = true;
+                _updateCsvInfoOrLinkRows1(item, statusinfo, defObj);
+            } else if(item.type == 'certificate' && filter.courseItems.certificate) {
+                canAddRow = true;
+                _updateCsvCertRows1(statusinfo, defObj);
+            }
+            if (!canAddRow) continue;
             if (_exportFormat == 'csv')
                 ctx.courseDetailsRow.push(nlExporter.getCsvRow(_hCourseDetailsRow, defObj));
             else
@@ -1022,6 +1130,71 @@ function(nl, nlDlg, nlRouter, nlExporter, nlLrHelper, nlLrSummaryStats, nlGroupI
         }
     }
     
+    function _updateCsvModuleRowsForPastAttempt(report, item, statusinfo, defObj) {
+        var lessonReports = report.repcontent.lessonReports || {}
+        var lessonRep = lessonReports[item.id] || null;
+        var defRepId = statusinfo.moduleRepId;
+        var pastLessonReports = report.repcontent.pastLessonReports || {};
+        var pastRep = pastLessonReports[item.id] || [];
+        for (var i=0; i<pastRep.length; i++) {
+            var defObjVal = {_user_id: report.user.user_id, studentname: report.user.name, _courseName: report.repcontent.name, 
+                _batchName: report.raw_record._batchName, subject: report.raw_record.subject, _grade: report.raw_record._grade, 
+                created: report.raw_record.created, not_before: report.repcontent.not_before, not_after: report.repcontent.not_after, 
+                _status: 'pending', _stateStr: report.user.state ? 'active' : 'inactive', _email: report.user.email, org_unit: report.user.org_unit,
+                _reportId: 'id=' +report.raw_record.id, _assignId: 'id=' +report.raw_record.assignment, _courseId: 'id=' +report.raw_record.lesson_id};
+            defObjVal._itemname = item.name;
+            var rep = pastRep[i];
+            _updateCsvModuleRowForLesson(item, rep, defObjVal, defRepId);
+            if (_exportFormat == 'csv')
+                ctx.courseDetailsRow.push(nlExporter.getCsvRow(_hCourseDetailsRow, defObjVal));
+            else
+                ctx.courseDetailsRow.push(nlExporter.getItemRow(_hCourseDetailsRow, defObjVal));
+        }
+        _updateCsvModuleRowForLesson(item, lessonRep, defObj, defRepId);
+        if (_exportFormat == 'csv')
+            ctx.courseDetailsRow.push(nlExporter.getCsvRow(_hCourseDetailsRow, defObj));
+        else
+            ctx.courseDetailsRow.push(nlExporter.getItemRow(_hCourseDetailsRow, defObj));
+    };
+
+    function _updateCsvModuleRowForLesson(item, statusinfo, defaultRowObj, defReportId){
+        defaultRowObj._assignTypeStr = 'Module inside course';
+        // if (statusinfo && (defReportId == statusinfo.reportId)) defaultRowObj._assignTypeStr += ' Default report';
+        defaultRowObj._moduleId = 'id=' +item.refid;
+        if (!statusinfo) return;
+        defaultRowObj._language = statusinfo.targetLang || '';
+        defaultRowObj._moduleRepId = statusinfo.reportId ? 'id=' +statusinfo.reportId : '';
+        defaultRowObj.started = nl.fmt.json2Date(statusinfo.started || '');
+        defaultRowObj.ended = nl.fmt.json2Date(statusinfo.ended || '');
+        defaultRowObj.updated = defaultRowObj.ended || '';
+        var moduleStatus = _getModuleStatus(statusinfo);
+        defaultRowObj._status = statusinfo.completed || statusinfo.ended ? moduleStatus.status : 'pending';
+        defaultRowObj._attempts =  statusinfo.attempt || '';
+        defaultRowObj._percStr =  moduleStatus.percScore ? statusinfo.percScore : '';
+        defaultRowObj._maxScore = statusinfo.maxScore || '';
+        defaultRowObj._score =  statusinfo.score || '';
+        defaultRowObj._passScoreStr =  statusinfo.passScore ? statusinfo.passScore: '';
+        defaultRowObj._timeMins = Math.ceil((statusinfo.timeSpentSeconds || 0)/60);
+        defaultRowObj.feedbackScore = statusinfo.feedbackScore || '';
+        defaultRowObj._versionId = statusinfo.versionId || '';
+    };
+
+    function _getModuleStatus(info) {
+        var defObj = {};
+        var score = info.score || 0;
+        var maxScore = info.maxScore || 0;
+        defObj.percScore = Math.round(100*score/maxScore);
+        if (info.passScore && info.passScore > 0) {
+            if (defObj.percScore >= info.passScore) 
+                defObj.status = 'Passed';
+            else
+                defObj.status = 'failed';
+        } else {
+            defObj.status = 'Done';
+        }
+        return defObj;
+    }
+
     function _updateCsvModuleRows1(report, item, statusinfo, defaultRowObj){
         defaultRowObj._assignTypeStr = 'Module inside course';
         defaultRowObj._moduleId = 'id=' +item.refid;

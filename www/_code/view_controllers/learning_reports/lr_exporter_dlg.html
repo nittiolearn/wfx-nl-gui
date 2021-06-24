@@ -42,10 +42,21 @@
             <span>download learning reports (columns visible in learning report tab)</span>
         </div>
         <div ng-show='reptype == "course_assign" || reptype == "course"'
-             ng-click='export.courseDetails = !export.courseDetails'  class='padding-mid nl-link-text'>
-            <i ng-show='export.courseDetails' class="fsh4 icon ion-android-checkbox-outline"></i>
-            <i ng-hide='export.courseDetails' class="fsh4 icon ion-android-checkbox-outline-blank"></i>
-            <span>download course details</span>
+             class='padding-mid nl-link-text'>
+            <div class='row row-center margin0 padding0'>
+                <div ng-click='export.courseDetails = !export.courseDetails' >
+                    <i ng-show='export.courseDetails' class="fsh4 icon ion-android-checkbox-outline"></i>
+                    <i ng-hide='export.courseDetails' class="fsh4 icon ion-android-checkbox-outline-blank"></i>
+                    <span>download course details</span> 
+                </div>
+                <div class='padding-small'></div>
+                <div ng-if='export.courseDetails'
+                    class='lnblue2 nl-button-highlight'
+                    ng-click='onFilterCourseDetails($event)'
+                    style='min-width: 100px;text-align: center'>
+                    <span style='vertical-align: super;'>Filter</span>
+                </div>
+            </div>
         </div>
         <div class='padding-mid nl-link-text' 
              ng-show='reptype == "module_assign" || reptype == "module" || reptype == "module_self_assign"'

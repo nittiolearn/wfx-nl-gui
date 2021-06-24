@@ -289,7 +289,8 @@ function($scope, nl, nlDlg, nlRouter, nlGroupInfo, nlServerApi, nlExporter, nlTm
         columns.push({id: 'Closed', name: 'Closed', table: true, background: 'nl-bg-blue', showAlways: true, hidePerc:true, type: 'default'});
         columns.push({id: 'failed', name: 'Failed', table: true, background: 'nl-bg-blue', showAlways: true, hidePerc:true, type: 'default'});
         columns.push({id: 'attrition', name: 'Attrition', table: true, background: 'nl-bg-blue', showAlways: true, hidePerc:true, type: 'default'});
-        columns.push({id: 'otherRecords', name: 'Transferred out or added in next batches', table: false, background: 'nl-bg-blue', showAlways: true, background: 'bggrey', hidePerc:true, type: 'default'});
+        columns.push({id: 'inductionDropOut', name: 'Induction drop out', table: true, background: 'nl-bg-blue', showAlways: true, hidePerc:true, type: 'default'});
+        columns.push({id: 'otherRecords', name: 'Added in later batches', table: false, background: 'nl-bg-blue', showAlways: true, background: 'bggrey', hidePerc:true, type: 'default'});
         columns.push({id: 'nQuizzes', name: 'Number of applicable modules', table: true, background: 'nl-bg-blue', showAlways: true, hidePerc:true, type: 'default'});
         columns.push({id: 'nQuizzesCompleted', name: 'Number of completed modules', table: true, background: 'nl-bg-blue', showAlways: true, hidePerc:true, type: 'default'});
         columns.push({id: 'percCompletedLesson', name: 'Completion %', table: true, background: 'nl-bg-blue', showAlways: true, hidePerc:true, type: 'default'});
@@ -374,13 +375,21 @@ function(nl) {
             var subOrgObj = records[suborg];
             for (var batch in subOrgObj) {
                 var batchObj = subOrgObj[batch];
-                for (var rec in batchObj) {
-                    var recObj = batchObj[rec];
+                if (Object.keys(batchObj).length > 0) {
+                    for (var rec in batchObj) {
+                        var recObj = batchObj[rec];
+                        var assignment = assignments[batch];
+                        var level1Info = {id: suborg, name: suborg};
+                        var level2Info = {id: batch, name: assignment.batchname, otherRecs: assignment.otherRecords || 0};
+                        if (!_doesPassFilter(assignment, searchObj)) continue;
+                        self.addCount(recObj, level1Info, level2Info, true);
+                    }    
+                } else {
                     var assignment = assignments[batch];
                     var level1Info = {id: suborg, name: suborg};
                     var level2Info = {id: batch, name: assignment.batchname, otherRecs: assignment.otherRecords || 0};
                     if (!_doesPassFilter(assignment, searchObj)) continue;
-                    self.addCount(recObj, level1Info, level2Info);
+                    self.addCount(recObj, level1Info, level2Info, false);
                 }
             }
         }
@@ -395,10 +404,11 @@ function(nl) {
         return false;
     }
 
-    this.addCount = function(record, level1Info, level2Info) {
-        var statusCntObj = _getStatusCountObj(record);
+    this.addCount = function(record, level1Info, level2Info, getStatus) {
+        var statusCntObj = getStatus ? _getStatusCountObj(record) : {};
         statusCntObj.assignment = level2Info.id;
         statusCntObj.otherRecs = level2Info.otherRecs;
+        if (!getStatus) statusCntObj.dontIncludeInBatchCount = true;
         _addCount(level1Info, level2Info, statusCntObj);
 
     };
@@ -412,6 +422,11 @@ function(nl) {
     function _getStatusCountObj(rec) {
         var status = rec.status;
         var statsObj = {cntTotal: 1};
+        if (rec.inductionDropOut) {
+            statsObj.cntTotal = 0;
+            statsObj['inductionDropOut'] = 1;
+            return statsObj;
+        }
         if ('customScore' in rec) {
           var customScore = rec.customScore;
           for (var key in customScore) {
@@ -437,7 +452,7 @@ function TmsStatsCounts(nl) {
     var statsCountItem = {'cntTotal': 0, 'Training': 0, 'OJT': 0, 'Certification': 0, 'Re-certification': 0, 
                           'certified': 0, 'Closed': 0, 'isOpen': false, 'attrition': 0, 'failed': 0, 'nQuizzes': 0, 'nQuizzesCompleted': 0, 
                           'nQuizScorePerc': 0, 'nQuizPercScoreCount' : 0, batchCounted: {}, batchCount: 0,
-                          'otherRecords': 0};
+                          'otherRecords': 0, 'inductionDropOut': 0};
     var defaultStates = angular.copy(statsCountItem);
     var _dynamicStates = {};
     var _customScores = {};
@@ -524,12 +539,13 @@ function TmsStatsCounts(nl) {
 
     function _updateStatsCount(updatedStats, statusCnt) { 
         for(var key in statusCnt) {
-            if (key == 'otherRecs') continue;
+            if (key == 'otherRecs' || key == 'dontIncludeInBatchCount') continue;
             if (key == 'assignment') {
                 if (statusCnt[key] in updatedStats.batchCounted) continue;
                 updatedStats.otherRecords += statusCnt.otherRecs || 0;
+                if (statusCnt.dontIncludeInBatchCount) continue;
                 updatedStats.batchCount += 1;
-                updatedStats.batchCounted[statusCnt[key]] = true;
+                updatedStats.batchCounted[statusCnt[key]] = true;    
             }
             if(key == 'customScores') {
                 var customScores = statusCnt[key]

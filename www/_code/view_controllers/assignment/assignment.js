@@ -101,11 +101,13 @@ function TypeHandler(nl, nlServerApi) {
 }
 
 //-----------------------------------------------------------------------------------------------------
-var AssignmentDeskCtrl = ['nl', 'nlRouter', '$scope', 'nlDlg', 'nlCardsSrv', 'nlServerApi', 'nlGetManyStore', 'nlChangeOwner',
-function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlGetManyStore, nlChangeOwner) {
+var AssignmentDeskCtrl = ['nl', 'nlRouter', '$scope', 'nlDlg', 'nlCardsSrv', 'nlServerApi', 'nlGetManyStore', 'nlChangeOwner', 'nlGroupInfo',
+function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlGetManyStore, nlChangeOwner, nlGroupInfo) {
 
 	var mode = new TypeHandler(nl, nlServerApi);
 	var _userInfo = null;
+	var _groupInfo = null;
+	var _pastUserInfosFetcher = null;
     var _canManage = false;
 
 	function _onPageEnter(userInfo) {
@@ -157,6 +159,14 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlGetManyStore, n
 	    var params = {};
 		if(fetchMore) params['max'] = mode.max2;
 		var listingFn = mode.getListFnAndUpdateParams(params);
+		if (mode.type == TYPES.MANAGE && mode.isSubOrgScope) {
+			nlGroupInfo.init2().then(function() {
+				nlGroupInfo.update();
+				_groupInfo = nlGroupInfo.get();
+				_pastUserInfosFetcher = nlGroupInfo.getPastUserInfosFetcher();
+				_pastUserInfosFetcher.init(_groupInfo);
+			});
+		}
         _pageFetcher.fetchPage(listingFn, params, fetchMore, function(results) {
             if (!results) {
                 if (resolve) resolve(false);
@@ -173,7 +183,21 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlGetManyStore, n
 	
 	function _filterSuborgs(results) {
 		if (mode.type != TYPES.MANAGE || !mode.isSubOrgScope) return results;
-		// TODO-NOW-AAZAR - filter out and return only my suborg
+		var filteredResults = [];
+		if (!_groupInfo) return filteredResults;
+		for (var i=0; i <= results.length; i++){
+			var report = results[i];
+			if (!report) continue;
+			var sender = nlGroupInfo.getCachedUserObjWithMeta(report.author, report.authorname,
+				_pastUserInfosFetcher);
+			if (!sender) continue;
+			var org_unit = _userInfo.org_unit || '';
+			var senderOrg = sender.org_unit || '';
+			if (senderOrg.indexOf(org_unit) == 0){
+				filteredResults.push(report);
+			}
+		}
+		return filteredResults;
 	}
 
 	function _subfetchAndOverride(results, resolve) {

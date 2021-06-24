@@ -1,0 +1,25 @@
+<nl-dlg dlgtitle='Filter course items'>
+<nl-dlg-content>
+<div>
+    <div class='row row-center row-wrap padding-mid margin0'>
+        <div class='col fsh6'>
+            In the course detailed report, include the following records:
+        </div>
+        <div class='nl-link-text nl-button-highlight padding-small'
+            ng-click='selectAll()'>Select all</div>
+        <div class='padding-small'></div>
+        <div class='nl-link-text nl-button-highlight padding-small'
+            ng-click='deSelectAll()'>De-select all</div>
+    </div>
+    <div class='row row-center margin0 padding-mid'
+        ng-repeat='item in detailAttrsArray'
+        style='padding-left: 16px'>
+        <div ng-click='onClickOnItem(item)'  class='padding-mid nl-link-text'>
+            <i ng-show='detailAttrs[item]' class="fsh4 icon ion-android-checkbox-outline"></i>
+            <i ng-hide='detailAttrs[item]' class="fsh4 icon ion-android-checkbox-outline-blank"></i>
+            <span>{{detailsIdToNames[item]}}</span>            
+        </div>    
+    </div>
+</div>
+</nl-dlg-content>
+</nl-dlg>
