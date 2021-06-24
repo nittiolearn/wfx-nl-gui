@@ -14,6 +14,7 @@ function module_init() {
 	.directive('nlLearningStatusCounts2', LearningStatusCountsDirective2)
 	.directive('nlLearningStats', LearningStats)
 	.directive('nlComputeImgInfo', ComputeImgInfoDirective)
+	.directive('nlLearnerViewLeaderboard', LearnerViewLeaderboardDirective)
 	.controller('nl.LearnerViewCtrl2', LearnerViewCtrl2)
 	.service('nlLearnerView2', NlLearnerView2);
 }
@@ -192,15 +193,32 @@ function(nl, nlDlg) {
 	};
 }];
 
+//-------------------------------------------------------------------------------------------------
+var LearnerViewLeaderboardDirective = ['nl', 'nlDlg',
+function(nl, nlDlg) {
+	return {
+        restrict: 'E',
+        transclude: true,
+        templateUrl: 'view_controllers/learner_view2/learner_view_leaderboard.html',
+		link: function($scope, iElem, iAttrs) {
+			$scope.scrollPrev =function(num) {
+				$scope.$parent.slideshow($scope.$parent.tabData.slideIndex += num);
+			};
+			$scope.scrollNext =function(num) {
+				$scope.$parent.slideshow($scope.$parent.tabData.slideIndex += num);
+			};	
+		}
+	}
+}];
 
 //-------------------------------------------------------------------------------------------------
 
 var NlLearnerView2 = ['nl', 'nlDlg', 'nlRouter', 'nlReportHelper',
-'nlLearnerViewRecords2', 'nlTopbarSrv', 'nlCardsSrv', 'nlCourse', 'nlGetManyStore', 'nlAnnouncementSrv', 'nlServerApi', 'nlGroupInfo','nlLearnerViewTimeSpent',
-function(nl, nlDlg, nlRouter, nlReportHelper, nlLearnerViewRecords2, nlTopbarSrv, nlCardsSrv, nlCourse, nlGetManyStore, nlAnnouncementSrv, nlServerApi, nlGroupInfo, nlLearnerViewTimeSpent) {
+'nlLearnerViewRecords2', 'nlTopbarSrv', 'nlCardsSrv', 'nlCourse', 'nlGetManyStore', 'nlAnnouncementSrv', 'nlServerApi', 'nlGroupInfo','nlLearnerViewTimeSpent', 'nlFileReader',
+function(nl, nlDlg, nlRouter, nlReportHelper, nlLearnerViewRecords2, nlTopbarSrv, nlCardsSrv, nlCourse, nlGetManyStore, nlAnnouncementSrv, nlServerApi, nlGroupInfo, nlLearnerViewTimeSpent, nlFileReader) {
 	this.create = function($scope) {
 		return new NlLearnerViewImpl($scope, nl, nlDlg, this, nlRouter, nlReportHelper,
-			nlLearnerViewRecords2, nlTopbarSrv, nlCardsSrv, nlCourse, nlGetManyStore, nlAnnouncementSrv, nlServerApi, nlGroupInfo, nlLearnerViewTimeSpent);
+			nlLearnerViewRecords2, nlTopbarSrv, nlCardsSrv, nlCourse, nlGetManyStore, nlAnnouncementSrv, nlServerApi, nlGroupInfo, nlLearnerViewTimeSpent, nlFileReader);
 	};
 
 	this.initPageBgImg = function(data) {
@@ -218,7 +236,7 @@ function(nl, nlDlg, nlRouter, nlReportHelper, nlLearnerViewRecords2, nlTopbarSrv
 }];
 
 function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView2, nlRouter, nlReportHelper, 
-	nlLearnerViewRecords2, nlTopbarSrv, nlCardsSrv, nlCourse, nlGetManyStore, nlAnnouncementSrv, nlServerApi, nlGroupInfo, nlLearnerViewTimeSpent) {
+	nlLearnerViewRecords2, nlTopbarSrv, nlCardsSrv, nlCourse, nlGetManyStore, nlAnnouncementSrv, nlServerApi, nlGroupInfo, nlLearnerViewTimeSpent, nlFileReader) {
 	var self = this;
 	var _userInfo = null;
 	var _parent = false;
@@ -459,9 +477,16 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView2, nlRouter, nlReport
 		ret.fetchMore = _fetchMore;
 		ret.showSearchbar = true;
 		ret.showCreditpoints = showCreditpoints;
-		ret.sevenDayscp = 0,
-		ret.thirtyDayscp = 0,
-		ret.nintyDayscp = 0,
+		ret.currentlearnerStats =[];
+		ret.currentlearnersevenDaysrank; 
+		ret.currentlearnerthirtyDaysrank;
+		ret.currentlearnernintyDaysrank;
+		ret.slideIndex=1;
+		ret.leaderBoardData = [
+							  {days:'Past 7 Days', userData : []},
+							  {days:'Past 30 Days', userData : []},
+							  {days:'Past 90 Days', userData: []}
+							];
 		ret.tsnintydays = '';
 		ret.tsthirtydays = '';
 		ret.tssevendays = '';
@@ -1046,39 +1071,109 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView2, nlRouter, nlReport
 					nlDlg.popupStatus('Some error occured while downloading ...', false);
 					return;
 				}
-				$scope.tabData.sevenDayscp = resp.data.lcredits7 >999 ? nFormatter(resp.data.lcredits7) : resp.data.lcredits7;
-				$scope.tabData.thirtyDayscp = resp.data.lcredits30 > 999 ? nFormatter(resp.data.lcredits30) : resp.data.lcredits30;
-				$scope.tabData.nintyDayscp = resp.data.lcredits90 > 999 ? nFormatter(resp.data.lcredits90) : resp.data.lcredits90;
+				$scope.tabData.currentlearnerStats.push(resp.data);
+				$scope.tabData.currentlearnerStats[0].lcredits7 = resp.data.lcredits7 > 999 ? nFormatter(resp.data.lcredits7) : resp.data.lcredits7;
+				$scope.tabData.currentlearnersevenDaysrank = resp.data.lrank7;
+				$scope.tabData.currentlearnerStats[0].lcredits30 = resp.data.lcredits30 > 999 ? nFormatter(resp.data.lcredits30) : resp.data.lcredits30;
+				$scope.tabData.currentlearnerthirtyDaysrank = resp.data.lrank30;
+				$scope.tabData.currentlearnerStats[0].lcredits90 = resp.data.lcredits90 > 999 ? nFormatter(resp.data.lcredits90) : resp.data.lcredits90;
+			    $scope.tabData.currentlearnernintyDaysrank = resp.data.lrank90;
+				_leaderboard(resp.data, _groupInfo);
 			})
 		})
 	}
 
-	function nFormatter(num) {
-		if (num >= 1000000000) {
-		   return (num / 1000000000).toFixed(1).replace(/\.0$/, '') + 'G';
+	function nFormatter(n) {
+		var pow = Math.pow, floor = Math.floor, abs = Math.abs, log = Math.log;
+		var abbrev = 'kmb'; // could be an array of strings: [' m', ' Mo', ' Md']
+
+		var base = floor(log(abs(n))/log(1000));
+		var suffix = abbrev[Math.min(2, base - 1)];
+		base = abbrev.indexOf(suffix) + 1;
+		return suffix ? round(n/pow(1000,base),2)+suffix : ''+n;
+
+		function round(n, precision) {
+			var prec = Math.pow(10, precision);
+			return Math.round(n*prec)/prec;
 		}
-		if (num >= 1000000) {
-		   return (num / 1000000).toFixed(1).replace(/\.0$/, '') + 'M';
-		}
-		if (num >= 1000) {
-		   return (num / 1000).toFixed(1).replace(/\.0$/, '') + 'K';
-		}
-		return num;
    }
 
 	function showTimeSpent() { 
 		var timeSpentArr = nlLearnerViewTimeSpent.show();
-		$scope.tabData.tssevendays = timeSpentArr[0]; //time spent last 7 days
+		$scope.tabData.tsnintydays = timeSpentArr[0]; //time spent last 90 days
 		$scope.tabData.tsthirtydays = timeSpentArr[1]; //time spent last 30 days
-		$scope.tabData.tsnintydays = timeSpentArr[2]; //time spent last 7 days
+		$scope.tabData.tssevendays = timeSpentArr[2]; //time spent last 90 days		
 	}
 
-	function leaderboard(data,_groupInfo) {
+	function _leaderboard(data, _groupInfo) {
 		var cohort = data.cohort;
-		var data2 = {grpid: _groupInfo.grpid, table: 'learningcredits', recid: 'cohorts', field: cohort+'.json'};
-		console.log(data2);
+		var _ldata = {grpid: _groupInfo.grpid, table: 'learningcredits', recid: 'cohorts', field: cohort+'.json'};
+		$scope.tabData.redstar = nl.url.lessonIconUrl('red-star.svg');
+		nl.timeout(function() {
+			    nlServerApi.jsonFieldStream(_ldata).then(function(resp) {
+				if (!resp || !resp.data) {
+					nlDlg.popupStatus('Some error occured while downloading ...', false);
+					return;
+				}
+		 		_ShowTopOnLeaderBoard(resp.data);
+			})
+		}) 
 	}
 
+	function _ShowTopOnLeaderBoard(data) {
+		_getdatarankwise(data.lb7, $scope.tabData.currentlearnerStats[0].lrank7, 7);
+		_getdatarankwise(data.lb30, $scope.tabData.currentlearnerStats[0].lrank30, 30);
+		_getdatarankwise(data.lb90, $scope.tabData.currentlearnerStats[0].lrank90, 90);
+	}
+
+	function _getdatarankwise(data, currentUserrank, pastdays) {
+		if(!data.length) return;
+		var topLearner = 10 
+		var length = currentUserrank > topLearner ? 9 : topLearner;
+		length = data.length > topLearner ? length : data.length;
+		var i = 0;
+		for(i ; i < length; i++) {
+		   _StoreDataInLeaderBoard(pastdays, data, i);
+		}
+		if(length > 10) {
+			_StoreDataInLeaderBoard(pastdays, data, i)
+		}
+	}
+
+	function _StoreDataInLeaderBoard(pastdays, data, i) {
+		var currentlearner = data[i].userid == $scope.tabData.currentlearnerStats[0].userid ? 'currentlearner' : '';
+		if(pastdays == 7) {
+			data[i].lrank7 = getNumberWithOrdinal(data[i].lrank7);
+			$scope.tabData.leaderBoardData[0].userData.push({'username' : data[i].username, 'lrank':data[i].lrank7,'lcredits':data[i].lcredits7, 'currentlearner': currentlearner})
+		}	
+		else if(pastdays == 30) {
+			data[i].lrank30 = getNumberWithOrdinal(data[i].lrank30);
+			$scope.tabData.leaderBoardData[1].userData.push({'username' : data[i].username, 'lrank':data[i].lrank30,'lcredits':data[i].lcredits30, 'currentlearner': currentlearner})
+		}
+		else {
+			data[i].lrank90 = getNumberWithOrdinal(data[i].lrank90);
+			$scope.tabData.leaderBoardData[2].userData.push({'username' : data[i].username, 'lrank':data[i].lrank90,'lcredits':data[i].lcredits90, 'currentlearner': currentlearner})
+		}
+	}
+
+	function getNumberWithOrdinal(rank) {
+		var s = ["th", "st", "nd", "rd"],
+			v = rank % 100;
+		return rank + (s[(v - 20) % 10] || s[v] || s[0]);
+	}
+
+	$scope.slideshow = function(n) {
+		var i;
+		var slides = nl.window.document.getElementsByClassName("leaderboard");
+		if (n > slides.length) {$scope.tabData.slideIndex = 1}
+		if (n < 1) {$scope.tabData.slideIndex = slides.length}
+		for (i = 0; i < slides.length; i++) {
+			slides[i].classList.add("hide-in-small");	
+			slides[i].classList.remove("show-in-small");	
+		}
+		slides[$scope.tabData.slideIndex-1].classList.add("show-in-small");
+	}
+	
 	function _updateSummaryTab() {
 		for(var i=0; i<$scope.charts.length; i++) $scope.charts[i].show = false;
 		nl.timeout(function() {
@@ -1087,7 +1182,6 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView2, nlRouter, nlReport
 		}, 100);
 	 }
     
-
 	function _updateSummaryTabImpl() {
 		var learningCounts = {cntTotal: 0, completed: 0, certified: 0, pending: 0, failed: 0, started: 0, scorePerc: 0, 
 								percCompleted: 0, percCerfied: 0, percFailed: 0, percPending: 0, avgScore: 0, 

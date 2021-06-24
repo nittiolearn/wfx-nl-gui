@@ -1,0 +1,33 @@
+<section class="stats_component mt-40">
+    <div class="row row-justify-evenly">
+        <h2 class="nl-txt-white pie_chart_heading">Top Learners</h2>
+    </div>
+    <div class="row leaderboard_container mt-20 mt-0-in-small">
+        <div ng-repeat='leaderboard in tabData.leaderBoardData' class="leaderboard points_container_background margin-bottom-3">
+            <div class="total_heading text-center days_container padding nl-txt-white ld_section Montserrat-font">
+                <div class='fgrey nl-force-hide show-in-small' ng-click='scrollPrev(-1)' id='next'>
+                    <i class="icon ion-ios-arrow-back fbold fsh160"></i></div>
+                    {{leaderboard.days}}
+                <div class='fgrey nl-force-hide show-in-small' ng-click='scrollNext(1)' id='prev'>
+                    <i class="icon ion-ios-arrow-forward fbold fsh160"></i></div>
+            </div>
+            
+            <div ng-if='leaderboard.userData.length > 0'>
+                <div ng-repeat='data in leaderboard.userData track by $index' ng-if='!data.length' class="row mt-20 rank_order" style="justify-content: space-between;"> 
+                    <div class="user-pic">
+                        <div class="rank">{{data.lrank}}</div>
+                    </div>
+                    <div class="padding-mid text-center">
+                        <div class="{{data.currentlearner}} fontsize24 otherlearner">{{data.username}}</div>
+                        <div class="earned-points text-right fontsize22">{{data.lcredits}}</div>
+                    </div>               
+                </div>
+            </div>
+            <div ng-if='leaderboard.userData.length == 0' class="nodatafound padding">
+                <img ng-src='{{nodata}}' alt='no-data' width='200px' height='200px' >
+                <span class="font-16-in-small nl-txt-white fblue Montserrat-font">No Top Learners in {{leaderboard.days}}.</span>
+            </div>
+        </div> 
+    </div> 
+</section>
+

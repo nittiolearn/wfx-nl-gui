@@ -1,30 +1,30 @@
 <div class='nl-topbar-background'>
     <div class='row nl-limitwidth-learner-view padding-mid'>
-        <div>
+        <div class='{{$root.screenSize == "small" ? "col" : "col-70"'>
             <div class='row row-center row-wrap'>
                 <div class='row row-center row-wrap'>
                     <div ng-if="!tabdata.summaryStats && !tabdata.explore" class='padding-mid learner-btn-firstchild flex-33' ng-repeat='button in tabdata.tabs' style="flex-basis: 1">
                         <div class='center-in-small nl-learner-button {{button.count > 0 ? "nl-learner-button-hover nl-link-text" : ""}} {{button.class}}' 
                             ng-click='toScroll(button)'>
                             <div style="align-items: center;justify-content: center;grid-gap: 5px;height: 100%;" class="nl-display-flex">
-                                <span style="font-size: 14px;" class="font-12-in-small">{{button.title}}:</span> 
-                                <span style="font-size:14px;" class="font-12-in-small">{{button.count}}</span>
+                                <span style="font-size: 14px;" class="font-10-in-small">{{button.title}}:</span> 
+                                <span style="font-size:14px;" class="font-10-in-small">{{button.count}}</span>
                             </div>
                         </div>
                     </div>
-                    <div ng-show="tabdata.exploreSection && !(tabdata.explore || tabdata.summaryStats)" class="padding-mid flex-33" style="flex-basis: 1">
+                    <div ng-if="tabdata.exploreSection && !(tabdata.explore || tabdata.summaryStats)" class="padding-mid flex-33" style="flex-basis: 1">
                         <div class='learner-view-explore-button tabs-in-small center-in-small' ng-click='exploreAvailable()'>
                             <span class="nl-display-flex" style="grid-gap:5px">
                                 <img ng-src="{{explore}}" style="width: 20px; height: 30px; filter: invert(90%);" alt="summary">
-                                <span class="nl-display-flex" style="justify-content: center; align-items: center;">Explore</span> 
+                                <span class="nl-display-flex font-10-in-small" style="justify-content: center; align-items: center;">Explore</span> 
                             </span> 
                         </div>
                     </div>
-                    <div ng-show='!(tabdata.summaryStats || tabdata.explore)' ng-click='viewStatistics()' class="padding-mid flex-1-sm" style="margin-right: 0px;">
+                    <div ng-if='!(tabdata.summaryStats || tabdata.explore)' ng-click='viewStatistics()' class="padding-mid flex-1-sm" style="margin-right: 0px;">
                         <div ng-show='!tabdata.showCreditpoints' class='col learner-view-stats-button tabs-in-small center-in-small '>
                             <span class="nl-display-flex" style="grid-gap:5px">
                                 <img ng-src="{{summary}}" style="width: 20px; height: 30px; filter: invert(90%);" alt="summary">
-                                <span class="nl-display-flex" style="justify-content: center; align-items: center;">Statistics</span> 
+                                <span class="nl-display-flex font-10-in-small" style="justify-content: center; align-items: center;">Statistics</span> 
                             </span> 
                         </div>
                     </div>
@@ -38,13 +38,13 @@
                         </div>
                     </div>
                     <!-- for mobile -->
-                    <div ng-show='tabdata.showCreditpoints && !tabdata.summaryStats && !tabdata.explore' class="learner-btn-firstchild flex-1-sm">
-                        <div class='{{$root.screenSize == "small" ? "show-in-small" : ""}}' style="display: none;">
+                    <div ng-if='tabdata.showCreditpoints && !tabdata.summaryStats && !tabdata.explore' ng-click='viewStatistics()' class="learner-btn-firstchild flex-1-sm nl-force-hide show-in-small">
+                        <div class='{{$root.screenSize == "small" ? "mt-10" : ""}}'>
                             <div class="padding-mid points_container_background nl-display-flex" style="flex-direction:column;align-items: center; justify-content: center; grid-gap:10px;">
                                 <div class="nl-txt-white">Total Points Earned</div>
                                 <div class='row w100' style="align-items: center;">
                                     <img ng-src="{{creditStar}}" class='col-50 text-center' style="width: 50px; height: 50px;" alt="creditpointstar">
-                                    <div class='col-50 text-center' style="font-size: 22px; color: var(--nlStatusBlue);letter-spacing: 0.3px;">{{tabdata.nintyDayscp}}</div>
+                                    <div class='col-50 text-center Montserrat-font earned-points nl-txt-white fupcoming nl-font-25'>{{tabdata.currentlearnerStats[0].lcredits90}}</div>
                                 </div>  
                             </div>
                         </div>
@@ -74,12 +74,14 @@
                 </div>
             </div>
         </div>
-        <div ng-show='tabdata.showCreditpoints && !tabdata.summaryStats && !tabdata.explore' class='{{$root.screenSize == "small" ? "nl-force-hide" : ""}}' ng-click='viewStatistics()' style="flex:1;min-width: 175px; padding:18px 10px;cursor:pointer;" >
-          <div class="padding-mid points_container_background nl-display-flex" style="flex-direction:column;align-items: center; justify-content: center; grid-gap:10px;">
-            <div class="nl-txt-white Montserrat-font">Total Points Earned</div>
-            <div class='row w100' style="align-items: center;">
-                <img ng-src="{{creditStar}}" class='col-50 text-center' style="width: 50px; height: 50px;" alt="creditpointstar">
-                <div class='col-50 text-center Montserrat-font' style="font-size: 22px; color: var(--nlStatusBlue);letter-spacing: 0.3px;">{{tabdata.nintyDayscp}}</div>
+        <div ng-if='tabdata.showCreditpoints && !tabdata.summaryStats && !tabdata.explore' class='{{$root.screenSize == "small" ? "nl-force-hide" : ""}} col-30' ng-click='viewStatistics()' style="flex: 1;min-width: 190px;padding: 18px 10px 12px 0px;cursor: pointer;" >
+          <div class="row padding-mid points_container_background points_container_hover" style="border: 1px solid whitesmoke;align-items: center;height: 100%;">
+            <div class='col-34 text-center'>
+                <img ng-src="{{creditStar}}" class='' style="width: 50px; height: 50px;" alt="creditpointstar">
+            </div>
+            <div class='col-66 text-center' style="grid-gap: 10px;align-items: center;justify-content: left;display: flex;flex-direction: column;">
+                <div class="nl-txt-white Montserrat-font">Total Points Earned</div>
+                <div class='col-50 text-center Montserrat-font earned-points nl-txt-white fupcoming nl-font-25'>{{tabdata.currentlearnerStats[0].lcredits90}}</div>
             </div>  
           </div>
         </div>

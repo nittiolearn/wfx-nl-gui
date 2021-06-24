@@ -18,7 +18,7 @@
                             <div
                                 class='text-center time_spent_small mt-0-in-small {{$root.screenSize == "small" ? "row" : "col-50"}} '>
                                 <div class="fdone total_sub_points Montserrat-font font-20-in-small">
-                                    {{tabData.sevenDayscp}}</div>
+                                    {{tabData.currentlearnerStats[0].lcredits7}}</div>
                                 <div class="nl-txt-white mt-20 mt-0-in-small Montserrat-font font-12-in-small">Points
                                     Earned</div>
                             </div>
@@ -40,7 +40,7 @@
                             <div
                                 class='text-center time_spent_small mt-0-in-small {{$root.screenSize == "small" ? "row" : "col-50"}} '>
                                 <div class="fupcoming total_sub_points Montserrat-font font-20-in-small">
-                                    {{tabData.thirtyDayscp}}</div>
+                                    {{tabData.currentlearnerStats[0].lcredits30}}</div>
                                 <div class="nl-txt-white mt-20 mt-0-in-small Montserrat-font font-12-in-small">Points
                                     Earned</div>
                             </div>
@@ -62,7 +62,7 @@
                             <div
                                 class='text-center time_spent_small mt-0-in-small {{$root.screenSize == "small" ? "row" : "col-50"}} '>
                                 <div class="fdone total_sub_points Montserrat-font font-20-in-small">
-                                    {{tabData.nintyDayscp}}</div>
+                                    {{tabData.currentlearnerStats[0].lcredits90}}</div>
                                 <div class="nl-txt-white mt-20 mt-0-in-small Montserrat-font font-12-in-small">Points
                                     Earned</div>
                             </div>
@@ -95,9 +95,9 @@
                     </div>
                 </div>
                 <div class='col-50 row-justify-evenly chart_container_in_mobile mt-in-small nl-display-flex'>
-                    <div class='w100 mt-20 {{$root.screenSize == "small" ? "points_container_background" : ""}}''>
-                        <div class="padding-left row row-justify-evenly mt-20 mt-0-in-small">
-                            <h2 class="heading-in-small pie_chart_heading nl-txt-white">Your Overall Progress</h2>
+                    <div class='w100 mt-10 {{$root.screenSize == "small" ? "points_container_background" : ""}}''>
+                        <div class="padding-left row row-justify-evenly mt-0-in-small">
+                            <h2 class='{{$root.screenSize == "small" ? "pie_chart_heading padding0" : "graph-title days_container"}} heading-in-small total_heading nl-txt-white Montserrat-font'>Your Overall Progress</h2>
                         </div>
                         <div style="display: flex;justify-content: center;align-items: center; min-height: 200px;"
                             class="mt-0-in-small">
@@ -122,6 +122,7 @@
                     </div>
                 </div>
             </div>
+            <nl-learner-view-leaderboard></nl-learner-view-leaderboard>
         </div>
     </div>
 </div>
