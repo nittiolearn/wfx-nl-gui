@@ -12,20 +12,22 @@ table tbody, table thead
         </div>
 		<div class="dropdown" ng-if='showFilterAndView'>
 			<div class='row row-center margin0 dropbtn nl-link-text2'
-				ng-click='toggleTableSelector = !toggleTableSelector'>
+				ng-click='data.toggleTableSelector = !data.toggleTableSelector'>
 				<div class='col button-inner-style'>
 					<span>{{getSelectedView()}} </span>
 				</div>
 				<span class="nl-link-text">
-					<i ng-show='!toggleTableSelector' class='icon ion-chevron-down fsh5'></i>
-					<i ng-show='toggleTableSelector' class='icon ion-chevron-up fsh5'></i>
+					<i ng-show='!data.toggleTableSelector' class='icon ion-chevron-down fsh5'></i>
+					<i ng-show='data.toggleTableSelector' class='icon ion-chevron-up fsh5'></i>
 				</span>
 			</div>
-			<div ng-show='toggleTableSelector' class="dropdown-content" style='top:44px'>
-				<div ng-repeat='type in tableSelector track by $index' class='nl-link-text2 {{type.selected ? "dropdown-selected" : ""}}' style='border-bottom: 2px solid #FFFFFF;padding: 2px 8px;'>
+			<div ng-if='data.toggleTableSelector' class="dropdown-content" style='top:44px'>
+				<div ng-repeat='type in tableSelector track by $index' class='nl-link-text2' style='border-bottom: 2px solid #FFFFFF;padding: 2px 8px;'>
 					<div class='row row-center margin0 padding0' ng-click='type.selected = !type.selected;'>
 						<div class='col'>
-							{{type.name}}
+                            <i ng-show='type.selected' class="fsh4 icon ion-android-checkbox-outline"></i>
+                            <i ng-hide='type.selected' class="fsh4 icon ion-android-checkbox-outline-blank"></i>
+                            <span>{{type.name}}</span>
 						</div>
 					</div>
                 </div>
