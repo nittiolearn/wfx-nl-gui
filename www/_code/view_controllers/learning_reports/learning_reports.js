@@ -995,10 +995,13 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 
 	function _updateOverviewDoughnut(summaryRecord) {
 		var c = $scope.charts[0];
+		var isAbsent = nlLrReportRecords.canAddAbsentToTab();
 		var type = nlLrFilter.getType();
 		var typeStr = type == 'module' || type == 'module_assign' || type == 'module_self_assign' ? 'Module' : type == 'user' ? 'Learning' : 'Course';
 		c.data = [summaryRecord.done.txt, summaryRecord.failed.txt, summaryRecord.started.txt, summaryRecord.pending.txt];
+		if (isAbsent) c.labels[1] = 'Absent';
 		c.title = nl.t('{} Reports Status', typeStr);
+		c.failTxt = isAbsent ? 'Absent' : 'Failed';
 	}
 	
 	function _updateOverviewInfoGraphicsCards(summaryRecord) {
