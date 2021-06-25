@@ -1705,6 +1705,7 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		columns.push({id: 'completed', name: 'Completed', percid: 'percCompleted', table: true, indentation: 'padding-left-22', showAlways: true});
 		columns.push({id: 'certified', name: 'Certified/Done', percid: 'percCertified', table: true, indentation: 'padding-left-44'});
 		columns.push({id: 'failed', name: 'Failed', percid: 'percFailed', table: true, indentation: 'padding-left-44'});
+		if (nlLrReportRecords.canAddAbsentToTab()) columns.push({id: 'absent', name: 'Absent', percid: 'percAbsent', table: true, indentation: 'padding-left-44'});
 		columns.push({id: 'notcompleted', name: 'Not completed', percid: 'percNotcompleted', table: true, indentation: 'padding-left-22', showAlways: true});
 		columns.push({id: 'started', name: 'Active ongoing', percid: 'percStarted', table: true, indentation: 'padding-left-44', showAlways: true});
 		if(customStartedStates.length > 0) {
@@ -1753,8 +1754,9 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		$scope.drillDownInfo.charts = {options: [{id: $scope.pivotConfig.level1Field.id, name: nl.t('{} (A-Z)', level1pivotName)}, {id: 'completed', name: 'Highest completion'}, {id: 'pending', name: 'Lowest completion'}]};
 		var summaryRow = (_drilldownStatsCountDict[0] && _drilldownStatsCountDict[0].children) ? _drilldownStatsCountDict[0].children : {};
 		var darkmode = false;
+		var isAbsent = nlLrReportRecords.canAddAbsentToTab();
 		if (_userInfo.groupinfo.groupCustomClass == 'nldarkmode') darkmode = true;
-		var charts = {labels: [], series: ['Certified/Done', 'Failed', 'Pending'],
+		var charts = {labels: [], series: ['Certified/Done', isAbsent ? 'Absent' : 'Failed', 'Pending'],
 					  	options: {scales: {
 							xAxes: [{
 								stacked: true,
@@ -1805,13 +1807,14 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		nl.window.statuscountseries = { cert: [], notcompleted: [], failed: [] };
 		for (var key in summaryRow) {
 			var statsDict = summaryRow[key].cnt;
-			var total = statsDict.certified+statsDict.failed+statsDict.notcompleted;
+			var total = statsDict.certified+statsDict.failed+statsDict.absent+statsDict.notcompleted;
 			var certPerc = Math.round(statsDict.certified/total*100);
-			var failPerc = Math.round(statsDict.failed/total*100);
+			var failed = statsDict.failed + statsDict.absent;
+			var failPerc = Math.round(failed/total*100);
 			if (certPerc + failPerc > 100) failPerc--;
 			var notCompPerc = 100 - (certPerc+failPerc);
 			var certNumber = statsDict.certified;
-			var failedNumber = statsDict.failed;
+			var failedNumber = failed;
 			var notcompletedNumber = statsDict.notcompleted;
 			charts.graphData.push({name: statsDict.name || key, cert: certPerc, failed: failPerc, notCompleted: notCompPerc, certNumber: certNumber, failedNumber: failedNumber, notcompletedNumber: notcompletedNumber });
 		}
