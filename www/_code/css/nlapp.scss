@@ -6833,10 +6833,14 @@ Font-size
     justify-content: space-between;
       .user-pic {
         border-radius: 50%;
-        height: 50px;
-        width: 50px;
-        border: 1px solid black;
+        height: 60px;
+        width: 60px;
         position: relative;
+        img {
+          height: 100%;
+          width: 100%;
+          border-radius: 50%;
+        }
       }
       .earned-points {
         font-size: 22px; 
@@ -6852,7 +6856,7 @@ Font-size
       .rank {
         position: absolute;
         bottom: 0;
-        right: -25px;
+        right: -22px;
         padding: 2px 9px;
         background-color: white;
         border-radius: 10px;

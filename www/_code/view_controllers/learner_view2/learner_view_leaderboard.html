@@ -13,8 +13,9 @@
             </div>
             
             <div ng-if='leaderboard.userData.length > 0'>
-                <div ng-repeat='data in leaderboard.userData track by $index' ng-if='!data.length' class="row mt-20 rank_order" style="justify-content: space-between;"> 
+                <div ng-repeat='data in leaderboard.userData track by $index' ng-if='!data.length' class="row mt-20 rank_order" style="justify-content: space-between; align-items: center;"> 
                     <div class="user-pic">
+                        <img ng-src='{{tabData.defaultUser}}' alt='no-data'>
                         <div class="rank">{{data.lrank}}</div>
                     </div>
                     <div class="padding-mid text-center">

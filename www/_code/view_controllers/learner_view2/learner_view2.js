@@ -1062,9 +1062,7 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView2, nlRouter, nlReport
 		var _groupInfo = nlGroupInfo.get();
 		var _userid = _userInfo.userid;
 		var data = {grpid: _groupInfo.grpid, table: 'learningcredits', recid: 'users', field: _userid+'.json'};
-		$scope.tabData.bluestar = nl.url.lessonIconUrl('blue-star.svg');
-		$scope.tabData.greenstar = nl.url.lessonIconUrl('green-star.svg');
-		$scope.tabData.redstar = nl.url.lessonIconUrl('red-star.svg');
+		$scope.tabData.defaultUser = nl.url.lessonIconUrl('default-user.png');
 		nl.timeout(function() {
 			nlServerApi.jsonFieldStream(data).then(function(resp) {
 				if (!resp || !resp.data) {
@@ -1108,7 +1106,6 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView2, nlRouter, nlReport
 	function _leaderboard(data, _groupInfo) {
 		var cohort = data.cohort;
 		var _ldata = {grpid: _groupInfo.grpid, table: 'learningcredits', recid: 'cohorts', field: cohort+'.json'};
-		$scope.tabData.redstar = nl.url.lessonIconUrl('red-star.svg');
 		nl.timeout(function() {
 			    nlServerApi.jsonFieldStream(_ldata).then(function(resp) {
 				if (!resp || !resp.data) {
