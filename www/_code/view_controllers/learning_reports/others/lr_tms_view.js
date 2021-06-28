@@ -128,7 +128,7 @@ function($scope, nl, nlDlg, nlRouter, nlGroupInfo, nlServerApi, nlExporter, nlTm
         if (!selected) {
             return nlDlg.popupAlert({title: 'Please select', template: 'Please select at least once default tab to view the table'});
         }
-        $scope.toggleTableSelector = false;
+        $scope.data.toggleTableSelector = false;
         $scope.nhtInfo.info.columns = _getTmsCols();
     };
 
@@ -202,6 +202,7 @@ function($scope, nl, nlDlg, nlRouter, nlGroupInfo, nlServerApi, nlExporter, nlTm
         jsonObj = null;
         $scope.searchObj = {start: null, end: null, placeHolder: 'Search based on Batch name/BatchId', laststart: '', lastend: '', canShow: false};
         $scope.tableSelector = [{id: 'default', name: 'Overview', selected: true}, {id: 'customScores', name: 'Custom scores', selected: true}];
+        $scope.data = {toggleTableSelector: false};
     }
 
 
@@ -293,11 +294,12 @@ function($scope, nl, nlDlg, nlRouter, nlGroupInfo, nlServerApi, nlExporter, nlTm
         columns.push({id: 'otherRecords', name: 'Added in later batches', table: false, background: 'nl-bg-blue', showAlways: true, background: 'bggrey', hidePerc:true, type: 'default'});
         columns.push({id: 'nQuizzes', name: 'Number of applicable modules', table: true, background: 'nl-bg-blue', showAlways: true, hidePerc:true, type: 'default'});
         columns.push({id: 'nQuizzesCompleted', name: 'Number of completed modules', table: true, background: 'nl-bg-blue', showAlways: true, hidePerc:true, type: 'default'});
-        columns.push({id: 'percCompletedLesson', name: 'Completion %', table: true, background: 'nl-bg-blue', showAlways: true, hidePerc:true, type: 'default'});
+        columns.push({id: 'percCompletedLesson', name: 'Applicable modules completion %', table: true, background: 'nl-bg-blue', showAlways: true, hidePerc:true, type: 'default'});
         columns.push({id: 'percAvgQuizScore', name: 'Assessment scores (Average of attempts)', table: true, background: 'nl-bg-blue', showAlways: true, hidePerc:true, type: 'default'});
         for (var i=0; i<customScores.length; i++) {
             columns.push({id: 'perc'+customScores[i], name: customScores[i], table: true, background: 'nl-bg-blue', hidePerc:true, type: 'customScores'});
         }
+        columns.push({id: 'batchid', name: 'Batch Id', table: false, background: 'nl-bg-blue', showAlways: true, background: 'bggrey', hidePerc:true, type: 'all', fmt: 'idstr', widthCls: 'w175'});
         var defaultDict = {};
         for (var i=0; i<$scope.tableSelector.length; i++) {
             if ($scope.tableSelector[i].selected) defaultDict[$scope.tableSelector[i].id] = true;
@@ -468,6 +470,8 @@ function TmsStatsCounts(nl) {
     this.statsCountDict = function() {
         _updateStatsCountTree(null, _statusCountTree);
         var allRow = _statusCountTree[0];
+        if (!allRow) return {};
+        if (!allRow.cnt) allRow.cnt = {};
         allRow.cnt.contPercQS = 0;
         allRow.cnt.percQS = 0;
 
