@@ -4183,7 +4183,10 @@ background-color: var(--nlFontYellow);}
     font-size:12px !important;
   }
   .font-16-in-small {
-    font-size:16px;
+    font-size:16px !important;
+  }
+  .font-18-in-small {
+    font-size:18px !important;
   }
   .font-20-in-small {
     font-size:20px;
@@ -6822,23 +6825,24 @@ Font-size
   padding: 0px;
   .leaderboard {
     flex-basis: 33.33%;
+    margin-bottom: 20px;
     .ld_section {
       width: 65%;
       margin:0 auto;
       margin-top:10px;
+      font-size:22px;
     }
     .rank_order {
-    width: 90%;
+    width: 100%;
     margin: 0 auto;
     justify-content: space-between;
       .user-pic {
-        border-radius: 50%;
-        height: 60px;
+        height: 100%;
         width: 60px;
         position: relative;
         img {
           height: 100%;
-          width: 100%;
+          width: inherit;
           border-radius: 50%;
         }
       }
