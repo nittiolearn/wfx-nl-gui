@@ -1137,11 +1137,13 @@ SelectHelper.setupOnReportClick = function(mode, choices, correct, answers, page
 	if (page.lesson.renderCtx.pageMode(page) != 'report') return;
 	if (correct.length == 0) return;
 	reportDiv.click(function() {
-		var answer = _SelectHelper_answersAsString(_SelectHelper_stringsOfPos(mode, choices, answers));
+		var answer = mode.indexOf('multi-select') == 0 ? _SelectHelper_answersAsString1(_SelectHelper_stringsOfPos(mode, choices, answers), page, choices, correct) :
+									_SelectHelper_answersAsString(_SelectHelper_stringsOfPos(mode, choices, answers));
 		var canswer = _SelectHelper_answersAsString(correct);
+		var headerStr = 'For each question in the page, Score is calculated as ratio provided below with respect to max score for question';
 		njs_helper.Dialog.popup('Answer for the chosen section', 
-							njs_helper.fmt2('<p><b>Correct Answer: </b>{}</p><p><b>Your Answer: </b>{}</p>', 
-										njs_helper.escape(canswer), njs_helper.escape(answer)));
+							njs_helper.fmt2('<p>{}</p><p><b>Correct Answer: </b>{}</p><p><b>Your Answer: </b>{}</p>', 
+							njs_helper.escape(headerStr), njs_helper.escape(canswer), njs_helper.escape(answer)));
 	});
 };
 
@@ -1155,6 +1157,33 @@ function _SelectHelper_getRandomPos(choices, correct, page) {
 	for (var i=0; i < len; i++) randPosArray.push(i);
 	if (!randomize) return randPosArray;
 	return njs_helper.randSet(len, randPosArray);
+}
+
+function _SelectHelper_answersAsString1(answers, page, choices, correct) {
+	answers.sort();
+	var answerDict = _Array_to_dict(correct);
+	var ret ='';
+	var ratio = "1/"+ correct.length;
+	for(var i=0; i<answers.length; i++) {
+		var delim = (i == 0) ? '' : ', ';
+		if (correct.length == 1) {
+			ret += delim + answers[i];
+		} else {
+			if (answers[i] in answerDict) 
+			ret += delim + answers[i]+'(+'+ratio+')';
+		else
+			ret += delim + answers[i]+'(-'+ratio+')';
+		}
+	}
+	return ret;
+}
+
+function _Array_to_dict(arr) {
+	var dictObj = {};
+	for(var i=0; i<arr.length; i++) {
+		dictObj[arr[i]] = true;
+	}
+	return dictObj;
 }
 
 function _SelectHelper_answersAsString(answers) {
