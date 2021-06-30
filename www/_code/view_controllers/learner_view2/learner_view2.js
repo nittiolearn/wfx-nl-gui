@@ -1114,7 +1114,7 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView2, nlRouter, nlReport
 				}
 		 		_ShowTopOnLeaderBoard(resp.data);
 			})
-		}) 
+		})			
 	}
 
 	function _ShowTopOnLeaderBoard(data) {
@@ -1125,31 +1125,23 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView2, nlRouter, nlReport
 
 	function _getdatarankwise(data, currentUserrank, pastdays) {
 		if(!data.length) return;
-		var topLearner = 10 
+		var topLearner = 10; 
 		var length = currentUserrank > topLearner ? 9 : topLearner;
 		length = data.length > topLearner ? length : data.length;
 		var i = 0;
+		var currentlearnerClass, currentlearnerbg, username, currentlearnerintopten = false;
 		for(i ; i < length; i++) {
-		   _StoreDataInLeaderBoard(pastdays, data, i);
+			if(data[i].userid == $scope.tabData.currentlearnerStats[0].userid) currentlearnerintopten = true;
+			currentlearnerClass = data[i].userid == $scope.tabData.currentlearnerStats[0].userid ?  'currentlearner' : '';
+			currentlearnerbg = data[i].userid == $scope.tabData.currentlearnerStats[0].userid ?  'currentlearnerbg' : '';
+		    username = data[i].username.split(' ').length > 4 ? maxfourwords(data[i].username) : data[i].username;
+		   _StoreDataInLeaderBoard(pastdays, data, i, username, currentlearnerClass, currentlearnerbg);
 		}
-		if(length > 10) {
-			_StoreDataInLeaderBoard(pastdays, data, i)
-		}
-	}
-
-	function _StoreDataInLeaderBoard(pastdays, data, i) {
-		var currentlearner = data[i].userid == $scope.tabData.currentlearnerStats[0].userid ? 'currentlearner' : '';
-		if(pastdays == 7) {
-			data[i].lrank7 = getNumberWithOrdinal(data[i].lrank7);
-			$scope.tabData.leaderBoardData[0].userData.push({'username' : data[i].username, 'lrank':data[i].lrank7,'lcredits':data[i].lcredits7, 'currentlearner': currentlearner})
-		}	
-		else if(pastdays == 30) {
-			data[i].lrank30 = getNumberWithOrdinal(data[i].lrank30);
-			$scope.tabData.leaderBoardData[1].userData.push({'username' : data[i].username, 'lrank':data[i].lrank30,'lcredits':data[i].lcredits30, 'currentlearner': currentlearner})
-		}
-		else {
-			data[i].lrank90 = getNumberWithOrdinal(data[i].lrank90);
-			$scope.tabData.leaderBoardData[2].userData.push({'username' : data[i].username, 'lrank':data[i].lrank90,'lcredits':data[i].lcredits90, 'currentlearner': currentlearner})
+		if(!currentlearnerintopten) {
+			var rank = getNumberWithOrdinal(currentUserrank);
+			var cusername = $scope.tabData.currentlearnerStats[0].username;
+			username = cusername.split(' ').length > 4 ? maxfourwords($scope.tabData.currentlearnerStats[0].username) : cusername;
+			_CurrentUserDataInLeaderBoard(pastdays, rank, username);
 		}
 	}
 
@@ -1157,6 +1149,42 @@ function NlLearnerViewImpl($scope, nl, nlDlg, nlLearnerView2, nlRouter, nlReport
 		var s = ["th", "st", "nd", "rd"],
 			v = rank % 100;
 		return rank + (s[(v - 20) % 10] || s[v] || s[0]);
+	}
+
+	function maxfourwords(username) {
+		var wordsArray= username.split(" ");
+		var res= '';
+		for(var i=0; i < 4; i ++ ) {
+			res = res + wordsArray[i] + " ";
+		}
+		return res.trim();
+	}
+
+	function _StoreDataInLeaderBoard(pastdays, data, i, username, currentlearnerClass, currentlearnerbg) {
+		if(pastdays == 7) {
+			data[i].lrank7 = getNumberWithOrdinal(data[i].lrank7);
+			$scope.tabData.leaderBoardData[0].userData.push({'username' : username, 'lrank':data[i].lrank7,'lcredits':data[i].lcredits7, 'currentlearner': currentlearnerClass, 'currentlearnerbg': currentlearnerbg})
+		}	
+		else if(pastdays == 30) {
+			data[i].lrank30 = getNumberWithOrdinal(data[i].lrank30);
+			$scope.tabData.leaderBoardData[1].userData.push({'username' : username, 'lrank':data[i].lrank30,'lcredits':data[i].lcredits30, 'currentlearner': currentlearnerClass, 'currentlearnerbg': currentlearnerbg})
+		}
+		else {
+			data[i].lrank90 = getNumberWithOrdinal(data[i].lrank90);
+			$scope.tabData.leaderBoardData[2].userData.push({'username' : username, 'lrank':data[i].lrank90,'lcredits':data[i].lcredits90, 'currentlearner': currentlearnerClass, 'currentlearnerbg': currentlearnerbg})
+		}
+	}
+
+	function _CurrentUserDataInLeaderBoard(pastdays, currentUserrank, username) {
+		if(pastdays == 7) {
+			$scope.tabData.leaderBoardData[0].userData.push({'username' : username , 'lrank': currentUserrank ,'lcredits':$scope.tabData.currentlearnerStats[0].lcredits7, 'currentlearner': 'currentlearner','currentlearnerbg': 'currentlearnerbg'})
+		}	
+		else if(pastdays == 30) {
+			$scope.tabData.leaderBoardData[1].userData.push({'username' : username , 'lrank': currentUserrank, 'lcredits':$scope.tabData.currentlearnerStats[0].lcredits30, 'currentlearner': 'currentlearner','currentlearnerbg': 'currentlearnerbg'})
+		}
+		else {
+			$scope.tabData.leaderBoardData[2].userData.push({'username' :  username , 'lrank': currentUserrank, 'lcredits':$scope.tabData.currentlearnerStats[0].lcredits90, 'currentlearner': 'currentlearner','currentlearnerbg': 'currentlearnerbg'})
+		}
 	}
 
 	$scope.slideshow = function(n) {

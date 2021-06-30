@@ -4166,7 +4166,7 @@ background-color: var(--nlFontYellow);}
     background-color: #f0f0f0;
   }
   .mt-in-small {
-    margin-top: 45px !important;
+    margin-top: 55px !important;
   }
   .heading-in-small {
     position: relative;
@@ -4193,6 +4193,9 @@ background-color: var(--nlFontYellow);}
   }
   .mt-0-in-small {
     margin-top:0px !important;
+  }
+  .mb-0-in-small {
+    margin-bottom:0px !important;
   }
   .margin-auto-in-small {
     margin:0 auto;
@@ -4305,7 +4308,7 @@ background-color: var(--nlFontYellow);}
     }
   }
   .chart_container_in_mobile {
-    margin: 0 auto;
+    margin: 0 auto 20px auto;
     max-width: 90%;
   }
   .chart-heading-position {
@@ -4316,7 +4319,7 @@ background-color: var(--nlFontYellow);}
     counter-reset: item;
     scroll-behavior: smooth;
     scroll-snap-type: x mandatory;
-    padding: 18px;
+    padding: 0px 18px 18px 18px;
     grid-gap: 25px;
     &::-webkit-scrollbar {
       width:  0px;
@@ -6447,9 +6450,9 @@ background-color: var(--nlWhite);
  * LIGHT THEME
  *-----------------------------------------------------------------------------------------*/
  .pie_chart_heading {
-  font-size: 22px; 
-  margin: 0 auto;
+  font-size: 22px !important; 
   line-height: 1;
+  letter-spacing: 0px !important;
   font-family: Montserrat-Medium;
 }
  .pie_chart_label > li::before {
@@ -6570,6 +6573,8 @@ color:var(--nlWhite);
 }
 .graph-title {
   padding:12px 18px;
+  font-size: 16px;
+  letter-spacing: 2px;
 }
 .stats_container {
   flex-basis: 33.33%;
@@ -6795,6 +6800,9 @@ Font-size
 .fontsize22 {
   font-size: 22px;
 }
+.fontsize20 {
+  font-size: 20px;
+}
 .fontsize16 {
   font-size: 1rem;
 }
@@ -6830,12 +6838,17 @@ Font-size
       width: 65%;
       margin:0 auto;
       margin-top:10px;
-      font-size:22px;
+      font-size:18px;
     }
+    .currentlearnerbg {
+      background-color: var(--nlLinkTextBg);
+     }
     .rank_order {
     width: 100%;
     margin: 0 auto;
     justify-content: space-between;
+    padding: 8px;
+    align-items: center;
       .user-pic {
         height: 100%;
         width: 60px;
@@ -6852,7 +6865,7 @@ Font-size
         color: var(--nlBoxShadowBlackTransparent60);
       }
       .currentlearner {
-        color: var(--nlStatusDone) !important;
+        color: var(--nlFontYellow) !important;
       }
       .otherlearner {
         color: var(--nlStatusBlue);
