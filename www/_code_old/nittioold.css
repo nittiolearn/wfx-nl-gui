@@ -1057,6 +1057,11 @@ div.pgSecView.answer_right {
   color: #FFFFFF;
 }
 
+div.pgSecView.answer_part {
+  background-color: #2FB885;
+  color: #FFFFFF;
+}
+
 div.pgSecView.answer_wrong {
   background-color: #770000;
   color: #FFFFFF;
