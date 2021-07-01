@@ -1139,7 +1139,6 @@ SelectHelper.setupOnReportClick = function(mode, choices, correct, answers, page
 	reportDiv.click(function() {
 		var answersDict = mode.indexOf('multi-select') == 0 ? _SelectHelper_answersAsString1(_SelectHelper_stringsOfPos(mode, choices, answers), page, choices, correct) :
 									_SelectHelper_answersAsString(_SelectHelper_stringsOfPos(mode, choices, answers));
-		var canswer = _SelectHelper_answersAsString(correct);
 		njs_helper.BlankScreen.show();
 		var dataObj = {choices: choices, canswerObj: answersDict, correct: correct};
 		window.nlapp.NittioLesson.showSectionDlg(dataObj);
@@ -1161,7 +1160,6 @@ function _SelectHelper_getRandomPos(choices, correct, page) {
 function _SelectHelper_answersAsString1(answers, page, choices, correct) {
 	answers.sort();
 	var answerDict = _Array_to_dict(correct);
-	var ret ='';
 	var ratio = "1/"+ correct.length;
 	var resultDict = {answers: {}};
 	var correctAns = 0;
@@ -1171,9 +1169,11 @@ function _SelectHelper_answersAsString1(answers, page, choices, correct) {
 		if (answers[i] in answerDict) {
 			correctAns++;
 			scDict = {score: '+'+ratio, icon: 'ion-checkmark-circled fgreen'};
+			if (correct.length == 1) scDict.score = "+1";
 		} else {
 			wrongAns++;
 			scDict = {score: '-'+ratio, icon: 'ion-close-circled forange'};
+			if (correct.length == 1) scDict.score = "-1";
 		}
 		resultDict.answers[answers[i]] = scDict;
 	}
