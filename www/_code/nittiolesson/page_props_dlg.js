@@ -200,9 +200,9 @@ function(nl, nlDlg) {
 	};
 	function _getHeaders() {
 		return [{id: 'option', name: 'Options', type: 'text'},
-				{id: 'correct', name: 'Correct answers', type: 'icon'},
-				{id: 'selected', name: 'Selected answers', type: 'icon'},
-				{id: 'score', name: 'score', type: 'text'}];
+				{id: 'correct', name: 'Correct Answers', type: 'icon'},
+				{id: 'selected', name: 'Your Answers', type: 'icon'},
+				{id: 'score', name: 'Score Awarded', type: 'text'}];
 	}
 }];
 //-------------------------------------------------------------------------------------------------
