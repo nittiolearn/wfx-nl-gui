@@ -1,0 +1,37 @@
+<nl-dlg dlgtitle='Section overview' show-help='0'>
+<nl-dlg-content>
+<div class='padding-mid'>
+	<div class='padding-mid'>
+		<nl-inline-help>
+			For each question in the page, Score is calculated as ratio provided below with respect to max score for question.
+		</nl-inline-help>
+	</div>
+	<table class='nl-table nl-table-styled3 rowlines'>
+		<thead class='nl-lr-header-section'>
+			<tr class='header'>
+				<td ng-repeat='header in data.headers'>{{header.name}}</td>
+			</tr>
+		</thead>
+		<tbody>
+			<tr ng-repeat='row in data.rows'>
+				<td ng-repeat='col in data.headers'>
+					<div ng-if='col.type == "text"'>{{row[col.id]}}</div>
+					<div ng-if='col.type == "icon"'>
+						<i class="padding-mid icon {{row[col.id]}} fsh4"></i>
+					</div>
+				</td>
+			</tr>
+			<tr>
+				<td>
+					Total
+				</td>
+				<td colspan=2>
+					{{data.msg}}
+				</td>
+				<td>{{data.total}}</td>
+			</tr>
+		</tbody>
+	</table>
+</div>
+</nl-dlg-content>
+</nl-dlg>

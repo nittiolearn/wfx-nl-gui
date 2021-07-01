@@ -486,7 +486,7 @@ npagetypes = function() {
 	}
 
 	function _showStickerPart(section) {
-		_showSticker(section, 'forange ion-information-circled');
+		_showSticker(section, 'fgrey ion-information-circled');
 	}
 
 	function _showStickerHint(section) {
@@ -2197,7 +2197,7 @@ npagetypes = function() {
 				selectedWrongAns++;
 			}
 		}
-		if (selectedCorrectAns == 0) return 0;
+		if (selectedCorrectAns == 0 || ans.length == answerData.choices.length) return 0;
 		if (selectedWrongAns == 0 && (selectedCorrectAns == maxRight)) return 1;
 		var correctAnswerRatio = selectedCorrectAns*1/maxRight;
 		var wrongAnswerRatio = selectedWrongAns*1/maxRight;

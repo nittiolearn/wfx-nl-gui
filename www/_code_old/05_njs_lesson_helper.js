@@ -1137,13 +1137,12 @@ SelectHelper.setupOnReportClick = function(mode, choices, correct, answers, page
 	if (page.lesson.renderCtx.pageMode(page) != 'report') return;
 	if (correct.length == 0) return;
 	reportDiv.click(function() {
-		var answer = mode.indexOf('multi-select') == 0 ? _SelectHelper_answersAsString1(_SelectHelper_stringsOfPos(mode, choices, answers), page, choices, correct) :
+		var answersDict = mode.indexOf('multi-select') == 0 ? _SelectHelper_answersAsString1(_SelectHelper_stringsOfPos(mode, choices, answers), page, choices, correct) :
 									_SelectHelper_answersAsString(_SelectHelper_stringsOfPos(mode, choices, answers));
 		var canswer = _SelectHelper_answersAsString(correct);
-		var headerStr = 'For each question in the page, Score is calculated as ratio provided below with respect to max score for question';
-		njs_helper.Dialog.popup('Answer for the chosen section', 
-							njs_helper.fmt2('<p>{}</p><p><b>Correct Answer: </b>{}</p><p><b>Your Answer: </b>{}</p>', 
-							njs_helper.escape(headerStr), njs_helper.escape(canswer), njs_helper.escape(answer)));
+		njs_helper.BlankScreen.show();
+		var dataObj = {choices: choices, canswerObj: answersDict, correct: correct};
+		window.nlapp.NittioLesson.showSectionDlg(dataObj);
 	});
 };
 
@@ -1164,18 +1163,44 @@ function _SelectHelper_answersAsString1(answers, page, choices, correct) {
 	var answerDict = _Array_to_dict(correct);
 	var ret ='';
 	var ratio = "1/"+ correct.length;
+	var resultDict = {answers: {}};
+	var correctAns = 0;
+	var wrongAns = 0;
 	for(var i=0; i<answers.length; i++) {
-		var delim = (i == 0) ? '' : ', ';
-		if (correct.length == 1) {
-			ret += delim + answers[i];
+		var scDict = {};
+		if (answers[i] in answerDict) {
+			correctAns++;
+			scDict = {score: '+'+ratio, icon: 'ion-checkmark-circled fgreen'};
 		} else {
-			if (answers[i] in answerDict) 
-			ret += delim + answers[i]+'(+'+ratio+')';
-		else
-			ret += delim + answers[i]+'(-'+ratio+')';
+			wrongAns++;
+			scDict = {score: '-'+ratio, icon: 'ion-close-circled forange'};
 		}
+		resultDict.answers[answers[i]] = scDict;
 	}
-	return ret;
+	var pageMaxScore = page.oPage.maxScore || 0;
+	var sections = page.oPage.sections;
+	var qsCount = 0;
+	for (var i=0; i<sections.length;i++) {
+		var section = sections[i];
+		if (!section.text) continue;
+		var text = section.text;
+		if (text.indexOf('multi-select') >= 0) qsCount++;
+	}
+	var qsMaxScore = pageMaxScore/qsCount;
+	if (answers.length == choices.length) correctAns = 0;
+	var result = correctAns - wrongAns;
+	if (result <= 0) {
+		resultDict.total = 0;
+		result = 0;
+	} else {
+		var score = result/correct.length;
+		resultDict.total = qsMaxScore*parseFloat(score.toFixed(2));
+		if (resultDict.total > 0.90 && resultDict.total < 1) resultDict.total = 1;
+
+	}
+	resultDict.qsMaxScore = qsMaxScore;
+	resultDict.qsRatio = result+"/"+correct.length;
+	return resultDict;
 }
 
 function _Array_to_dict(arr) {
