@@ -193,7 +193,7 @@ function(nl, nlDlg) {
 			tableArray.push(row);
 		}
 		var text = nl.t('Score = ({})*{}', str, data.canswerObj.qsMaxScore);
-		sectionDlg.scope.data = {headers: _getHeaders(), rows: tableArray, total: data.canswerObj.total, msg: text};
+		sectionDlg.scope.data = {headers: _getHeaders(), rows: tableArray, total: data.canswerObj.total, msg: text, maxScore: data.canswerObj.qsMaxScore};
 		var cancelButton = {text: nl.t('Cancel'), onTap: function() {
 		}};
 		sectionDlg.show('nittiolesson/section_details_dlg.html', [], cancelButton);

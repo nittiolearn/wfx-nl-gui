@@ -34,7 +34,7 @@ function($scope, nl, nlDlg, nlRouter, nlGroupInfo, nlServerApi, nlExporter, nlTm
         nl.pginfo.pageTitle = nl.t('NHT batches');
         var params = nl.location.search();
         _readFromFile = (params.fromfile == '1'); 
-        $scope.showFilterAndView = (params.debug == '1'); 
+        $scope.showFilterAndView = true; //(params.debug == '1'); 
         nlGroupInfo.init2().then(function() {
           nlGroupInfo.update();
                   _groupInfo = nlGroupInfo.get();
@@ -201,7 +201,7 @@ function($scope, nl, nlDlg, nlRouter, nlGroupInfo, nlServerApi, nlExporter, nlTm
     function _init() {
         jsonObj = null;
         $scope.searchObj = {start: null, end: null, placeHolder: 'Search based on Batch name/BatchId', laststart: '', lastend: '', canShow: false};
-        $scope.tableSelector = [{id: 'default', name: 'Overview', selected: true}, {id: 'customScores', name: 'Custom scores', selected: true}];
+        $scope.tableSelector = [{id: 'default', name: 'Overview', selected: true}, {id: 'customScores', name: 'Custom scores', selected: false}];
         $scope.data = {toggleTableSelector: false};
     }
 
