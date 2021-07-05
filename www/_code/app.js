@@ -158,9 +158,9 @@ function(nl) {
 
 //-------------------------------------------------------------------------------------------------
 var AppCtrl = ['nl','nlDlg','nlServerApi', '$scope', '$anchorScroll', 'nlKeyboardHandler', 'nlAnnouncementSrv', 'nlRouter',
-'nlLogViewer', 'nlOldCodeBridge', 'nlTopbarSrv', 'nlServerSideUserSettings', 'ChartJSSrv',
+'nlLogViewer', 'nlOldCodeBridge', 'nlTopbarSrv', 'nlServerSideUserSettings', 'ChartJSSrv', 'nlResourceUploader', 'Upload',
 function(nl, nlDlg, nlServerApi, $scope, $anchorScroll, nlKeyboardHandler, nlAnnouncementSrv, nlRouter, nlLogViewer, 
-    nlOldCodeBridge, nlTopbarSrv, nlServerSideUserSettings, ChartJSSrv) {
+    nlOldCodeBridge, nlTopbarSrv, nlServerSideUserSettings, ChartJSSrv, nlResourceUploader, Upload) {
     nl.log.info('UserAgent: ', navigator.userAgent);
     if (NL_SERVER_INFO.oldCode) nlOldCodeBridge.expose();
     nl.rootScope.imgBasePath = nl.url.resUrl();
@@ -217,7 +217,47 @@ function(nl, nlDlg, nlServerApi, $scope, $anchorScroll, nlKeyboardHandler, nlAnn
             }
         )
     }
+
+    function _onFileOpened(dlgScope, resolve) {
+        if (!dlgScope.data.resource || !dlgScope.data.resource[0]) {
+            return resolve(null);
+        }
+        var res = dlgScope.data.resource[0].resource;
+        var extn = nlResourceUploader.getValidExtension(res, 'Image');
+        var restype = nlResourceUploader.getRestypeFromExt(extn);            
+        var fileInfo = {resource: res, restype: restype, extn: extn, name: ''};
+        Upload.dataUrl(fileInfo.resource).then(function(url) {
+            fileInfo.resimg = url;
+        });
+        _onUploadOrModify(fileInfo , $scope);
+    }
     
+
+    function _onUploadOrModify(data, addModifyResourceDlg, $scope) {
+		var resourceList = data;
+        addModifyResourceDlg.resInfos = [];
+        var resourceInfoDict = {shared: true};
+        var keyword = addModifyResourceDlg.keywords || '';
+        resourceInfoDict['insertfrom'] = '/';
+	    if(resourceList.length == 0) {
+	    	return;
+		}
+		nlDlg.showLoadingScreen();
+		nlResourceUploader.uploadInSequence(resourceList, keyword, 'high', null, resourceInfoDict)
+		.then(function(resInfos) {
+		    for (var i=0; i<resInfos.length; i++) {
+		        addModifyResourceDlg.resInfos.push(resInfos[i]);
+		    }
+			nlDlg.hideLoadingScreen();
+            nlDlg.popdownStatus(0);
+        }, function(msg) {
+			nlDlg.hideLoadingScreen();
+            nlDlg.popdownStatus(0);
+            nlDlg.popupAlert({title: nl.t('Error')})
+        });
+	}
+
+
     function _updateTopbarMenus(userInfo) {
         var topbarMenus = [];
         if (nlRouter.isPermitted(userInfo, 'change_password')) {
@@ -239,6 +279,29 @@ function(nl, nlDlg, nlServerApi, $scope, $anchorScroll, nlKeyboardHandler, nlAnn
         }
         
         topbarMenus.push(nlLogViewer.getLogMenuItem($scope));
+
+        topbarMenus.push({
+            id: 'changeuserprofile',
+            type: 'menu',
+            icon: 'icon ion-android-person',
+            name: nl.t('Change User Profile'),
+            theme:'',
+            onClick: function() {
+                     nl.q(function(resolve, reject) { 
+                        var dlg = nlDlg.create($scope);
+                        //dlg.setCssClass('nl-height-max nl-width-max');
+                        dlg.scope.data = {resource: null};
+                        dlg.scope.error = {};
+                        var okButton = { text : nl.t('Continue'), onTap : function(e) {
+                            _onFileOpened(dlg.scope, resolve);
+                        }};
+                        var cancelButton = {text : nl.t('Cancel'), onTap : function() {
+                            resolve(null);
+                        }};
+                        dlg.show('lib_ui/utils/file_reader.html', [okButton], cancelButton);             
+                   })
+            }
+        });
         topbarMenus.push({
             id: 'lighttheme',
             type: 'menu',
