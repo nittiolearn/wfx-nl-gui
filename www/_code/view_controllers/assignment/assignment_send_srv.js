@@ -244,7 +244,7 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect, nlCourse) {
         if (inputbns.part1) dlgScope.data.batchnamePart1 =  inputbns.part1;
         dlgScope.data.batchnamePart2 =  inputbns.part2 || null;
         dlgScope.data.batchnamePart3 =  inputbns.part3 || null;
-
+        dlgScope.data.batchnamePart2_1 = inputbns.part2_1 || null;
     }
 
     function _toOptions(input) {
@@ -593,6 +593,7 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect, nlCourse) {
         serverParams.batchnameStructured = {
             part1: dlgScope.data.batchnamePart1,
             part2: dlgScope.data.batchnamePart2,
+            part2_1: dlgScope.data.batchnamePart2_1,
             part3: dlgScope.data.batchnamePart3
         };
         serverParams.batchname = _formatBatchName(dlgScope);
@@ -610,6 +611,10 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect, nlCourse) {
         if (!d.batchnamePart3) {
             return _validateFail('batchnameParts', 'Please enter the unique batch number');
         }
+
+        if (d.batchnamePart2.id == "LA" && !d.batchnamePart2_1)
+            return _validateFail('batchnameParts', 'Please select batchname section 3');
+
         return true;
     }
     function _formatBatchName(dlgScope) {
@@ -619,6 +624,7 @@ function(nl, nlDlg, nlServerApi, nlGroupInfo, nlOuUserSelect, nlCourse) {
             ret += ' ' + d.batchnamePart2.id;
         }
         ret += ' Batch ' + d.batchnamePart3;
+        if (d.batchnamePart2_1) ret += ' ' + d.batchnamePart2_1;
         return ret;
     }
     

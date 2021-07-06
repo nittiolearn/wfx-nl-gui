@@ -39,7 +39,10 @@
                                 <nl-select fieldmodel='batchnamePart2'></nl-select>
                         </div>
                         <div class='col padding0 margin0'>
-                                <nl-input fieldmodel='batchnamePart3' fieldtype='number' fieldminvalue='1'></nl-input>
+                                <nl-input fieldmodel='batchnamePart3' fieldtype='number' fieldminvalue='1' placeholder='Batch number'></nl-input>
+                        </div>
+                        <div ng-if='data.batchnamePart2.id == "LA"' class='col padding0 margin0'>
+                                <nl-input fieldmodel='batchnamePart2_1' fieldtype='text' placeholder='Batch languages'></nl-input>
                         </div>
                 </div>
                 <div ng-show='error["batchnameParts"]' class='nl-dlg-field-errormsg'>{{error["batchnameParts"]}}</div>
