@@ -34,6 +34,7 @@ function(nl, nlRouter, nlDlg, nlGroupInfo, nlLrHelper, nlLrFilter, nlGetManyStor
     var _canAddReportRecord = null;
     var _batchStatus = {};
     var _qsMaxLen = 0;
+    var _canAddAbsent = false;
     this.init = function(userinfo, groupInfo, canAddReportRecord) {
         _userInfo = userinfo;
         _records = {};
@@ -49,6 +50,7 @@ function(nl, nlRouter, nlDlg, nlGroupInfo, nlLrHelper, nlLrFilter, nlGetManyStor
         _canAddReportRecord = canAddReportRecord || function() {return true;};
         _batchStatus = {};
         _qsMaxLen = 0;
+        _canAddAbsent = false;
     };
     
     this.getCustomScoresHeader = function() {
@@ -140,6 +142,10 @@ function(nl, nlRouter, nlDlg, nlGroupInfo, nlLrHelper, nlLrFilter, nlGetManyStor
         return _batchStatus;
     };
     
+    this.canAddAbsentToTab = function() {
+        return _canAddAbsent;
+    };
+
     function _convertAttendanceArrayToObj(attendanceArray) {
         for(var i=0; i<attendanceArray.length; i++) {
             var att = attendanceArray[i];
@@ -343,7 +349,8 @@ function(nl, nlRouter, nlDlg, nlGroupInfo, nlLrHelper, nlLrFilter, nlGetManyStor
             }
         }
         if (stainf.iltStatusOfCourse && stats.status.txt == 'failed') {
-            stats.status = {txt: stainf.iltStatusOfCourse, icon: 'ion-checkmark-circled forange', id: 2};
+            _canAddAbsent = true;
+            stats.status = {txt: stainf.iltStatusOfCourse, icon: 'ion-checkmark-circled forange', id: 4, otherStats: true};
         }
         report.typeStr = 'Course';
         _updateHideDeleteButton(report);

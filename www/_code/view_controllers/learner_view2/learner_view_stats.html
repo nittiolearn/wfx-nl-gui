@@ -10,21 +10,18 @@
             <div ng-if='tabData.showCreditpoints' ng-show='tabData.recordsLen > 0' class="row row-wrap stats_component mt-40">
                 <div class="nl-display-flex points_container show-in-small">
                     <div ng-class="" class="stats_container points_container_background stats-in-small">
-                        <div
-                            class='days_container_small days_container {{$root.screenSize == "small" ? "col-50" : ""}}'>
+                        <div class='days_container_small days_container {{$root.screenSize == "small" ? "col-50" : ""}}'>
                             <span class="total_heading nl-txt-white Montserrat-font">In Past 7 Days</span>
                         </div>
                         <div class='{{$root.screenSize == "small" ? "col-50" : "row"}}'>
-                            <div
-                                class='text-center time_spent_small mt-0-in-small {{$root.screenSize == "small" ? "row" : "col-50"}} '>
-                                <div class="fdone total_sub_points Montserrat-font font-20-in-small">
+                            <div class='text-center time_spent_small mt-0-in-small {{$root.screenSize == "small" ? "row" : "col-50"}} '>
+                                <div class="fprogress total_sub_points Montserrat-font font-20-in-small">
                                     {{tabData.currentlearnerStats[0].lcredits7}}</div>
                                 <div class="nl-txt-white mt-20 mt-0-in-small Montserrat-font font-12-in-small">Points
                                     Earned</div>
                             </div>
-                            <div
-                                class='text-center time_spent_small {{$root.screenSize == "small" ? "row " : "col-50"}}'>
-                                <div class="fdone total_sub_points Montserrat-font font-20-in-small">
+                            <div class='text-center time_spent_small {{$root.screenSize == "small" ? "row " : "col-50"}}'>
+                                <div class="fprogress total_sub_points Montserrat-font font-20-in-small">
                                     {{tabData.tssevendays}}</div>
                                 <div class="nl-txt-white mt-20 mt-0-in-small Montserrat-font font-12-in-small">Time
                                     Spent <br> In Minutes</div>
@@ -32,20 +29,17 @@
                         </div>
                     </div>
                     <div ng-class="" class="stats_container points_container_background stats-in-small">
-                        <div
-                            class='days_container_small days_container {{$root.screenSize == "small" ? "col-50" : ""}}'>
+                        <div class='days_container_small days_container {{$root.screenSize == "small" ? "col-50" : ""}}'>
                             <span class="total_heading nl-txt-white Montserrat-font">In Past 30 Days</span>
                         </div>
                         <div class='{{$root.screenSize == "small" ? "col-50" : "row"}}'>
-                            <div
-                                class='text-center time_spent_small mt-0-in-small {{$root.screenSize == "small" ? "row" : "col-50"}} '>
+                            <div class='text-center time_spent_small mt-0-in-small {{$root.screenSize == "small" ? "row" : "col-50"}} '>
                                 <div class="fupcoming total_sub_points Montserrat-font font-20-in-small">
                                     {{tabData.currentlearnerStats[0].lcredits30}}</div>
                                 <div class="nl-txt-white mt-20 mt-0-in-small Montserrat-font font-12-in-small">Points
                                     Earned</div>
                             </div>
-                            <div
-                                class='text-center time_spent_small {{$root.screenSize == "small" ? "row " : "col-50"}}'>
+                            <div class='text-center time_spent_small {{$root.screenSize == "small" ? "row " : "col-50"}}'>
                                 <div class="fupcoming total_sub_points Montserrat-font font-20-in-small">
                                     {{tabData.tsthirtydays}}</div>
                                 <div class="nl-txt-white mt-20 mt-0-in-small Montserrat-font font-12-in-small">Time
@@ -53,21 +47,18 @@
                             </div>
                         </div>
                     </div>
-                    <div ng-class="" class="stats_container points_container_background stats-in-small">
-                        <div
-                            class='days_container_small days_container {{$root.screenSize == "small" ? "col-50" : ""}}'>
+                    <div class="stats_container points_container_background stats-in-small mb-0-in-small">
+                        <div class='days_container_small days_container {{$root.screenSize == "small" ? "col-50" : ""}}'>
                             <span class="total_heading nl-txt-white Montserrat-font">In Past 90 Days</span>
                         </div>
                         <div class='{{$root.screenSize == "small" ? "col-50" : "row"}}'>
-                            <div
-                                class='text-center time_spent_small mt-0-in-small {{$root.screenSize == "small" ? "row" : "col-50"}} '>
+                            <div class='text-center time_spent_small mt-0-in-small {{$root.screenSize == "small" ? "row" : "col-50"}} '>
                                 <div class="fdone total_sub_points Montserrat-font font-20-in-small">
                                     {{tabData.currentlearnerStats[0].lcredits90}}</div>
                                 <div class="nl-txt-white mt-20 mt-0-in-small Montserrat-font font-12-in-small">Points
                                     Earned</div>
                             </div>
-                            <div
-                                class='text-center time_spent_small {{$root.screenSize == "small" ? "row " : "col-50"}}'>
+                            <div class='text-center time_spent_small {{$root.screenSize == "small" ? "row " : "col-50"}}'>
                                 <div class="fdone total_sub_points Montserrat-font font-20-in-small">
                                     {{tabData.tsnintydays}}</div>
                                 <div class="nl-txt-white mt-20 mt-0-in-small Montserrat-font font-12-in-small">Time
@@ -77,7 +68,7 @@
                     </div>
                 </div>
             </div>
-            <div class="row row-wrap points_container_background stats-graph-container-in-mobile stats_component mt-40 mt-0-in-small show-in-small">
+            <div class="row row-wrap points_container_background stats-graph-container-in-mobile stats_component mt-40 show-in-small">
                 <div class='{{$root.screenSize == "small" ? "points_container_background" : "col col-50"}} chart_container_in_mobile'>
                     <div class="chart-heading-position nl-display-flex">
                         <div class="assigned"><span>Assigned</span></div><br>
@@ -97,7 +88,7 @@
                 <div class='col-50 row-justify-evenly chart_container_in_mobile mt-in-small nl-display-flex'>
                     <div class='w100 mt-10 {{$root.screenSize == "small" ? "points_container_background" : ""}}''>
                         <div class="padding-left row row-justify-evenly mt-0-in-small">
-                            <h2 class='{{$root.screenSize == "small" ? "pie_chart_heading padding0" : "graph-title days_container"}} heading-in-small total_heading nl-txt-white Montserrat-font'>Your Overall Progress</h2>
+                            <h2 class='{{$root.screenSize == "small" ? "pie_chart_heading padding0" : "graph-title days_container"}} heading-in-small nl-txt-white Montserrat-font'>Your Overall Progress</h2>
                         </div>
                         <div style="display: flex;justify-content: center;align-items: center; min-height: 200px;"
                             class="mt-0-in-small">
@@ -122,7 +113,9 @@
                     </div>
                 </div>
             </div>
-            <nl-learner-view-leaderboard></nl-learner-view-leaderboard>
+            <div ng-if='tabData.showCreditpoints'>
+                <nl-learner-view-leaderboard></nl-learner-view-leaderboard>
+            </div>
         </div>
     </div>
 </div>

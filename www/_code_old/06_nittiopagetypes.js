@@ -485,6 +485,10 @@ npagetypes = function() {
 		_showSticker(section, 'forange ion-close-round');
 	}
 
+	function _showStickerPart(section) {
+		_showSticker(section, 'fgrey ion-information-circled');
+	}
+
 	function _showStickerHint(section) {
 		_showSticker(section, 'ion-arrow-graph-down-left');
 	}
@@ -1974,7 +1978,7 @@ npagetypes = function() {
 		
 		var maxScore = page.getMaxScore();
 		nScore = Math.round(nScore/nMaxAnswers*maxScore*100)/100; // Roundoff to 2 decimals
-		
+		if (nScore > 0.95 && nScore < 1) nScore = 1; //Needed for Multi-select computaion else it will compute value as 0.99
 		var answered = (nAnswers == 0) ? ANSWERED_NO : (nMaxAnswers == nAnswers) ? ANSWERED_YES : ANSWERED_PART;
 		return [answered, nScore];
 	}
@@ -2075,6 +2079,9 @@ npagetypes = function() {
 			if (score == 1) {
 				section.pgSecView.addClass('answer_right');
 				_showStickerCorrect(section);
+			} else if (score > 0) {
+				section.pgSecView.addClass('answer_part');
+				_showStickerPart(section);
 			} else if (score == 0){
 				section.pgSecView.addClass('answer_wrong');
 				_showStickerWrong(section);
@@ -2180,11 +2187,24 @@ npagetypes = function() {
 	function _BehManyQuestions_checkMultiSelectAnswer(answerData, answer) {
 		var ans = njs_lesson_helper.SelectHelper.getAnswersAsList(answerData.type, answer);
 		var maxRight = answerData.correct.length;
-		if (ans.length != answerData.correct.length) return 0;
+		//if (ans.length != answerData.correct.length) return 0;
+		var selectedCorrectAns = 0;
+		var selectedWrongAns = 0;
 		for (var i=0; i<ans.length; i++) {
-			if (ans[i] >= answerData.correct.length) return 0;
+			if (ans[i] < maxRight) {
+				selectedCorrectAns++;
+			} else {
+				selectedWrongAns++;
+			}
 		}
-		return 1;
+		if (selectedCorrectAns == 0 || ans.length == answerData.choices.length) return 0;
+		if (selectedWrongAns == 0 && (selectedCorrectAns == maxRight)) return 1;
+		var correctAnswerRatio = selectedCorrectAns*1/maxRight;
+		var wrongAnswerRatio = selectedWrongAns*1/maxRight;
+		var score = correctAnswerRatio - wrongAnswerRatio;
+		score = parseFloat(score.toFixed(2));
+		if (score < 0) return 0;
+		return score;
 	}
 	
 	//#############################################################################################

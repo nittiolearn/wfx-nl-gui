@@ -151,6 +151,12 @@ function(nlReportHelper, nlTable) {
             }
             return;
         } 
+        if (status.otherStats) {
+            statsCountObj['completed'] = 1;
+            statsCountObj['absent'] = 1;
+            statsCountObj['percScore'] = record.stats.percScore;
+            return;
+        }
         statsCountObj['completed'] = 1;
         statsCountObj['percScore'] = record.stats.percScore;
         if(status.id == nlReportHelper.STATUS_FAILED || statusStr == "failed") {
@@ -265,7 +271,7 @@ function StatsCounts(nl) {
 
     var statsCountItem = {cntTotal: 0, cntActive: 0, cntInactive: 0, doneInactive: 0, pendingInactive: 0, 
                           completed: 0, certified: 0, failed: 0, notcompleted: 0, pending:0, started: 0,
-                          percScore: 0, avgScore: 0, delayDays: 0, timeSpent: 0, isOpen: false};
+                          percScore: 0, avgScore: 0, delayDays: 0, timeSpent: 0, isOpen: false, absent: 0};
     var defaultStates = angular.copy(statsCountItem);
     var _dynamicStates = {};
     var _customScores = {};
@@ -382,6 +388,7 @@ function StatsCounts(nl) {
             updatedStats['percCompleted'] = Math.round(updatedStats.completed*100/updatedStats.cntActive);
             updatedStats['percCertified'] = Math.round(updatedStats.certified*100/updatedStats.cntActive);
             updatedStats['percFailed'] = Math.round(updatedStats.failed*100/updatedStats.cntActive);
+            updatedStats['percAbsent'] = Math.round(updatedStats.absent*100/updatedStats.cntActive);
             updatedStats['percNotcompleted'] = Math.round(updatedStats.notcompleted*100/updatedStats.cntActive);
             updatedStats['percPending'] = Math.round(updatedStats.pending*100/updatedStats.cntActive);
             updatedStats['percStarted'] = Math.round(updatedStats.started*100/updatedStats.cntActive);

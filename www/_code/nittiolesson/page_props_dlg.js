@@ -6,7 +6,8 @@
 //-------------------------------------------------------------------------------------------------
 function module_init() {
 	angular.module('nl.nittiolesson.page_props', [])
-	.service('NittioLessonPagePropsDlg', NittioLessonPagePropsDlgSrv);
+	.service('NittioLessonPagePropsDlg', NittioLessonPagePropsDlgSrv)
+	.service('NittioLessonSectionDetailsDlg', NittioLessonSectionDetailsDlgSrv);
 }
 
 //-------------------------------------------------------------------------------------------------
@@ -166,7 +167,44 @@ function(nl, nlDlg, nlResourceAddModifySrv) {
     }
 
 }];
-
+//-------------------------------------------------------------------------------------------------
+var NittioLessonSectionDetailsDlgSrv = ['nl', 'nlDlg',
+function(nl, nlDlg) {
+	var _parentScope = null;
+	this.showDlg = function(data) {
+		_parentScope = nl.rootScope;	
+		var sectionDlg = nlDlg.create(_parentScope);
+		sectionDlg.setCssClass('nl-height-max nl-width-max');
+		var tableArray = [];
+		var selectedAns = data.canswerObj.answers;
+		var choices = data.choices;
+		var correct = data.correct;
+		var str = '';
+		for (var i=0; i<choices.length; i++) {
+			var choice = choices[i];
+			var row = {option: choice};
+			if (i < correct.length) row.correct = 'ion-checkmark-circled fgreen';
+			if (selectedAns[choice]) {
+				var selected = selectedAns[choice];
+				row.selected = selected.icon;
+				row.score = selected.score;
+				str += selected.score + " ";
+			}
+			tableArray.push(row);
+		}
+		var text = nl.t('Score = ({})*{}', str, data.canswerObj.qsMaxScore);
+		sectionDlg.scope.data = {headers: _getHeaders(), rows: tableArray, total: data.canswerObj.total, msg: text, maxScore: data.canswerObj.qsMaxScore};
+		var cancelButton = {text: nl.t('Cancel'), onTap: function() {
+		}};
+		sectionDlg.show('nittiolesson/section_details_dlg.html', [], cancelButton);
+	};
+	function _getHeaders() {
+		return [{id: 'option', name: 'Options', type: 'text'},
+				{id: 'correct', name: 'Correct Answers', type: 'icon'},
+				{id: 'selected', name: 'Your Answers', type: 'icon'},
+				{id: 'score', name: 'Score Awarded', type: 'text'}];
+	}
+}];
 //-------------------------------------------------------------------------------------------------
 module_init();
 })();

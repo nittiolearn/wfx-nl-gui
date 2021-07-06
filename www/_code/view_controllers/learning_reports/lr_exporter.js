@@ -846,13 +846,17 @@ function(nl, nlDlg, nlRouter, nlExporter, nlLrHelper, nlLrSummaryStats, nlGroupI
             {id: 'maxScore', name:'Maximum Score'},
             {id: 'score', name:'Achieved Score'},
             {id: 'answer', name:'Answers provided'},
-            {id: 'module_status', name:'Module status'}];
+            {id: 'module_status', name:'Module status'},
+            {id: '_attempts', name:'Attempt number'},
+        ];
     var _h1Feedback = [
             {id: 'page', name:'Page No'},
             {id: 'title', name:'Page Title'},
             {id: 'question', name:'Question'},
             {id: 'response', name:'Response'},
-            {id: 'module_status', name:'Module status'}];
+            {id: 'module_status', name:'Module status'},
+            {id: '_attempts', name:'Attempt number'}
+        ];
 
     var _hCourseDetailsElem1 = [
             {id: '_assignTypeStr', name:'Record Type'},

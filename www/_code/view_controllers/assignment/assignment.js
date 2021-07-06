@@ -106,8 +106,6 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlGetManyStore, n
 
 	var mode = new TypeHandler(nl, nlServerApi);
 	var _userInfo = null;
-	var _groupInfo = null;
-	var _pastUserInfosFetcher = null;
     var _canManage = false;
 
 	function _onPageEnter(userInfo) {
@@ -154,42 +152,45 @@ function(nl, nlRouter, $scope, nlDlg, nlCardsSrv, nlServerApi, nlGetManyStore, n
 	
     var _pageFetcher = nlServerApi.getPageFetcher();
     var _resultList = [];
+
+	function _initGroupInfoIfNeeded(ondone) {
+		if (mode.type != TYPES.MANAGE && !mode.isSubOrgScope) {
+			return ondone();
+		}
+		nlGroupInfo.init2().then(function() {
+			nlGroupInfo.update();
+			ondone();
+		});
+	}
+
 	function _getDataFromServer(resolve, fetchMore) {
 		if (!fetchMore) _resultList = [];
 	    var params = {};
 		if(fetchMore) params['max'] = mode.max2;
 		var listingFn = mode.getListFnAndUpdateParams(params);
-		if (mode.type == TYPES.MANAGE && mode.isSubOrgScope) {
-			nlGroupInfo.init2().then(function() {
-				nlGroupInfo.update();
-				_groupInfo = nlGroupInfo.get();
-				_pastUserInfosFetcher = nlGroupInfo.getPastUserInfosFetcher();
-				_pastUserInfosFetcher.init(_groupInfo);
+		_initGroupInfoIfNeeded(function() {
+			_pageFetcher.fetchPage(listingFn, params, fetchMore, function(results) {
+				if (!results) {
+					if (resolve) resolve(false);
+					return;
+				}
+				results = _filterSuborgs(results);
+				if (mode.type != TYPES.NEW && mode.type != TYPES.PAST) {
+					_afterSubFetching(results, resolve);
+				} else {
+					_subfetchAndOverride(results, resolve);
+				}
 			});
-		}
-        _pageFetcher.fetchPage(listingFn, params, fetchMore, function(results) {
-            if (!results) {
-                if (resolve) resolve(false);
-                return;
-            }
-			results = _filterSuborgs(results);
-			if (mode.type != TYPES.NEW && mode.type != TYPES.PAST) {
-				_afterSubFetching(results, resolve);
-			} else {
-				_subfetchAndOverride(results, resolve);
-			}
-        });
+		});
 	}
 	
 	function _filterSuborgs(results) {
 		if (mode.type != TYPES.MANAGE || !mode.isSubOrgScope) return results;
 		var filteredResults = [];
-		if (!_groupInfo) return filteredResults;
 		for (var i=0; i <= results.length; i++){
 			var report = results[i];
 			if (!report) continue;
-			var sender = nlGroupInfo.getCachedUserObjWithMeta(report.author, report.authorname,
-				_pastUserInfosFetcher);
+			var sender = nlGroupInfo.getUserObj(""+report.assignor);
 			if (!sender) continue;
 			var org_unit = _userInfo.org_unit || '';
 			var senderOrg = sender.org_unit || '';

@@ -13,9 +13,9 @@ function module_init() {
 
 //-------------------------------------------------------------------------------------------------
 var NittioLessonSrv = ['nl', 'nlServerApi', 'NittioLessonModulePropsDlg', 'NittioLessonPagePropsDlg',
-'NittioLessonModuleReviewDlg', 'nlResourceAddModifySrv', 'NittioLessonAddPageDlg', 'NittioLessonAddPageVoice',
+'NittioLessonModuleReviewDlg', 'nlResourceAddModifySrv', 'NittioLessonAddPageDlg', 'NittioLessonAddPageVoice', 'NittioLessonSectionDetailsDlg',
 function(nl, nlServerApi, NittioLessonModulePropsDlg, NittioLessonPagePropsDlg,  
-    NittioLessonModuleReviewDlg, nlResourceAddModifySrv, NittioLessonAddPageDlg, NittioLessonAddPageVoice) {
+    NittioLessonModuleReviewDlg, nlResourceAddModifySrv, NittioLessonAddPageDlg, NittioLessonAddPageVoice, NittioLessonSectionDetailsDlg) {
     var _moduleConfig = null;
 	this.init = function(oLesson, moduleConfig, ptInfo) {
 		NittioLessonModulePropsDlg.init(oLesson, moduleConfig);
@@ -53,7 +53,10 @@ function(nl, nlServerApi, NittioLessonModulePropsDlg, NittioLessonPagePropsDlg,
     };
     this.showPageVoiceDlg = function(oPage, templateDict, templateDefaults, lessonId) {
     	return NittioLessonAddPageVoice.showAddVoiceDlg(oPage, _moduleConfig.restypes, templateDict, templateDefaults, lessonId);
-    };
+	};
+	this.showSectionDlg = function(dataObj) {
+    	return NittioLessonSectionDetailsDlg.showDlg(dataObj);
+	}
 }]; 
 
 module_init();

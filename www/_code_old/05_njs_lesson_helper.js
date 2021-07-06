@@ -1137,11 +1137,11 @@ SelectHelper.setupOnReportClick = function(mode, choices, correct, answers, page
 	if (page.lesson.renderCtx.pageMode(page) != 'report') return;
 	if (correct.length == 0) return;
 	reportDiv.click(function() {
-		var answer = _SelectHelper_answersAsString(_SelectHelper_stringsOfPos(mode, choices, answers));
-		var canswer = _SelectHelper_answersAsString(correct);
-		njs_helper.Dialog.popup('Answer for the chosen section', 
-							njs_helper.fmt2('<p><b>Correct Answer: </b>{}</p><p><b>Your Answer: </b>{}</p>', 
-										njs_helper.escape(canswer), njs_helper.escape(answer)));
+		var answersDict = mode.indexOf('multi-select') == 0 ? _SelectHelper_answersAsString1(_SelectHelper_stringsOfPos(mode, choices, answers), page, choices, correct) :
+									_SelectHelper_answersAsString(_SelectHelper_stringsOfPos(mode, choices, answers));
+		njs_helper.BlankScreen.show();
+		var dataObj = {choices: choices, canswerObj: answersDict, correct: correct};
+		window.nlapp.NittioLesson.showSectionDlg(dataObj);
 	});
 };
 
@@ -1155,6 +1155,60 @@ function _SelectHelper_getRandomPos(choices, correct, page) {
 	for (var i=0; i < len; i++) randPosArray.push(i);
 	if (!randomize) return randPosArray;
 	return njs_helper.randSet(len, randPosArray);
+}
+
+function _SelectHelper_answersAsString1(answers, page, choices, correct) {
+	answers.sort();
+	var answerDict = _Array_to_dict(correct);
+	var ratio = "1/"+ correct.length;
+	var resultDict = {answers: {}};
+	var correctAns = 0;
+	var wrongAns = 0;
+	for(var i=0; i<answers.length; i++) {
+		var scDict = {};
+		if (answers[i] in answerDict) {
+			correctAns++;
+			scDict = {score: '+'+ratio, icon: 'ion-checkmark-circled fgreen'};
+			if (correct.length == 1) scDict.score = "+1";
+		} else {
+			wrongAns++;
+			scDict = {score: '-'+ratio, icon: 'ion-close-circled forange'};
+			if (correct.length == 1) scDict.score = "-1";
+		}
+		resultDict.answers[answers[i]] = scDict;
+	}
+	var pageMaxScore = page.oPage.maxScore || 0;
+	var sections = page.oPage.sections;
+	var qsCount = 0;
+	for (var i=0; i<sections.length;i++) {
+		var section = sections[i];
+		if (!section.text) continue;
+		var text = section.text;
+		if (text.indexOf('multi-select') >= 0) qsCount++;
+	}
+	var qsMaxScore = pageMaxScore/qsCount;
+	if (answers.length == choices.length) correctAns = 0;
+	var result = correctAns - wrongAns;
+	if (result <= 0) {
+		resultDict.total = 0;
+		result = 0;
+	} else {
+		var score = result/correct.length;
+		resultDict.total = qsMaxScore*parseFloat(score.toFixed(2));
+		if (resultDict.total > 0.90 && resultDict.total < 1) resultDict.total = 1;
+
+	}
+	resultDict.qsMaxScore = qsMaxScore;
+	resultDict.qsRatio = result+"/"+correct.length;
+	return resultDict;
+}
+
+function _Array_to_dict(arr) {
+	var dictObj = {};
+	for(var i=0; i<arr.length; i++) {
+		dictObj[arr[i]] = true;
+	}
+	return dictObj;
 }
 
 function _SelectHelper_answersAsString(answers) {
