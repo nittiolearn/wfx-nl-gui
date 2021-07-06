@@ -2361,10 +2361,9 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 				}
 				var jsonObj = resp.data;
 				jsonObj = angular.fromJson(jsonObj);
-				var strData = nlExporter.objToCsv(jsonObj, [{id:"username",name:"Username"},{id:"cohort",name:"Cohort"},
+				var strData = nlExporter.objToCsv(jsonObj, [{id:"username",name:"Username"},{id:"userid",name:"User Id"},{id:"cohort",name:"Cohort"},
 					{id:"lrank7",name:"Learner Rank (7 days)"},{id:"lrank30",name:"Learner Rank (30 days)"},{id:"lrank90",name:"Learner Rank (90 days)"},
-					{id:"lcredits7",name:"Learning Credits (7 Days)"},{id:"lcredits30",name:"Learning Credits (30 Days)"},{id:"lcredits90",name:"Learning Credits (90 Days)"},
-					{id:"userid",name:"User Id"}]);
+					{id:"lcredits7",name:"Learning Credits (7 Days)"},{id:"lcredits30",name:"Learning Credits (30 Days)"},{id:"lcredits90",name:"Learning Credits (90 Days)"}]);
 				nlExporter.exportCsvFile('learning_credits.csv', strData, true);
 				nl.timeout(function() {
 					nlDlg.popdownStatus(0);
