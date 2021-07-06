@@ -1312,6 +1312,14 @@ a.black {
 .nl-mildtoolbar.text-left, .nl-toolbar.text-left {
   text-align: left;
 }
+.profileicon {
+  width: 45px;
+  height: 45px;
+  object-fit: cover;
+  border-radius: 50%;
+  cursor: pointer;
+ }
+
 
 /*-----------------------------------------------------------------------------------------*
  * Thin scroll bar

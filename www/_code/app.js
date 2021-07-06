@@ -158,9 +158,9 @@ function(nl) {
 
 //-------------------------------------------------------------------------------------------------
 var AppCtrl = ['nl','nlDlg','nlServerApi', '$scope', '$anchorScroll', 'nlKeyboardHandler', 'nlAnnouncementSrv', 'nlRouter',
-'nlLogViewer', 'nlOldCodeBridge', 'nlTopbarSrv', 'nlServerSideUserSettings', 'ChartJSSrv', 'nlResourceUploader', 'Upload',
+'nlLogViewer', 'nlOldCodeBridge', 'nlTopbarSrv', 'nlServerSideUserSettings', 'ChartJSSrv', 'nlResourceUploader', 'Upload', 'nlGroupInfo',
 function(nl, nlDlg, nlServerApi, $scope, $anchorScroll, nlKeyboardHandler, nlAnnouncementSrv, nlRouter, nlLogViewer, 
-    nlOldCodeBridge, nlTopbarSrv, nlServerSideUserSettings, ChartJSSrv, nlResourceUploader, Upload) {
+    nlOldCodeBridge, nlTopbarSrv, nlServerSideUserSettings, ChartJSSrv, nlResourceUploader, Upload, nlGroupInfo) {
     nl.log.info('UserAgent: ', navigator.userAgent);
     if (NL_SERVER_INFO.oldCode) nlOldCodeBridge.expose();
     nl.rootScope.imgBasePath = nl.url.resUrl();
@@ -182,7 +182,7 @@ function(nl, nlDlg, nlServerApi, $scope, $anchorScroll, nlKeyboardHandler, nlAnn
     // Called from child scope on page enter
     $scope.onPageEnter = function(userInfo) {
         nl.log.debug('app:onPageEnter - enter');       
-       
+        nl.rootScope.pgInfo.usericon = userInfo.usericon;
         nl.rootScope.currentPageURL=nl.location.url().split('#')[0];
         nl.rootScope.bodyClass = 'showbody';
         nlAnnouncementSrv.initAnnouncements(userInfo, $scope);
@@ -218,43 +218,46 @@ function(nl, nlDlg, nlServerApi, $scope, $anchorScroll, nlKeyboardHandler, nlAnn
         )
     }
 
-    function _onFileOpened(dlgScope, resolve) {
+    function _onFileOpened(dlgScope, resolve, userInfo) {
         if (!dlgScope.data.resource || !dlgScope.data.resource[0]) {
             return resolve(null);
         }
-        var res = dlgScope.data.resource[0].resource;
-        var extn = nlResourceUploader.getValidExtension(res, 'Image');
+        var res = dlgScope.data.resource;
+        var extn = nlResourceUploader.getValidExtension(res[0].resource, 'Image');
         var restype = nlResourceUploader.getRestypeFromExt(extn);            
         var fileInfo = {resource: res, restype: restype, extn: extn, name: ''};
         Upload.dataUrl(fileInfo.resource).then(function(url) {
             fileInfo.resimg = url;
         });
-        _onUploadOrModify(fileInfo , $scope);
+        var userid = userInfo.userid;
+        nlGroupInfo.init2().then(function() {
+            nlGroupInfo.update();
+            var user = nlGroupInfo.getUserObj(userid);
+            _onUploadOrModify(fileInfo , userInfo, $scope, user);
+        });
+        
     }
     
 
-    function _onUploadOrModify(data, addModifyResourceDlg, $scope) {
-		var resourceList = data;
+    function _onUploadOrModify(data, userInfo, addModifyResourceDlg, user) {
+		var resourceList = data.resource;
         addModifyResourceDlg.resInfos = [];
-        var resourceInfoDict = {shared: true};
+        var resourceInfoDict = {shared: true, updateUserDatabase: true};
         var keyword = addModifyResourceDlg.keywords || '';
         resourceInfoDict['insertfrom'] = '/';
 	    if(resourceList.length == 0) {
 	    	return;
 		}
-		nlDlg.showLoadingScreen();
+        nlDlg.showLoadingScreen();
 		nlResourceUploader.uploadInSequence(resourceList, keyword, 'high', null, resourceInfoDict)
 		.then(function(resInfos) {
-		    for (var i=0; i<resInfos.length; i++) {
-		        addModifyResourceDlg.resInfos.push(resInfos[i]);
-		    }
-			nlDlg.hideLoadingScreen();
-            nlDlg.popdownStatus(0);
-        }, function(msg) {
-			nlDlg.hideLoadingScreen();
-            nlDlg.popdownStatus(0);
-            nlDlg.popupAlert({title: nl.t('Error')})
-        });
+		        addModifyResourceDlg.resInfos.push(resInfos[0]);
+                var details = angular.fromJson(user.details || "{}");
+                details.usericon = addModifyResourceDlg.resInfos[0].url;
+                userInfo.usericon =details.usericon;
+                nl.rootScope.pgInfo.usericon = details.usericon;
+                nlDlg.hideLoadingScreen();
+        });       
 	}
 
 
@@ -280,28 +283,30 @@ function(nl, nlDlg, nlServerApi, $scope, $anchorScroll, nlKeyboardHandler, nlAnn
         
         topbarMenus.push(nlLogViewer.getLogMenuItem($scope));
 
-        topbarMenus.push({
-            id: 'changeuserprofile',
-            type: 'menu',
-            icon: 'icon ion-android-person',
-            name: nl.t('Change User Profile'),
-            theme:'',
-            onClick: function() {
-                     nl.q(function(resolve, reject) { 
-                        var dlg = nlDlg.create($scope);
-                        //dlg.setCssClass('nl-height-max nl-width-max');
-                        dlg.scope.data = {resource: null};
-                        dlg.scope.error = {};
-                        var okButton = { text : nl.t('Continue'), onTap : function(e) {
-                            _onFileOpened(dlg.scope, resolve);
-                        }};
-                        var cancelButton = {text : nl.t('Cancel'), onTap : function() {
-                            resolve(null);
-                        }};
-                        dlg.show('lib_ui/utils/file_reader.html', [okButton], cancelButton);             
-                   })
-            }
-        });
+        if(userInfo.usertype == 'Learner') {
+            topbarMenus.push({
+                id: 'changeuserprofile',
+                type: 'menu',
+                icon: 'ion-android-person lnblue3',
+                name: nl.t('Change User Profile'),
+                theme:'',
+                onClick: function() {
+                        nl.q(function(resolve, reject) { 
+                            var dlg = nlDlg.create($scope);
+                            //dlg.setCssClass('nl-height-max nl-width-max');
+                            dlg.scope.data = {resource: null};
+                            dlg.scope.error = {};
+                            var okButton = { text : nl.t('Continue'), onTap : function(e) {
+                                _onFileOpened(dlg.scope, resolve, userInfo);
+                            }};
+                            var cancelButton = {text : nl.t('Cancel'), onTap : function() {
+                                resolve(null);
+                            }};
+                            dlg.show('lib_ui/utils/file_reader.html', [okButton], cancelButton);             
+                    })
+                }
+            });
+         }
         topbarMenus.push({
             id: 'lighttheme',
             type: 'menu',
