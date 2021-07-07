@@ -201,7 +201,11 @@ function($scope, nl, nlDlg, nlRouter, nlGroupInfo, nlServerApi, nlExporter, nlTm
     function _init() {
         jsonObj = null;
         $scope.searchObj = {start: null, end: null, placeHolder: 'Search based on Batch name/BatchId', laststart: '', lastend: '', canShow: false};
-        $scope.tableSelector = [{id: 'default', name: 'Overview', selected: true}, {id: 'customScores', name: 'Custom scores', selected: false}, {id: 'quiz', name: 'Quiz scores', selected: false}];
+        $scope.tableSelector = [{id: 'default', name: 'Overview', selected: true}, 
+                                {id: 'customScores', name: 'Custom scores', selected: false}, 
+                                {id: 'quiz', name: 'Quiz scores', selected: false},
+                                {id: 'attrition', name: 'Attrition details', selected: false}
+                            ];
         $scope.data = {toggleTableSelector: false};
     }
 
@@ -255,6 +259,12 @@ function($scope, nl, nlDlg, nlRouter, nlGroupInfo, nlServerApi, nlExporter, nlTm
             break;
         }
       }
+      _rows.sort(function(a, b) {
+        if(b.sortkey.toLowerCase() < a.sortkey.toLowerCase()) return 1;
+        if(b.sortkey.toLowerCase() > a.sortkey.toLowerCase()) return -1;
+        if(b.sortkey.toLowerCase() == a.sortkey.toLowerCase()) return 0;				
+    });
+
       nhtInfo.rows = _rows;
     }
   
@@ -290,7 +300,11 @@ function($scope, nl, nlDlg, nlRouter, nlGroupInfo, nlServerApi, nlExporter, nlTm
         columns.push({id: 'certified', name: 'Certified', table: true, background: 'nl-bg-blue', showAlways: true, hidePerc:true, type: 'default'});
         columns.push({id: 'Closed', name: 'Closed', table: true, background: 'nl-bg-blue', showAlways: true, hidePerc:true, type: 'default'});
         columns.push({id: 'failed', name: 'Failed', table: true, background: 'nl-bg-blue', showAlways: true, hidePerc:true, type: 'default'});
-        columns.push({id: 'attrition', name: 'Attrition', table: true, background: 'nl-bg-blue', showAlways: true, hidePerc:true, type: 'default'});
+        columns.push({id: 'attrition', name: 'Total Attrition', table: true, background: 'nl-bg-blue', showAlways: true, hidePerc:true, type: 'default|attrition'});
+        columns.push({id: 'attrition-Training', name: 'Attrition during Training', table: true, background: 'nl-bg-blue', showAlways: true, hidePerc:true, type: 'attrition'});
+        columns.push({id: 'attrition-OJT', name: 'Attrition during OJT', table: true, background: 'nl-bg-blue', showAlways: true, hidePerc:true, type: 'attrition'});
+        columns.push({id: 'attrition-Certification', name: 'Attrition during Certification', table: true, background: 'nl-bg-blue', showAlways: true, hidePerc:true, type: 'attrition'});
+        columns.push({id: 'attrition-Re-certification', name: 'Attrition during Re-certification', table: true, background: 'nl-bg-blue', showAlways: true, hidePerc:true, type: 'attrition'});
         columns.push({id: 'inductionDropOut', name: 'Induction drop out', table: true, background: 'nl-bg-blue', showAlways: true, hidePerc:true, type: 'default'});
         columns.push({id: 'otherRecords', name: 'Added in later batches', table: false, background: 'nl-bg-blue', showAlways: true, background: 'bggrey', hidePerc:true, type: 'default'});
         columns.push({id: 'nQuizzes', name: 'Number of applicable modules', table: true, background: 'nl-bg-blue', showAlways: true, hidePerc:true, type: 'default'});
@@ -312,12 +326,26 @@ function($scope, nl, nlDlg, nlRouter, nlGroupInfo, nlServerApi, nlExporter, nlTm
         }
         var selectedCols = [];
         for (var i=0;i<columns.length; i++) {
-            if (columns[i].type == 'all') selectedCols.push(columns[i]);
-            if (columns[i].type in defaultDict) selectedCols.push(columns[i]);
+            var colType = columns[i].type;
+            if (colType == 'all') {
+                selectedCols.push(columns[i]);
+                continue;
+            }
+            var tableTypeObj = _toObject(colType.split('|'));
+            for (var key in tableTypeObj) {
+                if (key in defaultDict) selectedCols.push(columns[i]);
+            }
         }
       return selectedCols;
     }
 
+    function _toObject(arr) {
+        var ret = {};
+        for (var i=0; i<arr.length; i++) {
+            ret[arr[i]] = true;
+        }
+        return ret;
+    }
     function _generateTmsArray() {
         var nhtArray = [];
         var statusDict = $scope.nhtStatusDict;
@@ -336,11 +364,6 @@ function($scope, nl, nlDlg, nlRouter, nlGroupInfo, nlServerApi, nlExporter, nlTm
             root.cnt.children = [];
             if (root.children) _addSuborgOrOusToDrilldownArray(root.cnt, nhtArray, root.children, root.cnt.sortkey, null);
         }
-        nhtArray.sort(function(a, b) {
-            if(b.sortkey.toLowerCase() < a.sortkey.toLowerCase()) return 1;
-            if(b.sortkey.toLowerCase() > a.sortkey.toLowerCase()) return -1;
-            if(b.sortkey.toLowerCase() == a.sortkey.toLowerCase()) return 0;				
-        });
         return nhtArray;
     };
   
@@ -445,10 +468,12 @@ function(nl) {
           }
           statsObj['customScores'] = customScore;
         }
-        if(status.indexOf('attrition') == 0) 
+        if(status.indexOf('attrition') == 0) {
             statsObj['attrition'] = 1;
-        else  
             statsObj[status] = 1;
+        } else {
+            statsObj[status] = 1;
+        }  
         var quizSCoreDict = rec.qSD || {};
         statsObj['nQuizzes'] = quizSCoreDict.nQ || 0;
         statsObj['nQuizzesCompleted'] = quizSCoreDict.nQC || 0;
