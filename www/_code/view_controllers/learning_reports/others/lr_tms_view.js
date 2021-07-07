@@ -201,7 +201,7 @@ function($scope, nl, nlDlg, nlRouter, nlGroupInfo, nlServerApi, nlExporter, nlTm
     function _init() {
         jsonObj = null;
         $scope.searchObj = {start: null, end: null, placeHolder: 'Search based on Batch name/BatchId', laststart: '', lastend: '', canShow: false};
-        $scope.tableSelector = [{id: 'default', name: 'Overview', selected: true}, {id: 'customScores', name: 'Custom scores', selected: false}];
+        $scope.tableSelector = [{id: 'default', name: 'Overview', selected: true}, {id: 'customScores', name: 'Custom scores', selected: false}, {id: 'quiz', name: 'Quiz scores', selected: false}];
         $scope.data = {toggleTableSelector: false};
     }
 
@@ -280,6 +280,7 @@ function($scope, nl, nlDlg, nlRouter, nlGroupInfo, nlServerApi, nlExporter, nlTm
     function _getTmsCols() {
         var columns = [];
         var customScores = nlTmsView.getCustomScores();
+        var maxQuiz = nlTmsView.getMaxQuizCount();
         columns.push({id: 'batchCount', name: 'Batch count', table: true, percid:'percTotal', smallScreen: true, background: 'bggrey', showAlways: true, hidePerc:true, type: 'all'});
         columns.push({id: 'cntTotal', name: 'Head count', table: true, percid:'percTotal', smallScreen: true, background: 'bggrey', showAlways: true, hidePerc:true, type: 'all'});
         columns.push({id: 'Training', name: 'Training', table: true, background: 'nl-bg-blue', showAlways: true, hidePerc:true, type: 'default'});
@@ -298,6 +299,11 @@ function($scope, nl, nlDlg, nlRouter, nlGroupInfo, nlServerApi, nlExporter, nlTm
         columns.push({id: 'percAvgQuizScore', name: 'Assessment scores (Average of attempts)', table: true, background: 'nl-bg-blue', showAlways: true, hidePerc:true, type: 'default'});
         for (var i=0; i<customScores.length; i++) {
             columns.push({id: 'perc'+customScores[i], name: customScores[i], table: true, background: 'nl-bg-blue', hidePerc:true, type: 'customScores'});
+        }
+        
+        for (var i=1; i<=maxQuiz; i++) {
+            columns.push({id: 'quizname'+i, name: nl.t('Quiz {} name', i), table: true, background: 'nl-bg-blue', hidePerc:true, type: 'quiz'});
+            columns.push({id: 'quizscore'+i+'perc', name: nl.t('Quiz {} score', i), table: true, background: 'nl-bg-blue', hidePerc:true, type: 'quiz'});
         }
         columns.push({id: 'batchid', name: 'Batch Id', table: false, background: 'nl-bg-blue', showAlways: true, background: 'bggrey', hidePerc:true, type: 'all', fmt: 'idstr', widthCls: 'w175'});
         var defaultDict = {};
@@ -363,6 +369,9 @@ function(nl) {
     var tmsStats = new TmsStatsCounts();
     var self = this;
 
+    this.getMaxQuizCount = function() {
+        return tmsStats.getMaxQuizCount();
+    }
     this.getStatusCount = function() {
         return tmsStats.statsCountDict();     
     };
@@ -444,6 +453,7 @@ function(nl) {
         statsObj['nQuizzes'] = quizSCoreDict.nQ || 0;
         statsObj['nQuizzesCompleted'] = quizSCoreDict.nQC || 0;
         if (quizSCoreDict.nQP === 0 || quizSCoreDict.nQP > 0) statsObj['nQuizScorePerc'] = quizSCoreDict.nQP || 0;
+        if (quizSCoreDict.quizScoreDict) statsObj['quizScore'] = quizSCoreDict.quizScoreDict;
         return statsObj;
     }
 }];
@@ -453,18 +463,24 @@ function TmsStatsCounts(nl) {
     var self = this;
     var statsCountItem = {'cntTotal': 0, 'Training': 0, 'OJT': 0, 'Certification': 0, 'Re-certification': 0, 
                           'certified': 0, 'Closed': 0, 'isOpen': false, 'attrition': 0, 'failed': 0, 'nQuizzes': 0, 'nQuizzesCompleted': 0, 
-                          'nQuizScorePerc': 0, 'nQuizPercScoreCount' : 0, batchCounted: {}, batchCount: 0,
-                          'otherRecords': 0, 'inductionDropOut': 0};
+                          'nQuizScorePerc': 0, 'nQuizPercScoreCount' : 0, 'batchCounted': {}, 'batchCount': 0,
+                          'otherRecords': 0, 'inductionDropOut': 0, 'scoreCount': 0, 'recCount': 0};
     var defaultStates = angular.copy(statsCountItem);
     var _dynamicStates = {};
     var _customScores = {};
     var _customScoresArray = [];
+    var _maxQuizColumns = 0;
 
     this.clear = function() {
         _statusCountTree = {};
         _dynamicStates = {};
         _customScores = {};
         _customScoresArray = [];
+        _maxQuizColumns = 0;
+    };
+
+    this.getMaxQuizCount = function() {
+        return _maxQuizColumns;
     };
 
     this.statsCountDict = function() {
@@ -497,6 +513,7 @@ function TmsStatsCounts(nl) {
         var stats = angular.copy(statsCountItem);
         stats['isFolder'] = true;
         stats['name'] = rootId == 0 ? 'All' : name;
+        stats['type'] = 'overview';
         _statusCountTree[rootId] = {cnt: stats, children: {}};
         return _statusCountTree[rootId].cnt;
     };
@@ -509,6 +526,7 @@ function TmsStatsCounts(nl) {
         stats['isFolder'] = isFolder;
         stats['indentation'] = 24;
         stats['name'] = itemInfo.name;
+        stats['type'] = 'suborg';
         siblings[itemId] = {cnt: stats};
         if(isFolder) siblings[itemId]['children'] = {}
         return siblings[itemId].cnt;
@@ -522,6 +540,7 @@ function TmsStatsCounts(nl) {
         stats['indentation'] = 44;
         stats['name'] = itemInfo.name;
         stats['batchid'] = itemId;
+        stats['type'] = 'batch';
         siblings[itemId] = {cnt: stats};
         return siblings[itemId].cnt;
     };
@@ -550,6 +569,29 @@ function TmsStatsCounts(nl) {
                 if (statusCnt.dontIncludeInBatchCount) continue;
                 updatedStats.batchCount += 1;
                 updatedStats.batchCounted[statusCnt[key]] = true;    
+            }
+            if (key == 'quizScore') {
+                var quizDict = statusCnt.quizScore;
+                var count = 0;
+                updatedStats.recCount += 1
+                for (var key in quizDict) {
+                    var qsKey = 'quiz'+key;
+                    if (key.indexOf('score') == 0) {
+                        count += 1;
+                        if (quizDict[key] === 0 || quizDict[key] > 0) {
+                            if (!(qsKey in updatedStats)) updatedStats[qsKey] = 0;
+                            updatedStats[qsKey] += quizDict[key];
+                            var countkey = qsKey+'count';
+                            if (!(countkey in updatedStats)) updatedStats[countkey] = 0;
+                            updatedStats[countkey] += 1;
+                        }
+                    } else {
+                        updatedStats[qsKey] = quizDict[key];
+                    }
+                }
+                if (updatedStats.scoreCount < count) updatedStats.scoreCount = count;
+                if (_maxQuizColumns < count) _maxQuizColumns = count;
+                continue;
             }
             if(key == 'customScores') {
                 var customScores = statusCnt[key]
@@ -591,9 +633,9 @@ function TmsStatsCounts(nl) {
     function _updateStatsPercs(parentRow, updatedStats) {
         updatedStats['percCompletedLesson'] = updatedStats['nQuizzes'] > 0 ? Math.round(updatedStats['nQuizzesCompleted']*100/updatedStats['nQuizzes'])+'%' : '-';
         var percScore = -1;
-        if (updatedStats['nQuizPercScoreCount'] > 0) {
+        if (updatedStats['nQuizPercScoreCount'] > 0) 
             percScore = Math.round(updatedStats['nQuizScorePerc']/updatedStats['nQuizPercScoreCount']);         
-        }
+
         if (parentRow && percScore >= 0) {
             if (!parentRow.contPercQS) parentRow.contPercQS = 0;
             if (!parentRow.percQS) parentRow.percQS = 0;
@@ -617,6 +659,27 @@ function TmsStatsCounts(nl) {
             var count = itemName+'count';
             updatedStats[percid] = Math.round(updatedStats[itemName]/updatedStats[count])+' %';
         }
+        var count = updatedStats.scoreCount;
+        for (var i=1; i<=count; i++) {
+            var totalQuizPerc = -1;
+            var scoreKey = 'quizscore'+i;
+            var countKey = 'quizscore'+i+'count';
+            var percKey = scoreKey+'perc';
+            if (updatedStats[countKey] > 0)
+                totalQuizPerc = Math.round(updatedStats[scoreKey]/updatedStats[countKey]);
+            updatedStats[percKey] = totalQuizPerc >= 0 ? totalQuizPerc+'%' : '-';
+            if (parentRow && totalQuizPerc >= 0) {
+                var parentScoreKey = countKey+'count';
+                var parentTotalKey = countKey+'total';
+                if (!parentRow[parentScoreKey]) parentRow[parentScoreKey] = 0;
+                if (!parentRow[parentTotalKey]) parentRow[parentTotalKey] = 0;
+                parentRow[parentTotalKey] += 1;
+                parentRow[parentScoreKey] += totalQuizPerc;
+                var percQS = Math.round(parentRow[parentScoreKey]/parentRow[parentTotalKey]);
+                parentRow[percKey] = percQS >= 0 ? percQS+'%' : '-';
+            }
+        }
+
     }
 }
 //-------------------------------------------------------------------------------------------------
