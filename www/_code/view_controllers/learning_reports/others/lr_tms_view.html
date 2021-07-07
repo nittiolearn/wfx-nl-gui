@@ -3,6 +3,10 @@ table tbody, table thead
 {
     display: block;
 }
+.nl-min-max-150 {
+    min-width: 158px;
+    max-width: 158px;
+}
 </style>
 <div class='nl-lr-tms-report-body padding-small' style='position:absolute; width: 100%; height: 100%; overflow-x:scroll'>
     <div class='nl-lr-tms-top-section row row-center margin0 padding0 nl-border-bottom'
@@ -90,12 +94,12 @@ table tbody, table thead
         <table class='nl-table nl-table-styled3 rowlines'>
             <thead class='nl-lr-header-section'>
                 <tr class='header'>
-                    <th class='nl-txt-white nl-txt-dark-hover nl-min-300'></th>
-                    <th ng-repeat='col in nhtInfo.info.columns track by $index'
-                        class='nl-txt-white text-center nl-min-125' 
+                    <td class='nl-txt-white nl-txt-dark-hover nl-min-300'></td>
+                    <td ng-repeat='col in nhtInfo.info.columns track by $index'
+                        class='nl-txt-white text-center nl-min-max-150' 
                         ng-if='($root.screenSize != "small" && col.table) || ($root.screenSize == "small" && col.smallScreen)'>
                         {{col.name}}
-                    </th>    
+                    </td>    
                 </tr>
             </thead>
             <tbody style='position: absolute; height:{{getTmsContTabHeight($event)}}px; overflow-y: scroll;'>
@@ -133,7 +137,7 @@ table tbody, table thead
                         </div>
                     </td>
                     <td ng-repeat='col in nhtInfo.info.columns track by $index'
-                        class='nl-txt-white text-center nl-min-125'  ng-if='($root.screenSize != "small" && col.table) || ($root.screenSize == "small" && col.smallScreen)'>
+                        class='nl-txt-white text-center nl-min-max-150'  ng-if='($root.screenSize != "small" && col.table) || ($root.screenSize == "small" && col.smallScreen)'>
                         <div class='row row-center {{!col.hidePerc ? "text-right" : "text-center"}}'>
                             <div class='col nl-perc-class nl-txt-white'>{{rec[col.id] ? rec[col.id] : rec.showMoreLink ? '' : '-'}}</div>
                             <div class='col nl-perc-class text-left nl-txt-white' ng-if='!col.hidePerc'>{{(col.percid && rec[col.percid]) ? rec[col.percid]+'%' : ''}}</div>
