@@ -361,10 +361,11 @@ nlAdminUserExport, nlAdminUserImport, nlTreeSelect, nlOuUserSelect, nlServerApi)
 
     function _status() {
         var dlg = nlDlg.create($scope);
-        dlg.setCssClass('nl-height-max nl-width-max');
+        dlg.setCssClass('nl-dlg2');
         dlg.scope.error = {};
         dlg.scope.dlgTitle = nl.t('Users Status');
-        var data = {total: {active: 0, inactive: 0}}
+        var totaluser = nl.url.lessonIconUrl('totaluser.svg');
+        var data = {total: {active: 0, inactive: 0}, img :totaluser};
         for (var uid in _groupInfo.users){
             var userObj = nlGroupInfo.getUserObj(uid,_grpid)
             var userTypeStr = userObj.getUtStr()
@@ -376,12 +377,32 @@ nlAdminUserExport, nlAdminUserImport, nlTreeSelect, nlOuUserSelect, nlServerApi)
                 userObj.state ? data.total.active++ : data.total.inactive++;
             }
         }
+        for(var items in data) {
+            if(data[items] > 999) data[items] = nFormatter(data[items]);
+        }
         dlg.scope.usersStatus = data;
+
         var cancelButton = {
             text : nl.t('Close')
         };
+        console.log(dlg.scope.usersStatus)
         dlg.show('view_controllers/admin/user_status_dlg.html', [], cancelButton, false);
     }
+
+    function nFormatter(n) {
+		var pow = Math.pow, floor = Math.floor, abs = Math.abs, log = Math.log;
+		var abbrev = 'kmb'; // could be an array of strings: [' m', ' Mo', ' Md']
+
+		var base = floor(log(abs(n))/log(1000));
+		var suffix = abbrev[Math.min(2, base - 1)];
+		base = abbrev.indexOf(suffix) + 1;
+		return suffix ? round(n/pow(1000,base),2)+suffix : ''+n;
+
+		function round(n, precision) {
+			var prec = Math.pow(10, precision);
+			return Math.round(n*prec)/prec;
+		}
+   }
 
     function _createOrModify(card) {
         var dlg = nlDlg.create($scope);
