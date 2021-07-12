@@ -204,7 +204,8 @@ function($scope, nl, nlDlg, nlRouter, nlGroupInfo, nlServerApi, nlExporter, nlTm
         $scope.tableSelector = [{id: 'default', name: 'Overview', selected: true}, 
                                 {id: 'customScores', name: 'Custom scores', selected: false}, 
                                 {id: 'quiz', name: 'Quiz scores', selected: false},
-                                {id: 'attrition', name: 'Attrition details', selected: false}
+                                {id: 'attrition', name: 'Attrition details', selected: false},
+                                {id: 'daywise', name: 'Attrition details', selected: false}
                             ];
         $scope.data = {toggleTableSelector: false};
     }
@@ -291,6 +292,7 @@ function($scope, nl, nlDlg, nlRouter, nlGroupInfo, nlServerApi, nlExporter, nlTm
         var columns = [];
         var customScores = nlTmsView.getCustomScores();
         var maxQuiz = nlTmsView.getMaxQuizCount();
+        var maxDaywise = nlTmsView.getMaxDaywiseCount();
         columns.push({id: 'batchCount', name: 'Batch count', table: true, percid:'percTotal', smallScreen: true, background: 'bggrey', showAlways: true, hidePerc:true, type: 'all'});
         columns.push({id: 'cntTotal', name: 'Head count', table: true, percid:'percTotal', smallScreen: true, background: 'bggrey', showAlways: true, hidePerc:true, type: 'all'});
         columns.push({id: 'Training', name: 'Training', table: true, background: 'nl-bg-blue', showAlways: true, hidePerc:true, type: 'default'});
@@ -307,14 +309,19 @@ function($scope, nl, nlDlg, nlRouter, nlGroupInfo, nlServerApi, nlExporter, nlTm
         columns.push({id: 'attrition-Re-certification', name: 'Attrition during Re-certification', table: true, background: 'nl-bg-blue', showAlways: true, hidePerc:true, type: 'attrition'});
         columns.push({id: 'inductionDropOut', name: 'Induction drop out', table: true, background: 'nl-bg-blue', showAlways: true, hidePerc:true, type: 'default'});
         columns.push({id: 'otherRecords', name: 'Added in later batches', table: false, background: 'nl-bg-blue', showAlways: true, background: 'bggrey', hidePerc:true, type: 'default'});
-        columns.push({id: 'nQuizzes', name: 'Number of applicable modules', table: true, background: 'nl-bg-blue', showAlways: true, hidePerc:true, type: 'default'});
-        columns.push({id: 'nQuizzesCompleted', name: 'Number of completed modules', table: true, background: 'nl-bg-blue', showAlways: true, hidePerc:true, type: 'default'});
-        columns.push({id: 'percCompletedLesson', name: 'Applicable modules completion %', table: true, background: 'nl-bg-blue', showAlways: true, hidePerc:true, type: 'default'});
+        columns.push({id: 'nQuizzes', name: 'Number of applicable modules', table: true, background: 'nl-bg-blue', showAlways: true, hidePerc:true, type: 'default|daywise'});
+        columns.push({id: 'nQuizzesCompleted', name: 'Number of completed modules', table: true, background: 'nl-bg-blue', showAlways: true, hidePerc:true, type: 'default|daywise'});
+        columns.push({id: 'percCompletedLesson', name: 'Applicable modules completion %', table: true, background: 'nl-bg-blue', showAlways: true, hidePerc:true, type: 'default|daywise'});
         columns.push({id: 'percAvgQuizScore', name: 'Assessment scores (Average of attempts)', table: true, background: 'nl-bg-blue', showAlways: true, hidePerc:true, type: 'default|quiz'});
         for (var i=0; i<customScores.length; i++) {
             columns.push({id: 'perc'+customScores[i], name: customScores[i], table: true, background: 'nl-bg-blue', hidePerc:true, type: 'customScores'});
         }
         
+        for (var i=1; i<=maxDaywise; i++) {
+            var dwKey = 'dayw'+i;
+            columns.push({id: dwKey+'total', name: nl.t('Day {} applicable modules', i), table: true, background: 'nl-bg-blue', hidePerc:true, type: 'daywise'});
+            columns.push({id: dwKey+'completed', name: nl.t('Day {} completed modules', i), table: true, background: 'nl-bg-blue', hidePerc:true, type: 'daywise'});
+        } 
         for (var i=1; i<=maxQuiz; i++) {
             columns.push({id: 'quizname'+i, name: nl.t('Quiz {} name', i), table: true, background: 'nl-bg-blue', hidePerc:true, type: 'quiz'});
             columns.push({id: 'quizscore'+i+'perc', name: nl.t('Quiz {} score', i), table: true, background: 'nl-bg-blue', hidePerc:true, type: 'quiz'});
@@ -394,6 +401,9 @@ function(nl) {
 
     this.getMaxQuizCount = function() {
         return tmsStats.getMaxQuizCount();
+    }
+    this.getMaxDaywiseCount = function() {
+        return tmsStats.getMaxDaywiseCount();
     }
     this.getStatusCount = function() {
         return tmsStats.statsCountDict();     
@@ -479,6 +489,7 @@ function(nl) {
         statsObj['nQuizzesCompleted'] = quizSCoreDict.nQC || 0;
         if (quizSCoreDict.nQP === 0 || quizSCoreDict.nQP > 0) statsObj['nQuizScorePerc'] = quizSCoreDict.nQP || 0;
         if (quizSCoreDict.quizScoreDict) statsObj['quizScore'] = quizSCoreDict.quizScoreDict;
+        if (quizSCoreDict.daywiseCompletion) statsObj['daywiseCompletion'] = quizSCoreDict.daywiseCompletion;
         return statsObj;
     }
 }];
@@ -495,6 +506,7 @@ function TmsStatsCounts(nl) {
     var _customScores = {};
     var _customScoresArray = [];
     var _maxQuizColumns = 0;
+    var _maxDaywise = 0;
 
     this.clear = function() {
         _statusCountTree = {};
@@ -502,10 +514,15 @@ function TmsStatsCounts(nl) {
         _customScores = {};
         _customScoresArray = [];
         _maxQuizColumns = 0;
+        _maxDaywise = 0;
     };
 
     this.getMaxQuizCount = function() {
         return _maxQuizColumns;
+    };
+
+    this.getMaxDaywiseCount = function() {
+        return _maxDaywise;
     };
 
     this.statsCountDict = function() {
@@ -617,6 +634,26 @@ function TmsStatsCounts(nl) {
                 if (updatedStats.scoreCount < count) updatedStats.scoreCount = count;
                 if (_maxQuizColumns < count) _maxQuizColumns = count;
                 continue;
+            }
+            if (key == 'daywiseCompletion') {
+                var daywiseCompArray = statusCnt['daywiseCompletion'] || [];
+                for (var i=1; i<=daywiseCompArray.length; i++) {
+                    var dwKey = 'dayw'+i;
+                    var singleDayData = daywiseCompArray[i] || {};
+                    if (updatedStats.type == 'batch') {
+                        var nameKey = dwKey+'name';
+                        updatedStats[nameKey] = singleDayData.name;
+                    }
+                    var totalKey = dwKey+'total';
+                    var compKey = dwKey+'completed';
+                    if (!(totalKey in updatedStats)) updatedStats[totalKey] = 0;
+                    if (singleDayData.nApplicableLesson && singleDayData.nApplicableLesson > 0)
+                        updatedStats[totalKey] += singleDayData.nApplicableLesson;
+                    if (!(compKey in updatedStats)) updatedStats[compKey] = 0;
+                    if (singleDayData.nCompletedLesson && singleDayData.nCompletedLesson > 0)
+                        updatedStats[compKey] += singleDayData.nCompletedLesson;
+                }
+                if (_maxDaywise < daywiseCompArray.length) _maxDaywise = daywiseCompArray.length;
             }
             if(key == 'customScores') {
                 var customScores = statusCnt[key]
