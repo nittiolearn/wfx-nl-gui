@@ -205,7 +205,7 @@ function($scope, nl, nlDlg, nlRouter, nlGroupInfo, nlServerApi, nlExporter, nlTm
                                 {id: 'customScores', name: 'Custom scores', selected: false}, 
                                 {id: 'quiz', name: 'Quiz scores', selected: false},
                                 {id: 'attrition', name: 'Attrition details', selected: false},
-                                {id: 'daywise', name: 'Attrition details', selected: false}
+                                {id: 'daywise', name: 'Daywise applicable count', selected: false}
                             ];
         $scope.data = {toggleTableSelector: false};
     }
