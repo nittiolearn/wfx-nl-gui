@@ -4143,6 +4143,9 @@ background-color: var(--nlFontYellow);}
     padding: 4px;
   }
 
+  .padding-top-0 {
+    padding-top: 0px
+  }
   .padding-mid-v {
       padding-top: 4px;
       padding-bottom: 4px;
@@ -6313,6 +6316,20 @@ nl-dlg {
      }
     }
   }
+  .userstatus {
+    .users {
+      background-color: rgba(255,255,255, 0.3); 
+      box-shadow: none;
+    }
+  }
+  .nl-dlg2 {
+    .ion-ios-close {
+      color: var(--nlPrimaryLight);
+      &:hover {
+        color:#3590ae;
+      }
+    }
+  }
 }
 /*-----------------------------------------------------------------------------------------*
  * END OF DARKMODE STYLE AND COLOUR SECTION
@@ -6885,6 +6902,32 @@ Font-size
       align-items: center;
       flex-direction: column;
     }
+  }
+}
+
+//user status dlg
+.userstatus {
+  .users {
+    background-color: var(--nlPrimary); 
+    box-shadow: 0 3px 6px 0 var(--nllightblue);
+    justify-content: space-around;
+    border-radius:8px;
+    height:80px;
+    align-items: center;
+    grid-gap:15px;
+  }
+  .usericon {
+    height: 30px;
+    width: 30px;
+  }
+  .useralign {
+    justify-content: space-around;
+    align-items: center;
+  }
+  .divider {
+    height: 80%; 
+    width: 1px;
+    background: var(--nlWhite);
   }
 }
 

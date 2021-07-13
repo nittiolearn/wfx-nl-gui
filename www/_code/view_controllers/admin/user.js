@@ -109,6 +109,8 @@ nlAdminUserExport, nlAdminUserImport, nlTreeSelect, nlOuUserSelect, nlServerApi)
             advancedProp(card);
         } else if (linkid === 'adminuser_unarchive') {
             _unarchive();
+        } else if (linkid === 'adminuser_status') {
+            _status();
         }
     };
 
@@ -181,6 +183,8 @@ nlAdminUserExport, nlAdminUserImport, nlTreeSelect, nlOuUserSelect, nlServerApi)
             card.children.push({title: nl.t('Unarchive'), internalUrl: 'adminuser_unarchive',
             children: [], link: [], style: 'nl-create-card'});
         }
+        card.children.push({title: nl.t('User status'), internalUrl: 'adminuser_status',
+            children: [], link: [], style: 'nl-create-card'});
 		return ret;
 	}
 
@@ -353,6 +357,33 @@ nlAdminUserExport, nlAdminUserImport, nlTreeSelect, nlOuUserSelect, nlServerApi)
             nlDlg.closeAll();
             nl.window.location.reload();
         });
+    }
+
+    function _status() {
+        var dlg = nlDlg.create($scope);
+        dlg.setCssClass('nl-dlg2');
+        dlg.scope.error = {};
+        dlg.scope.dlgTitle = nl.t('Users Status');
+        var totaluser = nl.url.lessonIconUrl('totaluser.svg');
+        var data = {total: {active: 0, inactive: 0}, img :totaluser};
+        for (var uid in _groupInfo.users){
+            var userObj = nlGroupInfo.getUserObj(uid,_grpid)
+            var userTypeStr = userObj.getUtStr()
+            if (!data[userTypeStr]){
+                data[userTypeStr] = {active: userObj.state ? 1 : 0, inactive: userObj.state ? 0 : 1};
+                userObj.state ? data.total.active++ : data.total.inactive++;
+            } else {
+                userObj.state ? data[userTypeStr].active++ : data[userTypeStr].inactive++;
+                userObj.state ? data.total.active++ : data.total.inactive++;
+            }
+        }
+        dlg.scope.usersStatus = data;
+
+        var cancelButton = {
+            text : nl.t('Close')
+        };
+        console.log(dlg.scope.usersStatus)
+        dlg.show('view_controllers/admin/user_status_dlg.html', [], cancelButton, false);
     }
 
     function _createOrModify(card) {
