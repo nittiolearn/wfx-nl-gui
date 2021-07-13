@@ -639,7 +639,7 @@ function TmsStatsCounts(nl) {
                 var daywiseCompArray = statusCnt['daywiseCompletion'] || [];
                 for (var i=1; i<=daywiseCompArray.length; i++) {
                     var dwKey = 'dayw'+i;
-                    var singleDayData = daywiseCompArray[i] || {};
+                    var singleDayData = daywiseCompArray[i-1] || {};
                     if (updatedStats.type == 'batch') {
                         var nameKey = dwKey+'name';
                         updatedStats[nameKey] = singleDayData.name;
