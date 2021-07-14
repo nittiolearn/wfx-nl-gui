@@ -313,6 +313,7 @@ function($scope, nl, nlDlg, nlRouter, nlGroupInfo, nlServerApi, nlExporter, nlTm
         columns.push({id: 'nQuizzesCompleted', name: 'Number of completed modules', table: true, background: 'nl-bg-blue', showAlways: true, hidePerc:true, type: 'default|daywise'});
         columns.push({id: 'percCompletedLesson', name: 'Applicable modules completion %', table: true, background: 'nl-bg-blue', showAlways: true, hidePerc:true, type: 'default|daywise'});
         columns.push({id: 'percAvgQuizScore', name: 'Assessment scores (Average of attempts)', table: true, background: 'nl-bg-blue', showAlways: true, hidePerc:true, type: 'default|quiz'});
+        columns.push({id: 'onlineTimeSpent', name: 'Online active time spent (Mins)', table: true, background: 'nl-bg-blue', showAlways: true, hidePerc:true, type: 'default'});
         for (var i=0; i<customScores.length; i++) {
             columns.push({id: 'perc'+customScores[i], name: customScores[i], table: true, background: 'nl-bg-blue', hidePerc:true, type: 'customScores'});
         }
@@ -471,6 +472,9 @@ function(nl) {
             statsObj['inductionDropOut'] = 1;
             return statsObj;
         }
+        if (rec.onlineTSInMins && rec.onlineTSInMins > 0) {
+            statsObj['onlineTimeSpent'] = rec.onlineTSInMins;
+        } 
         if ('customScore' in rec) {
           var customScore = rec.customScore;
           for (var key in customScore) {
@@ -500,7 +504,8 @@ function TmsStatsCounts(nl) {
     var statsCountItem = {'cntTotal': 0, 'Training': 0, 'OJT': 0, 'Certification': 0, 'Re-certification': 0, 
                           'certified': 0, 'Closed': 0, 'isOpen': false, 'attrition': 0, 'failed': 0, 'nQuizzes': 0, 'nQuizzesCompleted': 0, 
                           'nQuizScorePerc': 0, 'nQuizPercScoreCount' : 0, 'batchCounted': {}, 'batchCount': 0,
-                          'otherRecords': 0, 'inductionDropOut': 0, 'scoreCount': 0, 'recCount': 0};
+                          'otherRecords': 0, 'inductionDropOut': 0, 'scoreCount': 0, 'recCount': 0,
+                          'onlineTimeSpent': 0};
     var defaultStates = angular.copy(statsCountItem);
     var _dynamicStates = {};
     var _customScores = {};
