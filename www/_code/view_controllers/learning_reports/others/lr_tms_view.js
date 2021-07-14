@@ -292,6 +292,7 @@ function($scope, nl, nlDlg, nlRouter, nlGroupInfo, nlServerApi, nlExporter, nlTm
         var columns = [];
         var customScores = nlTmsView.getCustomScores();
         var maxQuiz = nlTmsView.getMaxQuizCount();
+        var showOtherCol = nlTmsView.showOtherQuizCol();
         var maxDaywise = nlTmsView.getMaxDaywiseCount();
         columns.push({id: 'batchCount', name: 'Batch count', table: true, percid:'percTotal', smallScreen: true, background: 'bggrey', showAlways: true, hidePerc:true, type: 'all'});
         columns.push({id: 'cntTotal', name: 'Head count', table: true, percid:'percTotal', smallScreen: true, background: 'bggrey', showAlways: true, hidePerc:true, type: 'all'});
@@ -317,12 +318,16 @@ function($scope, nl, nlDlg, nlRouter, nlGroupInfo, nlServerApi, nlExporter, nlTm
         for (var i=0; i<customScores.length; i++) {
             columns.push({id: 'perc'+customScores[i], name: customScores[i], table: true, background: 'nl-bg-blue', hidePerc:true, type: 'customScores'});
         }
-        
+        if (showOtherCol) maxDaywise -= 1;
         for (var i=1; i<=maxDaywise; i++) {
             var dwKey = 'dayw'+i;
             columns.push({id: dwKey+'total', name: nl.t('Day {} applicable modules', i), table: true, background: 'nl-bg-blue', hidePerc:true, type: 'daywise'});
             columns.push({id: dwKey+'completed', name: nl.t('Day {} completed modules', i), table: true, background: 'nl-bg-blue', hidePerc:true, type: 'daywise'});
         } 
+        if (showOtherCol) {
+            columns.push({id: 'daywOtherTotal', name: nl.t('Other applicable modules', i), table: true, background: 'nl-bg-blue', hidePerc:true, type: 'daywise'});
+            columns.push({id: 'daywOtherCompleted', name: nl.t('Other completed modules', i), table: true, background: 'nl-bg-blue', hidePerc:true, type: 'daywise'});
+        }
         for (var i=1; i<=maxQuiz; i++) {
             columns.push({id: 'quizname'+i, name: nl.t('Quiz {} name', i), table: true, background: 'nl-bg-blue', hidePerc:true, type: 'quiz'});
             columns.push({id: 'quizscore'+i+'perc', name: nl.t('Quiz {} score', i), table: true, background: 'nl-bg-blue', hidePerc:true, type: 'quiz'});
@@ -402,6 +407,9 @@ function(nl) {
 
     this.getMaxQuizCount = function() {
         return tmsStats.getMaxQuizCount();
+    }
+    this.showOtherQuizCol = function() {
+        return tmsStats.showOtherQuiz();
     }
     this.getMaxDaywiseCount = function() {
         return tmsStats.getMaxDaywiseCount();
@@ -512,7 +520,7 @@ function TmsStatsCounts(nl) {
     var _customScoresArray = [];
     var _maxQuizColumns = 0;
     var _maxDaywise = 0;
-
+    var _otherQuizzes = false;
     this.clear = function() {
         _statusCountTree = {};
         _dynamicStates = {};
@@ -520,12 +528,16 @@ function TmsStatsCounts(nl) {
         _customScoresArray = [];
         _maxQuizColumns = 0;
         _maxDaywise = 0;
+        _otherQuizzes = false;
     };
 
     this.getMaxQuizCount = function() {
         return _maxQuizColumns;
     };
 
+    this.showOtherQuiz = function() {
+        return _otherQuizzes;
+    };
     this.getMaxDaywiseCount = function() {
         return _maxDaywise;
     };
@@ -645,6 +657,14 @@ function TmsStatsCounts(nl) {
                 for (var i=1; i<=daywiseCompArray.length; i++) {
                     var dwKey = 'dayw'+i;
                     var singleDayData = daywiseCompArray[i-1] || {};
+                    if (singleDayData.name == 'Other_lesson_count') {
+                        _otherQuizzes = true;
+                        if (!('daywOtherTotal' in updatedStats)) updatedStats['daywOtherTotal'] = 0;
+                        if (!('daywOtherCompleted' in updatedStats)) updatedStats['daywOtherCompleted'] = 0;
+                        updatedStats['daywOtherTotal'] += singleDayData.nApplicableLesson;
+                        updatedStats['daywOtherCompleted'] += singleDayData.nCompletedLesson;
+                        continue;
+                    }
                     if (updatedStats.type == 'batch') {
                         var nameKey = dwKey+'name';
                         updatedStats[nameKey] = singleDayData.name;
