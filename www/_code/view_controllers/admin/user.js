@@ -366,8 +366,9 @@ nlAdminUserExport, nlAdminUserImport, nlTreeSelect, nlOuUserSelect, nlServerApi)
         dlg.scope.dlgTitle = nl.t('Users Status');
         var totaluser = nl.url.lessonIconUrl('totaluser.svg');
         var data = {total: {active: 0, inactive: 0}, img :totaluser};
-        for (var uid in _groupInfo.users){
-            var userObj = nlGroupInfo.getUserObj(uid,_grpid)
+        var users = nlGroupInfo.getKeyToUsers(_groupInfo, _grpid);
+        for (var uid in users){
+            var userObj = users[uid];
             var userTypeStr = userObj.getUtStr()
             if (!data[userTypeStr]){
                 data[userTypeStr] = {active: userObj.state ? 1 : 0, inactive: userObj.state ? 0 : 1};
@@ -382,7 +383,6 @@ nlAdminUserExport, nlAdminUserImport, nlTreeSelect, nlOuUserSelect, nlServerApi)
         var cancelButton = {
             text : nl.t('Close')
         };
-        console.log(dlg.scope.usersStatus)
         dlg.show('view_controllers/admin/user_status_dlg.html', [], cancelButton, false);
     }
 
