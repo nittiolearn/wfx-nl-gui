@@ -188,7 +188,11 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
             nlockedcnt: 0,
             nhiddencnt: 0,
             ndelayedcnt: 0,
-            iltStatusOfCourse: null         
+            iltStatusOfCourse: null,
+            nApplicableLesson: 0,
+            nCompLesson: 0,
+            applicableIlt: 0,
+            completedIlt:0
             // Also may have has following:
             // reattempt: true/false
         };
@@ -233,6 +237,16 @@ function CourseStatusHelper(nl, nlCourse, nlExpressionProcessor, isCourseView, r
             if (cm.isReattempt && itemInfo.rawStatus != 'pending') ret.reattempt = true;
             _updateStatusToWaitingIfNeeded(cm, itemInfo, itemIdToInfo);
             if (!(cm.hide_locked && itemInfo.status == 'waiting')) _updateItemToLocked(cm, itemInfo, earlierTrainerItems); 
+            if (cm.type == 'lesson') {
+                if (itemInfo.status != 'waiting' && cm.hide_locked) ret.nApplicableLesson += 1;
+                else if (!cm.hide_locked) ret.nApplicableLesson += 1;
+                if (_isEndItemState(itemInfo.status)) ret.nCompLesson += 1;
+            }
+            if (cm.type == 'iltsession') {
+                if (itemInfo.status != 'waiting' && cm.hide_locked) ret.applicableIlt += 1;
+                else if (!cm.hide_locked) ret.applicableIlt += 1;
+                if (_isEndItemState(itemInfo.status)) ret.completedIlt += 1;
+            }
             if((cm.hide_locked && itemInfo.status == 'waiting') || itemInfo.hideItem) {
                 itemInfo.hideItem = true;
                 if (cm.type != 'module' && cm.type != 'certificate') ret.nhiddencnt++;

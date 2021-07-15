@@ -281,12 +281,12 @@ function(nl, nlRouter, nlDlg, nlGroupInfo, nlLrHelper, nlLrFilter, nlGetManyStor
             delayDays: Math.round(stainf.delayDays || 0),
             isCertified: stainf.isCertified,
             customScoreDict: stainf.customScoreDict,
-            certid: stainf.certid
+            certid: stainf.certid,
+            applicableLessons: stainf.nApplicableLesson,
+            compLessons: stainf.nCompLesson,
+            applicableIlt: stainf.applicableIlt,
+            compIlt: stainf.completedIlt
         };
-        var ncompleted = stainf.nCompletedItems;
-        var nActual = stainf.cnttotal - (stainf.nlockedcnt + stainf.nhiddencnt);
-        stats.progress = Math.round(100*ncompleted/nActual);
-        stats.progressDesc = nl.t('{} of {} completed', ncompleted, nActual);
         if (stainf.inductionDropOut) stats.inductionDropOut = true;
         if(stainf.customScores.length != 0) {
             for(var i=0; i<stainf.customScores.length; i++) {
@@ -309,9 +309,10 @@ function(nl, nlRouter, nlDlg, nlGroupInfo, nlLrHelper, nlLrFilter, nlGetManyStor
         stats.percScoreStr = stats.percScore ? '' + stats.percScore + ' %' :  '';
         repcontent.statusinfo = stainf.itemIdToInfo;
         if(course.name) repcontent.name = course.name;
- 
+        var completed = true;
         if(!nlReportHelper.isEndStatusId(statusObj.id) && (nlLrFilter.getType() == 'course_assign')) {
             _updateReminderDict(report, repcontent, user);
+            completed = false;
         }
         
         report.url = nl.fmt2('#/course_view?id={}&mode=report_view', report.id);
@@ -321,6 +322,22 @@ function(nl, nlRouter, nlDlg, nlGroupInfo, nlLrHelper, nlLrFilter, nlGetManyStor
             if (!nlReportHelper.isCourseCompleted(stainf)) stainf.status = nl.t('attrition-{}', stainf.status);   
         }
         stats.status = nlReportHelper.getStatusInfoFromCourseStatsObj(stainf);
+        var ncompleted = stainf.nCompletedItems;
+        var nActual = stainf.cnttotal - (stainf.nlockedcnt + stainf.nhiddencnt);
+        var napplicable = stats.applicableLessons + stats.applicableIlt;
+        var nCompletedCount = stats.compLessons + stats.compIlt;
+        if (napplicable > 0) {
+            stats.progress = Math.round(100*nCompletedCount/napplicable);
+            stats.progressDesc = nl.t('{} of {} completed', nCompletedCount, napplicable);        
+        } else {
+            if (completed) {
+                stats.progress = 100;
+                stats.progressDesc = nl.t('{} of {} completed', ncompleted, nActual);
+            } else {
+                stats.progress = 0;
+                stats.progressDesc = nl.t('{} of {} completed', ncompleted, nActual);
+            }            
+        }
         if (report.isNHT) {
             if(!(report.assignment in _batchStatus)) _batchStatus[report.assignment] = {};
             var statusTxt = stats.status.txt;
