@@ -34,7 +34,7 @@ function($scope, nl, nlDlg, nlRouter, nlGroupInfo, nlServerApi, nlExporter, nlTm
         nl.pginfo.pageTitle = nl.t('NHT batches');
         var params = nl.location.search();
         _readFromFile = (params.fromfile == '1'); 
-        $scope.showFilterAndView = true; //(params.debug == '1'); 
+        $scope.debug = params.debug == '1';
         nlGroupInfo.init2().then(function() {
           nlGroupInfo.update();
                   _groupInfo = nlGroupInfo.get();
@@ -73,7 +73,7 @@ function($scope, nl, nlDlg, nlRouter, nlGroupInfo, nlServerApi, nlExporter, nlTm
 
     $scope.getTmsContTabHeight = function() {
 		var document = nl.window.document;
-		var bodyElement = document.getElementsByClassName("nl-lr-tms-report-body")
+		var bodyElement = document.getElementsByClassName("nl-lr-tms-report-body");
         var topElem = document.getElementsByClassName("nl-lr-tms-top-section");
         var filterElem = document.getElementsByClassName("nl-lr-filter-section");
         var headerElem = document.getElementsByClassName("nl-lr-header-section");
@@ -316,23 +316,27 @@ function($scope, nl, nlDlg, nlRouter, nlGroupInfo, nlServerApi, nlExporter, nlTm
         columns.push({id: 'percAvgQuizScore', name: 'Assessment scores (Average of attempts)', table: true, background: 'nl-bg-blue', showAlways: true, hidePerc:true, type: 'default|quiz'});
         columns.push({id: 'onlineTimeSpent', name: 'Online active time spent (Mins)', table: true, background: 'nl-bg-blue', showAlways: true, hidePerc:true, type: 'default'});
         for (var i=0; i<customScores.length; i++) {
-            columns.push({id: 'perc'+customScores[i], name: customScores[i], table: true, background: 'nl-bg-blue', hidePerc:true, type: 'customScores'});
+            columns.push({id: 'perc'+customScores[i], name: customScores[i], table: true, background: 'nl-bg-blue', showAlways: true, hidePerc:true, type: 'customScores'});
         }
         if (showOtherCol) maxDaywise -= 1;
         for (var i=1; i<=maxDaywise; i++) {
             var dwKey = 'dayw'+i;
-            columns.push({id: dwKey+'total', name: nl.t('Day {} applicable modules', i), table: true, background: 'nl-bg-blue', hidePerc:true, type: 'daywise'});
-            columns.push({id: dwKey+'completed', name: nl.t('Day {} completed modules', i), table: true, background: 'nl-bg-blue', hidePerc:true, type: 'daywise'});
+            columns.push({id: dwKey+'total', name: nl.t('Day {} applicable modules', i), table: true, background: 'nl-bg-blue', showAlways: true, hidePerc:true, type: 'daywise'});
+            columns.push({id: dwKey+'completed', name: nl.t('Day {} completed modules', i), table: true, background: 'nl-bg-blue', showAlways: true, hidePerc:true, type: 'daywise'});
         } 
         if (showOtherCol) {
-            columns.push({id: 'daywOtherTotal', name: nl.t('Other applicable modules', i), table: true, background: 'nl-bg-blue', hidePerc:true, type: 'daywise'});
-            columns.push({id: 'daywOtherCompleted', name: nl.t('Other completed modules', i), table: true, background: 'nl-bg-blue', hidePerc:true, type: 'daywise'});
+            columns.push({id: 'daywOtherTotal', name: nl.t('Other applicable modules'), table: true, background: 'nl-bg-blue', hidePerc:true, showAlways: true, type: 'daywise'});
+            columns.push({id: 'daywOtherCompleted', name: nl.t('Other completed modules'), table: true, background: 'nl-bg-blue', hidePerc:true, showAlways: true, type: 'daywise'});
         }
         for (var i=1; i<=maxQuiz; i++) {
             columns.push({id: 'quizname'+i, name: nl.t('Quiz {} name', i), table: true, background: 'nl-bg-blue', hidePerc:true, type: 'quiz'});
             columns.push({id: 'quizscore'+i+'perc', name: nl.t('Quiz {} score', i), table: true, background: 'nl-bg-blue', hidePerc:true, type: 'quiz'});
         }
         columns.push({id: 'batchid', name: 'Batch Id', table: false, background: 'nl-bg-blue', showAlways: true, background: 'bggrey', hidePerc:true, type: 'all', fmt: 'idstr', widthCls: 'w175'});
+        if ($scope.debug) {
+            columns.push({id: 'repids', name: 'Unique reportIds', table: false, background: 'nl-bg-blue', showAlways: true, background: 'bggrey', hidePerc:true, type: 'all', fmt: 'idstr', widthCls: 'w196'});
+            columns.push({id: 'userids', name: 'Unique userIds', table: false, background: 'nl-bg-blue', showAlways: true, background: 'bggrey', hidePerc:true, type: 'all', fmt: 'idstr', widthCls: 'w196'});
+        }
         var defaultDict = {};
         for (var i=0; i<$scope.tableSelector.length; i++) {
             if ($scope.tableSelector[i].selected) defaultDict[$scope.tableSelector[i].id] = true;
@@ -431,6 +435,7 @@ function(nl) {
                 if (Object.keys(batchObj).length > 0) {
                     for (var rec in batchObj) {
                         var recObj = batchObj[rec];
+                            recObj.id = rec;
                         var assignment = assignments[batch];
                         var level1Info = {id: suborg, name: suborg};
                         var level2Info = {id: batch, name: assignment.batchname, otherRecs: assignment.otherRecords || 0};
@@ -474,7 +479,7 @@ function(nl) {
 
     function _getStatusCountObj(rec) {
         var status = rec.status;
-        var statsObj = {cntTotal: 1};
+        var statsObj = {cntTotal: 1, repid: rec.id, userid: rec.sid};
         if (rec.inductionDropOut) {
             statsObj.cntTotal = 0;
             statsObj['inductionDropOut'] = 1;
@@ -513,7 +518,7 @@ function TmsStatsCounts(nl) {
                           'certified': 0, 'Closed': 0, 'isOpen': false, 'attrition': 0, 'failed': 0, 'nQuizzes': 0, 'nQuizzesCompleted': 0, 
                           'nQuizScorePerc': 0, 'nQuizPercScoreCount' : 0, 'batchCounted': {}, 'batchCount': 0,
                           'otherRecords': 0, 'inductionDropOut': 0, 'scoreCount': 0, 'recCount': 0,
-                          'onlineTimeSpent': 0};
+                          'onlineTimeSpent': 0, 'repids': [], 'userids': []};
     var defaultStates = angular.copy(statsCountItem);
     var _dynamicStates = {};
     var _customScores = {};
@@ -622,6 +627,8 @@ function TmsStatsCounts(nl) {
     function _updateStatsCount(updatedStats, statusCnt) { 
         for(var key in statusCnt) {
             if (key == 'otherRecs' || key == 'dontIncludeInBatchCount') continue;
+            if (key == 'repid' && updatedStats.type == 'batch') updatedStats.repids.push(statusCnt[key]);
+            if (key == 'userid' && updatedStats.type == 'batch') updatedStats.userids.push(statusCnt[key]);
             if (key == 'assignment') {
                 if (statusCnt[key] in updatedStats.batchCounted) continue;
                 updatedStats.otherRecords += statusCnt.otherRecs || 0;

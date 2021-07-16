@@ -7,6 +7,9 @@ table tbody, table thead
     min-width: 158px;
     max-width: 158px;
 }
+.w196{
+    width: 196px;
+}
 </style>
 <div class='nl-lr-tms-report-body padding-small' style='position:absolute; width: 100%; height: 100%; overflow-x:scroll'>
     <div class='nl-lr-tms-top-section row row-center margin0 padding0 nl-border-bottom'
@@ -14,7 +17,7 @@ table tbody, table thead
         <div class='col text-center fsh6 padding-mid nl-dkonlg-lgondk-text'>
             {{headerTextStr}}
         </div>
-		<div class="dropdown" ng-if='showFilterAndView'>
+		<div class="dropdown">
 			<div class='row row-center margin0 dropbtn nl-link-text2'
 				ng-click='data.toggleTableSelector = !data.toggleTableSelector'>
 				<div class='col button-inner-style'>
@@ -43,7 +46,6 @@ table tbody, table thead
 
         <span title='Filter batches'
             class='nl-toolbar-icon'
-            ng-if='showFilterAndView'
             ng-click='searchObj.canShow = !searchObj.canShow'>
             <i class="icon ion-funnel"></i>
         </span>
