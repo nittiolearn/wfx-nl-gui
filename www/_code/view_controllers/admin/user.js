@@ -361,7 +361,7 @@ nlAdminUserExport, nlAdminUserImport, nlTreeSelect, nlOuUserSelect, nlServerApi)
 
     function _status() {
         var dlg = nlDlg.create($scope);
-        dlg.setCssClass('nl-dlg2');
+        dlg.setCssClass('nl-dlg2 nl-no-vscroll');
         dlg.scope.error = {};
         dlg.scope.dlgTitle = nl.t('Users Status');
         var totaluser = nl.url.lessonIconUrl('totaluser.svg');

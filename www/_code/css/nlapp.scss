@@ -4258,6 +4258,11 @@ background-color: var(--nlFontYellow);}
       width: 300px;
     }
   }
+  .nl-dlg2.nl-no-vscroll {
+    .popup-body {
+      overflow-y: hidden;
+    }
+  }
   .learner-btn-firstchild {
     &:first-child {
       padding: 4px;
@@ -4339,6 +4344,12 @@ background-color: var(--nlFontYellow);}
         justify-content: space-between;
         align-items: center;
       }
+    }
+  }
+  .userstatus { 
+    .usericon {
+      height: 20px;
+      width: 20px;
     }
   }
 }
@@ -6321,6 +6332,9 @@ nl-dlg {
       background-color: rgba(255,255,255, 0.3); 
       box-shadow: none;
     }
+    .userstats {
+      background-color: var(--nlPrimary);
+    }
   }
   .nl-dlg2 {
     .ion-ios-close {
@@ -6907,6 +6921,8 @@ Font-size
 
 //user status dlg
 .userstatus {
+    width: 100%;
+    margin: 0 auto;
   .users {
     background-color: var(--nlPrimary); 
     box-shadow: 0 3px 6px 0 var(--nllightblue);
@@ -6915,6 +6931,16 @@ Font-size
     height:80px;
     align-items: center;
     grid-gap:15px;
+  }
+  .userstats {
+    margin:12px;
+    padding: 8px;
+    scroll-behavior: smooth;
+    overflow: auto;
+    overflow-x: hidden;
+    max-height: 500px;
+    background: var(--nlwhitesmoke);
+    border-radius: 8px;
   }
   .usericon {
     height: 30px;

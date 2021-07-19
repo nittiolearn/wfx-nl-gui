@@ -1,36 +1,37 @@
 <nl-dlg show-help='0' show-close='1'>
     <nl-dlg-content>
         <div class="userstatus nl-card-dlg2-img padding">
-            <div class="nl-txt-white Montserrat-font text-center fontsize20">User Status</div>
-            <div class="row mt-20 padding-mid users">
-                <div class="row padding-top-0" style="align-items: center; grid-gap: 15px;">
-                    <img ng-src='{{usersStatus.img}}' class="Montserrat-font usericon img-in-small" alt='totaluser'>
-                    <span class=" Montserrat-font fontsize16 font-16-in-small fwhite">Total Users</span>
-                </div>
-                <div class="row padding-top-0 nl-txt-white margin0 useralign show-in-small">
-                    <span class=" Montserrat-font fontsize24 font-16-in-small fprogress">{{usersStatus.total.active}}</span>
-                    <span class="Montserrat-font font-12-in-small fontsize16 fwhite">Active</span>
-                </div>
-                <div class="divider"></div>
-                <div class="row padding-top-0 nl-txt-white margin0 useralign show-in-small">
-                    <span class=" Montserrat-font fontsize24 font-16-in-small ffailed">{{usersStatus.total.inactive}}</span>
-                    <span class="Montserrat-font font-12-in-small fontsize16 fwhite">Inactive</span>
-                </div>
-            </div>
-
-            <div ng-repeat='(ut,data) in usersStatus' >
-                <div ng-if='!(ut=="total" || ut=="img")' class="row mt-20 padding-mid users">
-                    <div class="padding-top-0 {{$root.screenSize == 'small' ? '' : 'row' }}">
-                        <span class="Montserrat-fontfontsize16 fwhite">{{ut}}</span>
+            <div class="nl-txt-white Montserrat-font text-center fontsize20">User Stats</div>
+            <div class="userstats nl-thin-scroll1 mt-20">
+                <div class="row padding-mid users">
+                    <div class="row padding-top-0" style="align-items: center; grid-gap: 15px;">
+                        <img ng-src='{{usersStatus.img}}' class="Montserrat-font usericon" alt='totaluser'>
+                        <span class=" Montserrat-font fontsize16 font-12-in-small fwhite">Total Users</span>
                     </div>
-                    <div class="padding-top-0 nl-txt-white margin0 useralign show-in-small {{$root.screenSize == 'small' ? 'show-in-small' : 'row'}}">
-                        <div class=" Montserrat-font fontsize24 font-16-in-small fprogress">{{data.active}}</div>
-                        <div class="Montserrat-font font-12-in-small fontsize16 fwhite">Active</div>
+                    <div class="row padding-top-0 nl-txt-white margin0 useralign show-in-small">
+                        <span class=" Montserrat-font fontsize24 font-16-in-small fprogress">{{usersStatus.total.active}}</span>
+                        <span class="Montserrat-font font-12-in-small fontsize16 fwhite">Active</span>
                     </div>
                     <div class="divider"></div>
-                    <div class="padding-top-0 nl-txt-white margin0 useralign show-in-small {{$root.screenSize == 'small' ? 'show-in-small' : 'row'}}">
-                        <div class="Montserrat-font fontsize24 font-16-in-small ffailed">{{data.inactive}}</div>
-                        <div class="Montserrat-font font-12-in-small fontsize16 fwhite">Inactive</div>
+                    <div class="row padding-top-0 nl-txt-white margin0 useralign show-in-small">
+                        <span class=" Montserrat-font fontsize24 font-16-in-small ffailed">{{usersStatus.total.inactive}}</span>
+                        <span class="Montserrat-font font-12-in-small fontsize16 fwhite">Inactive</span>
+                    </div>
+                </div>
+                <div ng-repeat='(ut,data) in usersStatus' >
+                    <div ng-if='!(ut=="total" || ut=="img")' class="row mt-20 padding-mid users">
+                        <div class="padding-top-0 {{$root.screenSize == 'small' ? '' : 'row' }}">
+                            <span class="Montserrat-fontfontsize16 fwhite">{{ut}}</span>
+                        </div>
+                        <div class="padding-top-0 nl-txt-white margin0 useralign show-in-small {{$root.screenSize == 'small' ? 'show-in-small' : 'row'}}">
+                            <div class=" Montserrat-font fontsize24 font-16-in-small fprogress">{{data.active}}</div>
+                            <div class="Montserrat-font font-12-in-small fontsize16 fwhite">Active</div>
+                        </div>
+                        <div class="divider"></div>
+                        <div class="padding-top-0 nl-txt-white margin0 useralign show-in-small {{$root.screenSize == 'small' ? 'show-in-small' : 'row'}}">
+                            <div class="Montserrat-font fontsize24 font-16-in-small ffailed">{{data.inactive}}</div>
+                            <div class="Montserrat-font font-12-in-small fontsize16 fwhite">Inactive</div>
+                        </div>
                     </div>
                 </div>
             </div>
