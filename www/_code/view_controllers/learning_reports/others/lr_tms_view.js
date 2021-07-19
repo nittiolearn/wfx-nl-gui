@@ -205,7 +205,7 @@ function($scope, nl, nlDlg, nlRouter, nlGroupInfo, nlServerApi, nlExporter, nlTm
                                 {id: 'customScores', name: 'Custom scores', selected: false}, 
                                 {id: 'quiz', name: 'Quiz scores', selected: false},
                                 {id: 'attrition', name: 'Attrition details', selected: false},
-                                {id: 'daywise', name: 'Daywise applicable count', selected: false}
+                                {id: 'daywise', name: 'Daywise module count', selected: false}
                             ];
         $scope.data = {toggleTableSelector: false};
     }
@@ -350,7 +350,10 @@ function($scope, nl, nlDlg, nlRouter, nlGroupInfo, nlServerApi, nlExporter, nlTm
             }
             var tableTypeObj = _toObject(colType.split('|'));
             for (var key in tableTypeObj) {
-                if (key in defaultDict) selectedCols.push(columns[i]);
+                if (key in defaultDict) {
+                    selectedCols.push(columns[i]);
+                    break;
+                }
             }
         }
       return selectedCols;

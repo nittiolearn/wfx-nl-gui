@@ -672,8 +672,8 @@ function NlLearningReportView(nl, nlDlg, nlRouter, nlServerApi, nlGroupInfo, nlT
 		columns.push(_col('stats.percScore', 'Achieved %', 'text-right'));
 		columns.push(_col('stats.nMaxScore', 'Maximum Score', 'text-right'));
 		columns.push(_col('stats.nScore', 'Achieved Score', 'text-right'));
-		columns.push(_col('stats.applicableLessons', 'Applicable modules', 'text-right'));
-		columns.push(_col('stats.compLessons', 'Completed modules', 'text-right'));
+		columns.push(_col('stats.applicableLessons', 'Applicable modules', 'text-center'));
+		columns.push(_col('stats.compLessons', 'Completed modules', 'text-center'));
 		columns.push(_col('stats.progressDesc', 'Progress', 'text-left'));		
 		for(var i=0; i< _customScoresHeader.length; i++)
 			columns.push(_col('stats.customScoreDict.' + _customScoresHeader[i], _customScoresHeader[i], 'text-right'));
