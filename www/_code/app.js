@@ -158,9 +158,9 @@ function(nl) {
 
 //-------------------------------------------------------------------------------------------------
 var AppCtrl = ['nl','nlDlg','nlServerApi', '$scope', '$anchorScroll', 'nlKeyboardHandler', 'nlAnnouncementSrv', 'nlRouter',
-'nlLogViewer', 'nlOldCodeBridge', 'nlTopbarSrv', 'nlServerSideUserSettings', 'ChartJSSrv',
+'nlLogViewer', 'nlOldCodeBridge', 'nlTopbarSrv', 'nlServerSideUserSettings', 'ChartJSSrv', 'nlResourceUploader', 'Upload', 'nlGroupInfo',
 function(nl, nlDlg, nlServerApi, $scope, $anchorScroll, nlKeyboardHandler, nlAnnouncementSrv, nlRouter, nlLogViewer, 
-    nlOldCodeBridge, nlTopbarSrv, nlServerSideUserSettings, ChartJSSrv) {
+    nlOldCodeBridge, nlTopbarSrv, nlServerSideUserSettings, ChartJSSrv, nlResourceUploader, Upload, nlGroupInfo) {
     nl.log.info('UserAgent: ', navigator.userAgent);
     if (NL_SERVER_INFO.oldCode) nlOldCodeBridge.expose();
     nl.rootScope.imgBasePath = nl.url.resUrl();
@@ -182,7 +182,7 @@ function(nl, nlDlg, nlServerApi, $scope, $anchorScroll, nlKeyboardHandler, nlAnn
     // Called from child scope on page enter
     $scope.onPageEnter = function(userInfo) {
         nl.log.debug('app:onPageEnter - enter');       
-       
+        nl.rootScope.pgInfo.usericon = userInfo.usericon;
         nl.rootScope.currentPageURL=nl.location.url().split('#')[0];
         nl.rootScope.bodyClass = 'showbody';
         nlAnnouncementSrv.initAnnouncements(userInfo, $scope);
@@ -217,7 +217,40 @@ function(nl, nlDlg, nlServerApi, $scope, $anchorScroll, nlKeyboardHandler, nlAnn
             }
         )
     }
+
+    function _onFileOpened(dlgScope, resolve, userInfo) {
+        if (!dlgScope.data.resource || !dlgScope.data.resource[0]) {
+            return resolve(null);
+        }
+        var res = dlgScope.data.resource;
+        var extn = nlResourceUploader.getValidExtension(res[0].resource, 'Image');
+        var restype = nlResourceUploader.getRestypeFromExt(extn);            
+        var fileInfo = {resource: res, restype: restype, extn: extn, name: ''};
+        Upload.dataUrl(fileInfo.resource).then(function(url) {
+            fileInfo.resimg = url;
+        });
+        _onUploadOrModify(fileInfo , userInfo);
+        
+    }
     
+
+    function _onUploadOrModify(data, userInfo) {
+		var resourceList = data.resource;
+        var resourceInfoDict = {shared: true, updateUserDatabase: true};
+        var keyword = '';
+        resourceInfoDict['insertfrom'] = '/';
+	    if(resourceList.length == 0) {
+	    	return;
+		}
+        nlDlg.popupStatus('Uploading Userprofile......', false);
+        nlDlg.showLoadingScreen();
+		nlResourceUploader.uploadInSequence(resourceList, keyword, 'high', null, resourceInfoDict)
+		.then(function(resInfos) {
+            nl.window.location.reload();
+        });       
+	}
+
+
     function _updateTopbarMenus(userInfo) {
         var topbarMenus = [];
         if (nlRouter.isPermitted(userInfo, 'change_password')) {
@@ -239,6 +272,31 @@ function(nl, nlDlg, nlServerApi, $scope, $anchorScroll, nlKeyboardHandler, nlAnn
         }
         
         topbarMenus.push(nlLogViewer.getLogMenuItem($scope));
+        var showUserProfile = ((userInfo.groupinfo || {}).features || {}).showUserProfile || false;
+        if(showUserProfile) {
+            topbarMenus.push({
+                id: 'changeuserprofile',
+                type: 'menu',
+                icon: 'ion-android-person lnblue3',
+                name: nl.t('Change User Profile'),
+                theme:'',
+                onClick: function() {
+                        nl.q(function(resolve, reject) { 
+                            var dlg = nlDlg.create($scope);
+                            //dlg.setCssClass('nl-height-max nl-width-max');
+                            dlg.scope.data = {resource: null};
+                            dlg.scope.error = {};
+                            var okButton = { text : nl.t('Continue'), onTap : function(e) {
+                                _onFileOpened(dlg.scope, resolve, userInfo);
+                            }};
+                            var cancelButton = {text : nl.t('Cancel'), onTap : function() {
+                                resolve(null);
+                            }};
+                            dlg.show('lib_ui/utils/file_reader.html', [okButton], cancelButton);             
+                    })
+                }
+            });
+        }
         topbarMenus.push({
             id: 'lighttheme',
             type: 'menu',

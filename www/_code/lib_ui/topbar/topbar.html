@@ -43,11 +43,19 @@
         </i>
 
         <!-- User menu item -->
-        <i title='{{pgInfo.username}}' alt='User'
-           class="padding-small fsh3 ion-android-person lnblue3"
-           style='min-width: 30px' 
-           ng-click='onUserMenu($event)'/>
-        </i>
+        <span ng-if='!pgInfo.usericon ? true : false'>
+            <span title='{{pgInfo.username}}' alt='User'  
+            class="padding-small fsh3 ion-android-person lnblue3"
+            style='min-width: 30px' 
+            ng-click='onUserMenu($event)'> 
+            </span>
+        </span>
+        
+        <span ng-if='pgInfo.usericon ? true : false'>
+            <img ng-src={{pgInfo.usericon}} ng-click='onUserMenu($event)' 
+            class="padding-small fsh3 profileicon" >
+        </span>
+       
 
         <!-- User menu that pops down when user menu icon in top bar is clicked -->
         <nav id='nl-user-menu' ng-show='topbar.showUserMenu'>
@@ -68,7 +76,5 @@
                 </li>
             </ul>
         </nav>
-    
-
     </div>
 </nav>

@@ -491,7 +491,8 @@ function(nl, nlServerApi, nlDlg, nlProgressFn) {
                         info: angular.toJson(compInfo, 2),
                         resid: resid,
                         batchMode: resourceInfoDict.batchMode || false,
-                        shared: resourceInfoDict.shared
+                        shared: resourceInfoDict.shared,
+                        updateUserDatabase: resourceInfoDict.updateUserDatabase || false
                         };
             if (fileInfo.reskey) data.reskey = fileInfo.reskey;
             data.insertfrom = resourceInfoDict.insertfrom || '/';

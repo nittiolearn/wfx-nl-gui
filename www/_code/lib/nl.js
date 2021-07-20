@@ -664,7 +664,7 @@ function NlPageInfo(nl) {
     };
     this.isMobileOrTab = _isMobileOrTab(nl);
     this.groupCustomCss = '';
-    
+    this.usericon='';
     this.isOldCode = false;
 }
 
