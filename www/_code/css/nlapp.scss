@@ -740,7 +740,11 @@ $animation-duration: 200ms !default;
   margin-top: 5px;
   width: 100%;
   td, th {
-    padding: 4px;
+    padding: 2px 4px;
+  }
+  td.text-right{
+    text-align: right;
+    padding: 2px 12px 2px 12px;
   }
   td *, th * {
     vertical-align: middle;
