@@ -215,13 +215,14 @@ nlAdminUserExport, nlAdminUserImport, nlTreeSelect, nlOuUserSelect, nlServerApi)
         if (lastLogin)
             desc += '<div>Last login: {}</div>'
 	    desc = nl.fmt2(desc, stateIcon, user.getUtStr(), user.username, user.email, user.org_unit, lastLogin);
-	    
+	    var usericon = angular.fromJson(user.details);
+        if(user.details) usericon = usericon.usericon ? usericon.usericon : '';
 	    var card = {id: user.id,
 	        username: user.username,
             updated: user.updated || 0,
             title: user.name,
             internalUrl: 'adminuser_modify',
-            icon: user.getIcon(),
+            icon: usericon ? usericon : user.getIcon(),
             help: desc,
             children: [],
             user_id: user.user_id,

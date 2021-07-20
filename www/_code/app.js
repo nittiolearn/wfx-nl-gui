@@ -229,34 +229,24 @@ function(nl, nlDlg, nlServerApi, $scope, $anchorScroll, nlKeyboardHandler, nlAnn
         Upload.dataUrl(fileInfo.resource).then(function(url) {
             fileInfo.resimg = url;
         });
-        var userid = userInfo.userid;
-        nlGroupInfo.init2().then(function() {
-            nlGroupInfo.update();
-            var user = nlGroupInfo.getUserObj(userid);
-            _onUploadOrModify(fileInfo , userInfo, $scope, user);
-        });
+        _onUploadOrModify(fileInfo , userInfo);
         
     }
     
 
-    function _onUploadOrModify(data, userInfo, addModifyResourceDlg, user) {
+    function _onUploadOrModify(data, userInfo) {
 		var resourceList = data.resource;
-        addModifyResourceDlg.resInfos = [];
         var resourceInfoDict = {shared: true, updateUserDatabase: true};
-        var keyword = addModifyResourceDlg.keywords || '';
+        var keyword = '';
         resourceInfoDict['insertfrom'] = '/';
 	    if(resourceList.length == 0) {
 	    	return;
 		}
+        nlDlg.popupStatus('Uploading Userprofile......', false);
         nlDlg.showLoadingScreen();
 		nlResourceUploader.uploadInSequence(resourceList, keyword, 'high', null, resourceInfoDict)
 		.then(function(resInfos) {
-		        addModifyResourceDlg.resInfos.push(resInfos[0]);
-                var details = angular.fromJson(user.details || "{}");
-                details.usericon = addModifyResourceDlg.resInfos[0].url;
-                userInfo.usericon =details.usericon;
-                nl.rootScope.pgInfo.usericon = details.usericon;
-                nlDlg.hideLoadingScreen();
+            nl.window.location.reload();
         });       
 	}
 
@@ -282,8 +272,8 @@ function(nl, nlDlg, nlServerApi, $scope, $anchorScroll, nlKeyboardHandler, nlAnn
         }
         
         topbarMenus.push(nlLogViewer.getLogMenuItem($scope));
-
-        if(userInfo.usertype == 'Learner') {
+        var showUserProfile = ((userInfo.groupinfo || {}).features || {}).showUserProfile || false;
+        if(showUserProfile) {
             topbarMenus.push({
                 id: 'changeuserprofile',
                 type: 'menu',
@@ -306,7 +296,7 @@ function(nl, nlDlg, nlServerApi, $scope, $anchorScroll, nlKeyboardHandler, nlAnn
                     })
                 }
             });
-         }
+        }
         topbarMenus.push({
             id: 'lighttheme',
             type: 'menu',

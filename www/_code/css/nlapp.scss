@@ -1313,11 +1313,14 @@ a.black {
   text-align: left;
 }
 .profileicon {
-  width: 45px;
-  height: 45px;
+  width: 40px;
+  height: 40px;
   object-fit: cover;
   border-radius: 50%;
   cursor: pointer;
+  &:hover{
+    box-shadow: 0px 1px 0px 0px rgba(0, 0, 0, 0.15);
+  }
  }
 
 
