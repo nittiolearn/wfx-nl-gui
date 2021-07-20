@@ -2099,6 +2099,7 @@ nlesson = function() {
     }
     
     function _Section_setupOnclick(section, pagetype) {
+        if (njsArranger.get().setupSection(section)) return;
         if (!section.oSection.popups || !section.oSection.popups.onclick) {
             if (!pagetype.isInteractive(section))
                 section.pgSecView.removeClass('beh_interactive');
@@ -2148,9 +2149,8 @@ nlesson = function() {
 		var pageId = g_lesson.getCurrentPageId();
 		var clist = njsCommentEditor.theLessonComment.getOpenComments(pageId);
 		
-		
 		var newIcon = clist.length > 0 ? 'ion-ios-chatbubble forange' : 'ion-ios-chatbubble-outline';
-        njs_toolbelt.Toolbelt.updateTool('edit_icon_comment', null, newIcon, null);
+        njs_toolbelt.Toolbelt.updateTool({id: 'edit_icon_comment', icon: newIcon});
 	}
 	
 	function on_loadcomment() {			
@@ -2240,10 +2240,12 @@ function SectionSelectionHandler(lesson) {
         _allTools.push({id: 'edit_icon_pageorg', grpid: 'pages', grp: 'Page', icon:'ion-shuffle', name:'Page Organizer', title:'Organize the pages', shortcut: ' (Alt+O)', onclick: on_pageorganizer});
         _allTools.push({id: 'edit_icon_pagevoice', grpid: 'pages', grp: 'Page', icon: 'ion-mic-c', name:'Page Voice', title:'Add page voice', onclick: on_pagevoice});
 
-        _allTools.push({id: 'edit_icon_img', grpid: 'media', grp: 'Section Media', icon:'ion-aperture', name:'Insert Image', onclick: on_insert_img});
-        _allTools.push({id: 'edit_icon_video', grpid: 'media', grp: 'Section Media', icon:'ion-social-youtube', name:'Insert Video', onclick: on_insert_video});
-        _allTools.push({id: 'edit_icon_link', grpid: 'media', grp: 'Section Media', icon:'ion-link', name:'Insert Link', onclick: on_insert_link});
-        _allTools.push({id: 'edit_icon_media', grpid: 'media', grp: 'Section Media', icon:'ion-ios-photos', name:'Update Media', onclick: on_update_media});
+        var arrangeMenuIem = njsArranger.get().getMenuItem();
+        if (arrangeMenuIem) _allTools.push(arrangeMenuIem);
+        _allTools.push({id: 'edit_icon_img', grpid: 'section', grp: 'Section', icon:'ion-aperture', name:'Insert Image', onclick: on_insert_img});
+        _allTools.push({id: 'edit_icon_video', grpid: 'section', grp: 'Section', icon:'ion-social-youtube', name:'Insert Video', onclick: on_insert_video});
+        _allTools.push({id: 'edit_icon_link', grpid: 'section', grp: 'Section', icon:'ion-link', name:'Insert Link', onclick: on_insert_link});
+        _allTools.push({id: 'edit_icon_media', grpid: 'section', grp: 'Section', icon:'ion-ios-photos', name:'Update Media', onclick: on_update_media});
 
         _allTools.push({id: 'edit_icon_popup_edit', grpid: 'popup', grp: 'Section Popup', icon:'ion-ios-pricetag', name:'Create Popup', onclick: on_popup_edit});
         _allTools.push({id: 'edit_icon_popup_delete', grpid: 'popup', grp: 'Section Popup', icon:'ion-backspace', name:'Delete Popup', onclick: on_popup_delete});
@@ -2267,28 +2269,35 @@ function SectionSelectionHandler(lesson) {
         }
 
         if (!_isSectionSelected() || lesson.renderCtx.lessonMode() != 'edit') {
-            njs_toolbelt.Toolbelt.toggleToolGroup('Media', false);
-            njs_toolbelt.Toolbelt.toggleToolGroup('Popup', false);
+            _toggleSectionTools(false);
+            njs_toolbelt.Toolbelt.toggleToolGroup('popup', false);
         } else {
-            njs_toolbelt.Toolbelt.toggleToolGroup('Media', true);
+            _toggleSectionTools(true);
             var sec = _getSection();
             var pagetype = sec.page.pagetype;
             if(sec.page.pagetype.isInteractive(sec)) {
-                njs_toolbelt.Toolbelt.toggleToolGroup('Popup', false);
+                njs_toolbelt.Toolbelt.toggleToolGroup('popup', false);
                 return;
             }
-            njs_toolbelt.Toolbelt.toggleToolGroup('Popup', true);
+            njs_toolbelt.Toolbelt.toggleToolGroup('popup', true);
             var osec = sec.oSection;
             if (osec && osec.popups) {
-                njs_toolbelt.Toolbelt.updateTool('edit_icon_popup_edit', 'Edit Popup', null, 'Edit the popup of the selected section');
+                njs_toolbelt.Toolbelt.updateTool({id: 'edit_icon_popup_edit', name: 'Edit Popup', title: 'Edit the popup of the selected section'});
                 njs_toolbelt.Toolbelt.toggleTool('edit_icon_popup_delete', true);
             } else {
-                njs_toolbelt.Toolbelt.updateTool('edit_icon_popup_edit', 'Create Popup', null, 'Create a popup for the selected section');
+                njs_toolbelt.Toolbelt.updateTool({id: 'edit_icon_popup_edit', name: 'Create Popup', title: 'Create a popup for the selected section'});
                 njs_toolbelt.Toolbelt.toggleTool('edit_icon_popup_delete', false);
             }
         }
     };
     
+    function _toggleSectionTools(bShow) {
+        njs_toolbelt.Toolbelt.toggleTool('edit_icon_img', bShow);
+        njs_toolbelt.Toolbelt.toggleTool('edit_icon_video', bShow);
+        njs_toolbelt.Toolbelt.toggleTool('edit_icon_link', bShow);
+        njs_toolbelt.Toolbelt.toggleTool('edit_icon_media', bShow);
+    }
+
     function _isSectionSelected() {
         var currentPage = lesson.getCurrentPage();
         return (_focusedSection.pgSecText !== null && _focusedSection.secNo !== null &&

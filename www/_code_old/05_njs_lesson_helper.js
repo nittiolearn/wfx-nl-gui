@@ -241,6 +241,7 @@ function RenderingContext() {
 	
 	// Specialized setters - used when rendering mode is changed during runtime: 
 	// e.g. toggle to preview mode in editor)
+	this.getLessonCtx = RenderingContext_getLessonCtx;
 	this.setLessonCtx = RenderingContext_setLessonCtx;
 	this.editorToggleEditAndPreview = RenderingContext_editorToggleEditAndPreview;
 	this.playerToggleDoAndPreview = RenderingContext_playerToggleDoAndPreview;
@@ -320,6 +321,10 @@ var _editorToggleStates = {
 		'edit_pv' : {newState: 'edit_templ', newIcon: 'ion-ios-compose', newTitle: 'Edit (Alt+T)', newName: 'Edit'}
 		}
 };
+
+function RenderingContext_getLessonCtx() {
+	return this.data.lessonCtx;
+}
 
 function RenderingContext_setLessonCtx(lessonCtx) {
 	this.data.lessonCtx = lessonCtx;

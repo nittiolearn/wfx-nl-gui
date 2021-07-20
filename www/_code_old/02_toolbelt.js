@@ -86,7 +86,7 @@ function Toolbelt() {
 
         var title = _isCompact ? 'Show expanded tool bar' : 'Show compact tool bar';
         var icon = _isCompact ? 'ion-arrow-expand' : 'ion-arrow-shrink';
-        self.updateTool('toggle_toolbelt', null, icon, title);
+        self.updateTool({id: 'toggle_toolbelt', icon: icon, title: title});
     }
 
     function _getToolbeltRow(tool, toolCls) {
@@ -110,15 +110,20 @@ function Toolbelt() {
         return toolHtml;
     }
 
-    this.updateTool = function(toolId, name, iconCls, title) {
-        var iconSpan = _tb.find('#' + toolId);
-        if (title !== null) iconSpan.attr('title', title);
-        if (name !== null) iconSpan.find('.toolbeltTxt').html(name);
+    this.updateTool = function(updateInfo) {
+        var iconSpan = _tb.find('#' + updateInfo.id);
+        if (iconSpan.length < 1) return;
+        if (updateInfo.title) iconSpan.attr('title', updateInfo.title);
+        if (updateInfo.name) iconSpan.find('.toolbeltTxt').html(updateInfo.name);
 
-        if (iconCls !== null) {
+        if (updateInfo.icon) {
             var icon = iconSpan.find('I.toolbeltIcon');
             icon.removeAttr('class');
-            icon.addClass('toolbeltIcon icon ' + iconCls);
+            icon.addClass('toolbeltIcon icon ' + updateInfo.icon);
+        }
+        iconSpan.removeClass('menu_enabled');
+        if (updateInfo.enableItem) {
+            iconSpan.addClass('menu_enabled');
         }
     };
 
