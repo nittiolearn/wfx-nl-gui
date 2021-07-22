@@ -242,11 +242,11 @@ function(nl, nlDlg, nlServerApi, $scope, $anchorScroll, nlKeyboardHandler, nlAnn
 	    if(resourceList.length == 0) {
 	    	return;
 		}
-        nlDlg.showLoadingScreen();
 		nlResourceUploader.uploadInSequence(resourceList, keyword, 'high', null, resourceInfoDict, resolve)
 		.then(function(resInfos) {
             resolve(resInfos);
-            // nl.window.location.reload();
+            nl.rootScope.pgInfo.usericon = resInfos[0].url
+            nlDlg.popupStatus(false);
         });       
 	}
 
@@ -283,7 +283,6 @@ function(nl, nlDlg, nlServerApi, $scope, $anchorScroll, nlKeyboardHandler, nlAnn
                 onClick: function() {
                         nl.q(function(resolve, reject) { 
                             var dlg = nlDlg.create($scope);
-                            //dlg.setCssClass('nl-height-max nl-width-max');
                             dlg.scope.data = {resource: null};
                             dlg.scope.error = {err:'Please select Image'};
                             var okButton = { text : nl.t('Continue'), onTap : function(e) {
