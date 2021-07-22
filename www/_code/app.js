@@ -218,23 +218,24 @@ function(nl, nlDlg, nlServerApi, $scope, $anchorScroll, nlKeyboardHandler, nlAnn
         )
     }
 
-    function _onFileOpened(dlgScope, resolve, userInfo) {
+    function _onFileOpened(dlgScope, resolve, reject) {
         if (!dlgScope.data.resource || !dlgScope.data.resource[0]) {
             return resolve(null);
         }
         var res = dlgScope.data.resource;
         var extn = nlResourceUploader.getValidExtension(res[0].resource, 'Image');
-        var restype = nlResourceUploader.getRestypeFromExt(extn);            
-        var fileInfo = {resource: res, restype: restype, extn: extn, name: ''};
-        Upload.dataUrl(fileInfo.resource).then(function(url) {
-            fileInfo.resimg = url;
-        });
-        _onUploadOrModify(fileInfo , userInfo);
-        
+        var restype = nlResourceUploader.getRestypeFromExt(extn);   
+        if(restype != 'Image') return _validateFail(dlgScope, 'name', 'Please select a image'); 
+        res[0].restype = restype;      
+        var fileInfo = {resource: res, restype: restype, extn: extn, name: ''};     
+        _onUploadOrModify(fileInfo , resolve);
     }
-    
 
-    function _onUploadOrModify(data, userInfo) {
+    function _validateFail(scope, attr, errMsg) {
+        return nlDlg.setFieldError(scope, attr, nl.t(errMsg));
+    }
+
+    function _onUploadOrModify(data, resolve) {
 		var resourceList = data.resource;
         var resourceInfoDict = {shared: true, updateUserDatabase: true};
         var keyword = '';
@@ -242,10 +243,10 @@ function(nl, nlDlg, nlServerApi, $scope, $anchorScroll, nlKeyboardHandler, nlAnn
 	    if(resourceList.length == 0) {
 	    	return;
 		}
-        nlDlg.popupStatus('Uploading Userprofile......', false);
         nlDlg.showLoadingScreen();
-		nlResourceUploader.uploadInSequence(resourceList, keyword, 'high', null, resourceInfoDict)
+		nlResourceUploader.uploadInSequence(resourceList, keyword, 'high', null, resourceInfoDict, resolve)
 		.then(function(resInfos) {
+            resolve(resInfos);
             nl.window.location.reload();
         });       
 	}
@@ -285,9 +286,9 @@ function(nl, nlDlg, nlServerApi, $scope, $anchorScroll, nlKeyboardHandler, nlAnn
                             var dlg = nlDlg.create($scope);
                             //dlg.setCssClass('nl-height-max nl-width-max');
                             dlg.scope.data = {resource: null};
-                            dlg.scope.error = {};
+                            dlg.scope.error = {err:'Please select Image'};
                             var okButton = { text : nl.t('Continue'), onTap : function(e) {
-                                _onFileOpened(dlg.scope, resolve, userInfo);
+                                _onFileOpened(dlg.scope, resolve, reject);
                             }};
                             var cancelButton = {text : nl.t('Cancel'), onTap : function() {
                                 resolve(null);
