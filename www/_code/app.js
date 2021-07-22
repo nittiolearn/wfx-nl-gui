@@ -225,8 +225,7 @@ function(nl, nlDlg, nlServerApi, $scope, $anchorScroll, nlKeyboardHandler, nlAnn
         var res = dlgScope.data.resource;
         var extn = nlResourceUploader.getValidExtension(res[0].resource, 'Image');
         var restype = nlResourceUploader.getRestypeFromExt(extn);   
-        if(restype != 'Image') return _validateFail(dlgScope, 'name', 'Please select a image'); 
-        res[0].restype = restype;      
+        if(restype != 'Image') return _validateFail(dlgScope, 'name', 'Please select a image');      
         var fileInfo = {resource: res, restype: restype, extn: extn, name: ''};     
         _onUploadOrModify(fileInfo , resolve);
     }
@@ -293,7 +292,7 @@ function(nl, nlDlg, nlServerApi, $scope, $anchorScroll, nlKeyboardHandler, nlAnn
                             var cancelButton = {text : nl.t('Cancel'), onTap : function() {
                                 resolve(null);
                             }};
-                            dlg.show('lib_ui/utils/file_reader.html', [okButton], cancelButton);             
+                            dlg.show('lib_ui/utils/image_upload.html', [okButton], cancelButton);             
                     })
                 }
             });
