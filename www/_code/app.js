@@ -246,7 +246,7 @@ function(nl, nlDlg, nlServerApi, $scope, $anchorScroll, nlKeyboardHandler, nlAnn
 		nlResourceUploader.uploadInSequence(resourceList, keyword, 'high', null, resourceInfoDict, resolve)
 		.then(function(resInfos) {
             resolve(resInfos);
-            nl.window.location.reload();
+            // nl.window.location.reload();
         });       
 	}
 

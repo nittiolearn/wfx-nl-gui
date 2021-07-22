@@ -851,7 +851,8 @@ function ResumableUploaderImpl(nl, nlServerApi, nlDlg, resumableUploader) {
             'reskey': data['reskey'] || '',
             'filename': data.resource.name || '',
             'insertfrom' : data['insertfrom'] || '',
-            'shared' : data['shared'] || ''
+            'shared' : data['shared'] || '',
+            'updateUserDatabase': data['updateUserDatabase'] || false
         }};
         _state.retryCount = 0;
         _retrySaveToDB(resolve, reject);
