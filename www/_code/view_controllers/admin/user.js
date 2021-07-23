@@ -366,7 +366,8 @@ nlAdminUserExport, nlAdminUserImport, nlTreeSelect, nlOuUserSelect, nlServerApi)
         dlg.scope.error = {};
         dlg.scope.dlgTitle = nl.t('Users Status');
         var totaluser = nl.url.lessonIconUrl('totaluser.svg');
-        var data = {total: {active: 0, inactive: 0}, img :totaluser};
+        var stats = nl.url.lessonIconUrl('summary.svg');
+        var data = {total: {active: 0, inactive: 0}, img :[totaluser, stats]};
         var users = nlGroupInfo.getKeyToUsers(_groupInfo, _grpid);
         for (var uid in users){
             var userObj = users[uid];

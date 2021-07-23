@@ -278,7 +278,7 @@ function(nl, nlDlg, nlServerApi, $scope, $anchorScroll, nlKeyboardHandler, nlAnn
                 id: 'changeuserprofile',
                 type: 'menu',
                 icon: 'ion-android-person lnblue3',
-                name: nl.t('Change User Profile'),
+                name: nl.t('Change profile picture'),
                 theme:'',
                 onClick: function() {
                         nl.q(function(resolve, reject) { 

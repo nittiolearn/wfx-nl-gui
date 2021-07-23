@@ -6343,6 +6343,12 @@ nl-dlg {
     }
   }
   .userstatus {
+    background-image: radial-gradient(var(--nlPrimaryLight), var(--nlPrimary), var(--nlPrimaryDark));
+    .title { 
+        img {
+          filter: invert(0);
+        }
+    }
     .users {
       background-color: rgba(255,255,255, 0.3); 
       box-shadow: none;
@@ -6938,6 +6944,14 @@ Font-size
 .userstatus {
     width: 100%;
     margin: 0 auto;
+    .title {
+      justify-content: center;
+      grid-gap: 10px;
+      align-items: center; 
+        img {
+          filter: invert(1);
+        }
+    }
   .users {
     background-color: var(--nlPrimary); 
     box-shadow: 0 3px 6px 0 var(--nllightblue);
