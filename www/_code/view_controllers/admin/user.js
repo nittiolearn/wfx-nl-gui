@@ -364,7 +364,7 @@ nlAdminUserExport, nlAdminUserImport, nlTreeSelect, nlOuUserSelect, nlServerApi)
         var dlg = nlDlg.create($scope);
         dlg.setCssClass('nl-dlg2 nl-no-vscroll');
         dlg.scope.error = {};
-        dlg.scope.dlgTitle = nl.t('Users Status');
+        dlg.scope.dlgTitle = nl.t('Users Stats');
         var totaluser = nl.url.lessonIconUrl('totaluser.svg');
         var stats = nl.url.lessonIconUrl('summary.svg');
         var data = {total: {active: 0, inactive: 0}, img :[totaluser, stats]};
