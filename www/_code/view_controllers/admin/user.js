@@ -183,7 +183,7 @@ nlAdminUserExport, nlAdminUserImport, nlTreeSelect, nlOuUserSelect, nlServerApi)
             card.children.push({title: nl.t('Unarchive'), internalUrl: 'adminuser_unarchive',
             children: [], link: [], style: 'nl-create-card'});
         }
-        card.children.push({title: nl.t('User status'), internalUrl: 'adminuser_status',
+        card.children.push({title: nl.t('User stats'), internalUrl: 'adminuser_status',
             children: [], link: [], style: 'nl-create-card'});
 		return ret;
 	}
