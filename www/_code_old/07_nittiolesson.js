@@ -2099,7 +2099,6 @@ nlesson = function() {
     }
     
     function _Section_setupOnclick(section, pagetype) {
-        if (njsArranger.get().setupSection(section)) return;
         if (!section.oSection.popups || !section.oSection.popups.onclick) {
             if (!pagetype.isInteractive(section))
                 section.pgSecView.removeClass('beh_interactive');
@@ -2240,8 +2239,6 @@ function SectionSelectionHandler(lesson) {
         _allTools.push({id: 'edit_icon_pageorg', grpid: 'pages', grp: 'Page', icon:'ion-shuffle', name:'Page Organizer', title:'Organize the pages', shortcut: ' (Alt+O)', onclick: on_pageorganizer});
         _allTools.push({id: 'edit_icon_pagevoice', grpid: 'pages', grp: 'Page', icon: 'ion-mic-c', name:'Page Voice', title:'Add page voice', onclick: on_pagevoice});
 
-        var arrangeMenuIem = njsArranger.get().getMenuItem();
-        if (arrangeMenuIem) _allTools.push(arrangeMenuIem);
         _allTools.push({id: 'edit_icon_img', grpid: 'section', grp: 'Section', icon:'ion-aperture', name:'Insert Image', onclick: on_insert_img});
         _allTools.push({id: 'edit_icon_video', grpid: 'section', grp: 'Section', icon:'ion-social-youtube', name:'Insert Video', onclick: on_insert_video});
         _allTools.push({id: 'edit_icon_link', grpid: 'section', grp: 'Section', icon:'ion-link', name:'Insert Link', onclick: on_insert_link});

@@ -1331,8 +1331,7 @@ div.line.lineColor0 { background-color: #FF7777;}
 .bglight .pgSec textarea:focus, .bglight .pgSec select:focus, .bglight .pgSec input:focus, .bglight .pgSecView.beh_interactive:focus {
   box-shadow: 0 0 10px rgba(50,50,100,1);
 }
-
-.njsSlides.njsArranger .pgSecView:hover {
+.mode_edit .pgSecView:hover {
   box-shadow: 0 0 2px rgba(255,255,255,0.9), 0 0 2px rgba(0,0,0,0.9) inset;
   cursor: move;
   -webkit-user-select: none;
