@@ -2768,9 +2768,7 @@ npagetypes = function() {
 	};
 
 	dragAndResizeHelper.dragAndResizeDiv = function(section) {
-		var lesson = nlesson.theLesson.oLesson;
-		var _arrangerEnabled = lesson.arrangerEnabled || false;
-		if (!_arrangerEnabled) return;
+		if (!nittio.isGraphicalArranger()) return;
 		var pgSecView = section.pgSecView;
 		pgSecView.draggable({containment : [], start: _onDragStartSection, stop: _onDragDoneSection});
 		pgSecView.resizable({stop: _onResizeSection});
@@ -2784,7 +2782,13 @@ npagetypes = function() {
 		function _onDragDoneSection(e, ui) {
 			var sectionOffSet = ui.offset || {}
 			var secNo = section.secNo;
-			var sectionLayout = section.page.oPage.sectionLayout[secNo] || [];
+			var sectionLayout = {};
+			if (section.page.oPage.sectionLayout) {
+				sectionLayout = section.page.oPage.sectionLayout[secNo] || {};
+			} else {
+				section.page.oPage.sectionLayout = section.page.pagetype.layout;
+				sectionLayout = section.page.oPage.sectionLayout[secNo] || {}
+			}
 			var totalTopOffSet = Math.round(sectionOffSet.top);
 			var pageTopOffSet = rects.psv.t || 0;
 			var sectionTopOffSet = totalTopOffSet - pageTopOffSet;

@@ -1954,8 +1954,9 @@ nlesson = function() {
 		var secBehaviourCls = pagetype.getBehClass(this.secNo);
 		if (secBehaviourCls != '') secBehaviourCls =  ' ' + secBehaviourCls;
 		var aspectWrt = pagetype.getAspectWrt(this.secNo) ? ' aspect_wrt' : '';
-		
-        var secString = njs_helper.fmt2('<div class="pgSecView{}{}" secNo="{}"/>', aspectWrt, secBehaviourCls, this.secNo);
+        var style = '';
+        if (nittio.isGraphicalArranger()) style = 'njs_arranger';
+        var secString = njs_helper.fmt2('<div class="pgSecView{}{} {}" secNo="{}"/>', aspectWrt, secBehaviourCls, style, this.secNo);
 		this.pgSecView = njs_helper.jobj(secString);
 		this.pgSecSticker = njs_helper.jobj('<div class="pgSecSticker"></div>');
 		this.pgSecSticker.hide();

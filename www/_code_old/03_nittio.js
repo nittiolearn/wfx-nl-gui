@@ -770,6 +770,14 @@ nittio = function() {
 		return g_bleedingEdge;
 	}
 
+	var graphicalArrange = false;
+	function setGraphicalArranger(enabled) {
+		graphicalArrange = enabled;
+	}
+
+	function isGraphicalArranger() {
+		return graphicalArrange;
+	}
 	var g_username = '';
 	function getUsername() {
 		return g_username;
@@ -949,6 +957,8 @@ nittio = function() {
 		// Page initializations
 		setBleedingEdge : setBleedingEdge,
 		isBleedingEdge : isBleedingEdge,
+		setGraphicalArranger : setGraphicalArranger,
+		isGraphicalArranger : isGraphicalArranger,
 		pageIsLesson : pageIsLesson,
 		initPage : initPage,
 		afterInit : afterInit,
