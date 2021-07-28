@@ -359,7 +359,7 @@ function(nl, nlServerApi, nlDlg, nlProgressFn) {
     var localHost = nl.window.location.protocol.toLowerCase() == 'http:';
     var oldUpload = ('old_upload' in nl.location.search());
     var isApi3 = ('api3' in nl.location.search()); //to enable resumable upload on localhost in case it is routed through nittio3 , only checks the url and not group settings
-    var _resumableUploader = localHost & !isApi3 || oldUpload ? nlServerApi : new ResumableUploader(nl, nlServerApi, nlDlg);
+    var _resumableUploader = localHost && !isApi3 || oldUpload ? nlServerApi : new ResumableUploader(nl, nlServerApi, nlDlg);
 
     var _restypeToAcceptString = {
         Image: 'image/*', 
