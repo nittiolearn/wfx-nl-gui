@@ -491,8 +491,7 @@ function(nl, nlServerApi, nlDlg, nlProgressFn) {
                         info: angular.toJson(compInfo, 2),
                         resid: resid,
                         batchMode: resourceInfoDict.batchMode || false,
-                        shared: resourceInfoDict.shared,
-                        updateUserDatabase: resourceInfoDict.updateUserDatabase || false
+                        shared: resourceInfoDict.shared
                         };
             if (fileInfo.reskey) data.reskey = fileInfo.reskey;
             data.insertfrom = resourceInfoDict.insertfrom || '/';
@@ -851,8 +850,7 @@ function ResumableUploaderImpl(nl, nlServerApi, nlDlg, resumableUploader) {
             'reskey': data['reskey'] || '',
             'filename': data.resource.name || '',
             'insertfrom' : data['insertfrom'] || '',
-            'shared' : data['shared'] || '',
-            'updateUserDatabase': data['updateUserDatabase'] || false
+            'shared' : data['shared'] || ''
         }};
         _state.retryCount = 0;
         _retrySaveToDB(resolve, reject);
