@@ -588,7 +588,7 @@ npagetypes = function() {
 			return false;
 		},
 		'onCreate' : function(section) {
-			if (_getPageMode(section.page) == 'edit') dragAndResizeHelper.dragAndResizeDiv(section);
+			if (section.lesson.renderCtx.launchMode() == 'edit') dragAndResizeHelper.dragAndResizeDiv(section);
 		},
 		'onReInitialize' : function(section) {
 			section.pgSecView.off();
@@ -681,7 +681,7 @@ npagetypes = function() {
 			var layout = _getLayoutOfSec(section);
 			var secNo = section.secNo;
 			if (_getPageMode(section.page) == 'report') return;
-			if (_getPageMode(section.page) == 'edit') dragAndResizeHelper.dragAndResizeDiv(section);
+			if (section.lesson.renderCtx.launchMode() == 'edit') dragAndResizeHelper.dragAndResizeDiv(section);
 			if (!_isAnswer(layout, secNo)) return;
 
 			var pgSecView = section.pgSecView;
@@ -855,7 +855,7 @@ npagetypes = function() {
 			var layout = _getLayoutOfSec(section);
 			var secNo = section.secNo;
 			if (_getPageMode(section.page) == 'report') return;
-			if (_getPageMode(section.page) == 'edit') dragAndResizeHelper.dragAndResizeDiv(section);
+			if (section.lesson.renderCtx.launchMode() == 'edit') dragAndResizeHelper.dragAndResizeDiv(section);
 			if (!_isInteractive(layout, secNo)) return;
 
 			var pgSecView = section.pgSecView;
@@ -987,7 +987,7 @@ npagetypes = function() {
 			var layout = _getLayoutOfSec(section);
 			var secNo = section.secNo;
 			if (_getPageMode(section.page) == 'report') return;
-			if (_getPageMode(section.page) == 'edit') dragAndResizeHelper.dragAndResizeDiv(section);
+			if (section.lesson.renderCtx.launchMode() == 'edit') dragAndResizeHelper.dragAndResizeDiv(section);
 			if (!_isAnswer(layout, secNo)) return;
 
 			var pgSecView = section.pgSecView;
@@ -1160,13 +1160,13 @@ npagetypes = function() {
 	}
 
 	function _BehFib_onCreate(section, bReportClick) {
+		if (section.lesson.renderCtx.launchMode() == 'edit') dragAndResizeHelper.dragAndResizeDiv(section);
 		if (!_isAnswer(_getLayoutOfSec(section), section.secNo)) return;
 
 		var pageMode = _getPageMode(section.page);
 		if (pageMode == 'do') {
 			_BehFib_moveoutCorrectAnswer(section);
 		} else if (pageMode == 'edit') {
-			dragAndResizeHelper.dragAndResizeDiv(section);
 			_BehFib_moveinCorrectAnswer(section);
 		} else if (bReportClick && pageMode == 'report') {
 			_BehFib_SetupOnReportClick(section);
