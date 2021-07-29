@@ -1759,7 +1759,7 @@ npagetypes = function() {
 		},
 		'onRender' : function(section) {
 			_getBehaviourFnFromBaseClass(BehFibParts, 'onRender')(section);
-
+			if (section.lesson.renderCtx.launchMode() == 'edit') dragAndResizeHelper.dragAndResizeDiv(section);
 			var layout = _getLayoutOfSec(section);
 			var secNo = section.secNo;
 			if (!_isInteractive(layout, secNo)) return;
@@ -2772,10 +2772,8 @@ npagetypes = function() {
 		var pgSecView = section.pgSecView;
 		pgSecView.draggable({containment : [], start: _onDragStartSection, stop: _onDragDoneSection});
 		pgSecView.resizable({stop: _onResizeSection});
-		var _dragOffsetSection = {x:0, y:0};
 		var rects = {}
 		function _onDragStartSection(e, ui) {
-			_dragOffsetSection = {x:e.offsetX, y:e.offsetY};
 			rects = _getRectsPgSecView(section.page.hPage, section.page.hPageHolder, pgSecView);
 		}
 	
@@ -2783,6 +2781,7 @@ npagetypes = function() {
 			var sectionOffSet = ui.offset || {}
 			var secNo = section.secNo;
 			var sectionLayout = {};
+			var isMobile = rects.page.h > rects.page.w;
 			if (section.page.oPage.sectionLayout) {
 				sectionLayout = section.page.oPage.sectionLayout[secNo] || {};
 			} else {
@@ -2798,42 +2797,98 @@ npagetypes = function() {
 			var pageHdWidth = rects.psv.w;
 			var pageHdHeight = rects.psv.h;
 			//set all the top attributes for the page section
-			sectionLayout.t = Math.round((sectionTopOffSet/pageHdHeight)*100);
-			if (sectionLayout.t < -7) sectionLayout.t = -7;
+			if (isMobile)
+				sectionLayout.t1 = Math.round((sectionTopOffSet/pageHdHeight)*100);
+			else
+				sectionLayout.t = Math.round((sectionTopOffSet/pageHdHeight)*100);
+
+			if (sectionLayout.t < -7) {
+				if (isMobile)
+					sectionLayout.t = -7;
+				else
+					sectionLayout.t1 = -7;
+			}
 			var secHeight = rects.sec.h;
 			var pageHeight = rects.page.h;
 			var padding = Math.ceil((pageHeight - pageHdHeight)/2)
 			var totalHeightAfterDrag = sectionTopOffSet + secHeight + padding;
 			if (totalHeightAfterDrag > pageHeight) {
-				var diff = pageHeight - secHeight - padding;
-				sectionLayout.t = Math.round((diff/pageHdHeight)*100);
+				var diff = pageHeight - secHeight - padding + 4;
+				if (isMobile)
+					sectionLayout.t1 = Math.round((diff/pageHdHeight)*100);
+				else
+					sectionLayout.t = Math.round((diff/pageHdHeight)*100);
 			}
 			//set all the left attributes for the page section
-			sectionLayout.l = Math.round((sectionLeftOffSet/pageHdWidth)*100);
-			if (sectionLayout.l < -4.3) sectionLayout.l = -4.3;
+			if (isMobile)
+				sectionLayout.l1 = Math.round((sectionLeftOffSet/pageHdWidth)*100);
+			else
+				sectionLayout.l = Math.round((sectionLeftOffSet/pageHdWidth)*100);
+			if (sectionLayout.l < -4.3) {
+				if (isMobile)
+					sectionLayout.l1 = -4.3;
+				else
+					sectionLayout.l = -4.3;
+			}
 			var secWidth = rects.sec.w;
 			var pageWidth = rects.page.w;
 			var maxWidthAfterMove = sectionOffSet.left + secWidth;
 			if (maxWidthAfterMove > pageWidth) {
 				var diff = pageWidth - secWidth - pageLeftOffSet;
-				sectionLayout.l = Math.round((diff/pageHdWidth)*100);
+				if (isMobile)
+					sectionLayout.l1 = Math.round((diff/pageHdWidth)*100);
+				else
+					sectionLayout.l = Math.round((diff/pageHdWidth)*100);
+
 			}
 			nlesson.theLesson.reRender(false);
 		}
 	
 		function _onResizeSection(event, ui) {
-			return;
-			var boxCssPos = {}
-			boxCssPos.w = simuBox.width() + 2*simuBoxBorderWidth;
-			boxCssPos.h = simuBox.height() + 2*simuBoxBorderWidth;
-			if (boxCssPos.l + boxCssPos.w > rects.img.r) boxCssPos.w = rects.img.r - boxCssPos.l;
-			if (boxCssPos.t + boxCssPos.h > rects.img.b) boxCssPos.h = rects.img.b - boxCssPos.t;
-			if (boxCssPos.w < minSize) boxCssPos.w = minSize;
-			if (boxCssPos.h < minSize) boxCssPos.h = minSize;
-	
-			_Simulation_setBoxCssPos(simuBox, boxCssPos);
-			section.oSection.simuBox = _Simulation_cssPosToJsonPos(rects, boxCssPos);
-			return;
+			rects = _getRectsPgSecView(section.page.hPage, section.page.hPageHolder, pgSecView);
+			var isMobile = rects.page.h > rects.page.w;
+			var secNo = section.secNo;
+			var newSize = ui.size;
+			var sectionLayout = {};
+			if (section.page.oPage.sectionLayout) {
+				sectionLayout = section.page.oPage.sectionLayout[secNo] || {};
+			} else {
+				section.page.oPage.sectionLayout = section.page.pagetype.layout;
+				sectionLayout = section.page.oPage.sectionLayout[secNo] || {}
+			}
+			var pgHolderH = rects.psv.h;
+			var sectionHeight = newSize.height;
+			var secHeightPerc = Math.round((sectionHeight/pgHolderH)*100)
+			var sectop = sectionLayout.t + 7;
+			var totalHeight = sectop+secHeightPerc;
+			if (isMobile) 
+				sectionLayout.h1 = secHeightPerc;
+			else
+				sectionLayout.h = secHeightPerc;				
+			if (totalHeight > 109) {
+				var diff = 116 - sectop;
+				if (isMobile) 
+					sectionLayout.h1 = diff;
+				else
+					sectionLayout.h = diff;
+			}
+			var pgHolderW = rects.psv.w;
+			var sectionWidth = newSize.width;
+			var secWidthPerc = Math.round((sectionWidth/pgHolderW)*100)
+			var secleft = sectionLayout.l + 4.3;
+			var totalWidth = secleft+secWidthPerc;
+			if (isMobile)
+				sectionLayout.w1 = secWidthPerc;
+			else
+				sectionLayout.w = secWidthPerc;
+			if (totalWidth > 104.4) {
+				var diff = 108.3 - secleft;
+				if (isMobile)
+					sectionLayout.w1 = diff;
+				else
+					sectionLayout.w = diff;
+			}
+			nlesson.theLesson.reRender(false);
 		}
 	}	
 	
