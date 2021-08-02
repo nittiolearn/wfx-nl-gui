@@ -242,6 +242,7 @@ function(nl, nlDlg, nlServerApi, $scope, $anchorScroll, nlKeyboardHandler, nlAnn
 	    if(resourceList.length == 0) {
 	    	return;
 		}
+        nlDlg.showLoadingScreen();
 		nlResourceUploader.uploadInSequence(resourceList, keyword, 'high', null, resourceInfoDict, resolve)
 		.then(function(resInfos) {
             nlServerApi.groupUpdateUserIcon(resInfos[0].url).then(function() {
