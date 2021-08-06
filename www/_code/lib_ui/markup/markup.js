@@ -259,7 +259,7 @@ function _breakWikiMarkup(line) {
     var ret = {};
     _parseWikiMarker(line, '.*\\:', function(link, avpairs, marker) {
         ret.link = link;
-        ret.type = marker.replace(':', '');
+        ret.type = marker.replace(':', '').trim();
         ret.choices = [];
         var choices = link.split(/\,/);
         for(var i=0; i<choices.length; i++) ret.choices.push(choices[i].trim());
@@ -271,19 +271,34 @@ function _breakWikiMarkup(line) {
 
 function _parseWikiMarker(line, marker, fn, dontConvertUrl) {
     var regex=new RegExp(nl.fmt2('({})([^\\[]*)(\\[.*?\\])?', marker), 'g');
-    return line.replace(regex, function(match, mark, link, param, offset, allstr) {
-        param = (typeof param === 'string' && param !== '') ? param.substring(1, param.length-1) : '';
-        link = (typeof link !== 'string') ? '' : link;
-        var params = param.split('|');
-        var avpairs = {};
-        for (var i in params) {
-            var avpair = params[i].split('=');
-            if (avpair.length != 2) continue;
-            avpairs[avpair[0]] = avpair[1];
-        }
-        if (!dontConvertUrl) link = _convertUrl(link);
-        return fn(link, avpairs, mark);
-    });
+    if (_isMultiSelectLink(line)) {
+        return line.replace(regex, function(match, mark, link, param, offset, allstr) {
+            var firstIndexOf = match.indexOf(':');
+            var mark = match.substring(0, firstIndexOf+1);
+            var link = match.substring(firstIndexOf+1, match.length);
+            return fn(link, {}, mark);
+        });
+    } else {
+        return line.replace(regex, function(match, mark, link, param, offset, allstr) {
+            param = (typeof param === 'string' && param !== '') ? param.substring(1, param.length-1) : '';
+            link = (typeof link !== 'string') ? '' : link;
+            var params = param.split('|');
+            var avpairs = {};
+            for (var i in params) {
+                var avpair = params[i].split('=');
+                if (avpair.length != 2) continue;
+                avpairs[avpair[0]] = avpair[1];
+            }
+            if (!dontConvertUrl) link = _convertUrl(link);
+            return fn(link, avpairs, mark);
+        });
+    }
+}
+
+function _isMultiSelectLink(line) {
+    if (!line) return false;
+    if (line.indexOf('multi-select') >= 0 || line.indexOf('select') >= 0) return true;
+    return false;
 }
 
 var _d='1262923201347'; // Some kind of fixed string in URL as a distractor
