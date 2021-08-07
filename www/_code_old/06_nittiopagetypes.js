@@ -538,22 +538,34 @@ npagetypes = function() {
 		
 		var template = section.getTemplateFromEditor();
 		var sectionTemplate = new njs_lesson_helper.SectionTemplate(template, section);
-		if (sectionTemplate.getMode() == 'text' && !sectionTemplate.isSpecialText()) {
-			section.pgSecView.css({visibility: 'hidden'}).show();
-			section.pgSecLineContainer.css({visibility: 'hidden'});
-			section.pgSecText.show();
-		} else {
-			section.pgSecText.hide();
-			section.pgSecView.css({visibility: 'visible'}).show();
+		if (nlesson.theLesson.renderCtx.getLessonEditorCtx() == 'edit_ly') {
+			section.pgSecView.css({visibility: 'visible'}).show()
 			section.pgSecLineContainer.css({visibility: 'visible'});
+			section.pgSecText.css({display: 'none'});	
+		} else {
+			if (sectionTemplate.getMode() == 'text' && !sectionTemplate.isSpecialText()) {
+				section.pgSecView.css({visibility: 'hidden'}).show();
+				section.pgSecLineContainer.css({visibility: 'hidden'});
+				section.pgSecText.show();
+			} else {
+				section.pgSecText.hide();
+				section.pgSecView.css({visibility: 'visible'}).show();
+				section.pgSecLineContainer.css({visibility: 'visible'});
+			}
 		}
 	}
 
 	function _showPgSecTextAndLines(section) {
 		if ('pgSecTemplate' in section) section.pgSecTemplate.hide();
-		section.pgSecView.css({visibility: 'hidden'}).show();
-		section.pgSecLineContainer.css({visibility: 'visible'});
-		section.pgSecText.show();
+		if (nlesson.theLesson.renderCtx.getLessonEditorCtx() == 'edit_ly') {
+			section.pgSecView.css({visibility: 'visible'}).show()
+			section.pgSecLineContainer.css({visibility: 'visible'});
+			section.pgSecText.css({display: 'none'});	
+		} else {
+			section.pgSecView.css({visibility: 'hidden'}).show();
+			section.pgSecLineContainer.css({visibility: 'visible'});
+			section.pgSecText.show();	
+		}
 	}
 
 	//----------------------------------------------------------------------------------------
@@ -588,7 +600,7 @@ npagetypes = function() {
 			return false;
 		},
 		'onCreate' : function(section) {
-			if (section.lesson.renderCtx.launchMode() == 'edit') dragAndResizeHelper.dragAndResizeDiv(section);
+			dragAndResizeHelper.dragAndResizeDiv(section);
 		},
 		'onReInitialize' : function(section) {
 			section.pgSecView.off();
@@ -681,7 +693,7 @@ npagetypes = function() {
 			var layout = _getLayoutOfSec(section);
 			var secNo = section.secNo;
 			if (_getPageMode(section.page) == 'report') return;
-			if (section.lesson.renderCtx.launchMode() == 'edit') dragAndResizeHelper.dragAndResizeDiv(section);
+			dragAndResizeHelper.dragAndResizeDiv(section);
 			if (!_isAnswer(layout, secNo)) return;
 
 			var pgSecView = section.pgSecView;
@@ -855,7 +867,7 @@ npagetypes = function() {
 			var layout = _getLayoutOfSec(section);
 			var secNo = section.secNo;
 			if (_getPageMode(section.page) == 'report') return;
-			if (section.lesson.renderCtx.launchMode() == 'edit') dragAndResizeHelper.dragAndResizeDiv(section);
+			dragAndResizeHelper.dragAndResizeDiv(section);
 			if (!_isInteractive(layout, secNo)) return;
 
 			var pgSecView = section.pgSecView;
@@ -987,7 +999,7 @@ npagetypes = function() {
 			var layout = _getLayoutOfSec(section);
 			var secNo = section.secNo;
 			if (_getPageMode(section.page) == 'report') return;
-			if (section.lesson.renderCtx.launchMode() == 'edit') dragAndResizeHelper.dragAndResizeDiv(section);
+			dragAndResizeHelper.dragAndResizeDiv(section);
 			if (!_isAnswer(layout, secNo)) return;
 
 			var pgSecView = section.pgSecView;
@@ -1160,7 +1172,7 @@ npagetypes = function() {
 	}
 
 	function _BehFib_onCreate(section, bReportClick) {
-		if (section.lesson.renderCtx.launchMode() == 'edit') dragAndResizeHelper.dragAndResizeDiv(section);
+		dragAndResizeHelper.dragAndResizeDiv(section);
 		if (!_isAnswer(_getLayoutOfSec(section), section.secNo)) return;
 
 		var pageMode = _getPageMode(section.page);
@@ -1241,6 +1253,7 @@ npagetypes = function() {
 		'onRender' : function(section) {
 			var layout = _getLayoutOfSec(section);
 			var secNo = section.secNo;
+			dragAndResizeHelper.dragAndResizeDiv(section);
 			if (!_isInteractive(layout, secNo)) {
 				return _getBehaviourFnFromBaseClass(BehFib, 'onRender')(section);
 			}
@@ -1359,6 +1372,7 @@ npagetypes = function() {
 		},
 		'onRender' : function(section) {
 			_getBehaviourFnFromBaseClass(BehSimulation, 'onRender')(section);
+			dragAndResizeHelper.dragAndResizeDiv(section);
 			var layout = _getLayoutOfSec(section);
 			var secNo = section.secNo;
 			if (!_isInteractive(layout, secNo)) return;
@@ -1702,7 +1716,11 @@ npagetypes = function() {
 		});
 		var button = njs_helper.jobj('<span class="sectiontoolbarIcon visible toggleSection"></span>');
 		button.append(img);
-		var layout = _getLayoutOfSec(section);
+		var layout = null;
+		if (section.page.oPage.sectionLayout)
+			layout = section.page.oPage.sectionLayout;
+		else
+			layout = _getLayoutOfSec(section);
 		var psvTop = layout[section.secNo].t;
 		var psvRight = 100 - layout[section.secNo].l - layout[section.secNo].w;
 		button.css({top: psvTop + '%', right: psvRight + '%'});
@@ -1759,7 +1777,7 @@ npagetypes = function() {
 		},
 		'onRender' : function(section) {
 			_getBehaviourFnFromBaseClass(BehFibParts, 'onRender')(section);
-			if (section.lesson.renderCtx.launchMode() == 'edit') dragAndResizeHelper.dragAndResizeDiv(section);
+			dragAndResizeHelper.dragAndResizeDiv(section);
 			var layout = _getLayoutOfSec(section);
 			var secNo = section.secNo;
 			if (!_isInteractive(layout, secNo)) return;
@@ -2768,8 +2786,17 @@ npagetypes = function() {
 	};
 
 	dragAndResizeHelper.dragAndResizeDiv = function(section) {
-		if (!nittio.isGraphicalArranger()) return;
 		var pgSecView = section.pgSecView;
+		if (!nittio.isGraphicalArranger()) return;
+		if (section.lesson.renderCtx.getLessonEditorCtx() != 'edit_ly') {
+			pgSecView.removeClass('njs_arranger');
+			pgSecView.find(".ui-resizable-handle").hide();
+			pgSecView.removeClass("ui-draggable");
+			pgSecView.removeClass("ui-draggable-handle");
+			return;
+		}
+		pgSecView.addClass('njs_arranger');
+		pgSecView.find(".ui-resizable-handle").show();
 		pgSecView.draggable({containment : [], start: _onDragStartSection, stop: _onDragDoneSection});
 		pgSecView.resizable({stop: _onResizeSection});
 		var rects = {}
@@ -2802,12 +2829,8 @@ npagetypes = function() {
 			else
 				sectionLayout.t = Math.round((sectionTopOffSet/pageHdHeight)*100);
 
-			if (sectionLayout.t < -7) {
-				if (isMobile)
-					sectionLayout.t = -7;
-				else
-					sectionLayout.t1 = -7;
-			}
+			if (sectionLayout.t < -7) sectionLayout.t = -7;
+			if (sectionLayout.t1 < -7) sectionLayout.t1 = -7;
 			var secHeight = rects.sec.h;
 			var pageHeight = rects.page.h;
 			var padding = Math.ceil((pageHeight - pageHdHeight)/2)
@@ -2824,12 +2847,8 @@ npagetypes = function() {
 				sectionLayout.l1 = Math.round((sectionLeftOffSet/pageHdWidth)*100);
 			else
 				sectionLayout.l = Math.round((sectionLeftOffSet/pageHdWidth)*100);
-			if (sectionLayout.l < -4.3) {
-				if (isMobile)
-					sectionLayout.l1 = -4.3;
-				else
-					sectionLayout.l = -4.3;
-			}
+			if (sectionLayout.l < -4.3) sectionLayout.l = -4.3;
+			if (sectionLayout.l1 < -4.3) sectionLayout.l1 = -4.3;
 			var secWidth = rects.sec.w;
 			var pageWidth = rects.page.w;
 			var maxWidthAfterMove = sectionOffSet.left + secWidth;

@@ -36,6 +36,10 @@ nlesson = function() {
 		this.postInitDom = Lesson_postInitDom;          // createHtmlDom: after scorm init
 		this.updateTemplateCustomizations = Lesson_updateTemplateCustomizations;
 		this.editorToggleEditAndPreview = Lesson_editorToggleEditAndPreview; 
+		this.editorEditContent = Lesson_editorEditContent;
+		this.editorEditLayout = Lesson_editorEditLayout;
+		this.editorEditPreview = Lesson_editorEditPreview;
+		this.editorEditTemplate = Lesson_editorEditTemplate;
 		this.reRender = Lesson_reRender; 				// Invalidates all pages - on next page change they will be rendered
 														// edit (edit-gra) <-> view
 		this.reRenderAsReport = Lesson_reRenderAsReport; // called on clicking zodi in view mode (view->report)
@@ -362,7 +366,30 @@ nlesson = function() {
         }
         return consolidated;
     }
+	function Lesson_editorEditContent() {
+		var ret = g_lesson.renderCtx.editorEditContent();
+		this.reRender(false);
+		return ret;
+	}
+
+    function Lesson_editorEditLayout() {
+		var ret = g_lesson.renderCtx.editorEditLayout();
+		this.reRender(false);
+		return ret;
+	}
+
+    function Lesson_editorEditPreview() {
+		var ret = g_lesson.renderCtx.editorEditPreview();
+		this.reRender(false);
+		return ret;
+	}
     
+    function Lesson_editorEditTemplate() {
+		var ret = g_lesson.renderCtx.editorEditTemplate();
+		this.reRender(false);
+		return ret;
+    }
+
 	function Lesson_editorToggleEditAndPreview() {
 		var ret = g_lesson.renderCtx.editorToggleEditAndPreview();
 		this.reRender(false);
@@ -2226,8 +2253,12 @@ function SectionSelectionHandler(lesson) {
     var _allTools = [];        
     this.setupToolbelt = function(lessonId, canApprove, isRaw) {
         if (lesson.renderCtx.launchMode() != 'edit') return;
+        _allTools.push({id: 'edit_icon_content_edit', grpid: 'editor', grp: 'Editor', icon: 'ion-ios-compose', name:'Edit content', title: 'Edit lesson content', shortcut: ' (Alt+T)', onclick: on_editor_mode});
+        if (nittio.isGraphicalArranger()) _allTools.push({id: 'edit_icon_layout_edit', grpid: 'editor', grp: 'Editor', icon:'ion-arrow-move', name: 'Edit layout', title:'Section positioning and resize', onclick: on_layout_edit});
+        _allTools.push({id: 'edit_icon_preview', grpid: 'editor', grp: 'Editor', icon:'ion-ios-eye', name: 'Preview content', title:'View lesson', onclick: on_preview});
+        if (nittio.isBleedingEdge() && lesson.renderCtx.launchCtx() == 'edit_templ')
+            _allTools.push({id: 'edit_icon_template', grpid: 'editor', grp: 'Editor', icon:'ion-edit', name: 'Preview content', title:'View lesson', onclick: on_edit_template});
 
-        _allTools.push({id: 'edit_icon_change_mode', grpid: 'module', grp: 'Module', icon: 'ion-ios-eye', name:'Preview', shortcut: ' (Alt+T)', onclick: _fn(on_changemode)});
         _allTools.push({id: 'edit_icon_props', grpid: 'module', grp: 'Module', icon:'ion-ios-gear', name: 'Module Properties', title:'Update module name and other module level properties', onclick: on_props});
         if(!lesson.oLesson.restoreid) _allTools.push({id: 'edit_icon_save', grpid: 'module', grp: 'Module', icon: 'save', font:'material', font:'material-icons', name:'Save', shortcut: ' (Ctrl+S)', onclick: on_save});
         if (!lesson.oLesson.restoreid && canApprove && lessonId > 0)

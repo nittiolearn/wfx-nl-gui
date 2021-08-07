@@ -243,7 +243,12 @@ function RenderingContext() {
 	// e.g. toggle to preview mode in editor)
 	this.getLessonCtx = RenderingContext_getLessonCtx;
 	this.setLessonCtx = RenderingContext_setLessonCtx;
-	this.editorToggleEditAndPreview = RenderingContext_editorToggleEditAndPreview;
+	this.getLessonEditorCtx = RenderingContext_getLessonEditorCtx;
+	this.editorEditLayout = RenderingContext_editorEditLayout;
+	this.editorEditContent = RenderingContext_editorEditContent;
+	this.editorEditPreview = RenderingContext_editorEditPreview;
+	this.editorEditTemplate = RenderingContext_editorEditTemplate;
+
 	this.playerToggleDoAndPreview = RenderingContext_playerToggleDoAndPreview;
 	this.editorPageToggleEditAndGraEdit = RenderingContext_editorPageToggleEditAndGraEdit;
 	this.playerPageChangeToZodi = RenderingContext_playerPageChangeToZodi;
@@ -330,14 +335,40 @@ function RenderingContext_setLessonCtx(lessonCtx) {
 	this.data.lessonCtx = lessonCtx;
 }
 
-function RenderingContext_editorToggleEditAndPreview() {
+function RenderingContext_getLessonEditorCtx() {
+	return this.data.lessonEditCtx;
+}
+
+function RenderingContext_editorEditContent() {
 	if (this.launchMode() != 'edit') {
 		throw njs_helper.fmt2('Cannot toggle in current context: {}', this.data.launchCtx);
 	}
-	var toggleStateKey = nittio.isBleedingEdge() ? this.launchCtx() : 'edit';
-	var newStateInfo = _editorToggleStates[toggleStateKey][this.data.lessonCtx];
-	this.data.lessonCtx = newStateInfo.newState;
-	return newStateInfo;
+	this.data.lessonCtx = 'edit';
+	this.data.lessonEditCtx = null;
+}
+
+function RenderingContext_editorEditLayout() {
+	if (this.launchMode() != 'edit') {
+		throw njs_helper.fmt2('Cannot toggle in current context: {}', this.data.launchCtx);
+	}
+	this.data.lessonCtx = 'edit_pv';
+	this.data.lessonEditCtx = 'edit_ly';
+}
+
+function RenderingContext_editorEditPreview() {
+	if (this.launchMode() != 'edit') {
+		throw njs_helper.fmt2('Cannot toggle in current context: {}', this.data.launchCtx);
+	}
+	this.data.lessonCtx = 'edit_pv';
+	this.data.lessonEditCtx = null;
+}
+
+function RenderingContext_editorEditTemplate() {
+	if (this.launchMode() != 'edit') {
+		throw njs_helper.fmt2('Cannot toggle in current context: {}', this.data.launchCtx);
+	}
+	this.data.lessonCtx = 'edit_teml';
+	this.data.lessonEditCtx = null;
 }
 
 function RenderingContext_playerToggleDoAndPreview() {

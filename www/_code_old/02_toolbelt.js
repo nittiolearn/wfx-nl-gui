@@ -127,6 +127,20 @@ function Toolbelt() {
         }
     };
 
+    this.updateSelection = function(selectedId) {
+        var iconSpan = _tb.find('#' + selectedId);
+        if (iconSpan.length < 1) return;
+        var editSpan = _tb.find('#' + 'edit_icon_content_edit');
+        if (editSpan.length > 0) editSpan.removeClass('selected');
+        editSpan = _tb.find('#' + 'edit_icon_layout_edit');
+        if (editSpan.length > 0) editSpan.removeClass('selected');
+        editSpan = _tb.find('#' + 'edit_icon_preview');
+        if (editSpan.length > 0) editSpan.removeClass('selected');
+        editSpan = _tb.find('#' + 'edit_icon_template');
+        if (editSpan.length > 0) editSpan.removeClass('selected');
+        iconSpan.addClass('selected');
+    }
+
     this.updateToolGrp = function(grpId, name) {
         var grpTitle = _tb.find('#' + _getGrpId(grpId) + ' .toolbeltTitle');
         grpTitle.html(name);

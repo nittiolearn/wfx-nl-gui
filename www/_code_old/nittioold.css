@@ -308,7 +308,10 @@ i.toolbeltIcon.icon:hover {
   color: #ffffff;
   background-color: #153673;
 }
-
+.toolbeltRow.selected {
+  color: #ffffff;
+  background-color:  #aaaaaa;
+}
 .toolbeltTxt {
   padding: 0 4px;
 }
