@@ -617,6 +617,7 @@ npagetypes = function() {
 		},
 		'onRender' : function(section) {
 			var pageMode = _getPageMode(section.page);
+			dragAndResizeHelper.dragAndResizeDiv(section);
 			if (pageMode == 'do' || pageMode == 'report') {
 				_showPgSecView(section);
 				return;
@@ -1336,6 +1337,7 @@ npagetypes = function() {
 			_BehFib_onCreate(section, false);
 		},
 		'onRender' : function(section) {
+			dragAndResizeHelper.dragAndResizeDiv(section);
 			if (_isAnswer(_getLayoutOfSec(section), section.secNo) && _getPageMode(section.page) == 'edit') {
 				section.pgSecText.attr('disabled', 'disabled');
 			} else {
@@ -2038,6 +2040,7 @@ npagetypes = function() {
 			var layout = _getLayoutOfSec(section);
 			var secNo = section.secNo;
 			var pageMode = _getPageMode(section.page);
+			dragAndResizeHelper.dragAndResizeDiv(section);
 			if (!_isAnswer(layout, secNo) || pageMode == 'edit') {
 				return _getBehaviourFnFromBaseClass(BehQuestionnaire, 'onRender')(section);
 			}
@@ -2799,7 +2802,7 @@ npagetypes = function() {
 		pgSecView.find(".ui-resizable-handle").show();
 		pgSecView.draggable({containment : [], start: _onDragStartSection, stop: _onDragDoneSection});
 		pgSecView.resizable({stop: _onResizeSection});
-		var rects = {}
+		var rects = {};
 		function _onDragStartSection(e, ui) {
 			rects = _getRectsPgSecView(section.page.hPage, section.page.hPageHolder, pgSecView);
 		}
