@@ -367,7 +367,7 @@ function RenderingContext_editorEditTemplate() {
 	if (this.launchMode() != 'edit') {
 		throw njs_helper.fmt2('Cannot toggle in current context: {}', this.data.launchCtx);
 	}
-	this.data.lessonCtx = 'edit_teml';
+	this.data.lessonCtx = 'edit_templ';
 	this.data.lessonEditCtx = null;
 }
 
