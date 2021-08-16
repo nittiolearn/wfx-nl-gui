@@ -277,6 +277,7 @@ function RenderingContext_init(launchContext) {
 	this.data.launchCtx = launchContext;
 	this.data.launchMode = LAUNCH_CONTEXTS_TO_MODE[launchContext];
 	this.data.lessonCtx = this.data.launchMode;
+	this.data.lessonEditCtx = null;
 }
 
 function RenderingContext_launchMode() {
@@ -1151,6 +1152,13 @@ SelectHelper.getSelectionAsText = function(choices, answers) {
 		ret += lineBreak + selectedAnswers[i];
 		lineBreak = '\r\n';
 	}
+	return ret;
+};
+SelectHelper.createDivBoxOnEditLayout = function(section, cls) {
+	var text = section.oSection.text || '';
+	var fmtStr = '<p>{}</p>';
+	var ret = jQuery(njs_helper.fmt2('<div class={}/>', cls));
+	ret.append(njs_helper.fmt2(fmtStr, text));
 	return ret;
 };
 

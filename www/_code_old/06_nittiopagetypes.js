@@ -523,14 +523,6 @@ npagetypes = function() {
 		section.pgSecText.hide();
 		section.pgSecView.css({visibility: 'visible'}).show();
 		section.pgSecLineContainer.css({visibility: 'visible'});
-		if (section.lesson.renderCtx.getLessonEditorCtx() == 'edit_ly') {
-			if (section.page.pagetype.pt.interaction == 'MANYQUESTIONS' || section.page.pagetype.pt.interaction == 'QUESTIONNAIRE') {
-				if (section.oSection.text && section.oSection.text.indexOf('select:') >= 0 || section.oSection.text.indexOf('multi-select') >= 0 )
-					section.secViewContent.css({visibility: 'hidden'});
-			}
-		} else {
-			section.secViewContent.css({visibility: 'visible'});
-		}
 	}
 
 	function _showPgSecText(section) {
@@ -1880,6 +1872,8 @@ npagetypes = function() {
 		var ans = ('answer' in section.oSection) ? section.oSection.answer : '';
 		var help = _BehQuestionnaire_getViewHelp(section);
 		if (answerData.type == '') return '<div/>';
+		if (section.lesson.renderCtx.getLessonEditorCtx() == 'edit_ly') 
+			return njs_lesson_helper.SelectHelper.createDivBoxOnEditLayout(section, 'questionnaire');
 		if (answerData.type == 'text') {
 			return njs_lesson_helper.EditBoxHelper.createTextBox(ans, section, 
 				'questionnaire', help);
