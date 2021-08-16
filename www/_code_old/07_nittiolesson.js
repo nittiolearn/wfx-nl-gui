@@ -2127,15 +2127,22 @@ nlesson = function() {
     }
     
     function _Section_setupOnclick(section, pagetype) {
-        if (!section.oSection.popups || !section.oSection.popups.onclick) {
-            if (!pagetype.isInteractive(section))
-                section.pgSecView.removeClass('beh_interactive');
+        if (section.lesson.renderCtx.getLessonEditorCtx() == 'edit_ly') {
+            section.pgSecView.removeClass('beh_interactive');
+            section.pgSecView.modulePopupSetup = false;
             return;
+        } else {
+            if (!section.oSection.popups || !section.oSection.popups.onclick) {
+                if (!pagetype.isInteractive(section))
+                    section.pgSecView.removeClass('beh_interactive');
+                return;
+            }    
         }
         section.pgSecView.addClass('beh_interactive');
         if (section.pgSecView.modulePopupSetup) return;
         section.pgSecView.modulePopupSetup = true;
         section.pgSecView.on('click', function() {
+            if (section.lesson.renderCtx.getLessonEditorCtx() == 'edit_ly') return;
             modulePopup.show(section);
         });
     }

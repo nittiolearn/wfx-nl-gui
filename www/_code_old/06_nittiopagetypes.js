@@ -523,6 +523,14 @@ npagetypes = function() {
 		section.pgSecText.hide();
 		section.pgSecView.css({visibility: 'visible'}).show();
 		section.pgSecLineContainer.css({visibility: 'visible'});
+		if (section.lesson.renderCtx.getLessonEditorCtx() == 'edit_ly') {
+			if (section.page.pagetype.pt.interaction == 'MANYQUESTIONS' || section.page.pagetype.pt.interaction == 'QUESTIONNAIRE') {
+				if (section.oSection.text && section.oSection.text.indexOf('select:') >= 0 || section.oSection.text.indexOf('multi-select') >= 0 )
+					section.secViewContent.css({visibility: 'hidden'});
+			}
+		} else {
+			section.secViewContent.css({visibility: 'visible'});
+		}
 	}
 
 	function _showPgSecText(section) {
@@ -1792,6 +1800,9 @@ npagetypes = function() {
 					_showPgSecTextAndLines(section);
 				} else {
 					_showPgSecView(section);
+					if (section.lesson.renderCtx.getLessonEditorCtx() == 'edit_ly') {
+						_BehFibParts_createToggleSectionButton(section, _getPageCtx(section.page));
+					}
 				}
 				return;
 			}
@@ -2794,13 +2805,14 @@ npagetypes = function() {
 		if (section.lesson.renderCtx.getLessonEditorCtx() != 'edit_ly') {
 			pgSecView.removeClass('njs_arranger');
 			pgSecView.find(".ui-resizable-handle").hide();
-			pgSecView.removeClass("ui-draggable");
-			pgSecView.removeClass("ui-draggable-handle");
+			pgSecView.draggable({disabled: true});
+			pgSecView.bind('click');
 			return;
 		}
 		pgSecView.addClass('njs_arranger');
 		pgSecView.find(".ui-resizable-handle").show();
-		pgSecView.draggable({containment : [], start: _onDragStartSection, stop: _onDragDoneSection});
+		pgSecView.unbind('click');
+		pgSecView.draggable({disabled: false, containment : [], start: _onDragStartSection, stop: _onDragDoneSection});
 		pgSecView.resizable({stop: _onResizeSection});
 		var rects = {};
 		function _onDragStartSection(e, ui) {
