@@ -222,7 +222,7 @@ function($scope, nl, nlDlg, nlRouter, nlGroupInfo, nlServerApi, nlExporter, nlTm
 
     function _fetchDataFromServer(resolve) {
         $scope.nhtInfo = {};
-        var data = {grpid: _groupInfo.grpid, table: 'lr_report', recid: 0, field:'nhtinfo.json'};
+        var data = {grpid: _groupInfo.grpid, table: 'lr_report', recid: 0, field:'nhtinfo-v2.json'};
         var fetchFn = _readFromFile ? nlFileReader.loadAndReadFile : nlServerApi.jsonFieldStream;
         fetchFn(data).then(function(resp) {
             if (!resp || !resp.data) {
@@ -237,7 +237,7 @@ function($scope, nl, nlDlg, nlRouter, nlGroupInfo, nlServerApi, nlExporter, nlTm
     }
     
     function _computeNhtTable() {
-        nlTmsView.updateCounts(jsonObj.report, jsonObj.assignment, jsonObj.course, $scope.searchObj);
+        nlTmsView.updateCounts(jsonObj.batches, jsonObj.courses, $scope.searchObj);
         $scope.nhtStatusDict = nlTmsView.getStatusCount();
         var allRows = _generateTmsArray();
         $scope.nhtInfo.info = {columns: _getTmsCols(), rows: [], allRows: allRows, defMaxVisible: 100};
@@ -429,29 +429,21 @@ function(nl) {
       return tmsStats.getCustomScores();
     }
 
-    this.updateCounts = function(records, assignments, courses, searchObj) {
+    this.updateCounts = function(batches, courses, searchObj) {
         tmsStats.clear();
-        for (var suborg in records) {
-            var subOrgObj = records[suborg];
-            for (var batch in subOrgObj) {
-                var batchObj = subOrgObj[batch];
-                if (Object.keys(batchObj).length > 0) {
-                    for (var rec in batchObj) {
-                        var recObj = batchObj[rec];
-                            recObj.id = rec;
-                        var assignment = assignments[batch];
-                        var level1Info = {id: suborg, name: suborg};
-                        var level2Info = {id: batch, name: assignment.batchname, otherRecs: assignment.otherRecords || 0};
-                        if (!_doesPassFilter(assignment, searchObj)) continue;
-                        self.addCount(recObj, level1Info, level2Info, true);
-                    }    
-                } else {
-                    var assignment = assignments[batch];
-                    var level1Info = {id: suborg, name: suborg};
-                    var level2Info = {id: batch, name: assignment.batchname, otherRecs: assignment.otherRecords || 0};
-                    if (!_doesPassFilter(assignment, searchObj)) continue;
-                    self.addCount(recObj, level1Info, level2Info, false);
-                }
+        for (var batchid in batches) {
+            var batch = batches[batchid];
+            var suborg = batch.suborg;
+            if (batch.total) {
+                var level1Info = {id: suborg, name: suborg};
+                var level2Info = {id: batchid, name: batch.batchname, otherRecs: batch.otherRecords || 0};
+                if (!_doesPassFilter(batch, searchObj)) continue;
+                self.addCount(batch, level1Info, level2Info, true);
+            } else {
+                var level1Info = {id: suborg, name: suborg};
+                var level2Info = {id: batchid, name: batch.batchname, otherRecs: batch.otherRecords || 0};
+                if (!_doesPassFilter(batch, searchObj)) continue;
+                self.addCount(batch, level1Info, level2Info, false);
             }
         }
     }
@@ -480,36 +472,24 @@ function(nl) {
         tmsStats.updateLevel2Count(0, level1Info, level2Info, statusObj);
     }
 
-    function _getStatusCountObj(rec) {
-        var status = rec.status;
-        var statsObj = {cntTotal: 1, repid: rec.id, userid: rec.sid};
-        if (rec.inductionDropOut) {
-            statsObj.cntTotal = 0;
-            statsObj['inductionDropOut'] = 1;
-            return statsObj;
-        }
-        if (rec.onlineTSInMins && rec.onlineTSInMins > 0) {
-            statsObj['onlineTimeSpent'] = rec.onlineTSInMins;
-        } 
-        if ('customScore' in rec) {
-          var customScore = rec.customScore;
-          for (var key in customScore) {
-            if (customScore[key] == 'Green' || customScore[key] == 'Red' || customScore[key] == 'Amber') delete customScore[key];
-          }
+    function _getStatusCountObj(batch) {
+        var statsObj = {cntTotal: batch.total || 0};
+            statsObj.inductionDropOut = batch.inductionDropOut;
+        if (!batch.total || batch.total == 0) return;
+        if (batch.onlineTSInMins && batch.onlineTSInMins > 0) statsObj.onlineTimeSpent = batch.onlineTSInMins;
+        if ('customScore' in batch) {
+          var customScore = batch.customScore;
           statsObj['customScores'] = customScore;
         }
-        if(status.indexOf('attrition') == 0) {
-            statsObj['attrition'] = 1;
-            statsObj[status] = 1;
-        } else {
-            statsObj[status] = 1;
-        }  
-        var quizSCoreDict = rec.qSD || {};
-        statsObj['nQuizzes'] = quizSCoreDict.nQ || 0;
-        statsObj['nQuizzesCompleted'] = quizSCoreDict.nQC || 0;
-        if (quizSCoreDict.nQP === 0 || quizSCoreDict.nQP > 0) statsObj['nQuizScorePerc'] = quizSCoreDict.nQP || 0;
-        if (quizSCoreDict.quizScoreDict) statsObj['quizScore'] = quizSCoreDict.quizScoreDict;
-        if (quizSCoreDict.daywiseCompletion) statsObj['daywiseCompletion'] = quizSCoreDict.daywiseCompletion;
+        if(batch.status) statsObj.status = batch.status;
+        var applicableModuleDict = batch.applicableModuleDict || {};
+        if (batch.repids) statsObj['repid'] = batch.repids;
+        if (batch.studentids) statsObj['userid'] = batch.studentids;
+        statsObj['nQuizzes'] = applicableModuleDict.applicableLesson || 0;
+        statsObj['nQuizzesCompleted'] = applicableModuleDict.completedLesson || 0;
+        if (applicableModuleDict.quizPercScore > 0) statsObj['nQuizScorePerc'] = applicableModuleDict.quizPercScore || 0;
+        if (applicableModuleDict.quizScoreDict) statsObj['quizScore'] = applicableModuleDict.quizScoreDict;
+        if (applicableModuleDict.daywiseCompletion) statsObj['daywiseCompletion'] = applicableModuleDict.daywiseCompletion;
         return statsObj;
     }
 }];
@@ -630,8 +610,8 @@ function TmsStatsCounts(nl) {
     function _updateStatsCount(updatedStats, statusCnt) { 
         for(var key in statusCnt) {
             if (key == 'otherRecs' || key == 'dontIncludeInBatchCount') continue;
-            if (key == 'repid' && updatedStats.type == 'batch') updatedStats.repids.push(statusCnt[key]);
-            if (key == 'userid' && updatedStats.type == 'batch') updatedStats.userids.push(statusCnt[key]);
+            if (key == 'repid' && updatedStats.type == 'batch') updatedStats.repids = updatedStats.repids.concat(statusCnt[key]);
+            if (key == 'userid' && updatedStats.type == 'batch') updatedStats.userids = updatedStats.userids.concat(statusCnt[key]);
             if (key == 'assignment') {
                 if (statusCnt[key] in updatedStats.batchCounted) continue;
                 updatedStats.otherRecords += statusCnt.otherRecs || 0;
@@ -639,17 +619,23 @@ function TmsStatsCounts(nl) {
                 updatedStats.batchCount += 1;
                 updatedStats.batchCounted[statusCnt[key]] = true;    
             }
+            if (key == 'status') {
+                _updateStatsDictForStatus(updatedStats, statusCnt[key]);
+                continue;
+            }
             if (key == 'quizScore') {
                 var quizDict = statusCnt.quizScore;
                 var count = 0;
                 updatedStats.recCount += 1
                 for (var key in quizDict) {
+                    if (key.indexOf('cnt') > 0) continue;
                     var qsKey = 'quiz'+key;
                     if (key.indexOf('score') == 0) {
                         count += 1;
-                        if (quizDict[key] === 0 || quizDict[key] > 0) {
+                        if (quizDict[key] > 0) {
+                            var cntKey = key+'cnt';
                             if (!(qsKey in updatedStats)) updatedStats[qsKey] = 0;
-                            updatedStats[qsKey] += quizDict[key];
+                            updatedStats[qsKey] += quizDict[key]/quizDict[cntKey];
                             var countkey = qsKey+'count';
                             if (!(countkey in updatedStats)) updatedStats[countkey] = 0;
                             updatedStats[countkey] += 1;
@@ -664,6 +650,11 @@ function TmsStatsCounts(nl) {
             }
             if (key == 'daywiseCompletion') {
                 var daywiseCompArray = statusCnt['daywiseCompletion'] || [];
+                var firstItem = daywiseCompArray[0];
+                if (firstItem.name == 'Other_lesson_count') {
+                    daywiseCompArray = daywiseCompArray.slice(1, daywiseCompArray.length);
+                    daywiseCompArray.push(firstItem);
+                }
                 for (var i=1; i<=daywiseCompArray.length; i++) {
                     var dwKey = 'dayw'+i;
                     var singleDayData = daywiseCompArray[i-1] || {};
@@ -692,8 +683,9 @@ function TmsStatsCounts(nl) {
             }
             if(key == 'customScores') {
                 var customScores = statusCnt[key]
-                for(var cust in customScores) {
-                    var item = {name: cust, score: customScores[cust]};
+                for(var custObj in customScores) {
+                    var cust = customScores[custObj]
+                    var item = {name: cust.name, score: cust.score/cust.cnt};
                     var cntid = item.name+'count';
                     if(!(item.name in _customScores)) {
                         _customScores[item.name] = true;
@@ -715,6 +707,14 @@ function TmsStatsCounts(nl) {
             }
             updatedStats[key] += statusCnt[key];
             if (key == 'nQuizScorePerc') updatedStats['nQuizPercScoreCount'] += 1;
+        }
+    }
+
+    function _updateStatsDictForStatus(src, dest) {
+        for (var key in dest) {
+            if (!(key in src)) src[key] = 0;
+            if (key.indexOf('attrition') >= 0) src['attrition'] += src[key];
+            src[key] += 1;
         }
     }
 
