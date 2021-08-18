@@ -1075,7 +1075,7 @@ function(nl, nlDlg, nlRouter, nlExporter, nlLrHelper, nlLrSummaryStats, nlGroupI
         var modules = report.course.content.modules;
         if (_groupInfo.props.etmAsd && _groupInfo.props.etmAsd.length > 0) {
             var courseAssign = nlGetManyStore.getRecord(nlGetManyStore.key('course_assignment', report.raw_record.assignment));
-            var attendance = courseAssign.attendance ? angular.fromJson(courseAssign.attendance) : {};
+            var attendance = courseAssign && courseAssign.attendance ? angular.fromJson(courseAssign.attendance) : {};
             attendance = nlCourse.migrateCourseAttendance(attendance);
             modules = nlReportHelper.getAsdUpdatedModules(modules || [], attendance);    
         }
