@@ -2306,9 +2306,11 @@ function SectionSelectionHandler(lesson) {
 
         if (!_isSectionSelected() || lesson.renderCtx.lessonMode() != 'edit') {
             _toggleSectionTools(false);
+            njs_toolbelt.Toolbelt.toggleToolGroup('section', false);
             njs_toolbelt.Toolbelt.toggleToolGroup('popup', false);
         } else {
             _toggleSectionTools(true);
+            njs_toolbelt.Toolbelt.toggleToolGroup('section', true);
             var sec = _getSection();
             var pagetype = sec.page.pagetype;
             if(sec.page.pagetype.isInteractive(sec)) {

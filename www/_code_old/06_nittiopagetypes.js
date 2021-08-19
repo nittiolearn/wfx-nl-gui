@@ -2810,10 +2810,11 @@ npagetypes = function() {
 		pgSecView.resizable({stop: _onResizeSection});
 		var rects = {};
 		function _onDragStartSection(e, ui) {
-			rects = _getRectsPgSecView(section.page.hPage, section.page.hPageHolder, pgSecView);
 		}
 	
 		function _onDragDoneSection(e, ui) {
+			rects = _getRectsPgSecView(section.page.hPage, section.page.hPageHolder, pgSecView);
+			if (!rects.page) return;
 			var sectionOffSet = ui.offset || {}
 			var secNo = section.secNo;
 			var sectionLayout = {};
@@ -2829,7 +2830,7 @@ npagetypes = function() {
 			var sectionTopOffSet = totalTopOffSet - pageTopOffSet;
 			var totalLeftOffSet = Math.round(sectionOffSet.left || 0);
 			var pageLeftOffSet = rects.psv.l || 0;
-			var sectionLeftOffSet = totalLeftOffSet - pageLeftOffSet;
+			var sectionLeftOffSet = totalLeftOffSet - pageLeftOffSet - 4;
 			var pageHdWidth = rects.psv.w;
 			var pageHdHeight = rects.psv.h;
 			//set all the top attributes for the page section
