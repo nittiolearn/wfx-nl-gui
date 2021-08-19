@@ -862,7 +862,8 @@ function(nl, nlDlg, nlRouter, nlExporter, nlLrHelper, nlLrSummaryStats, nlGroupI
             {id: '_assignTypeStr', name:'Record Type'},
             {id: '_courseName', name:'Course Name'},
             {id: '_batchName', name:'Batch Name'},
-            {id: '_itemname', name:'Module/Item Name'}];
+            {id: '_itemname', name:'Module/Item Name'},
+            {id: '_shift', name: 'Shifts Info'}];
     
     var _hCourseDetailsElem2 = [
             {id: 'created', name:'Assigned On', fmt: 'minute'},
@@ -1229,6 +1230,8 @@ function(nl, nlDlg, nlRouter, nlExporter, nlLrHelper, nlLrSummaryStats, nlGroupI
         defaultRowObj._timeIltTotalMins = statusinfo.iltTotalTime;
         defaultRowObj.ended = statusinfo.marked;
         defaultRowObj.updated = statusinfo.updated;
+        if (statusinfo.shiftEnd)
+            defaultRowObj._shift = nl.t('{}:{} - {}', statusinfo.shiftHrs, statusinfo.shiftMins, statusinfo.shiftEnd);
 	}
 
 	function _updateCsvRatingRows1(statusinfo, defaultRowObj) {
