@@ -29,22 +29,28 @@ function($scope, nl, nlDlg, nlRouter, nlGroupInfo, nlServerApi, nlExporter, nlTm
     var jsonObj = null;
     var _pastUserInfosFetcher = nlGroupInfo.getPastUserInfosFetcher();
     var _readFromFile = false;
+    var _userInfo = null;
+    var _subOrg = null;
     function _onPageEnter(userInfo) {
-      return nl.q(function(resolve, reject) {
-        nl.pginfo.pageTitle = nl.t('NHT batches');
-        var params = nl.location.search();
-        _readFromFile = (params.fromfile == '1'); 
-        $scope.debug = params.debug == '1';
-        nlGroupInfo.init2().then(function() {
-          nlGroupInfo.update();
-                  _groupInfo = nlGroupInfo.get();
-                  _pastUserInfosFetcher.init(_groupInfo);
-                  _init();
-                  _fetchDataFromServer(resolve);
-        }, function(err) {
-          resolve(false);
+        _userInfo = userInfo;
+        return nl.q(function(resolve, reject) {
+            nl.pginfo.pageTitle = nl.t('NHT batches');
+            var params = nl.location.search();
+            _readFromFile = (params.fromfile == '1'); 
+            $scope.debug = params.debug == '1';
+            nlGroupInfo.init2().then(function() {
+                nlGroupInfo.update();
+                _groupInfo = nlGroupInfo.get();
+                _pastUserInfosFetcher.init(_groupInfo);          
+                var suborgDict = nlGroupInfo.getOrgToSubOrgDict(_groupInfo)
+                var orgunit = _userInfo.org_unit;
+                _subOrg = suborgDict[orgunit];
+                _init();
+                _fetchDataFromServer(resolve);
+            }, function(err) {
+            resolve(false);
+            });
         });
-      });
     }
     nlRouter.initContoller($scope, '', _onPageEnter);
 
@@ -231,6 +237,7 @@ function($scope, nl, nlDlg, nlRouter, nlGroupInfo, nlServerApi, nlExporter, nlTm
             jsonObj = resp.data;
             jsonObj = angular.fromJson(jsonObj);
             $scope.headerTextStr = nl.t('Generated on {}', nl.fmt.date2StrDDMMYY(nl.fmt.json2Date(jsonObj.generatedOn),null, 'date'));
+            nlTmsView.init(_userInfo, _subOrg);
             _computeNhtTable();
             resolve(true);
         });
@@ -411,6 +418,12 @@ var TmsViewSrv = ['nl',
 function(nl) {
     var tmsStats = new TmsStatsCounts();
     var self = this;
+    var _userInfo = null;
+    var _suborg = null;
+    this.init = function(userInfo, suborg) {
+        _userInfo = userInfo;
+        _suborg = suborg;
+    };
 
     this.getMaxQuizCount = function() {
         return tmsStats.getMaxQuizCount();
@@ -449,12 +462,34 @@ function(nl) {
     }
 
     function _doesPassFilter(assignment, searchObj) {
+        if (!_checkRecordBelongsTo(assignment)) return false;
         if (!(searchObj.start || searchObj.end)) return true;
         var created = nl.fmt.json2Date(assignment.created);
         if (searchObj.start && searchObj.end && created >= searchObj.start && created <= searchObj.end) return true;
         if (!searchObj.start && searchObj.end && created <= searchObj.end) return true;
         if (!searchObj.end && searchObj.start && created >= searchObj.start) return true;
         return false;
+    }
+
+    function _checkRecordBelongsTo(assignment) {
+        var permissions = _userInfo.permissions || {};
+        var assignManagePerm = permissions.assignment_manage || false;
+        var restrictOus = permissions.restrict_to_my_ou || false;
+        var assignmentSend = permissions.assignment_send || false;
+        if (assignManagePerm && !restrictOus) return true;
+        if (assignManagePerm && restrictOus) {
+            if (assignment.suborg == _suborg) return true;
+            return false
+        }
+        if (assignManagePerm && restrictOus) {
+            if (assignment.suborg == _suborg) return true;
+            return false
+        }
+        if (!assignManagePerm && assignmentSend) {
+            if (assignment.assignor == _userInfo.userid) return true;
+            return false
+        }
+        return true;
     }
 
     this.addCount = function(record, level1Info, level2Info, getStatus) {
