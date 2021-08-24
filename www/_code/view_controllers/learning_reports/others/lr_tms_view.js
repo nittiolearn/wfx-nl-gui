@@ -720,7 +720,11 @@ function TmsStatsCounts(nl) {
                 var customScores = statusCnt[key]
                 for(var custObj in customScores) {
                     var cust = customScores[custObj]
-                    var item = {name: cust.name, score: cust.score/cust.cnt};
+                    var _score = 0;
+                    if (cust.score && cust.score > 0) {
+                        _score = cust.score/cust.cnt;
+                    }
+                    var item = {name: cust.name, score: _score};
                     var cntid = item.name+'count';
                     if(!(item.name in _customScores)) {
                         _customScores[item.name] = true;
@@ -728,10 +732,13 @@ function TmsStatsCounts(nl) {
                     }
                     if(!(item.name in updatedStats)) {
                         updatedStats[item.name] = item.score;
-                        updatedStats[cntid] = 1;
+                        updatedStats[cntid] = 0;
+                        if (item.score > 0)
+                            updatedStats[cntid] = 1;
                     } else {
                         updatedStats[item.name] += item.score;
-                        updatedStats[cntid] += 1;
+                        if (item.score > 0)
+                            updatedStats[cntid] += 1;
                     }
                 }
                 continue;
@@ -789,7 +796,7 @@ function TmsStatsCounts(nl) {
             if(!(itemName in updatedStats)) continue;
             var percid = 'perc'+itemName;
             var count = itemName+'count';
-            updatedStats[percid] = Math.round(updatedStats[itemName]/updatedStats[count])+' %';
+            updatedStats[percid] = updatedStats[count] > 0 ? Math.round(updatedStats[itemName]/updatedStats[count])+' %' : '-';
         }
         var count = updatedStats.scoreCount;
         for (var i=1; i<=count; i++) {

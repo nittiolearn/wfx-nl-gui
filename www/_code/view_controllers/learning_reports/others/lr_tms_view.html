@@ -124,7 +124,7 @@ table tbody, table thead
                                 <i ng-hide='rec.isOpen' class="icon ion-arrow-right-b bold fsh5"></i>
                                 <i ng-show='rec.isOpen' class="icon ion-arrow-down-b bold fsh5"></i>
                             </span>
-                            <div class='col {{!rec.isFolder ? "nl-link-text" : ""}}'
+                            <div class='col {{!rec.isFolder ? "nl-link-text-dklg" : ""}}'
                                 ng-click='onClickOnBatch(rec)'>
                                 <div class='row row-center padding0 margin0'>
                                     <div class='col'>{{rec.orgname || rec.name}}</div>
@@ -133,7 +133,7 @@ table tbody, table thead
                                     </span>
                                 </div>
                             </div>
-                            <span ng-if='!rec.isFolder' ng-click='onDetailsClick($event, rec, nhtInfo.info.columns)' class='nl-link-text'>
+                            <span ng-if='!rec.isFolder' ng-click='onDetailsClick($event, rec, nhtInfo.info.columns)' class='nl-link-text-dklg'>
                                 <i class="padding-mid icon ion-information-circled fsh4 nl-info-icon"></i>
                             </span> 
                         </div>
