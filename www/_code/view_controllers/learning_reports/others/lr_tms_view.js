@@ -42,7 +42,7 @@ function($scope, nl, nlDlg, nlRouter, nlGroupInfo, nlServerApi, nlExporter, nlTm
                 nlGroupInfo.update();
                 _groupInfo = nlGroupInfo.get();
                 _pastUserInfosFetcher.init(_groupInfo);          
-                var suborgDict = nlGroupInfo.getOrgToSubOrgDict(_groupInfo)
+                var suborgDict = nlGroupInfo.getOrgToSubOrgDict(_groupInfo) || {};
                 var orgunit = _userInfo.org_unit;
                 _subOrg = suborgDict[orgunit];
                 _init();

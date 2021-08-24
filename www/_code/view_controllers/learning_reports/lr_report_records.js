@@ -451,10 +451,10 @@ function(nl, nlRouter, nlDlg, nlGroupInfo, nlLrHelper, nlLrFilter, nlGetManyStor
             report._statusStr = report.started ? 'started' : 'pending';
             stats.status = nlReportHelper.statusInfos[_getModuleStatus(stats, repcontent, report)];
         } else {
-            var score = repcontent.selfLearningMode ? 0 : parseInt(repcontent.score || 0);
+            var score = repcontent.selfLearningMode ? 0 : parseFloat(repcontent.score || 0); //Removed parseInt on score to support the decimal values on computing the percentages 
             if (score > maxScore) score = maxScore; // Some 3 year old bug where this happened - just for sake of old record!
             var passScore = maxScore ? parseInt(repcontent.passScore || 0) : 0;
-            var perc = maxScore > 0 ? Math.round((score/maxScore)*100) : 100;
+            var perc = maxScore > 0 ? parseInt(100*score/maxScore) : 100;
             report._score = score > 0 ? score : '';
             report._maxScore = maxScore > 0 ? maxScore : '';
             report._passScore = passScore > 0 ? passScore : '';
