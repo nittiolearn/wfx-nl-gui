@@ -227,6 +227,7 @@ function(nl, nlServerApi, nlConfig, nlDlg) {
 	function _mergeUsers(allUsers, deletedUsers, users) {
 		for (var userId in users) {
 			var user = users[userId];
+			if (!(user && Array.isArray(user))) continue;
 			userId = '' + userId;
 			user[UPDATED_COL_POS] = nl.fmt.json2Date(user[UPDATED_COL_POS]);
 			var masterDict = user[DELETED_COL_POS] ? deletedUsers : allUsers;
