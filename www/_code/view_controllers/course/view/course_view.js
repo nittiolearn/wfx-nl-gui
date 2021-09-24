@@ -336,10 +336,10 @@ function ModeHandler(nl, nlCourse, nlServerApi, nlDlg, nlGroupInfo, $scope, nlRe
 
 //-------------------------------------------------------------------------------------------------
 var NlCourseViewCtrl = ['nl', 'nlRouter', '$scope', 'nlDlg', 'nlCourse', 'nlIframeDlg',
-'nlCourseEditor', 'nlCourseCanvas', 'nlServerApi', 'nlGroupInfo', 'nlSendAssignmentSrv',
+'nlCourseEditor', 'nlCourseCanvas', 'nlServerApi', 'nlGroupInfo',
 'nlMarkup', 'nlTreeListSrv', 'nlTopbarSrv', 'nlReportHelper', 'nlMobileConnector',
 function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlCourseEditor, nlCourseCanvas, 
-    nlServerApi, nlGroupInfo, nlSendAssignmentSrv, nlMarkup, nlTreeListSrv, nlTopbarSrv, nlReportHelper, nlMobileConnector) {
+    nlServerApi, nlGroupInfo, nlMarkup, nlTreeListSrv, nlTopbarSrv, nlReportHelper, nlMobileConnector) {
     var modeHandler = new ModeHandler(nl, nlCourse, nlServerApi, nlDlg, nlGroupInfo, $scope, nlReportHelper, nlMobileConnector);
     var nlContainer = new NlContainer(nl, nlDlg, nlServerApi, $scope, modeHandler);
     nlContainer.setContainerInWindow();
@@ -720,7 +720,8 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlCourseEditor, nlC
     $scope.sendAssignment = function(e) {
         e.stopImmediatePropagation();
         e.preventDefault();
-        _sendAssignment();
+        //Naveen TODO
+        return;
     };
 
     $scope.collapseAll = function(bShowCanvas) {
@@ -1219,30 +1220,6 @@ function(nl, nlRouter, $scope, nlDlg, nlCourse, nlIframeDlg, nlCourseEditor, nlC
                 _saveDoneNumber = currentSaveNumber;
             if (bBlockUI) nlDlg.hideLoadingScreen();
         });
-    }
-    
-    function _sendAssignment() {
-        if (!$scope.canSendAssignment) return;
-        var c = modeHandler.course;
-        var assignInfo = {assigntype: 'course', id: c.id, icon: c.icon, 
-            title: c.name, authorName: c.authorname, description: c.description, 
-            showDateField: true, enableSubmissionAfterEndtime: true, blended: c.content.blended, course: c};
-        var features = _userInfo.groupinfo.features;
-        var grpChecklist = features.courses && features.courses.coursePublishChecklist ? features.courses.coursePublishChecklist : [];
-        if (grpChecklist && grpChecklist.length > 0) {
-            var checklist = c.content.checklist || [];
-            var msg = nlCourse.getCheckListDialogParams(grpChecklist, checklist);
-            if (msg) {
-                nlDlg.popupConfirm({title: 'Warning', template: msg, okText: 'Continue'}).then(function(res) {
-                    if (!res) return;
-                    nlSendAssignmentSrv.show($scope, assignInfo, _userInfo);						
-                });    
-            } else {
-                nlSendAssignmentSrv.show($scope, assignInfo, _userInfo);
-            }
-        } else {
-            nlSendAssignmentSrv.show($scope, assignInfo, _userInfo);						
-        }
     }
 }];
 

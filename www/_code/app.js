@@ -157,9 +157,9 @@ function(nl) {
 }];
 
 //-------------------------------------------------------------------------------------------------
-var AppCtrl = ['nl','nlDlg','nlServerApi', '$scope', '$anchorScroll', 'nlKeyboardHandler', 'nlAnnouncementSrv', 'nlRouter',
+var AppCtrl = ['nl','nlDlg','nlServerApi', '$scope', '$anchorScroll', 'nlKeyboardHandler', 'nlRouter',
 'nlLogViewer', 'nlOldCodeBridge', 'nlTopbarSrv', 'nlServerSideUserSettings', 'ChartJSSrv', 'nlResourceUploader', 'Upload', 'nlGroupInfo',
-function(nl, nlDlg, nlServerApi, $scope, $anchorScroll, nlKeyboardHandler, nlAnnouncementSrv, nlRouter, nlLogViewer, 
+function(nl, nlDlg, nlServerApi, $scope, $anchorScroll, nlKeyboardHandler, nlRouter, nlLogViewer, 
     nlOldCodeBridge, nlTopbarSrv, nlServerSideUserSettings, ChartJSSrv, nlResourceUploader, Upload, nlGroupInfo) {
     nl.log.info('UserAgent: ', navigator.userAgent);
     if (NL_SERVER_INFO.oldCode) nlOldCodeBridge.expose();
@@ -185,7 +185,6 @@ function(nl, nlDlg, nlServerApi, $scope, $anchorScroll, nlKeyboardHandler, nlAnn
         nl.rootScope.pgInfo.usericon = userInfo.usericon;
         nl.rootScope.currentPageURL=nl.location.url().split('#')[0];
         nl.rootScope.bodyClass = 'showbody';
-        nlAnnouncementSrv.initAnnouncements(userInfo, $scope);
         $scope.logo = userInfo.groupicon == '' ? nl.url.resUrl('general/top-logo2.png') : userInfo.groupicon;
         var bLoggedIn = (userInfo.username != '');
         var topbarMenus = [];

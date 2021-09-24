@@ -1,7 +1,7 @@
 //-------------------------------------------------------------------------------------------------
 //var SERVER_URL = 'http://192.168.0.3:8000/';
 var SERVER_URL = '/';
-var VERSIONS = {script:'v205_pre01', res:'v50', icon:'v41', template:'v35'};
+var VERSIONS = {script:'v2021Q4S1-pre01', res:'v100', icon:'v100', template:'v100'};
 //-------------------------------------------------------------------------------------------------
 
 //-------------------------------------------------------------------------------------------------
@@ -37,7 +37,7 @@ inPaths.oldCode = './www/_code_old/';
 inPaths.htmlTemplate = './www/_htmlTemplate/';
 
 var outPaths = {};
-outPaths.base = '../nittio/applications/nittiolearn/';
+outPaths.base = '../wfx-nl-server/applications/nittiolearn/';
 outPaths.staticBase = outPaths.base + 'static/';
 outPaths.script = outPaths.staticBase + '_script_bundles/';
 outPaths.scriptScormTesting = outPaths.staticBase + 'others/local-scorm-test-driver/nlcontent'; // For local scorm testing
@@ -52,7 +52,7 @@ outPaths.cleanup = [
     outPaths.view + '/index.*',
     outPaths.modules + '/mversion.py',
 
-    // For older cleanups: generated files in nittio repository
+    // For older cleanups: generated files in wfx-nl-server repository
     outPaths.staticBase + '_external/ionic*', // For older cleanups
     outPaths.staticBase + '_external/ydn*',
     outPaths.staticBase + '_external/ionicfonts',

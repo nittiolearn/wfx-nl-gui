@@ -18,8 +18,8 @@ function module_init() {
 }
 
 //-------------------------------------------------------------------------------------------------
-var TopbarDirective = ['nl', 'nlDlg', 'nlTopbarSrv', 'nlAnnouncementSrv',
-function(nl, nlDlg, nlTopbarSrv, nlAnnouncementSrv) {
+var TopbarDirective = ['nl', 'nlDlg', 'nlTopbarSrv',
+function(nl, nlDlg, nlTopbarSrv) {
     return {
         restrict: 'E', 
         transclude: true,
@@ -42,10 +42,12 @@ function(nl, nlDlg, nlTopbarSrv, nlAnnouncementSrv) {
                 return false;
             };
             $scope.canShowAnnouncement = function(e) {
-                return nlAnnouncementSrv.canShowAnnouncement();
+                //Naveen TODO
+                return false;
             };
             $scope.onAnnoucementIconClick = function(e) {
-                return nlAnnouncementSrv.onAnnoucementIconClick();
+                //Naveen TODO
+                return false;
             };
         }
     };

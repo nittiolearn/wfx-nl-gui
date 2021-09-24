@@ -166,9 +166,9 @@ function($scope, nlLessonSelect) {
 
 //-------------------------------------------------------------------------------------------------
 var LessonSelectSrv = ['nl', 'nlRouter', 'nlDlg', 'nlCardsSrv', 'nlServerApi', 
-'nlApproveDlg', 'nlSendAssignmentSrv', 'nlMetaDlg', 'nlGroupInfo', 'nlChangeOwner',
-function(nl, nlRouter, nlDlg, nlCardsSrv, nlServerApi, nlApproveDlg, nlSendAssignmentSrv, 
-	nlMetaDlg, nlGroupInfo, nlChangeOwner) {
+'nlApproveDlg', 'nlMetaDlg', 'nlGroupInfo',
+function(nl, nlRouter, nlDlg, nlCardsSrv, nlServerApi, nlApproveDlg, 
+	nlMetaDlg, nlGroupInfo) {
 this.showSelectDlg = function($scope, initialUserInfo) {
 	var self = this;
 	return nl.q(function(resolve, reject) {
@@ -293,21 +293,9 @@ this.show = function($scope, initialUserInfo, params) {
 		} else if (internalUrl === 'lesson_reopen') {
 			_reopenLesson($scope, lessonId);
 		} else if (internalUrl === 'send_assignment') {
-			var assignInfo = {
-				assigntype : 'lesson',
-				id : card.lessonId,
-				icon : card.icon,
-				title : card.title,
-				showDateField: true,
-				enableSubmissionAfterEndtime: true,
-				authorName : card.authorName,
-				subjGrade : nl.fmt2('{}, {}', card.subject, card.grade),
-				description : card.description,
-				esttime : card.esttime ? card.esttime : ''
-			};
-			nlSendAssignmentSrv.show($scope, assignInfo, _userInfo);
+            //Naveen TODO
 		} else if (internalUrl == 'change_owner') {
-			nlChangeOwner.show($scope, lessonId, 'lesson', _userInfo);
+            //Naveen TODO
 		};
 	};
 

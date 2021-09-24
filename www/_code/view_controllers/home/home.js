@@ -68,18 +68,18 @@ function($stateProvider) {
     });
 }];
 //-------------------------------------------------------------------------------------------------
-var HomeCtrl = ['nl', 'nlRouter', '$scope', 'nlServerApi', 'nlConfig', 'nlCardsSrv', 'nlAnnouncementSrv', 'nlLearnerView', 'nlLearnerView2',
-function(nl, nlRouter, $scope, nlServerApi, nlConfig, nlCardsSrv, nlAnnouncementSrv, nlLearnerView, nlLearnerView2) {
-    HomeCtrlImpl(true, nl, nlRouter, $scope, nlServerApi, nlConfig, nlCardsSrv, nlAnnouncementSrv, nlLearnerView, nlLearnerView2);
+var HomeCtrl = ['nl', 'nlRouter', '$scope', 'nlServerApi', 'nlConfig', 'nlCardsSrv',
+function(nl, nlRouter, $scope, nlServerApi, nlConfig, nlCardsSrv) {
+    HomeCtrlImpl(true, nl, nlRouter, $scope, nlServerApi, nlConfig, nlCardsSrv);
 }];
 
-var DashboardViewCtrl = ['nl', 'nlRouter', '$scope', 'nlServerApi', 'nlConfig', 'nlCardsSrv', 'nlAnnouncementSrv', 'nlLearnerView', 'nlLearnerView2',
-function(nl, nlRouter, $scope, nlServerApi, nlConfig, nlCardsSrv, nlAnnouncementSrv, nlLearnerView, nlLearnerView2) {
-    HomeCtrlImpl(false, nl, nlRouter, $scope, nlServerApi, nlConfig, nlCardsSrv, nlAnnouncementSrv, nlLearnerView, nlLearnerView2);
+var DashboardViewCtrl = ['nl', 'nlRouter', '$scope', 'nlServerApi', 'nlConfig', 'nlCardsSrv',
+function(nl, nlRouter, $scope, nlServerApi, nlConfig, nlCardsSrv) {
+    HomeCtrlImpl(false, nl, nlRouter, $scope, nlServerApi, nlConfig, nlCardsSrv);
 }];
 
 //-------------------------------------------------------------------------------------------------
-function HomeCtrlImpl(isHome, nl, nlRouter, $scope, nlServerApi, nlConfig, nlCardsSrv, nlAnnouncementSrv, nlLearnerView, nlLearnerView2) {
+function HomeCtrlImpl(isHome, nl, nlRouter, $scope, nlServerApi, nlConfig, nlCardsSrv) {
     var oldScreenState = angular.copy(nl.rootScope.screenSize);
 
     function _onPageEnter(userInfo) {
@@ -93,73 +93,24 @@ function HomeCtrlImpl(isHome, nl, nlRouter, $scope, nlServerApi, nlConfig, nlCar
 
             nl.pginfo.pageTitle = nl.t('Home Dashboard');
             nl.pginfo.pageSubTitle = nl.fmt2('({})', (userInfo || {}).displayname || '');
-            if(userInfo.dashboard_props['dashboardType'] == "learner_view" && isHome) { 
-                var learnerView = nlLearnerView.create($scope);
-                $scope.isTabs = true;               
-                nlLearnerView.initPageBgImg(userInfo);
-                learnerView.afterPageEnter(userInfo, parent).then(function(result) {
-                    nlAnnouncementSrv.onPageEnter(userInfo, $scope, 'pane').then(function() {
-                        resolve(true);
-                    });
-                });
-            } else if(userInfo.dashboard_props['dashboardType'] == "learner_view2" && isHome) { 
-                var learnerView = nlLearnerView2.create($scope);
-                $scope.isTabs2 = true;
-                //Remove because the new learner view doesn't look better with background images.
-                //nlLearnerView2.initPageBgImg(userInfo);
-                learnerView.afterPageEnter(userInfo, parent).then(function(result) {
-                    nlAnnouncementSrv.onPageEnter(userInfo, $scope, 'pane').then(function() {
-                        resolve(true);
-                    });
+            if (!isHome && dbid) {
+                nlServerApi.dashboardGetCards(dbid, published).then(function(dashboardCards) {
+                    nl.pginfo.pageTitle = nl.t('Custom Dashboard: {}', dashboardCards.description);
+                    nl.pginfo.pageSubTitle = '';
+                    _init(userInfo, parent, dashboardCards, resolve);
                 });
             } else {
-                if (!isHome && dbid) {
-                    nlServerApi.dashboardGetCards(dbid, published).then(function(dashboardCards) {
-                        nl.pginfo.pageTitle = nl.t('Custom Dashboard: {}', dashboardCards.description);
-                        nl.pginfo.pageSubTitle = '';
-                        if(dashboardCards.dashboard_props['dashboardType'] == 'learner_view') {
-                            $scope.isTabs = true;
-                            _loadLearnerViewForDashBoardPreview(dashboardCards, userInfo, parent, resolve);
-                        } else if(dashboardCards.dashboard_props['dashboardType'] == 'learner_view2') {
-                            $scope.isTabs2 = true;
-                            _loadLearnerViewForDashBoardPreview(dashboardCards, userInfo, parent, resolve);
-                        } else {
-                            _init(userInfo, parent, dashboardCards, resolve);
-                        }
-                    });
-                } else {
-                    _init(userInfo, parent, userInfo, resolve);
-                }
+                _init(userInfo, parent, userInfo, resolve);
             }
         });
     }
 
     nlRouter.initContoller($scope, '', _onPageEnter);
 
-    function _loadLearnerViewForDashBoardPreview(dashboardCards, userInfo, parent, resolve) {
-        var learnerView = dashboardCards.dashboard_props['dashboardType'] == 'learner_view' ? nlLearnerView.create($scope) : nlLearnerView2.create($scope);
-        userInfo.dashboard = dashboardCards.dashboard;
-        userInfo.dashboard_props = dashboardCards.dashboard_props;
-        if (dashboardCards.dashboard_props['dashboardType'] == 'learner_view')
-            nlLearnerView.initPageBgImg(userInfo);
-        //Remove because the new learner view doesn't look better with background images.
-        // else 
-        //     nlLearnerView2.initPageBgImg(userInfo);
-        learnerView.afterPageEnter(userInfo, parent).then(function(result) {
-            nlAnnouncementSrv.onPageEnter(userInfo, $scope, 'pane').then(function() {
-                resolve(true);
-            });
-        });
-    }
-
     function _init(userInfo, parent, dashboardCards, resolve) {
         $scope.isCards = true;
         _initDashboardCards(userInfo, parent, dashboardCards.dashboard);
-        if (dashboardCards.dashboard_props['dashboardType'] == 'learner_view')
-            nlLearnerView.initPageBgImg(dashboardCards);
-        nlAnnouncementSrv.onPageEnter(userInfo, $scope, 'pane').then(function() {
-            resolve(true);
-        });
+        resolve(true);
     }
 
     function _initDashboardCards(userInfo, parent, cardListFromServer) {

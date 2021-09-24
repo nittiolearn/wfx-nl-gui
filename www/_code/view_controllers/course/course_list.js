@@ -60,32 +60,32 @@ function($stateProvider, $urlRouterProvider) {
 		}});
 }];
 
-var CourseListCtrl = ['nl', 'nlRouter', '$scope', 'nlServerApi', 'nlGetManyStore', 'nlDlg', 'nlCardsSrv', 'nlSendAssignmentSrv', 'nlMetaDlg', 'nlCourse', 'nlExpressionProcessor', 'nlChangeOwner', 'nlSearchCacheSrv', '$filter','nlTreeSelect',
-function(nl, nlRouter, $scope, nlServerApi, nlGetManyStore, nlDlg, nlCardsSrv, nlSendAssignmentSrv, nlMetaDlg, nlCourse, nlExpressionProcessor, nlChangeOwner, nlSearchCacheSrv, $filter,nlTreeSelect) {
-	_listCtrlImpl('course', nl, nlRouter, $scope, nlServerApi, nlGetManyStore, nlDlg, nlCardsSrv, nlSendAssignmentSrv, nlMetaDlg, nlCourse, nlExpressionProcessor, nlChangeOwner, nlSearchCacheSrv, $filter,nlTreeSelect);
+var CourseListCtrl = ['nl', 'nlRouter', '$scope', 'nlServerApi', 'nlGetManyStore', 'nlDlg', 'nlCardsSrv', 'nlMetaDlg', 'nlCourse', 'nlExpressionProcessor', 'nlSearchCacheSrv', '$filter','nlTreeSelect',
+function(nl, nlRouter, $scope, nlServerApi, nlGetManyStore, nlDlg, nlCardsSrv, nlMetaDlg, nlCourse, nlExpressionProcessor, nlSearchCacheSrv, $filter,nlTreeSelect) {
+	_listCtrlImpl('course', nl, nlRouter, $scope, nlServerApi, nlGetManyStore, nlDlg, nlCardsSrv, nlMetaDlg, nlCourse, nlExpressionProcessor, nlSearchCacheSrv, $filter,nlTreeSelect);
 }];
 
-var CourseAssignListCtrl = ['nl', 'nlRouter', '$scope', 'nlServerApi', 'nlGetManyStore', 'nlDlg', 'nlCardsSrv', 'nlSendAssignmentSrv', 'nlMetaDlg', 'nlCourse', 'nlExpressionProcessor', 'nlChangeOwner', 'nlSearchCacheSrv', '$filter','nlTreeSelect',
-function(nl, nlRouter, $scope, nlServerApi, nlGetManyStore, nlDlg, nlCardsSrv, nlSendAssignmentSrv, nlMetaDlg, nlCourse, nlExpressionProcessor, nlChangeOwner, nlSearchCacheSrv, $filter,nlTreeSelect) {
-	_listCtrlImpl('assign', nl, nlRouter, $scope, nlServerApi, nlGetManyStore, nlDlg, nlCardsSrv, nlSendAssignmentSrv, nlMetaDlg, nlCourse, nlExpressionProcessor, nlChangeOwner, nlSearchCacheSrv, $filter,nlTreeSelect);
+var CourseAssignListCtrl = ['nl', 'nlRouter', '$scope', 'nlServerApi', 'nlGetManyStore', 'nlDlg', 'nlCardsSrv', 'nlMetaDlg', 'nlCourse', 'nlExpressionProcessor', 'nlSearchCacheSrv', '$filter','nlTreeSelect',
+function(nl, nlRouter, $scope, nlServerApi, nlGetManyStore, nlDlg, nlCardsSrv, nlMetaDlg, nlCourse, nlExpressionProcessor, nlSearchCacheSrv, $filter,nlTreeSelect) {
+	_listCtrlImpl('assign', nl, nlRouter, $scope, nlServerApi, nlGetManyStore, nlDlg, nlCardsSrv, nlMetaDlg, nlCourse, nlExpressionProcessor, nlSearchCacheSrv, $filter,nlTreeSelect);
 }];
 
-var CourseAssignMyListCtrl = ['nl', 'nlRouter', '$scope', 'nlServerApi', 'nlGetManyStore', 'nlDlg', 'nlCardsSrv', 'nlSendAssignmentSrv', 'nlMetaDlg', 'nlCourse', 'nlExpressionProcessor', 'nlChangeOwner', 'nlSearchCacheSrv', '$filter','nlTreeSelect',
-function(nl, nlRouter, $scope, nlServerApi, nlGetManyStore, nlDlg, nlCardsSrv, nlSendAssignmentSrv, nlMetaDlg, nlCourse, nlExpressionProcessor, nlChangeOwner, nlSearchCacheSrv, $filter,nlTreeSelect) {
-	_listCtrlImpl('assign_my', nl, nlRouter, $scope, nlServerApi, nlGetManyStore, nlDlg, nlCardsSrv, nlSendAssignmentSrv, nlMetaDlg, nlCourse, nlExpressionProcessor, nlChangeOwner, nlSearchCacheSrv, $filter,nlTreeSelect);
+var CourseAssignMyListCtrl = ['nl', 'nlRouter', '$scope', 'nlServerApi', 'nlGetManyStore', 'nlDlg', 'nlCardsSrv', 'nlMetaDlg', 'nlCourse', 'nlExpressionProcessor', 'nlSearchCacheSrv', '$filter','nlTreeSelect',
+function(nl, nlRouter, $scope, nlServerApi, nlGetManyStore, nlDlg, nlCardsSrv, nlMetaDlg, nlCourse, nlExpressionProcessor, nlSearchCacheSrv, $filter,nlTreeSelect) {
+	_listCtrlImpl('assign_my', nl, nlRouter, $scope, nlServerApi, nlGetManyStore, nlDlg, nlCardsSrv, nlMetaDlg, nlCourse, nlExpressionProcessor, nlSearchCacheSrv, $filter,nlTreeSelect);
 }];
 
-var CourseAssignSuborgListCtrl = ['nl', 'nlRouter', '$scope', 'nlServerApi', 'nlGetManyStore', 'nlDlg', 'nlCardsSrv', 'nlSendAssignmentSrv', 'nlMetaDlg', 'nlCourse', 'nlExpressionProcessor', 'nlChangeOwner', 'nlSearchCacheSrv', '$filter','nlTreeSelect', 'nlGroupInfo',
-function(nl, nlRouter, $scope, nlServerApi, nlGetManyStore, nlDlg, nlCardsSrv, nlSendAssignmentSrv, nlMetaDlg, nlCourse, nlExpressionProcessor, nlChangeOwner, nlSearchCacheSrv, $filter, nlTreeSelect, nlGroupInfo) {
-	_listCtrlImpl('assign_suborg', nl, nlRouter, $scope, nlServerApi, nlGetManyStore, nlDlg, nlCardsSrv, nlSendAssignmentSrv, nlMetaDlg, nlCourse, nlExpressionProcessor, nlChangeOwner, nlSearchCacheSrv, $filter, nlTreeSelect, nlGroupInfo);
+var CourseAssignSuborgListCtrl = ['nl', 'nlRouter', '$scope', 'nlServerApi', 'nlGetManyStore', 'nlDlg', 'nlCardsSrv', 'nlMetaDlg', 'nlCourse', 'nlExpressionProcessor', 'nlSearchCacheSrv', '$filter','nlTreeSelect', 'nlGroupInfo',
+function(nl, nlRouter, $scope, nlServerApi, nlGetManyStore, nlDlg, nlCardsSrv, nlMetaDlg, nlCourse, nlExpressionProcessor, nlSearchCacheSrv, $filter, nlTreeSelect, nlGroupInfo) {
+	_listCtrlImpl('assign_suborg', nl, nlRouter, $scope, nlServerApi, nlGetManyStore, nlDlg, nlCardsSrv, nlMetaDlg, nlCourse, nlExpressionProcessor, nlSearchCacheSrv, $filter, nlTreeSelect, nlGroupInfo);
 }];
 
-var CourseReportListCtrl = ['nl', 'nlRouter', '$scope', 'nlServerApi', 'nlGetManyStore', 'nlDlg', 'nlCardsSrv', 'nlSendAssignmentSrv', 'nlMetaDlg', 'nlCourse', 'nlExpressionProcessor', 'nlChangeOwner', 'nlSearchCacheSrv', '$filter','nlTreeSelect',
-function(nl, nlRouter, $scope, nlServerApi, nlGetManyStore, nlDlg, nlCardsSrv, nlSendAssignmentSrv, nlMetaDlg, nlCourse, nlExpressionProcessor, nlChangeOwner, nlSearchCacheSrv, $filter,nlTreeSelect) {
-	_listCtrlImpl('report', nl, nlRouter, $scope, nlServerApi, nlGetManyStore, nlDlg, nlCardsSrv, nlSendAssignmentSrv, nlMetaDlg, nlCourse, nlExpressionProcessor, nlChangeOwner, nlSearchCacheSrv, $filter,nlTreeSelect);
+var CourseReportListCtrl = ['nl', 'nlRouter', '$scope', 'nlServerApi', 'nlGetManyStore', 'nlDlg', 'nlCardsSrv', 'nlMetaDlg', 'nlCourse', 'nlExpressionProcessor', 'nlSearchCacheSrv', '$filter','nlTreeSelect',
+function(nl, nlRouter, $scope, nlServerApi, nlGetManyStore, nlDlg, nlCardsSrv, nlMetaDlg, nlCourse, nlExpressionProcessor, nlSearchCacheSrv, $filter,nlTreeSelect) {
+	_listCtrlImpl('report', nl, nlRouter, $scope, nlServerApi, nlGetManyStore, nlDlg, nlCardsSrv, nlMetaDlg, nlCourse, nlExpressionProcessor, nlSearchCacheSrv, $filter,nlTreeSelect);
 }];
 
-function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, nlDlg, nlCardsSrv, nlSendAssignmentSrv, nlMetaDlg, nlCourse, nlExpressionProcessor, nlChangeOwner, nlSearchCacheSrv, $filter, nlTreeSelect, nlGroupInfo) {
+function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, nlDlg, nlCardsSrv, nlMetaDlg, nlCourse, nlExpressionProcessor, nlSearchCacheSrv, $filter, nlTreeSelect, nlGroupInfo) {
 	/* 
 	 * URLs handled
 	 * 'View published' : /course_list?type=course&my=0
@@ -302,38 +302,12 @@ function _listCtrlImpl(type, nl, nlRouter, $scope, nlServerApi, nlGetManyStore, 
 			var assignInfo = {assigntype: 'course', id: card.courseId, icon : card.icon2 ? 'icon:' : card.icon, 
 				title: card.title, authorName: card.authorName, description: card.help,
 				showDateField: true, enableSubmissionAfterEndtime: true, blended: card.blended};
-				nlDlg.showLoadingScreen();
-				nlServerApi.courseGet(card.courseId, true).then(function(course) {
-					nlDlg.hideLoadingScreen();
-					assignInfo['course'] = course;
-					var features = _userInfo.groupinfo.features;
-					var grpChecklist = features.courses && features.courses.coursePublishChecklist ? features.courses.coursePublishChecklist : [];
-					if (grpChecklist && grpChecklist.length > 0) {
-						var checklist = course.content.checklist || [];
-						var msg = nlCourse.getCheckListDialogParams(grpChecklist, checklist);
-						if (msg) {
-							nlDlg.popupConfirm({title: 'Warning', template: msg, okText: 'Continue'}).then(function(res) {
-								if (!res) return;
-								nlSendAssignmentSrv.show($scope, assignInfo, _userInfo);						
-							});	
-						} else {
-							nlSendAssignmentSrv.show($scope, assignInfo, _userInfo);
-						}
-					} else {
-						nlSendAssignmentSrv.show($scope, assignInfo, _userInfo);						
-					}
-				});
 		} else if (linkid === 'course_assign_delete'){
 			_deleteAssignment($scope, card.reportId);
         } else if (linkid === 'course_report') {
             _showCourseReport(card.courseId);
 		} else if (linkid == 'course_copy') {
 			_copyCourse($scope, card);
-		} else if (linkid == 'change_owner') {
-			if(card.isAssignment)
-				nlChangeOwner.show($scope, card.reportId, 'course_assignment', _userInfo, false, launchtype); //For assignments reportId is assignment id
-			else
-				nlChangeOwner.show($scope, card.courseId, 'course', _userInfo);
 		}
 	};
 
