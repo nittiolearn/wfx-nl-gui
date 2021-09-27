@@ -216,7 +216,10 @@ var _dashboardActions = {
     'learning_reports.user': {'url': '/#/learning_reports?type=user&{}', 'permission': 'assignment_send', 'termCheck': 'Restricted'},
     'sco.export': {'url': '/#/sco_export?{}', 'permission': 'sco_export'},
     'sco.offline_export': {'url': '/#/offline_export?{}', 'permission': 'sco_export'},
-    'sco.import': {'url': '/#/sco_import_list?{}', 'permission': 'sco_import'}
+    'sco.import': {'url': '/#/sco_import_list?{}', 'permission': 'sco_import'},
+
+    // Whatfix needed urls
+    'module.player': {'url': '/module/player?{}', 'permission': 'basic_access'}
 };
 
 module_init();
