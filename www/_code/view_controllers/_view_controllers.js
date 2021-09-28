@@ -9,7 +9,7 @@ function module_init() {
     	['nl.home', 'nl.auth', 'nl.course',
     	 'nl.sco', 'nl.lessonlist',
     	 'nl.resource', 'nl.resource_list',
-		 'nl.lesson']);
+		 'nl.lesson', 'nl.module']);
 }
 
 //-------------------------------------------------------------------------------------------------

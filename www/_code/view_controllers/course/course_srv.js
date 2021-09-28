@@ -219,7 +219,7 @@ var _dashboardActions = {
     'sco.import': {'url': '/#/sco_import_list?{}', 'permission': 'sco_import'},
 
     // Whatfix needed urls
-    'module.player': {'url': '/module/player?{}', 'permission': 'basic_access'}
+    'module.player': {'url': '/#/module?type=player?id={}', 'permission': 'basic_access'}
 };
 
 module_init();

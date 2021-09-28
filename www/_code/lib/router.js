@@ -438,7 +438,10 @@ function Permission(nl) {
         'forum_view_details': {login: true, permission: 'admin_user', termRestriction: TR_CLOSED},
         'admin_user': {login: true, permission: 'admin_user', termRestriction: TR_CLOSED},
         'admin_group': {login: true, permission: 'admin_group', termRestriction: TR_CLOSED},
-        'nittio_support': {login: true, permission: 'nittio_support', termRestriction: TR_CLOSED}
+        'nittio_support': {login: true, permission: 'nittio_support', termRestriction: TR_CLOSED},
+        //WFX urls
+        '/module': {login: true, permission: 'basic_access', termRestriction: TR_OPEN}    
+
     };
     
     var openPages = {'/login_now': 1, '/logout_now': 1,  '/pw_reset': 1,
