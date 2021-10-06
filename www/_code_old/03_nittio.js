@@ -316,7 +316,7 @@ nittio = function() {
 		_moreviewDlg.create('moreview', jQuery('#moreview').remove(), []);
 
 		var logview = jQuery('#logview').remove();
-		var logListJson = jQuery('#logData').val();
+		var logListJson = jQuery('#logData').val() || '{}';
 		var logList = jQuery.parseJSON(logListJson);
 		for (var i = 0; i < logList.length; i++) {
 			_bShowLogview = true;

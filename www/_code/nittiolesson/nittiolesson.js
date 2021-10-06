@@ -57,6 +57,14 @@ function(nl, nlServerApi, NittioLessonModulePropsDlg, NittioLessonPagePropsDlg,
 	this.showSectionDlg = function(dataObj) {
     	return NittioLessonSectionDetailsDlg.showDlg(dataObj);
 	}
+	this.getLessonContent = function(lessonId) {
+		var data = {id: lessonId};
+		return nl.q(function(resolve, reject) {
+			nlServerApi.getPlayer(data).then(function(result) {
+				resolve(result);
+			});
+		});
+	};
 }]; 
 
 module_init();

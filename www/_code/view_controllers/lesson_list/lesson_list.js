@@ -287,7 +287,7 @@ this.show = function($scope, initialUserInfo, params) {
 		} else if (internalUrl === 'lesson_disapprove') {
 			_disapproveLesson($scope, lessonId);
 		} else if (internalUrl === 'lesson_view') {
-			nl.window.location.href = nl.fmt2('#/module?type=player&id={}', lessonId);
+			nl.window.location.href = nl.fmt2('/module/player?id={}', lessonId);
         } else if (internalUrl === 'lesson_view_priv') {
             nl.window.location.href = nl.fmt2('/lesson/view_priv/{}/', lessonId);
 		} else if (internalUrl === 'lesson_reopen') {
@@ -361,7 +361,7 @@ this.show = function($scope, initialUserInfo, params) {
         else if (mode.mode == MODES.APPROVED || mode.mode == MODES.MANAGE) {
             if(_showInDlg) card.internalUrl = 'lesson_select';
             else if (mode.modeStr == 'selfassign') card.url = nl.fmt2('/lesson/do_report_selfassign?lessonid={}', lesson.id);
-            else card.url = nl.fmt2('#/module?type=player&id={}', lesson.id);
+            else card.url = nl.fmt2('/module/player?id={}', lesson.id);
         } else if (mode.mode == MODES.SENDASSIGNMENT) card.internalUrl = 'send_assignment';
         else if (mode.mode == MODES.NEW) card.url = nl.fmt2('/lesson/create2/{}/', lesson.id);
         else if (mode.mode == MODES.REVIEW) card.url = nl.fmt2('/lesson/view_review/{}/', lesson.id);
@@ -458,7 +458,7 @@ this.show = function($scope, initialUserInfo, params) {
             _addApproveLinkToDetails(lesson, linkAvp);
             nl.fmt.addLinkToAvp(linkAvp, 'copy', null, 'lesson_copy');
         } else if (mode.mode == MODES.APPROVED || mode.mode == MODES.MANAGE) {
-            nl.fmt.addLinkToAvp(linkAvp, 'view', nl.fmt2('#/module?type=player&id={}', lessonId));
+            nl.fmt.addLinkToAvp(linkAvp, 'view', nl.fmt2('/module/player?id={}', lessonId));
             if (lesson.grp == _userInfo.groupinfo.id && _userInfo.permissions.lesson_copy)
                 nl.fmt.addLinkToAvp(linkAvp, 'copy', null, 'lesson_copy');
             nl.fmt.addLinkToAvp(linkAvp, 'send assignment', null, 'send_assignment');

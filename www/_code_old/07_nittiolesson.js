@@ -158,8 +158,10 @@ nlesson = function() {
 	}
 	
     function Lesson_cloneBgImgForPage(page) {
-        var ret = window.nlapp.NittioLesson.getBgInfo(page, modulePopup.isPopupOpen(), 
-            this.bgimg.attr('src'), this.globals.templateCssClass, page.pagetype.getPt());
+        // var ret = window.nlapp.NittioLesson.getBgInfo(page, modulePopup.isPopupOpen(), 
+        //     this.bgimg.attr('src'), this.globals.templateCssClass, page.pagetype.getPt());
+        //TODO-CHECK: Currently use default popup_bg
+        var ret = {imgtype: 'default_popup_bg'};
         if (ret.imgtype == 'default_popup_bg') {
             ret.bgimg = jQuery('<div class="bgimg module_popup_img"></div>');
         } else if (ret.imgtype == 'default_module_bg') {
@@ -204,27 +206,35 @@ nlesson = function() {
 	function Lesson_initDom() {
 	    jQuery('.toolBar').hide(); // shown later as needed!
 	    var self = this;
-        var jLesson = jQuery('#l_content').val();
-        self.oLesson = jQuery.parseJSON(jLesson);
-        self.parentTemplateContents = self.oLesson.parentTemplateContents || {};
-        delete self.oLesson.parentTemplateContents;
-        self.updateOLessonFromTempl();
-        _initPageTypes(self);
-        self.bgimg = jQuery('#l_pageData .bgimg');
-        self.postRenderingQueue = new PostRenderingQueue(self);
-        njs_scorm.onInitLesson(self, g_nlPlayerType, g_nlEmbedType,
-            nittio.getUsername(), nittio.getUserdispname());
-        window.nlapp.nlMarkup.setGid((g_nlPlayerType == 'sco') ? 0 : nittio.getGid());
-        var moduleConfig = jQuery('#module_config').val();
-        moduleConfig = jQuery.parseJSON(moduleConfig);
-        self.globals.isPollyEnabled = (self.oLesson.autoVoiceProvider == 'polly');
-        window.nlapp.NittioLesson.init(self.oLesson, moduleConfig,
-            npagetypes.getInteractionsAndLayouts());
-        njs_slides.getZoomer().onZoomChange(function() {
-            var curPage = g_lesson.getCurrentPage();
-            if (!curPage) return;
-            curPage.adjustHtmlDom();
-        });
+        var params={};
+        window.location.search.replace(/[?&]+([^=&]+)=([^&]*)/gi, function(str,key,value) {
+            params[key] = value;
+          }
+        );        
+        var promise = window.nlapp.NittioLesson.getLessonContent(params['id'] || '');
+        promise.then(function(result) {
+            var jLesson = result.lessonJson || '{}';
+            self.oLesson = jQuery.parseJSON(jLesson);
+            self.parentTemplateContents = self.oLesson.parentTemplateContents || {};
+            delete self.oLesson.parentTemplateContents;
+            //self.updateOLessonFromTempl();
+            _initPageTypes(self);
+            //self.bgimg = jQuery('#l_pageData .bgimg');
+            self.postRenderingQueue = new PostRenderingQueue(self);
+            njs_scorm.onInitLesson(self, g_nlPlayerType, g_nlEmbedType,
+                nittio.getUsername(), nittio.getUserdispname());
+            window.nlapp.nlMarkup.setGid((g_nlPlayerType == 'sco') ? 0 : nittio.getGid());
+            // var moduleConfig = jQuery('#module_config').val();
+            var moduleConfig = {grades: 'Wfx-learning', subjects: 'Wfx-exercise', grpProps: {}, restypes: {}} //Made empty obj for now. Check and fill jQuery.parseJSON(moduleConfig);
+            self.globals.isPollyEnabled = (self.oLesson.autoVoiceProvider == 'polly');
+            window.nlapp.NittioLesson.init(self.oLesson, moduleConfig,
+                npagetypes.getInteractionsAndLayouts());
+            njs_slides.getZoomer().onZoomChange(function() {
+                var curPage = g_lesson.getCurrentPage();
+                if (!curPage) return;
+                curPage.adjustHtmlDom();
+            });    
+        })
     }
 
     function Lesson_postInitDom() {
