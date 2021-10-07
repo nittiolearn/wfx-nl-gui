@@ -40,7 +40,6 @@ var outPaths = {};
 outPaths.base = '../wfx-nl-server/applications/nittiolearn/';
 outPaths.staticBase = outPaths.base + 'static/';
 outPaths.script = outPaths.staticBase + '_script_bundles/';
-outPaths.scriptScormTesting = outPaths.staticBase + 'others/local-scorm-test-driver/nlcontent'; // For local scorm testing
 outPaths.scriptUrl = 'static/_script_bundles/';
 outPaths.view = outPaths.base + 'views/default';
 outPaths.modules = outPaths.base + 'modules';
@@ -93,7 +92,7 @@ gulp.task('clean', function(done) {
     });
 });
 
-gulp.task('build', ['nl_html', 'nl_css', 'nl_js', 'nl_js_old', 'nl_js_old_scorm', 
+gulp.task('build', ['nl_html', 'nl_css', 'nl_js', 'nl_js_old', 
     'nl_css_old1', 'nl_css_old2', 'nl_generate_index', 'nl_generate_index_min', 
     'nl_generate_mversion']);
 
@@ -102,7 +101,7 @@ gulp.task('watch', function() {
     gulp.watch(inPaths.css, ['nl_css']);
     gulp.watch(inPaths.scss, ['nl_css']);
     gulp.watch(inPaths.js, ['nl_js']);
-    gulp.watch(inPaths.oldJs, ['nl_js_old', 'nl_js_old_scorm']);
+    gulp.watch(inPaths.oldJs, ['nl_js_old']);
     gulp.watch(inPaths.oldCss, ['nl_css_old1', 'nl_css_old2']);
     gulp.watch(inPaths.htmlTemplate + '**', ['nl_generate_index', 'nl_generate_index_min', 'nl_generate_mversion']);
 });
@@ -152,13 +151,6 @@ gulp.task('nl_js_old', function(done) {
     .pipe(uglify()).on('error', swallowError)
     .pipe(rename({extname : '.min.js'}))
     .pipe(gulp.dest(outPaths.script))
-    .on('end', done);
-});
-
-gulp.task('nl_js_old_scorm', ['nl_js_old'], function(done) {
-    gulp.src(outPaths.script + '/nittioold.bundle.js')
-    .pipe(rename('00.js'))
-    .pipe(gulp.dest(outPaths.scriptScormTesting))
     .on('end', done);
 });
 

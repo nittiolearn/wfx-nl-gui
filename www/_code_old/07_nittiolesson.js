@@ -34,6 +34,7 @@ nlesson = function() {
 		// Initialize and render
 		this.initDom = Lesson_initDom;					// init
 		this.postInitDom = Lesson_postInitDom;          // createHtmlDom: after scorm init
+        this.on_editor_mode = Lesson_on_editor_mode;
 		this.updateTemplateCustomizations = Lesson_updateTemplateCustomizations;
 		this.editorToggleEditAndPreview = Lesson_editorToggleEditAndPreview; 
 		this.editorEditContent = Lesson_editorEditContent;
@@ -203,7 +204,7 @@ nlesson = function() {
 	//--------------------------------------------------------------------------------------------
 	// Lesson Methods - Initialize and render
 	//--------------------------------------------------------------------------------------------
-	function Lesson_initDom() {
+	function Lesson_initDom(launchContext) {
 	    jQuery('.toolBar').hide(); // shown later as needed!
 	    var self = this;
         var params={};
@@ -221,7 +222,7 @@ nlesson = function() {
             //self.updateOLessonFromTempl();
             var selector = nlesson.theLesson.globals.selectionHandler;
             selector.setupToolbelt(lessonId, true, true);
-            _update_editor_mode(true);
+            if (launchContext == 'edit') self.on_editor_mode(true);
             _initPageTypes(self);
             //self.bgimg = jQuery('#l_pageData .bgimg');
             self.postRenderingQueue = new PostRenderingQueue(self);
@@ -241,9 +242,9 @@ nlesson = function() {
         })
     }
 
-    function _update_editor_mode(bInit) {
+    function Lesson_on_editor_mode(bInit) {
         if (bInit) 
-        nlesson.theLesson.renderCtx.editorEditContent();
+            nlesson.theLesson.renderCtx.editorEditContent();
         else 
             nlesson.theLesson.editorEditContent();
         var selector = nlesson.theLesson.globals.selectionHandler;
@@ -2284,7 +2285,7 @@ function SectionSelectionHandler(lesson) {
     var _allTools = [];        
     this.setupToolbelt = function(lessonId, canApprove, isRaw) {
         if (lesson.renderCtx.launchMode() != 'edit') return;
-        _allTools.push({id: 'edit_icon_content_edit', grpid: 'editor', grp: 'Editor mode', icon: 'ion-ios-compose', name:'Edit module', title: 'Edit lesson content', shortcut: ' (Alt+T)', onclick: on_editor_mode});
+        _allTools.push({id: 'edit_icon_content_edit', grpid: 'editor', grp: 'Editor mode', icon: 'ion-ios-compose', name:'Edit module', title: 'Edit lesson content', shortcut: ' (Alt+T)', onclick: lesson.on_editor_mode});
         if (nittio.isGraphicalArranger()) _allTools.push({id: 'edit_icon_layout_edit', grpid: 'editor', grp: 'Editor mode', icon:'ion-arrow-move', name: 'Edit layout', title:'Section positioning and resize', onclick: on_layout_edit});
         _allTools.push({id: 'edit_icon_preview', grpid: 'editor', grp: 'Editor mode', icon:'ion-ios-eye', name: 'Preview', title:'View lesson', onclick: on_preview});
         if (nittio.isBleedingEdge() && lesson.renderCtx.launchCtx() == 'edit_templ')
@@ -2566,7 +2567,7 @@ var modulePopup = new ModulePopupHadler();
         });
 		
 		jQuery(function() {
-            g_lesson.initDom();
+            g_lesson.initDom(launchContext);
             _initFloaterTrnsparency();
 		});
 		
