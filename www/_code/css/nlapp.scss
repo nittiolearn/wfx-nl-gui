@@ -119,7 +119,7 @@ $nlpad_x_small:                   10px !default;
 $nlpad_y_small:                   10px !default;
 
 // The path for our ionicons font files, relative to the built CSS in www/css
-$ionicons-font-path: "../_external_bundles/ionicfonts" !default;
+$ionicons-font-path: "." !default;
 
 //-------------------------------------------------------------------------------------------
 // CSS classes starting from nlta_ are used for test automation purposes. Please keep them

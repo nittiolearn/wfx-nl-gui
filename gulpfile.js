@@ -34,6 +34,7 @@ inPaths.code = './www/_code/';
 inPaths.oldCode = './www/_code_old/';
     inPaths.oldJs = inPaths.oldCode + '*.js'; // We do not want the test folder (so not **/*.js)
     inPaths.oldCss = inPaths.oldCode + '**/*.css';
+inPaths.extBundleSrc = './www/_extern/for_bundle';
 inPaths.htmlTemplate = './www/_htmlTemplate/';
 
 var outPaths = {};
@@ -49,21 +50,7 @@ outPaths.cleanup = [
     outPaths.staticBase + 'nittio_template*', 
     outPaths.staticBase + '_script_bundles/*',
     outPaths.view + '/index.*',
-    outPaths.modules + '/mversion.py',
-
-    // For older cleanups: generated files in wfx-nl-server repository
-    outPaths.staticBase + '_external/ionic*', // For older cleanups
-    outPaths.staticBase + '_external/ydn*',
-    outPaths.staticBase + '_external/ionicfonts',
-    outPaths.staticBase + '_external/lib',
-    outPaths.staticBase + 'nittio_script*',
-
-    // For older cleanups: generated files in nittioapp repository
-    './www/static/_script_bundles/',
-    './www/static/_external_bundles/',
-    './www/static/nittio_script_*',
-    './www/static/nittio_script_*',
-    './www/static/_external'
+    outPaths.modules + '/mversion.py'
     ];
 
 function swallowError(error) {
@@ -92,7 +79,7 @@ gulp.task('clean', function(done) {
     });
 });
 
-gulp.task('build', ['nl_html', 'nl_css', 'nl_js', 'nl_js_old', 
+gulp.task('build', ['nl_html', 'nl_css', 'nl_js', 'nl_js_old', 'nl_ext_bundles',
     'nl_css_old1', 'nl_css_old2', 'nl_generate_index', 'nl_generate_index_min', 
     'nl_generate_mversion']);
 
@@ -153,6 +140,54 @@ gulp.task('nl_js_old', function(done) {
     .pipe(gulp.dest(outPaths.script))
     .on('end', done);
 });
+
+gulp.task('nl_ext_bundles', ['nl_ext_js1', 'nl_ext_js2', 'nl_ext_js3', 'nl_ext_js4', 'nl_ext_css1', 'nl_ext_css2', 'nl_ext_fonts']);
+
+gulp.task('nl_ext_js1', function(done) {
+    makeExtBundle('js', 1, done);
+});
+
+gulp.task('nl_ext_js2', function(done) {
+    makeExtBundle('js', 2, done);
+});
+
+gulp.task('nl_ext_js3', function(done) {
+    makeExtBundle('js', 3, done);
+});
+
+gulp.task('nl_ext_js4', function(done) {
+    makeExtBundle('js', 4, done);
+});
+
+gulp.task('nl_ext_css1', function(done) {
+    makeExtBundle('css', 1, done);
+});
+
+gulp.task('nl_ext_css2', function(done) {
+    makeExtBundle('css', 2, done);
+});
+
+function makeExtBundle(extType, bundleNo, done) {
+    var inPath  = inPaths.extBundleSrc + '/ext' + extType +  bundleNo +  '-src/*.' + extType;
+    gulp.src(inPath)
+    .pipe(order())
+    .pipe(concat('nlext' + bundleNo + '.bundle.min.' + extType))
+    .pipe(gulp.dest(outPaths.script))
+    .on('end', done);
+}
+
+
+gulp.task('nl_ext_fonts', function(done) {
+    gulp.src(inPaths.extBundleSrc + '/extfonts')
+    .pipe(gulp.dest(outPaths.script))
+    .on('end', done);
+});
+
+function nittioCopyResouce(done, resType) {
+    gulp.src(inResourcePath(resType))
+    .pipe(gulp.dest(nittioResourcePath(resType)))
+    .on('end', done);
+}
 
 gulp.task('nl_css_old1', function(done) {
    _copy_css(done, inPaths.oldCode + 'nittioold.css', outPaths.script);
