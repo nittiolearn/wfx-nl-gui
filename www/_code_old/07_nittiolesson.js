@@ -212,12 +212,16 @@ nlesson = function() {
           }
         );        
         var promise = window.nlapp.NittioLesson.getLessonContent(params['id'] || '');
+        var lessonId = params['id'];
         promise.then(function(result) {
             var jLesson = result.lessonJson || '{}';
             self.oLesson = jQuery.parseJSON(jLesson);
             self.parentTemplateContents = self.oLesson.parentTemplateContents || {};
             delete self.oLesson.parentTemplateContents;
             //self.updateOLessonFromTempl();
+            var selector = nlesson.theLesson.globals.selectionHandler;
+            selector.setupToolbelt(lessonId, true, true);
+            _update_editor_mode(true);
             _initPageTypes(self);
             //self.bgimg = jQuery('#l_pageData .bgimg');
             self.postRenderingQueue = new PostRenderingQueue(self);
@@ -235,6 +239,16 @@ nlesson = function() {
                 curPage.adjustHtmlDom();
             });    
         })
+    }
+
+    function _update_editor_mode(bInit) {
+        if (bInit) 
+        nlesson.theLesson.renderCtx.editorEditContent();
+        else 
+            nlesson.theLesson.editorEditContent();
+        var selector = nlesson.theLesson.globals.selectionHandler;
+        njs_toolbelt.Toolbelt.updateSelection('edit_icon_content_edit');
+        if (!bInit) selector.unselectSection();
     }
 
     function Lesson_postInitDom() {
@@ -2277,8 +2291,8 @@ function SectionSelectionHandler(lesson) {
             _allTools.push({id: 'edit_icon_template', grpid: 'editor', grp: 'Editor mode', icon:'ion-edit', name: 'Edit template', title:'Edit template', onclick: on_edit_template});
 
         _allTools.push({id: 'edit_icon_props', grpid: 'module', grp: 'Module', icon:'ion-ios-gear', name: 'Module Properties', title:'Update module name and other module level properties', onclick: on_props});
-        if(!lesson.oLesson.restoreid) _allTools.push({id: 'edit_icon_save', grpid: 'module', grp: 'Module', icon: 'save', font:'material', font:'material-icons', name:'Save', shortcut: ' (Ctrl+S)', onclick: on_save});
-        if (!lesson.oLesson.restoreid && canApprove && lessonId > 0)
+        if(lesson.oLesson) _allTools.push({id: 'edit_icon_save', grpid: 'module', grp: 'Module', icon: 'save', font:'material', font:'material-icons', name:'Save', shortcut: ' (Ctrl+S)', onclick: on_save});
+        if (lesson.oLesson && canApprove && lessonId > 0)
             _allTools.push({id: 'edit_icon_approve', grpid: 'module', grp: 'Module', icon:'ion-ios-checkmark',  name:'Approve',  title:'Approve the module and make it available to other authors', onclick: _fn(on_approve, lessonId)});
 
         _allTools.push({id: 'edit_icon_addpage', grpid: 'pages', grp: 'Page', icon:'ion-ios-plus', name:'Add Page', title:'Add a new page', shortcut: ' (Alt+Insert)', onclick: on_addpage});
@@ -2615,7 +2629,7 @@ var modulePopup = new ModulePopupHadler();
 			onLoadComplete(g_templateDict);
 			return;
 		}
-		
+		if (!g_lesson.oLesson) return;
 		var templateids = g_lesson.oLesson.parentTemplates || [];
         var lessonId = jQuery('#l_lessonId').val();
 		var promise = window.nlapp.NittioLesson.getResourceLibrary(templateids, lessonId);
