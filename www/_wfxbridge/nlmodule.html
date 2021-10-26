@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<!-- paulirish.com/2008/conditional-stylesheets-vs-css-hacks-answer-neither/ -->
+<!--[if lt IE 7]><html class="ie ie6 ie-lte9 ie-lte8 ie-lte7 no-js" lang="en"> <![endif]-->
+<!--[if IE 7]><html class="ie ie7 ie-lte9 ie-lte8 ie-lte7 no-js" lang="en"> <![endif]-->
+<!--[if IE 8]><html class="ie ie8 ie-lte9 ie-lte8 no-js" lang="en"> <![endif]-->
+<!--[if IE 9]><html class="ie9 ie-lte9 no-js" lang="en"> <![endif]-->
+<!--[if (gt IE 9)|!(IE)]><!-->
+<html ng-app='nl.app' ng-controller='nl.AppCtrl' class="no-js" lang="en">
+	<!--<![endif]-->
+	<head>
+
+		<noscript> <style> html, body { display: none; }</style> </noscript>
+
+		<meta charset="utf-8" />
+		<!-- www.phpied.com/conditional-comments-block-downloads/ -->
+		<!-- Always force latest IE rendering engine
+		(even in intranet) & Chrome Frame
+		Remove this if you use the .htaccess -->
+		<!--[if IE]>
+		<meta http-equiv="X-UA-Compatible" content="IE=edge{{=not request.is_local and ',chrome=1' or ''}}">
+		<![endif]-->
+		<title>Module Player</title>
+		<!--  Mobile Viewport Fix
+		j.mp/mobileviewport & davidbcalhoun.com/2010/viewport-metatag
+		device-width: Occupy full width of the screen in its current orientation
+		initial-scale = 1.0 retains dimensions instead of zooming out if page height > device height
+		user-scalable = yes allows the user to zoom in -->
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+		<meta name="apple-mobile-web-app-capable" content="yes" />
+		<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+		<!-- -------------------------------------------------------------------------------------------------------------
+		CSS (order is important)
+		------------------------------------------------------------------------------------------------------------- -->
+		<!-- nlext1.bundle.min.css: 4 items -->
+		<link rel="stylesheet" href="/static/nittio-client/nlext1.bundle.min.css?version=v01"/>
+        <link rel="stylesheet" href="/static/nittio-client/nl.bundle.min.css">
+
+		<!-- nlext2.bundle.min.css: 2 items -->
+		<link rel="stylesheet" href="/static/nittio-client/nlext2.bundle.min.css?version=v01"/>
+
+        <link rel="stylesheet" href="/static/nittio-client/nittioold.min.css">
+        <link rel="stylesheet" href="">
+        <div id='templateStyleHolder'>
+		    <style id="overridingTemplateStylesCss">
+		        /*----------------------------------------------------------------------------------*/
+		        /* Reset some specific color related template styles at the end */
+		        /*----------------------------------------------------------------------------------*/
+		        .njsSlides div.pgSecView.selected, .njsSlides div.pgSecView.last_selected {background-color: #000077; color: #FFFFFF;}
+		        .njsSlides div.pgSecView.answer_right {background-color: #007700; color: #FFFFFF;}
+		        .njsSlides div.pgSecView.answer_wrong {background-color: #770000; color: #FFFFFF;}
+		    </style>
+        </div>
+		<!-- -------------------------------------------------------------------------------------------------------------
+		java scripts (order is important)
+		------------------------------------------------------------------------------------------------------------- -->
+
+		<!-- Modernizr which enables HTML5 elements & feature detects has to be first -->
+		<!-- nlext1.bundle.min.js: 12 items -->
+		<script src="/static/nittio-client/nlext1.bundle.min.js?version=v01"></script>
+
+		<!-- We support only AsciiMath input and HTML-CSS output.
+			Also, config has to come before the script is sourced.
+		--> 
+		<script type="text/x-mathjax-config">
+			MathJax.Hub.Config({
+			imageFont: null,
+			showMathMenu: false,
+			jax: ["input/AsciiMath", "output/HTML-CSS"],
+			extensions: ["asciimath2jax.js"],
+			messageStyle: "none",
+			skipStartupTypeset: true
+			});
+		</script>
+
+		<!-- MathJax - Access from Nittio Server -->
+		<script src="/static/_external/MathJax-2.6/MathJax.js'"></script>
+		<!-- TODO-NOW - remove google analytics and also mathjax -->
+        <script async src='//www.google-analytics.com/analytics.js'></script>
+
+		<!-- Nittio stuff  -->
+        <script src="/static/nittio-client/nittioold.bundle.min.js"></script>
+
+        <!-- Nittioapp angular stuff  -->
+        <script src="/static/nittio-client/nlext2.bundle.min.js?version=v01"></script>
+
+        <script src="/static/nittio-client/nl.html_fragments.min.js"></script>
+        <script src="/static/nittio-client/nl.bundle.min.js"></script>
+
+		<!-- nlext3.bundle.min.js: 8 items -->
+        <script src="/static/nittio-client/nlext3.bundle.min.js?version=v01"></script>
+	</head>
+	<body class='nl-screen-{{screenSize}} {{nlBrowserClasses}}'>
+		<div class="pagecanvas">
+		    <style>
+                .pagecanvas-bg {
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    bottom: 0;
+                    right: 0;
+                    height: auto;
+                    width: auto;
+                    z-index: -100;
+                    background-size: cover;
+                    background-color: #FFFFFF;
+                }
+		    </style>
+			<nav class = "nl-topbar">
+				<div class='row row-center margin0 padding0' style='height: 40px'>
+					<!-- Home icon and logo -->
+					<a href="/home" title="Home">
+						<div class='row row-center margin0 padding0'>
+							<i class="padding-small fsh3 ion-home fwhite"></i>
+                            <!-- TODO-CHECK -->                            
+							<img src="" alt="Nittio" class='hide-in-{{=mutils.mush("screenSize")}}' style='max-height: 40px'/>
+						</div>
+					</a>
+
+					<!-- Title and subtitle -->
+					<span class='nltb-title col nl-textellipsis'>
+						{{pgInfo.title}} <small>{{pgInfo.subtitle}}</small>
+					</span>
+
+					<!-- User menu item -->
+					<i title="pgInfo.loginTitle" class='padding-small fsh3 ion-android-person'
+						onclick="nittio.toggleElem('#nl-user-menu');" ></i>
+				</div>
+			</nav>
+			<div class='body'>
+				<div class='inner_body' on-swipe-left='onSwipeLeft($event)' on-swipe-right='onSwipeRight($event)' >
+					<script>
+						nittio.pageIsLesson();
+						// TODO-CHECK: Call nlesson.init properly view has be set based on type called from iframe
+                        nlesson.init("view", "cfg.cssClass()", "request.nittio.nlPlayerType", "request.nittio.nlEmbedType");
+						jQuery(function() {
+							njs_lesson_helper.LessonDlgs.creacreateDlgteDlg(njs_lesson_helper.LessonDlgs.contentsDlg, 
+								'contents', 'save', 'Save', function() {
+									on_contents_save();
+								});
+						});	
+						
+						function toggleTimer() {
+							jQuery('#countdown_timer').toggleClass('hide_counter');
+						}
+
+					</script>
+					<div id='l_html'>
+					</div>
+                    <script>
+
+                        function on_notes() {
+                            _updateNotesFields();
+                            njs_lesson_helper.LessonDlgs.notesDlg.show();
+                        }
+                        
+                        var forumType = "";
+                        var forumRefid = "";
+                        function on_forum() {
+                            nlesson.theLesson.showForum(forumType, forumRefid);
+                        }
+                        
+                        function _updateNotesFields() {
+                            jQuery('#l_notes').val(nlesson.theLesson.getPageStudentNotes());
+                            var pgNo = nlesson.theLesson.getCurrentPageNo() + 1;
+                            jQuery('#notesdlg_title').html(njs_helper.fmt2('Page notes for page {}', pgNo));
+                            jQuery('#l_pageUrl').val(nlesson.theLesson.getCurrentPageUrl());
+                            
+                            jQuery('#l_teach_remarks').val(nlesson.theLesson.getPageTeacherRemarks());
+                            if (!nlesson.theLesson.renderCtx.canShowScore()) return;
+
+                            jQuery('#l_score').val(nlesson.theLesson.getPageScore());
+                            jQuery('#l_score').attr('max', nlesson.theLesson.getPageMaxScore());
+                            jQuery('#l_maxscore').val(nlesson.theLesson.getPageMaxScore());
+                            if (nlesson.theLesson.renderCtx.canEditScore() && 
+                                nlesson.theLesson.isPageScoreEditable()) {
+                                jQuery('#l_score').removeAttr('readonly');
+                            } else {
+                                jQuery('#l_score').attr('readonly','readonly');
+                            }
+                        }
+
+                        function on_notesdlg_ok() {
+                            if (!_notesValidate()) {
+                                return false;
+                            }
+                            njs_lesson_helper.LessonDlgs.notesDlg.close();
+                            nlesson.theLesson.setPageStudentNotes(jQuery('#l_notes').val());
+                            nlesson.theLesson.setPageTeacherRemarks(jQuery('#l_teach_remarks').val());
+                        }
+
+                        function _notesValidate() {
+                            if (!nlesson.theLesson.renderCtx.canEditScore() || 
+                                !nlesson.theLesson.isPageScoreEditable()) return true;
+
+                            var scoreObj = jQuery('#l_score');
+                            var score = scoreObj.val();
+                            var maxScore = nlesson.theLesson.getPageMaxScore();
+                            if (score < 0 || score > maxScore) {
+                                scoreObj.css({'background-color' : '#FFAAAA'});
+                                scoreObj.focus();
+                                return false;
+                            }
+                            scoreObj.css({'background-color' : '#FFFFFF'});			
+
+                            nlesson.theLesson.setPageScore(score);
+                            return true;
+                        }
+
+                        function saveReportAssign() {
+                            nlesson.theLesson.saveAssignReport();
+                        }
+                        
+                        function submitReportAssign() {
+                            njs_helper.Dialog.moveBack();
+                            nlesson.theLesson.submitReport('submit_assign');
+                        }
+
+                        function zoomEnter() {
+                            njs_slides.getZoomer().zoomEnter();
+                        }
+                        
+                        function reportOverview() {
+                            njs_helper.Dialog.moveBack();
+                            njs_lesson_helper.SubmitAndScoreDialog.showReportOverview(nlesson.theLesson);
+                        }
+                        
+                        function checkReportLesson(bFeedback) {
+                            nlesson.theLesson.showPageReport(bFeedback);
+                        }
+                        
+                        function on_viewcomment() {
+                            njsCommentEditor.initCommentEditor(on_commenteditor_init,false);				
+                        }
+                        
+                        function on_submitcomment(bForce, moreFn) {
+                            if (bForce === undefined) bForce = false;
+                            njsCommentEditor.initCommentEditor(function() {
+                                nlesson.theLesson.saveComments(moreFn);		
+                            }, false);
+                        }
+                        
+                        function on_commenteditor_init(){		
+                            njsCommentEditor.showCommentEditor(function(){});
+                        }
+                        
+                        function on_approve(lessonId) {
+                            njs_helper.BlankScreen.show();
+                            on_submitcomment(true, function(data, isError) {
+                                if (isError) return;
+                                onLessonApprove(lessonId, '/#/lesson_list?type=review');		
+                            });
+                        }
+                            
+                        function on_reviewdone(lessonId) {
+                            njs_helper.BlankScreen.show();
+                            on_submitcomment(true, function(data, isError) {
+                                if (isError) return;
+                                onLessonReviewDone(lessonId);
+                            });
+                        }
+                        
+                        jQuery(function() {
+                            njs_lesson_helper.LessonDlgs.createDlg(njs_lesson_helper.LessonDlgs.notesDlg, 
+                                'notesdlg', 'ok', 'Ok', function() {
+                                    on_notesdlg_ok();
+                                });
+
+                            if (nlesson.theLesson.renderCtx.studentNotesState() == 'readonly') {
+                                jQuery('#l_notes').attr('readonly','readonly');
+                            }
+
+                            var remarksState = nlesson.theLesson.renderCtx.teacherRemarksState();
+                            if (remarksState == 'readonly') {
+                                jQuery('#l_teach_remarks').attr('readonly','readonly');
+                            } else if (remarksState == 'hidden') {
+                                jQuery('#l_teach_remarks_row').hide();				
+                            }
+
+                            if (!nlesson.theLesson.renderCtx.canShowScore()) {
+                                jQuery('#l_score_row').hide();
+                                jQuery('#l_maxscore_row').hide();
+                            }
+                            
+                        });	
+
+                    </script>
+
+				</div>
+			</div>
+            <span id='countdown_timer' class='hide_counter'></span>
+			<nav class="toolBar nl-toolbar transparable">
+			</nav>
+			<nav id="nl-zoombar">
+				<div class='row row-center margin0 padding0'>
+					<div class='nl-zoom-button' on-touch="zoomer.zoomExit($event)">
+						<span class='row row-center margin0 padding0'>
+							<i class='icon ion-arrow-shrink'></i>
+							<span class='nl-zoom-btn-txt'>Exit zoom</span>
+						</span>
+					</div>
+					<div id='zoomOut' class='nl-zoom-button' title='Zoom out' on-touch="zoomer.zoomOut($event)" >
+						<i class="icon material-icons">zoom_out</i>
+					</div>
+					<div id='zoomPerc' class='padding-small'></div>
+					<div id='zoomIn' class='nl-zoom-button' title='Zoom in' on-touch="zoomer.zoomIn($event)">
+						<i class="icon material-icons">zoom_in</i>
+					</div>
+				</div>
+			</nav>
+            <div id='module_popup_holder' class='body' on-swipe-left='onSwipeLeft($event)' on-swipe-right='onSwipeRight($event)' >
+				<div id='module_popup'>
+					<i class='close_button icon ion-close-round nl-link-img'
+					   onclick='nlesson.modulePopup.close()'></i>
+					 <div id='module_popup_content'>
+                    </div>
+                    <div id='popupPageNoArea' class='secNo row row-center transparable'>
+                        <span id='module_popup_navigate_left' class='navigator'
+                              title='Previous'>
+                            <i class='icon ion-arrow-left-a'></i>
+                        </span>
+                        <span class='not-in-small padding-small'></span>
+						<span id='module_popup_pgNo' class='pgNoStyle'
+						      onclick='nlesson.onPageNumberClick()'></span>
+                        <span class='not-in-small padding-small'></span>
+                        <span id='module_popup_navigate_right' class='navigator'
+                              title='Next'>
+                            <i class='icon ion-arrow-right-a'></i>
+                        </span>
+                    </div>
+                </div>
+            </div>
+			<div id='toolbelt' class='nl-thin-scroll1'>
+			</div>
+			<div id='pageNoArea' class='row row-center transparable'>
+                <span id='navigate_left' class='navigator'
+                      title='Previous'>
+                    <i class='icon ion-arrow-left-a'></i>
+                </span>
+                <span class='padding-small'></span>
+				<span id='pgNo' class='pgNoStyle'
+					  onclick='nlesson.onPageNumberClick()'></span>
+                <span class='padding-small'></span>
+                <span id='navigate_right' class='navigator'
+                      title='Next'>
+                    <i class='icon ion-arrow-right-a'></i>
+                </span>
+			</div>
+            <div id='audioHolder'></div>
+            <div id='statusBox' ng-show='pgInfo.statusPopup'
+            	 ng-click='pgInfo.onStatusPopupClick(false)'> 
+	        	<div class='close_button icon ion-close' ng-click='pgInfo.onStatusPopupClick(true)'></div> 
+                <div ng-bind-html='pgInfo.statusPopup'></div>
+            </div>
+		</div>
+        <script type="text/javascript">
+            var _pageParams = {
+                };
+        </script>
+
+		<!-- The javascript ============================================= -->
+		<script type="text/javascript">
+		    window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
+            ga('create', 'UA-38874238-1', 'auto');
+		</script>
+        <link rel="stylesheet" href="/static/nittio-client/nittiooldprint.min.css">
+        <script type='text/javascript'>
+            nittio.bindHotkey('body', 'layout', 'Ctrl+F1', nittio.onHelp);
+            nittio.bindHotkey('body', 'layout', 'Ctrl+F2', nittio.showLog);
+        </script>
+        <script type='text/javascript'>
+            nittio.initPage(_pageParams.debug, _pageParams.retainAspect, _pageParams.transition,
+                            _pageParams.staticResFolder, _pageParams.staticTemplFolder, 
+                            _pageParams.staticIconFolder, _pageParams.staticVersion,
+                            _pageParams.username, _pageParams.userdispname, _pageParams.gid);
+        </script>
+
+		<!-- The javascript (Placed at the end of the document so the pages load faster) -->
+		<!-- nlext4.bundle.min.js: 2 items -->
+		<script src="/static/nittio-client/nlext4.bundle.min.js?version=v01')"></script>
+	</body>
+</html>

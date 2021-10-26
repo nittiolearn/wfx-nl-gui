@@ -36,20 +36,21 @@ inPaths.oldCode = './www/_code_old/';
     inPaths.oldCss = inPaths.oldCode + '**/*.css';
 inPaths.extBundleSrc = './www/_extern/for_bundle';
 inPaths.htmlTemplate = './www/_htmlTemplate/';
+inPaths.jsonTemplate = './www/_wfxbridge/modulejsons/*.json';
+inPaths.wfxHtmlTemplate = './www/_wfxbridge/*.html';
 
 var outPaths = {};
 outPaths.base = '../wfx-nl-server/applications/nittiolearn/';
 outPaths.staticBase = outPaths.base + 'static/';
-outPaths.script = outPaths.staticBase + '_script_bundles/';
-outPaths.scriptUrl = 'static/_script_bundles/';
-outPaths.view = outPaths.base + 'views/default';
+outPaths.script = outPaths.staticBase + 'nittio-client/';
+outPaths.scriptUrl = 'static/nittio-client/';
+outPaths.view = outPaths.script;
 outPaths.modules = outPaths.base + 'modules';
 outPaths.cleanup = [
     outPaths.staticBase + 'nittio_res*', 
     outPaths.staticBase + 'nittio_icon*', 
     outPaths.staticBase + 'nittio_template*', 
-    outPaths.staticBase + '_script_bundles/*',
-    outPaths.view + '/index.*',
+    outPaths.staticBase + 'nittio-client/*',
     outPaths.modules + '/mversion.py'
     ];
 
@@ -67,7 +68,7 @@ gulp.task('default', function(done) {
 
 gulp.task('rebuild', function(done) {
     runSequence('clean', 
-                ['build', 'nl_copy_res', 'nl_copy_icon', 'nl_copy_template'],
+                ['build', 'nl_copy_res', 'nl_copy_icon', 'nl_copy_template', 'nl_copy_wfxhtml', 'nl_copy_wfxjson'],
                 done);
 });
 
@@ -305,4 +306,16 @@ gulp.task('nl_copy_icon', function(done) {
 
 gulp.task('nl_copy_template', function(done) {
     nittioCopyResouce(done, 'template');
+});
+
+gulp.task('nl_copy_wfxhtml', function(done) {
+    gulp.src(inPaths.wfxHtmlTemplate)
+    .pipe(gulp.dest(outPaths.script))
+    .on('end', done);
+});
+
+gulp.task('nl_copy_wfxjson', function(done) {
+    gulp.src(inPaths.jsonTemplate)
+    .pipe(gulp.dest(outPaths.script))
+    .on('end', done);
 });

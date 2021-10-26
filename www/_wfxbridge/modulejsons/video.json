@@ -1,0 +1,34 @@
+{
+    "ltype": 0,
+    "grade": "whatfix",
+    "subject": "Nittio",
+    "state": 0,
+    "props": {
+      "animationScheme": ""
+    },
+    "newPageId": 1,
+    "schemaversion": 1,
+    "custtype": 0,
+    "templatePageTypes": "",
+    "templateAnimations": "",
+    "pages": [
+      {
+        "pageId": 0,
+        "type": "H",
+        "maxScore": 0,
+        "sections": [
+          {
+            "text": "",
+            "type": "txt"
+          }
+        ],
+        "popupMaxScore": 0
+      }
+    ],
+    "name": "Default name",
+    "created": "2021-10-19 07:05:19",
+    "saveVersion": 1,
+    "templateStylesCss": "",
+    "templateBgimgs": "",
+    "fromTemplate": 0
+  }
