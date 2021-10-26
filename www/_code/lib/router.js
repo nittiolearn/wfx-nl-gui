@@ -107,10 +107,6 @@ function(nl, nlDlg, nlServerApi, nlMarkup, $state, nlTopbarSrv, nlMobileConnecto
         nl.rootScope.bodyClass = newClasses.join(' ');
     };
 
-    this.sendGoogleAnalytics = function(userInfo, reqtype) {
-        _sendGoogleAnalytics(userInfo, reqtype);
-    };
-    
     function _onPageEnter($scope, pageUrl, pageEnterFn, e) {
         windowDescription = '';
         nl.pginfo.isPageShown = false;
@@ -125,7 +121,6 @@ function(nl, nlDlg, nlServerApi, nlMarkup, $state, nlTopbarSrv, nlMobileConnecto
             return; // Empty page
         }
         self.getUserInfo(pageUrl, function(userInfo) {
-            _sendGoogleAnalytics(userInfo);
             nl.rootScope.pgBgimg = null;
             nl.rootScope.groupCustomClass = userInfo.groupinfo ? userInfo.groupinfo.groupCustomClass : '';
             nl.pginfo.username = (userInfo.username == '') ? '' : userInfo.displayname;
@@ -334,28 +329,6 @@ function(nl, nlDlg, nlServerApi, nlMarkup, $state, nlTopbarSrv, nlMobileConnecto
         for (var i=0; i<notifyBy.length; i++)
             if (notifyBy[i] == 'app') return true;
         return false;
-    }
-    
-    function _sendGoogleAnalytics(userInfo, reqtype) {
-        var userid = userInfo.nittioImpersonatedBy || userInfo.username || 'none';
-        var useridParts = userid.split('.');
-        var groupid = useridParts.length > 1 ? useridParts[1] : 'none';
-        var usertype = userInfo.usertype || 'none';
-        if (userInfo.nittioImpersonatedBy) usertype = 'none';
-
-        var urlParts = nl.location.path().split('/');
-        if (!reqtype) {
-            reqtype = '/';
-            if (urlParts.length > 1) reqtype += urlParts[1];
-            if (urlParts.length > 2) reqtype += '/' + urlParts[2];
-        }
-        
-        ga('set', 'dimension1', userid);
-        ga('set', 'dimension2', groupid);
-        ga('set', 'dimension4', usertype);
-        ga('set', 'dimension3', reqtype);
-        ga('send', 'pageview');
-        nl.log.debug('ga sent: ', userid, groupid, usertype, reqtype);
     }
     
     function _getWindowTitle() {

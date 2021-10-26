@@ -1,3 +1,7 @@
+# TODO
+
+remove all nittio-web related code
+
 # Getting Started
 
 1. This repo is stored in github. Please use your **nittio github account** to clone this repo from https://github.com/nittiolearn/nittioapp.git

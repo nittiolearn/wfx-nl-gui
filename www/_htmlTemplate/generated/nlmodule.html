@@ -8,39 +8,26 @@
 <html ng-app='nl.app' ng-controller='nl.AppCtrl' class="no-js" lang="en">
 	<!--<![endif]-->
 	<head>
-
 		<noscript> <style> html, body { display: none; }</style> </noscript>
-
 		<meta charset="utf-8" />
 		<!-- www.phpied.com/conditional-comments-block-downloads/ -->
-		<!-- Always force latest IE rendering engine
-		(even in intranet) & Chrome Frame
+		<!-- Always force latest IE rendering engine (even in intranet) & Chrome Frame
 		Remove this if you use the .htaccess -->
 		<!--[if IE]>
 		<meta http-equiv="X-UA-Compatible" content="IE=edge{{=not request.is_local and ',chrome=1' or ''}}">
 		<![endif]-->
 		<title>Module Player</title>
-		<!--  Mobile Viewport Fix
-		j.mp/mobileviewport & davidbcalhoun.com/2010/viewport-metatag
-		device-width: Occupy full width of the screen in its current orientation
-		initial-scale = 1.0 retains dimensions instead of zooming out if page height > device height
-		user-scalable = yes allows the user to zoom in -->
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 		<meta name="apple-mobile-web-app-capable" content="yes" />
 		<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-		<!-- -------------------------------------------------------------------------------------------------------------
-		CSS (order is important)
-		------------------------------------------------------------------------------------------------------------- -->
-		<!-- nlext1.bundle.min.css: 4 items -->
-		<link rel="stylesheet" href="/static/nittio-client/nlext1.bundle.min.css?version=v01"/>
-        <link rel="stylesheet" href="/static/nittio-client/nl.bundle.min.css">
 
-		<!-- nlext2.bundle.min.css: 2 items -->
-		<link rel="stylesheet" href="/static/nittio-client/nlext2.bundle.min.css?version=v01"/>
+        <script>var NL_SERVER_INFO = {versions: {script: 'v2021Q4S1-pre01', extscript: 'v205', res: 'v100', icon: 'v100', template: 'v100'}};</script>
 
-        <link rel="stylesheet" href="/static/nittio-client/nittioold.min.css">
-        <link rel="stylesheet" href="">
+        <link rel="stylesheet" href="nlext1.bundle.min.css?version=v205"/>
+        <link rel="stylesheet" href="nl.bundle.min.css?version=v2021Q4S1-pre01">
+		<link rel="stylesheet" href="nlext2.bundle.min.css?version=v205"/>
+        <link rel="stylesheet" href="nittioold.min.css=v2021Q4S1-pre01">
         <div id='templateStyleHolder'>
 		    <style id="overridingTemplateStylesCss">
 		        /*----------------------------------------------------------------------------------*/
@@ -54,41 +41,12 @@
 		<!-- -------------------------------------------------------------------------------------------------------------
 		java scripts (order is important)
 		------------------------------------------------------------------------------------------------------------- -->
-
-		<!-- Modernizr which enables HTML5 elements & feature detects has to be first -->
-		<!-- nlext1.bundle.min.js: 12 items -->
-		<script src="/static/nittio-client/nlext1.bundle.min.js?version=v01"></script>
-
-		<!-- We support only AsciiMath input and HTML-CSS output.
-			Also, config has to come before the script is sourced.
-		--> 
-		<script type="text/x-mathjax-config">
-			MathJax.Hub.Config({
-			imageFont: null,
-			showMathMenu: false,
-			jax: ["input/AsciiMath", "output/HTML-CSS"],
-			extensions: ["asciimath2jax.js"],
-			messageStyle: "none",
-			skipStartupTypeset: true
-			});
-		</script>
-
-		<!-- MathJax - Access from Nittio Server -->
-		<script src="/static/_external/MathJax-2.6/MathJax.js'"></script>
-		<!-- TODO-NOW - remove google analytics and also mathjax -->
-        <script async src='//www.google-analytics.com/analytics.js'></script>
-
-		<!-- Nittio stuff  -->
-        <script src="/static/nittio-client/nittioold.bundle.min.js"></script>
-
-        <!-- Nittioapp angular stuff  -->
-        <script src="/static/nittio-client/nlext2.bundle.min.js?version=v01"></script>
-
-        <script src="/static/nittio-client/nl.html_fragments.min.js"></script>
-        <script src="/static/nittio-client/nl.bundle.min.js"></script>
-
-		<!-- nlext3.bundle.min.js: 8 items -->
-        <script src="/static/nittio-client/nlext3.bundle.min.js?version=v01"></script>
+		<script src="nlext1.bundle.min.js?version=v205"></script>
+        <script src="nittioold.bundle.min.js?version=v2021Q4S1-pre01"></script>
+        <script src="nlext2.bundle.min.js?version=v205"></script>
+        <script src="nl.html_fragments.min.js?version=v2021Q4S1-pre01"></script>
+        <script src="nl.bundle.min.js?version=v2021Q4S1-pre01"></script>
+        <script src="nlext3.bundle.min.js??version=v205"></script>
 	</head>
 	<body class='nl-screen-{{screenSize}} {{nlBrowserClasses}}'>
 		<div class="pagecanvas">
@@ -359,11 +317,7 @@
         </script>
 
 		<!-- The javascript ============================================= -->
-		<script type="text/javascript">
-		    window.ga=window.ga||function(){(ga.q=ga.q||[]).push(arguments)};ga.l=+new Date;
-            ga('create', 'UA-38874238-1', 'auto');
-		</script>
-        <link rel="stylesheet" href="/static/nittio-client/nittiooldprint.min.css">
+        <link rel="stylesheet" href="nittiooldprint.min.css?version=v2021Q4S1-pre01">
         <script type='text/javascript'>
             nittio.bindHotkey('body', 'layout', 'Ctrl+F1', nittio.onHelp);
             nittio.bindHotkey('body', 'layout', 'Ctrl+F2', nittio.showLog);
@@ -376,7 +330,6 @@
         </script>
 
 		<!-- The javascript (Placed at the end of the document so the pages load faster) -->
-		<!-- nlext4.bundle.min.js: 2 items -->
-		<script src="/static/nittio-client/nlext4.bundle.min.js?version=v01')"></script>
+		<script src="nlext4.bundle.min.js?version=v205"></script>
 	</body>
 </html>
