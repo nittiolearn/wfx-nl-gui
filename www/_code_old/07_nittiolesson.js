@@ -179,14 +179,14 @@ nlesson = function() {
 	        this.minTextSizeComputed = this.oLesson.minTextSize;
 	        return this.minTextSizeComputed;
 	    }
-        var td = this.parentTemplateContents.templateDefaults;
+        var td = this.parentTemplateContents.templateDefaults || {};
         this.minTextSizeComputed = td.minTextSize || 30;
         return this.minTextSizeComputed;
 	}
 	
 	function Lesson_updateOLessonFromTempl() {
         var oLesson = this.oLesson;
-        var td = this.parentTemplateContents.templateDefaults;
+        var td = this.parentTemplateContents.templateDefaults || {};
         var pauseCount = oLesson.autovoiceStartPause || td.autovoiceStartPause || 0;
         this.globals.autoVoice.setStartPause(pauseCount);
 
@@ -340,7 +340,7 @@ nlesson = function() {
         if (oldTemplateStylesCss != this.oLesson.templateStylesCss) {
             oldTemplateStylesCss = this.oLesson.templateStylesCss;
             jQuery('#templateStyleHolder').find('#templateStylesCss').remove();
-            var stylesCss = this.parentTemplateContents.templateStylesCss;
+            var stylesCss = this.parentTemplateContents.templateStylesCss || '';
             stylesCss += this.oLesson.templateStylesCss;
             if (stylesCss) {
                 var styleElem = njs_helper.fmt2('<style id="templateStylesCss">{}</style>', stylesCss);
@@ -634,7 +634,7 @@ nlesson = function() {
         }
         
         function _adjustAndUpdateInQueue(self, pgNo) {
-            MathJax.Hub.Queue(function(){
+            window.nlapp.nl.timeout(function(){
                 _adjustAndUpdate(self, pgNo);
             });
         }
@@ -804,7 +804,7 @@ nlesson = function() {
             this.oLesson.passScore = parseInt(this.oLesson.passScore);
             if (isNaN(this.oLesson.passScore) || this.oLesson.passScore < 0 || 
                 this.oLesson.passScore > 100) delete this.oLesson.passScore;
-            var td = this.parentTemplateContents.templateDefaults;
+            var td = this.parentTemplateContents.templateDefaults || {};
             if (td.passScore == this.oLesson.passScore) delete this.oLesson.passScore;
         }
 	}
@@ -1746,20 +1746,18 @@ nlesson = function() {
 
 	function Page_adjustHtmlDom() {
 		var me = this;
-		MathJax.Hub.Queue(['Typeset', MathJax.Hub, this.hPage.get(0)]);
-		MathJax.Hub.Queue(function(){
-			for (var i=0; i<me.sections.length; i++) {
-				var pos = me.sectionCreateOrder[i];
-                me.sections[pos].preAdjustHtmlDom();
-				nittio.resizeImagesToAspectRatio(me.sections[pos].pgSecView);
-			}
-			me.updateFontSizes(me.lesson.getMinTextSize());
-			for (var i=0; i<me.sections.length; i++) {
-				var pos = me.sectionCreateOrder[i];
-				me.sections[pos].adjustHtmlDom();
-			}
-            me.lesson.postRenderingQueue.onPreLoadDone(me.getPageId());
-		});
+        // TODO-NOW: Check if window.nlapp.nl.timeout is needed
+        for (var i=0; i<me.sections.length; i++) {
+            var pos = me.sectionCreateOrder[i];
+            me.sections[pos].preAdjustHtmlDom();
+            nittio.resizeImagesToAspectRatio(me.sections[pos].pgSecView);
+        }
+        me.updateFontSizes(me.lesson.getMinTextSize());
+        for (var i=0; i<me.sections.length; i++) {
+            var pos = me.sectionCreateOrder[i];
+            me.sections[pos].adjustHtmlDom();
+        }
+        me.lesson.postRenderingQueue.onPreLoadDone(me.getPageId());
 	}
 	
 	function Page_onEscape() {
@@ -1774,15 +1772,14 @@ nlesson = function() {
 	function Page_postRender() {
 		var me = this;
         me.pageAnimationDone = true;
-		MathJax.Hub.Queue(function() {
-            if (me.lesson.renderCtx.lessonMode() != 'edit') {
-                me.pageAnimationDone = false;
-                me.lesson.globals.animationManager.setupAnimation(me, function() {
-                    me.pageAnimationDone = true;
-                });
-            }
-			me.onEscape();
-		});
+        // TODO-NOW: Check if window.nlapp.nl.timeout is needed
+        if (me.lesson.renderCtx.lessonMode() != 'edit') {
+            me.pageAnimationDone = false;
+            me.lesson.globals.animationManager.setupAnimation(me, function() {
+                me.pageAnimationDone = true;
+            });
+        }
+        me.onEscape();
 	}
 
 	function Page_updateFontSizes(minTextSize) {

@@ -33,10 +33,9 @@ inPaths.scss = inPaths.code + '**/*.scss';
 inPaths.oldCode = './www/_code_old/';
 inPaths.oldJs = inPaths.oldCode + '*.js'; // We do not want the test folder (so not **/*.js)
 inPaths.oldCss = inPaths.oldCode + '**/*.css';
-inPaths.extBundleSrc = './www/_extern/for_bundle';
-inPaths.htmlTemplate = './www/_htmlTemplate/';
-inPaths.jsonTemplate = './www/_wfxbridge/modulejsons/*.json';
-inPaths.wfxHtmlTemplate = './www/_wfxbridge/*.html';
+inPaths.extBundleSrc = './www/_wfxbridge/extern_bundles';
+inPaths.htmlTemplate = './www/_wfxbridge/html_templates/';
+inPaths.jsonTemplate = './www/_wfxbridge/modulejson_templates/';
 
 var outPaths = {};
 // TODO - change to copy to whatfix lib folder
@@ -58,7 +57,7 @@ gulp.task('default', function(done) {
 });
 
 gulp.task('rebuild', function(done) {
-    runSequence('clean', ['build', 'nl_copy_wfxhtml', 'nl_copy_wfxjson'],
+    runSequence('clean', ['build', 'nl_ext_bundles', 'nl_copy_module_jsons'],
         done);
 });
 
@@ -71,7 +70,7 @@ gulp.task('clean', function(done) {
 });
 
 gulp.task('build', ['nl_html', 'nl_css', 'nl_js', 'nl_js_old',
-    'nl_css_old1', 'nl_css_old2', 'nl_generate_html', 'nl_ext_bundles'
+    'nl_css_old1', 'nl_css_old2', 'nl_generate_html'
 ]);
 
 gulp.task('watch', function() {
@@ -123,7 +122,7 @@ gulp.task('nl_js', function(done) {
 
 gulp.task('nl_js_old', function(done) {
     gulp.src(inPaths.oldJs)
-        .pipe(concat('nittioold.bundle.js'))
+        .pipe(concat('nl.old.bundle.js'))
         .pipe(gulp.dest(outPaths.script))
         .pipe(uglify()).on('error', swallowError)
         .pipe(rename({ extname: '.min.js' }))
@@ -132,11 +131,11 @@ gulp.task('nl_js_old', function(done) {
 });
 
 gulp.task('nl_css_old1', function(done) {
-    _copy_css(done, inPaths.oldCode + 'nittioold.css', outPaths.script);
+    _copy_css(done, inPaths.oldCode + 'nl.old.css', outPaths.script);
 });
 
 gulp.task('nl_css_old2', function(done) {
-    _copy_css(done, inPaths.oldCode + 'nittiooldprint.css', outPaths.script);
+    _copy_css(done, inPaths.oldCode + 'nl.oldprint.css', outPaths.script);
 });
 
 function _copy_css(done, src, dest) {
@@ -153,19 +152,20 @@ gulp.task('nl_generate_html', function(done) {
 });
 
 function _generateHtmls(done) {
-    generateHtml(done, 'nlcourse', true);
-    generateHtml(done, 'nlcourse', false);
-    generateHtml(done, 'nlmodule', true);
-    generateHtml(done, 'nlmodule', false);
+    generateHtml(done, 'index_nlcourse', true);
+    generateHtml(done, 'index_nlcourse', false);
+    generateHtml(done, 'index_nlmodule', true);
+    generateHtml(done, 'index_nlmodule', false);
     done();
 }
 
 function generateHtml(done, indexFileName, bMinified) {
-    var destFileName = indexFileName + (bMinified ? '.min.html' : '.html');
+    var destFileName = indexFileName + (bMinified ? '.html' : '.debug.html');
     gulp.src(inPaths.htmlTemplate + indexFileName + '.html')
-        .pipe(gulpReplace(/\{\{VERSIONS_SCRIPT\}\}/g, makeVersionsScript()))
-        .pipe(gulpReplace(/\{\{NL_SCRIPT_PARAMS\}\}/g, getNlScriptParams(bMinified)))
-        .pipe(gulpReplace(/\{\{EXT_SCRIPT_PARAMS\}\}/g, getExtScriptParams()))
+        .pipe(gulpReplace(/\{\{NL_VERSIONS_SCRIPT\}\}/g, makeVersionsScript()))
+        .pipe(gulpReplace(/\{\{NL_IS_MINIFIED\}\}/g, getMinified(bMinified)))
+        .pipe(gulpReplace(/\{\{NL_SCRIPT_VERSION\}\}/g, getNlScriptVersion()))
+        .pipe(gulpReplace(/\{\{NL_EXT_SCRIPT_VERSION\}\}/g, getExtScriptVersion()))
         .pipe(rename(destFileName))
         .pipe(gulp.dest(outPaths.script));
 }
@@ -174,15 +174,22 @@ function makeVersionsScript() {
     return `<script>var NL_SERVER_INFO = {versions: {script: '${VERSIONS.script}', extscript: '${VERSIONS.extscript}', res: '${VERSIONS.res}', icon: '${VERSIONS.icon}', template: '${VERSIONS.template}'}};</script>`;
 }
 
-function getNlScriptParams(bMinified) {
-    var min = bMinified ? '.min' : '';
-    return min + `.js?version=${VERSIONS.script}`;
+function getMinified(bMinified) {
+    return bMinified ? '.min' : '';
 }
 
-function getExtScriptParams() {
-    return `.min.js?version=${VERSIONS.extscript}`;
+function getNlScriptVersion(bMinified) {
+    return `?version=${VERSIONS.script}`;
 }
 
+function getExtScriptVersion() {
+    return `?version=${VERSIONS.extscript}`;
+}
+
+
+//-------------------------------------------------------------------------------------------------
+// Resource Copies required during rebuild
+//-------------------------------------------------------------------------------------------------
 gulp.task('nl_ext_bundles', ['nl_ext_js1', 'nl_ext_js2', 'nl_ext_js3', 'nl_ext_js4', 'nl_ext_css1', 'nl_ext_css2', 'nl_ext_fonts']);
 
 gulp.task('nl_ext_js1', function(done) {
@@ -213,30 +220,20 @@ function makeExtBundle(extType, bundleNo, done) {
     var inPath = inPaths.extBundleSrc + '/ext' + extType + bundleNo + '-src/*.' + extType;
     gulp.src(inPath)
         .pipe(order())
-        .pipe(concat('nlext' + bundleNo + '.bundle.min.' + extType))
+        .pipe(concat('nl.ext' + bundleNo + '.bundle.min.' + extType))
         .pipe(gulp.dest(outPaths.script))
         .on('end', done);
 }
 
 
 gulp.task('nl_ext_fonts', function(done) {
-    gulp.src(inPaths.extBundleSrc + '/extfonts')
+    gulp.src(inPaths.extBundleSrc + '/extfonts/*')
         .pipe(gulp.dest(outPaths.script))
         .on('end', done);
 });
 
-
-//-------------------------------------------------------------------------------------------------
-// Resource Copies required during rebuild
-//-------------------------------------------------------------------------------------------------
-gulp.task('nl_copy_wfxhtml', function(done) {
-    gulp.src(inPaths.wfxHtmlTemplate)
-        .pipe(gulp.dest(outPaths.script))
-        .on('end', done);
-});
-
-gulp.task('nl_copy_wfxjson', function(done) {
-    gulp.src(inPaths.jsonTemplate)
+gulp.task('nl_copy_module_jsons', function(done) {
+    gulp.src(inPaths.jsonTemplate + '*.json')
         .pipe(gulp.dest(outPaths.script))
         .on('end', done);
 });

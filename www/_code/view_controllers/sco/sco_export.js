@@ -108,7 +108,7 @@ function ScoExportCtrlImpl(scoType, nl, nlRouter, $scope, nlServerApi, $template
         $scope.options = {version: [{id: '1.2', name: 'SCORM 1.2'}, {id: '2004 4th Edition', name: 'SCORM 2004 4th Edition'}]};
         $scope.error = {};
         $scope.data = {lessonIds: data.lessonid, version: {id: '2004 4th Edition'},
-            title: data.title, mathjax: true, courseid: data.courseid, courseModules: data.courseModules};
+            title: data.title, courseid: data.courseid, courseModules: data.courseModules};
     }
     
     $scope.onExport = function() {
@@ -128,7 +128,7 @@ function ScoExportCtrlImpl(scoType, nl, nlRouter, $scope, nlServerApi, $template
         $scope.started = true;
         $scope.ongoing = true;
         scoExporter.export(lessonIds, $scope.data.version.id, $scope.data.title, 
-            $scope.data.mathjax, $scope, lessonNames);
+            $scope, lessonNames);
     };
 }
 
@@ -142,7 +142,7 @@ function ScoExporter(scoType, nl, nlServerApi, $templateCache, pl, nlExporter) {
     self.resources = {};
     self.zip = null;
     
-    this.export = function(lessonIds, version, moduleTitle, mathjax, scope, lessonNames) {
+    this.export = function(lessonIds, version, moduleTitle, scope, lessonNames) {
         pl.clear();
         self.lessons = {};
         self.resources = {};
@@ -151,7 +151,6 @@ function ScoExporter(scoType, nl, nlServerApi, $templateCache, pl, nlExporter) {
         self.lessonIds = lessonIds;
         self.lessonNames = lessonNames;
         self.version = version;
-        self.mathjax = mathjax;
         _q(_downloadPackageZip)()
         .then(_q(_openPackageZip))
         .then(_q(_downloadModules))
@@ -483,7 +482,7 @@ function ParallelDownloadManager(nl, nlServerApi, pl, scoExporter, type, urls, r
             onDone();
             return;
         }
-        return nlServerApi.scoExport({lessonid: lessonid, mathjax: scoExporter.mathjax})
+        return nlServerApi.scoExport({lessonid: lessonid})
         .then(function(result) {
             pl.info('Downloaded module content from server', result.html);
             var image = result.lesson.image;

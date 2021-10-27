@@ -20,10 +20,6 @@
         <div ng-repeat='module in data.courseModules.names' class='padding-mid'>{{module}}</div>
         <div class='padding-mid'></div>
     </div>
-    <div class='nl-dlg-field-value nl-forum'
-         ng-if='do_not_show_for_now_there_is_a_bug'>
-        <input ng-model='data.mathjax' type='checkbox'><span>include MathJax libraries</span>
-    </div>
     <div class='padding-small' ng-hide='ongoing'>
         <div class='nl-button' ng-click='onExport()'>Export</div>
     </div>

@@ -1,0 +1,38 @@
+{{import mversion}}
+<!DOCTYPE html>
+<html ng-app='nl.app' ng-controller='nl.AppCtrl'>
+    <head>
+        <meta charset='utf-8'>
+        <meta name='viewport' content='initial-scale=1, maximum-scale=1, user-scalable=no, width=device-width'>
+        <meta name="description" nl-bind-content='pgInfo.windowDescription'
+              content="{{=metaDesc}}">
+        <link rel="shortcut icon" href="favicon.ico{{NL_EXT_SCRIPT_VERSION}}" type="image/x-icon">
+        <link rel="apple-touch-icon" href="favicon.png{{NL_EXT_SCRIPT_VERSION}}">
+        <title ng-bind='pgInfo.windowTitle'>Nittio Learn - {{=title}}</title>
+		
+        {{VERSIONS_SCRIPT}}
+
+        <link rel="stylesheet" href="nl.bundle{{NL_IS_MINIFIED}}.css{{NL_SCRIPT_VERSION}}"/>
+		<link rel="stylesheet" href="nl.ext2.bundle.min.css{{NL_EXT_SCRIPT_VERSION}}"/>
+   </head>
+
+    <body ng-class='{"nl-print": pgInfo.isPrintable}' class='{{=mush("groupCustomClass")}} {{=mush("bodyClass")}} nl-screen-{{=mush("screenSize")}} {{=mush("nlBrowserClasses")}}'>
+        <ion-nav-view></ion-nav-view>
+
+        <script src="nl.ext2.bundle.min.js{{NL_EXT_SCRIPT_VERSION}}"></script>
+        <script src="nl.html_fragments{{NL_IS_MINIFIED}}.js{{NL_SCRIPT_VERSION}}"></script>
+        <script src="nl.bundle{{NL_IS_MINIFIED}}.js{{NL_SCRIPT_VERSION}}"></script>
+        <script src="nl.ext3.bundle.min.js{{NL_EXT_SCRIPT_VERSION}}"></script>
+        <!-- 
+            TODO: No there in any budle
+            <script src="/static/_external/sheetjs-0.13.0/xlsx.full.min.js"></script>
+        -->
+
+        <div id='statusBox' ng-show='pgInfo.statusPopup'
+        	ng-click='pgInfo.onStatusPopupClick(false)'
+        	class='{{=mush("pgInfo.statusPopupCls")}}'>
+        	<div class='close_button icon ion-close' ng-click='pgInfo.onStatusPopupClick(true)'></div> 
+            <div ng-bind-html='pgInfo.statusPopup'></div>
+        </div>
+	</body>	
+</html>

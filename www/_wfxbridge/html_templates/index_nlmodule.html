@@ -18,19 +18,21 @@
 		<![endif]-->
 		<title>Module Player</title>
 		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="shortcut icon" href="favicon.ico{{NL_EXT_SCRIPT_VERSION}}" type="image/x-icon">
+        <link rel="apple-touch-icon" href="favicon.png{{NL_EXT_SCRIPT_VERSION}}">
 
 		<meta name="apple-mobile-web-app-capable" content="yes" />
 		<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 
-        {{VERSIONS_SCRIPT}}
+        {{NL_VERSIONS_SCRIPT}}
         <script>
             NL_SERVER_INFO.oldCode =  1;
         </script>
 
-        <link rel="stylesheet" href="nlext1.bundle.min.css"/>
-        <link rel="stylesheet" href="nl.bundle.min.css"/>
-		<link rel="stylesheet" href="nlext2.bundle.min.css"/>
-        <link rel="stylesheet" href="nittioold.min.css"/>
+        <link rel="stylesheet" href="nl.ext1.bundle.min.css{{NL_EXT_SCRIPT_VERSION}}"/>
+        <link rel="stylesheet" href="nl.bundle{{NL_IS_MINIFIED}}.css{{NL_SCRIPT_VERSION}}"/>
+		<link rel="stylesheet" href="nl.ext2.bundle.min.css{{NL_EXT_SCRIPT_VERSION}}"/>
+        <link rel="stylesheet" href="nl.old{{NL_IS_MINIFIED}}.css{{NL_SCRIPT_VERSION}}"/>
         <div id='templateStyleHolder'>
 		    <style id="overridingTemplateStylesCss">
 		        /*----------------------------------------------------------------------------------*/
@@ -44,12 +46,11 @@
 		<!-- -------------------------------------------------------------------------------------------------------------
 		java scripts (order is important)
 		------------------------------------------------------------------------------------------------------------- -->
-		<script src="nlext1.bundle{{EXT_SCRIPT_PARAMS}}"></script>
-        <script src="nittioold.bundle{{NL_SCRIPT_PARAMS}}"></script>
-        <script src="nlext2.bundle{{EXT_SCRIPT_PARAMS}}"></script>
-        <script src="nl.html_fragments{{NL_SCRIPT_PARAMS}}"></script>
-        <script src="nl.bundle{{NL_SCRIPT_PARAMS}}"></script>
-        <script src="nlext3.bundle{{EXT_SCRIPT_PARAMS}}"></script>
+		<script src="nl.ext1.bundle.min.js{{NL_EXT_SCRIPT_VERSION}}"></script>
+        <script src="nl.ext2.bundle.min.js{{NL_EXT_SCRIPT_VERSION}}"></script>
+        <script src="nl.old.bundle{{NL_IS_MINIFIED}}.js{{NL_SCRIPT_VERSION}}"></script>
+        <script src="nl.html_fragments{{NL_IS_MINIFIED}}.js{{NL_SCRIPT_VERSION}}"></script>
+        <script src="nl.bundle{{NL_IS_MINIFIED}}.js{{NL_SCRIPT_VERSION}}"></script>
 	</head>
 	<body class='nl-screen-{{screenSize}} {{nlBrowserClasses}}'>
 		<div class="pagecanvas">
@@ -320,7 +321,7 @@
         </script>
 
 		<!-- The javascript ============================================= -->
-        <link rel="stylesheet" href="nittiooldprint.min.css">
+        <link rel="stylesheet" href="nl.oldprint{{NL_IS_MINIFIED}}.css{{NL_SCRIPT_VERSION}}">
         <script type='text/javascript'>
             nittio.bindHotkey('body', 'layout', 'Ctrl+F1', nittio.onHelp);
             nittio.bindHotkey('body', 'layout', 'Ctrl+F2', nittio.showLog);
@@ -332,7 +333,7 @@
                             _pageParams.username, _pageParams.userdispname, _pageParams.gid);
         </script>
 
-		<!-- The javascript (Placed at the end of the document so the pages load faster) -->
-		<script src="nlext4.bundle{{EXT_SCRIPT_PARAMS}}"></script>
+        <script src="nl.ext3.bundle.min.js{{NL_EXT_SCRIPT_VERSION}}"></script>
+        <script src="nl.ext4.bundle.min.js{{NL_EXT_SCRIPT_VERSION}}"></script>
 	</body>
 </html>
