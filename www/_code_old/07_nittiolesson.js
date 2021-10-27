@@ -204,24 +204,36 @@ nlesson = function() {
 	//--------------------------------------------------------------------------------------------
 	// Lesson Methods - Initialize and render
 	//--------------------------------------------------------------------------------------------
-	function Lesson_initDom(launchContext) {
+    function readTextFile(file, callback) {
+        var rawFile = new XMLHttpRequest();
+        rawFile.overrideMimeType("application/json");
+        rawFile.open("GET", file, true);
+        rawFile.onreadystatechange = function() {
+            if (rawFile.readyState === 4 && rawFile.status == "200") {
+                callback(rawFile.responseText);
+            }
+        }
+        rawFile.send(null);
+    }
+    
+    function Lesson_initDom(launchContext) {
 	    jQuery('.toolBar').hide(); // shown later as needed!
 	    var self = this;
         var params={};
         window.location.search.replace(/[?&]+([^=&]+)=([^&]*)/gi, function(str,key,value) {
             params[key] = value;
           }
-        );        
-        var promise = window.nlapp.NittioLesson.getLessonContent(params['id'] || '');
-        var lessonId = params['id'];
-        promise.then(function(result) {
-            var jLesson = result.lessonJson || '{}';
-            self.oLesson = jQuery.parseJSON(jLesson);
+        );
+        
+        readTextFile("video.json", function(text){
+            var data = JSON.parse(text);
+            console.log(data);
+            self.oLesson = data;
             self.parentTemplateContents = self.oLesson.parentTemplateContents || {};
             delete self.oLesson.parentTemplateContents;
             //self.updateOLessonFromTempl();
             var selector = nlesson.theLesson.globals.selectionHandler;
-            selector.setupToolbelt(lessonId, true, true);
+            selector.setupToolbelt(1234, true, true);
             if (launchContext == 'edit') self.on_editor_mode(true);
             _initPageTypes(self);
             //self.bgimg = jQuery('#l_pageData .bgimg');
@@ -239,7 +251,7 @@ nlesson = function() {
                 if (!curPage) return;
                 curPage.adjustHtmlDom();
             });    
-        })
+        });
     }
 
     function Lesson_on_editor_mode(bInit) {
@@ -358,7 +370,7 @@ nlesson = function() {
     }
     
     function _initPageTypes(lesson) {
-        var parentPageTypes = lesson.parentTemplateContents.templatePageTypes;
+        var parentPageTypes = lesson.parentTemplateContents.templatePageTypes || [];
         var templatePageTypes = lesson.oLesson.templatePageTypes ? JSON.parse(lesson.oLesson.templatePageTypes) : [];
         templatePageTypes = _mergeArrayAttrs(parentPageTypes, templatePageTypes);
         for (var i=0; i<templatePageTypes.length; i++) {

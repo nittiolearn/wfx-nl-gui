@@ -46,7 +46,7 @@
         <script src="nlext2.bundle.min.js?version=v205"></script>
         <script src="nl.html_fragments.min.js?version=v2021Q4S1-pre01"></script>
         <script src="nl.bundle.min.js?version=v2021Q4S1-pre01"></script>
-        <script src="nlext3.bundle.min.js??version=v205"></script>
+        <script src="nlext3.bundle.min.js?version=v205"></script>
 	</head>
 	<body class='nl-screen-{{screenSize}} {{nlBrowserClasses}}'>
 		<div class="pagecanvas">
@@ -71,7 +71,7 @@
 						<div class='row row-center margin0 padding0'>
 							<i class="padding-small fsh3 ion-home fwhite"></i>
                             <!-- TODO-CHECK -->                            
-							<img src="" alt="Nittio" class='hide-in-{{=mutils.mush("screenSize")}}' style='max-height: 40px'/>
+							<img src="" alt="Nittio" class='' style='max-height: 40px'/>
 						</div>
 					</a>
 
@@ -92,7 +92,7 @@
 						// TODO-CHECK: Call nlesson.init properly view has be set based on type called from iframe
                         nlesson.init("view", "cfg.cssClass()", "request.nittio.nlPlayerType", "request.nittio.nlEmbedType");
 						jQuery(function() {
-							njs_lesson_helper.LessonDlgs.creacreateDlgteDlg(njs_lesson_helper.LessonDlgs.contentsDlg, 
+							njs_lesson_helper.LessonDlgs.createDlg(njs_lesson_helper.LessonDlgs.contentsDlg, 
 								'contents', 'save', 'Save', function() {
 									on_contents_save();
 								});

@@ -23,11 +23,14 @@
 		<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 
         {{VERSIONS_SCRIPT}}
+        <script>
+            NL_SERVER_INFO.oldCode =  1;
+        </script>
 
-        <link rel="stylesheet" href="nlext1.bundle.min.css?version={{VERSIONS.extscript}}"/>
-        <link rel="stylesheet" href="nl.bundle.min.css?version={{VERSIONS.script}}">
-		<link rel="stylesheet" href="nlext2.bundle.min.css?version={{VERSIONS.extscript}}"/>
-        <link rel="stylesheet" href="nittioold.min.css={{VERSIONS.script}}">
+        <link rel="stylesheet" href="nlext1.bundle.min.css"/>
+        <link rel="stylesheet" href="nl.bundle.min.css"/>
+		<link rel="stylesheet" href="nlext2.bundle.min.css"/>
+        <link rel="stylesheet" href="nittioold.min.css"/>
         <div id='templateStyleHolder'>
 		    <style id="overridingTemplateStylesCss">
 		        /*----------------------------------------------------------------------------------*/
@@ -41,12 +44,12 @@
 		<!-- -------------------------------------------------------------------------------------------------------------
 		java scripts (order is important)
 		------------------------------------------------------------------------------------------------------------- -->
-		<script src="nlext1.bundle.min.js?version={{VERSIONS.extscript}}"></script>
-        <script src="nittioold.bundle.min.js?version={{VERSIONS.script}}"></script>
-        <script src="nlext2.bundle.min.js?version={{VERSIONS.extscript}}"></script>
-        <script src="nl.html_fragments.min.js?version={{VERSIONS.script}}"></script>
-        <script src="nl.bundle.min.js?version={{VERSIONS.script}}"></script>
-        <script src="nlext3.bundle.min.js??version={{VERSIONS.extscript}}"></script>
+		<script src="nlext1.bundle{{EXT_SCRIPT_PARAMS}}"></script>
+        <script src="nittioold.bundle{{NL_SCRIPT_PARAMS}}"></script>
+        <script src="nlext2.bundle{{EXT_SCRIPT_PARAMS}}"></script>
+        <script src="nl.html_fragments{{NL_SCRIPT_PARAMS}}"></script>
+        <script src="nl.bundle{{NL_SCRIPT_PARAMS}}"></script>
+        <script src="nlext3.bundle{{EXT_SCRIPT_PARAMS}}"></script>
 	</head>
 	<body class='nl-screen-{{screenSize}} {{nlBrowserClasses}}'>
 		<div class="pagecanvas">
@@ -71,7 +74,7 @@
 						<div class='row row-center margin0 padding0'>
 							<i class="padding-small fsh3 ion-home fwhite"></i>
                             <!-- TODO-CHECK -->                            
-							<img src="" alt="Nittio" class='hide-in-{{=mutils.mush("screenSize")}}' style='max-height: 40px'/>
+							<img src="" alt="Nittio" class='' style='max-height: 40px'/>
 						</div>
 					</a>
 
@@ -92,7 +95,7 @@
 						// TODO-CHECK: Call nlesson.init properly view has be set based on type called from iframe
                         nlesson.init("view", "cfg.cssClass()", "request.nittio.nlPlayerType", "request.nittio.nlEmbedType");
 						jQuery(function() {
-							njs_lesson_helper.LessonDlgs.creacreateDlgteDlg(njs_lesson_helper.LessonDlgs.contentsDlg, 
+							njs_lesson_helper.LessonDlgs.createDlg(njs_lesson_helper.LessonDlgs.contentsDlg, 
 								'contents', 'save', 'Save', function() {
 									on_contents_save();
 								});
@@ -317,7 +320,7 @@
         </script>
 
 		<!-- The javascript ============================================= -->
-        <link rel="stylesheet" href="nittiooldprint.min.css?version={{VERSIONS.script}}">
+        <link rel="stylesheet" href="nittiooldprint.min.css">
         <script type='text/javascript'>
             nittio.bindHotkey('body', 'layout', 'Ctrl+F1', nittio.onHelp);
             nittio.bindHotkey('body', 'layout', 'Ctrl+F2', nittio.showLog);
@@ -330,6 +333,6 @@
         </script>
 
 		<!-- The javascript (Placed at the end of the document so the pages load faster) -->
-		<script src="nlext4.bundle.min.js?version={{VERSIONS.extscript}}"></script>
+		<script src="nlext4.bundle{{EXT_SCRIPT_PARAMS}}"></script>
 	</body>
 </html>

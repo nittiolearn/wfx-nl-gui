@@ -1229,6 +1229,7 @@ function PageFetcher(nl, nlDlg, attrs, server) {
     
 //----------------------------------------------------------------------------------------------
 function BrandingInfoHandler() {
+    return {};
 	this._brandingInfo = angular.fromJson(NL_BRANDING_INFO);
 	this.getInfo = function() {
 		return this._brandingInfo;

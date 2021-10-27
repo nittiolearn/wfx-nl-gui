@@ -71,11 +71,7 @@ gulp.task('clean', function(done) {
 });
 
 gulp.task('build', ['nl_html', 'nl_css', 'nl_js', 'nl_js_old',
-    'nl_css_old1', 'nl_css_old2', 'nl_generate_index_and_copy', 'nl_ext_bundles'
-]);
-
-gulp.task('nl_generate_index_and_copy', ['nl_generate_course_index', 'nl_generate_course_index_min',
-    'nl_generate_module_index', 'nl_generate_module_index_min'
+    'nl_css_old1', 'nl_css_old2', 'nl_generate_html', 'nl_ext_bundles'
 ]);
 
 gulp.task('watch', function() {
@@ -85,7 +81,7 @@ gulp.task('watch', function() {
     gulp.watch(inPaths.js, ['nl_js']);
     gulp.watch(inPaths.oldJs, ['nl_js_old']);
     gulp.watch(inPaths.oldCss, ['nl_css_old1', 'nl_css_old2']);
-    gulp.watch(inPaths.htmlTemplate + '**', ['nl_generate_index_and_copy']);
+    gulp.watch(inPaths.htmlTemplate + '**', ['nl_generate_html']);
 });
 
 //-------------------------------------------------------------------------------------------------
@@ -152,95 +148,39 @@ function _copy_css(done, src, dest) {
         .on('end', done);
 }
 
-var courseFiles = {
-    css: ['nl.bundle.css'],
-    css_min: ['nl.bundle.min.css'],
-    js: ['nl.html_fragments.js', 'nl.bundle.js'],
-    js_min: ['nl.html_fragments.min.js', 'nl.bundle.min.js'],
-};
-
-var moduleFiles = {
-    css: ['nl.bundle.css'],
-    css_min: ['nl.bundle.min.css'],
-    js: ['nl.html_fragments.js', 'nl.bundle.js'],
-    js_min: ['nl.html_fragments.min.js', 'nl.bundle.min.js'],
-};
-
-gulp.task('nl_generate_course_index', function(done) {
-    _generateIndexHtml(done, 'nlcourse', courseFiles, false);
+gulp.task('nl_generate_html', function(done) {
+    _generateHtmls(done);
 });
 
-gulp.task('nl_generate_course_index_min', function(done) {
-    _generateIndexHtml(done, 'nlcourse', courseFiles, true);
-});
-
-gulp.task('nl_generate_module_index', function(done) {
-    _generateIndexHtml(done, 'nlmodule', moduleFiles, false);
-});
-
-gulp.task('nl_generate_module_index_min', function(done) {
-    _generateIndexHtml(done, 'nlmodule', moduleFiles, true);
-});
-
-function _generateIndexHtml(done, indexName, resourceNames, bMinified) {
-    // TODO-NOW
-    var prefix = 'TODO-NOW';
-
-    var jsFiles = null;
-    prefixprefix
-    var cssFiles = null;
-    var destFileName = null;
-    if (bMinified) {
-        jsFiles = resourceNames.js_min;
-        cssFiles = resourceNames.css_min;
-        destFileName = indexName + 'min.html';
-    } else {
-        jsFiles = resourceNames.js;
-        cssFiles = resourceNames.css;
-        destFileName = indexName + '.html';
-    }
-
-    var searchParam = '?version=' + VERSIONS.script;
-
-    var jsList = [];
-    for (var i = 0; i < jsFiles.length; i++) jsList.push(prefix + jsFiles[i] + searchParam);
-
-    var cssList = [];
-    for (var i = 0; i < cssFiles.length; i++) cssList.push(prefix + cssFiles[i] + searchParam);
-
-    gulp.src(inPaths.htmlTemplate + indexName + '_templ.html')
-        .pipe(htmlreplace({
-            nl_server_info: {
-                src: [
-                    [ VERSIONS.script, VERSIONS.res, VERSIONS.icon, VERSIONS.template]
-                ],
-                tpl: "<script>var NL_SERVER_INFO = {versions: {script:'%s', res:'%s', icon:'%s', template:'%s'}};</script>"
-            },
-            css: {
-                src: cssList,
-                tpl: '<link rel="stylesheet" href="%s">'
-            },
-            js: {
-                src: jsList,
-                tpl: '<script src="%s"></script>'
-            }
-        }))
-        .pipe(rename(destFileName))
-        .pipe(gulp.dest(outPaths.script))
-        .on('end', done);
+function _generateHtmls(done) {
+    generateHtml(done, 'nlcourse', true);
+    generateHtml(done, 'nlcourse', false);
+    generateHtml(done, 'nlmodule', true);
+    generateHtml(done, 'nlmodule', false);
+    done();
 }
 
-gulp.task('html_replace', function(done) {
-    gulp.src('./www/_htmlTemplate/*.html')
-        .pipe(gulpReplace(/\{\{VERSIONS_SCRIPT\}\}/g, makeVersionsScript))
-        .pipe(gulpReplace(/\{\{VERSIONS.script\}\}/g, VERSIONS.script))
-        .pipe(gulpReplace(/\{\{VERSIONS.extscript\}\}/g, VERSIONS.extscript))
-        .pipe(gulp.dest('./www/_htmlTemplate/generated'))
-        .on('end', done);
-});
+function generateHtml(done, indexFileName, bMinified) {
+    var destFileName = indexFileName + (bMinified ? '.min.html' : '.html');
+    gulp.src(inPaths.htmlTemplate + indexFileName + '.html')
+        .pipe(gulpReplace(/\{\{VERSIONS_SCRIPT\}\}/g, makeVersionsScript()))
+        .pipe(gulpReplace(/\{\{NL_SCRIPT_PARAMS\}\}/g, getNlScriptParams(bMinified)))
+        .pipe(gulpReplace(/\{\{EXT_SCRIPT_PARAMS\}\}/g, getExtScriptParams()))
+        .pipe(rename(destFileName))
+        .pipe(gulp.dest(outPaths.script));
+}
 
 function makeVersionsScript() {
     return `<script>var NL_SERVER_INFO = {versions: {script: '${VERSIONS.script}', extscript: '${VERSIONS.extscript}', res: '${VERSIONS.res}', icon: '${VERSIONS.icon}', template: '${VERSIONS.template}'}};</script>`;
+}
+
+function getNlScriptParams(bMinified) {
+    var min = bMinified ? '.min' : '';
+    return min + `.js?version=${VERSIONS.script}`;
+}
+
+function getExtScriptParams() {
+    return `.min.js?version=${VERSIONS.extscript}`;
 }
 
 gulp.task('nl_ext_bundles', ['nl_ext_js1', 'nl_ext_js2', 'nl_ext_js3', 'nl_ext_js4', 'nl_ext_css1', 'nl_ext_css2', 'nl_ext_fonts']);
