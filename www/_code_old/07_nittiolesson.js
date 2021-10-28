@@ -216,22 +216,16 @@ nlesson = function() {
         rawFile.send(null);
     }
     
-    function Lesson_initDom(launchContext) {
+    function Lesson_initDom(launchContext, contentType, url) {
 	    jQuery('.toolBar').hide(); // shown later as needed!
-	    var self = this;
-        var params={};
-        window.location.search.replace(/[?&]+([^=&]+)=([^&]*)/gi, function(str,key,value) {
-            params[key] = value;
-          }
-        );
-        
+	    var self = this;        
         readTextFile("video.json", function(text){
             var data = JSON.parse(text);
             console.log(data);
             self.oLesson = data;
             self.parentTemplateContents = self.oLesson.parentTemplateContents || {};
+            _updateContentBasedOnContent(data, contentType, url)
             delete self.oLesson.parentTemplateContents;
-            //self.updateOLessonFromTempl();
             var selector = nlesson.theLesson.globals.selectionHandler;
             selector.setupToolbelt(1234, true, true);
             if (launchContext == 'edit') self.on_editor_mode(true);
@@ -252,6 +246,12 @@ nlesson = function() {
                 curPage.adjustHtmlDom();
             });    
         });
+    }
+
+    function _updateContentBasedOnContent(lesson, type, url) {
+        var firstPage = lesson.pages[0];
+        var firstSection = firstPage.sections[0];
+        firstSection.text = type+':'+url;
     }
 
     function Lesson_on_editor_mode(bInit) {
@@ -2565,7 +2565,7 @@ var modulePopup = new ModulePopupHadler();
 	//---------------------------------------------------------------------------------------------
 	var g_nlPlayerType = 'normal';
 	var g_nlEmbedType = '';
-    function init(launchContext, templateCssClass, nlPlayerType, nlEmbedType) {
+    function init(launchContext, templateCssClass, nlPlayerType, nlEmbedType, url) {
         g_nlPlayerType = nlPlayerType;
         g_nlEmbedType = nlEmbedType;
 		g_lesson.renderCtx.init(launchContext, g_lesson);
@@ -2576,7 +2576,7 @@ var modulePopup = new ModulePopupHadler();
         });
 		
 		jQuery(function() {
-            g_lesson.initDom(launchContext);
+            g_lesson.initDom(launchContext, nlEmbedType, url);
             _initFloaterTrnsparency();
 		});
 		
